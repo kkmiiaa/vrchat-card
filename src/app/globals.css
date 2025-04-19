@@ -1,3 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Rounded+Mplus+1c&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+1c&display=swap');
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

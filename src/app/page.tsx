@@ -15,6 +15,10 @@ export default function Home() {
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [selfIntro, setSelfIntro] = useState('')
 
+  const [vrchatId, setVrchatId] = useState('')
+  const [twitterId, setTwitterId] = useState('')
+  const [discordId, setDiscordId] = useState('')
+
   const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) setProfileImage(file)
@@ -23,17 +27,25 @@ export default function Home() {
   useEffect(() => {
     const canvasElement = canvasEl.current
     if (!canvasElement) return
-
+  
+    let currentCanvas: fabric.Canvas | null = null
+  
     const resizeAndRender = () => {
+      // dispose 前に renderer を無効化
+      rendererRef.current = null
+      currentCanvas?.dispose()
+  
       const width = canvasElement.clientWidth
       const height = width * 9 / 16
       canvasElement.width = width
       canvasElement.height = height
-
+  
       const canvas = new fabric.Canvas(canvasElement, { width, height })
+      currentCanvas = canvas
+  
       const renderer = new CanvasRenderer(canvas)
       rendererRef.current = renderer
-
+  
       renderer.render({
         name,
         language,
@@ -41,25 +53,38 @@ export default function Home() {
         microphone,
         profileImage,
         selfIntro,
+        vrchatId,
+        twitterId,
+        discordId,
       })
     }
-
+  
     resizeAndRender()
     window.addEventListener('resize', resizeAndRender)
-
+  
     return () => {
-      rendererRef.current?.canvas.dispose()
+      rendererRef.current = null
+      currentCanvas?.dispose()
       window.removeEventListener('resize', resizeAndRender)
     }
-  }, [name, language, playEnv, microphone, profileImage, selfIntro])
-
+  }, [
+    name, 
+    language, 
+    playEnv, microphone, 
+    profileImage, 
+    selfIntro,  
+    vrchatId,
+    twitterId,
+    discordId,
+  ])
+  
   const handleDownload = () => {
     rendererRef.current?.download()
   }
 
   return (
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
-      <header className="p-4 text-xl font-bold border-b">VRChat 自己紹介カード作成ツール</header>
+      <header className="p-4 text-xl font-bold border-b">VRChat自己紹介カードメーカー</header>
       <div className="flex flex-1 overflow-hidden">
         <section className="flex-1 flex items-center justify-center p-4">
           <canvas
@@ -82,7 +107,7 @@ export default function Home() {
               <input type="text" value={language} onChange={(e) => setLanguage(e.target.value)} className="p-2 border rounded" />
             </label>
             <div className="flex flex-col">
-              <span className="font-semibold">プレイ環境</span>
+              <span className="font-semibold">性別（プレイ環境）</span>
               <div className="flex gap-3 mt-1">
                 {['PCVR', 'quest', 'Desktop'].map((opt) => (
                   <label key={opt} className="flex items-center gap-1">
@@ -119,6 +144,41 @@ export default function Home() {
                 ))}
               </div>
             </div>
+            
+            <div className="flex flex-col gap-4 border-t pt-4">
+              <label className="flex flex-col">
+                <span className="font-semibold">VRChat ID</span>
+                <input
+                  type="text"
+                  value={vrchatId}
+                  onChange={(e) => setVrchatId(e.target.value)}
+                  className="p-2 border rounded"
+                />
+              </label>
+
+              <label className="flex flex-col">
+                <span className="font-semibold">X（旧Twitter）</span>
+                <input
+                  type="text"
+                  value={twitterId}
+                  onChange={(e) => setTwitterId(e.target.value)}
+                  placeholder="@yourhandle"
+                  className="p-2 border rounded"
+                />
+              </label>
+
+              <label className="flex flex-col">
+                <span className="font-semibold">Discord</span>
+                <input
+                  type="text"
+                  value={discordId}
+                  onChange={(e) => setDiscordId(e.target.value)}
+                  placeholder="YourName#1234"
+                  className="p-2 border rounded"
+                />
+              </label>
+            </div>
+
             <label className="flex flex-col">
               <span className="font-semibold">自己紹介</span>
               <textarea

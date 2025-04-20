@@ -2,22 +2,76 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { fabric } from 'fabric'
-import { CanvasRenderer } from '@/components/CanvasRenderer'
+import { CanvasRenderer, InteractionItem, MarkOption } from '@/components/CanvasRenderer'
 
 export default function Home() {
+  const STORAGE_KEY = 'vrchat-card-cache'
+
   const canvasEl = useRef<HTMLCanvasElement | null>(null)
   const rendererRef = useRef<CanvasRenderer | null>(null)
 
-  const [name, setName] = useState('')
-  const [language, setLanguage] = useState('')
-  const [playEnv, setPlayEnv] = useState<string[]>([])
-  const [microphone, setMicrophone] = useState<string[]>([])
-  const [profileImage, setProfileImage] = useState<File | null>(null)
-  const [selfIntro, setSelfIntro] = useState('')
+  const saveToLocalStorage = (data: Record<string, any>) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    } catch (e) {
+      console.warn('保存失敗:', e)
+    }
+  }
 
-  const [vrchatId, setVrchatId] = useState('')
-  const [twitterId, setTwitterId] = useState('')
-  const [discordId, setDiscordId] = useState('')
+  const loadFromLocalStorage = (): Partial<typeof initialState> => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      return saved ? JSON.parse(saved) : {}
+    } catch (e) {
+      console.warn('読み込み失敗:', e)
+      return {}
+    }
+  }
+
+  const cache = loadFromLocalStorage()
+
+  const initialState = {
+    name: '',
+    language: [] as string[],
+    gender: '',
+    playEnv: [] as string[],
+    micOnRate: 0,
+    profileImage: null as File | null,
+    selfIntro: '',
+    vrchatId: '',
+    twitterId: '',
+    discordId: '',
+    statusBlue: '',
+    statusGreen: '',
+    statusYellow: '',
+    statusRed: '',
+    friendPolicy: [] as string[],
+    interactions: [] as InteractionItem[],
+  }
+
+  const [name, setName] = useState(cache.name ?? '')
+  const [language, setLanguage] = useState<string[]>(cache.language ?? [])
+  const [gender, setGender] = useState(cache.gender ?? '')
+  const [playEnv, setPlayEnv] = useState<string[]>(cache.playEnv ?? [])
+  const [micOnRate, setMicOnRate] = useState<number>(cache.micOnRate ?? 0)
+  const [profileImage, setProfileImage] = useState<File | null>(null)
+  const [selfIntro, setSelfIntro] = useState(cache.selfIntro ?? '')
+
+  const [vrchatId, setVrchatId] = useState(cache.vrchatId ?? '')
+  const [twitterId, setTwitterId] = useState(cache.twitterId ?? '')
+  const [discordId, setDiscordId] = useState(cache.discordId ?? '')
+
+  const [statusBlue, setStatusBlue] = useState(cache.statusBlue ?? '')
+  const [statusGreen, setStatusGreen] = useState(cache.statusGreen ?? '')
+  const [statusYellow, setStatusYellow] = useState(cache.statusYellow ?? '')
+  const [statusRed, setStatusRed] = useState(cache.statusRed ?? '')
+
+  const [friendPolicy, setFriendPolicy] = useState<string[]>(cache.friendPolicy ?? [])
+
+  const defaultItems = ['触る', '近距離', 'お砂糖', '武器', '暴言/暴力', '下ネタ']
+  const [interactions, setInteractions] = useState<InteractionItem[]>(
+    cache.interactions ?? defaultItems.map(label => ({ label, mark: '' }))
+  )
 
   const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -31,32 +85,52 @@ export default function Home() {
     let currentCanvas: fabric.Canvas | null = null
   
     const resizeAndRender = () => {
-      // dispose 前に renderer を無効化
+      // 🔹 先にレンダラーを無効化しておく
       rendererRef.current = null
+  
+      // 🔹 canvas を一旦強制クリア（Fabric の内部バグ対策）
+      canvasElement.width = 0
+      canvasElement.height = 0
+  
+      // 🔹 前 canvas を dispose
       currentCanvas?.dispose()
   
+      // 🔹 新しいサイズを再設定
       const width = canvasElement.clientWidth
       const height = width * 9 / 16
       canvasElement.width = width
       canvasElement.height = height
   
+      // 🔹 Canvas & Renderer 再生成
       const canvas = new fabric.Canvas(canvasElement, { width, height })
       currentCanvas = canvas
   
       const renderer = new CanvasRenderer(canvas)
       rendererRef.current = renderer
   
-      renderer.render({
-        name,
-        language,
-        playEnv,
-        microphone,
-        profileImage,
-        selfIntro,
-        vrchatId,
-        twitterId,
-        discordId,
-      })
+      // 🔹 描画実行（画像読み込みが非同期なので try-catch 推奨）
+      try {
+        renderer.render({
+          name,
+          language,
+          gender,
+          playEnv,
+          micOnRate,
+          profileImage,
+          selfIntro,
+          vrchatId,
+          twitterId,
+          discordId,
+          statusBlue,
+          statusGreen,
+          statusYellow,
+          statusRed,
+          friendPolicy,
+          interactions
+        })
+      } catch (err) {
+        console.error('レンダリングエラー:', err)
+      }
     }
   
     resizeAndRender()
@@ -68,14 +142,49 @@ export default function Home() {
       window.removeEventListener('resize', resizeAndRender)
     }
   }, [
-    name, 
-    language, 
-    playEnv, microphone, 
-    profileImage, 
-    selfIntro,  
+    name,
+    language,
+    gender,
+    playEnv,
+    micOnRate,
+    profileImage,
+    selfIntro,
     vrchatId,
     twitterId,
     discordId,
+    statusBlue,
+    statusGreen,
+    statusYellow,
+    statusRed,
+    friendPolicy,
+    interactions
+  ])
+
+  useEffect(() => {
+    const data = {
+      name,
+      language,
+      gender,
+      playEnv,
+      micOnRate,
+      selfIntro,
+      vrchatId,
+      twitterId,
+      discordId,
+      statusBlue,
+      statusGreen,
+      statusYellow,
+      statusRed,
+      friendPolicy,
+      interactions
+      // 🔴 profileImage は File オブジェクトのため保存できない
+    }
+    saveToLocalStorage(data)
+  }, [
+    name, language, gender, playEnv, micOnRate, selfIntro,
+    vrchatId, twitterId, discordId,
+    statusBlue, statusGreen, statusYellow, statusRed,
+    friendPolicy,interactions
   ])
   
   const handleDownload = () => {
@@ -103,13 +212,13 @@ export default function Home() {
               <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="p-2 border rounded" />
             </label>
             <label className="flex flex-col">
-              <span className="font-semibold">言語</span>
-              <input type="text" value={language} onChange={(e) => setLanguage(e.target.value)} className="p-2 border rounded" />
+              <span className="font-semibold">性別（4文字まで）</span>
+              <input type="text" value={gender} onChange={(e) => setGender(e.target.value)} className="p-2 border rounded" />
             </label>
             <div className="flex flex-col">
-              <span className="font-semibold">性別（プレイ環境）</span>
+              <span className="font-semibold">環境</span>
               <div className="flex gap-3 mt-1">
-                {['PCVR', 'quest', 'Desktop'].map((opt) => (
+                {['PCVR', 'Quest', 'Desktop'].map((opt) => (
                   <label key={opt} className="flex items-center gap-1">
                     <input
                       type="checkbox"
@@ -125,26 +234,54 @@ export default function Home() {
                 ))}
               </div>
             </div>
-            <div className="flex flex-col">
-              <span className="font-semibold">マイク</span>
-              <div className="flex gap-3 mt-1">
-                {['ON', 'OFF'].map((opt) => (
-                  <label key={opt} className="flex items-center gap-1">
+
+            <label className="flex flex-col">
+              <span className="font-semibold">使用言語</span>
+              <div className="flex flex-wrap gap-3 mt-1">
+                {['日本語', 'English', 'Korean'].map((lang) => (
+                  <label key={lang} className="flex items-center gap-1">
                     <input
                       type="checkbox"
-                      value={opt}
-                      checked={microphone.includes(opt)}
+                      value={lang}
+                      checked={language.includes(lang)}
                       onChange={(e) => {
-                        if (e.target.checked) setMicrophone([...microphone, opt])
-                        else setMicrophone(microphone.filter((v) => v !== opt))
+                        if (e.target.checked) {
+                          setLanguage([...language, lang])
+                        } else {
+                          setLanguage(language.filter((l) => l !== lang))
+                        }
                       }}
                     />
-                    {opt}
+                    {lang}
                   </label>
                 ))}
               </div>
-            </div>
-            
+              <input
+                type="text"
+                placeholder="その他の言語（カンマ区切り）"
+                className="p-2 border rounded mt-2"
+                onChange={(e) => {
+                  const customLangs = e.target.value
+                    .split(',')
+                    .map((l) => l.trim())
+                    .filter((l) => l)
+                  setLanguage([...new Set([...language.filter(l => ['日本語', 'English', 'Korean'].includes(l)), ...customLangs])])
+                }}
+              />
+            </label>
+
+            <label className="flex flex-col">
+            <span className="font-semibold">マイクON率</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={micOnRate}
+              onChange={(e) => setMicOnRate(Number(e.target.value))}
+            />
+            <span>{micOnRate}%</span>
+          </label>
+
             <div className="flex flex-col gap-4 border-t pt-4">
               <label className="flex flex-col">
                 <span className="font-semibold">VRChat ID</span>
@@ -178,6 +315,102 @@ export default function Home() {
                 />
               </label>
             </div>
+
+            <div className="flex flex-col gap-4 mt-6 border-t pt-4">
+              <h2 className="text-lg font-bold">ステータスの説明</h2>
+
+              {[
+                { label: '青ステータス', value: statusBlue, setValue: setStatusBlue },
+                { label: '緑ステータス', value: statusGreen, setValue: setStatusGreen },
+                { label: '黄ステータス', value: statusYellow, setValue: setStatusYellow },
+                { label: '赤ステータス', value: statusRed, setValue: setStatusRed },
+              ].map(({ label, value, setValue }) => (
+                <label key={label} className="flex flex-col">
+                  <span className="font-semibold">{label}</span>
+                  <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    className="p-2 border rounded"
+                  />
+                </label>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-2 mt-6 border-t pt-4">
+              <span className="text-lg font-bold">フレンド申請ポリシー</span>
+              {[
+                'だれでもOK',
+                '仲良くなってから許可',
+                '気になったら許可',
+                'Twitter相互は申請OK',
+                '送らないでください',
+              ].map((option) => (
+                <label key={option} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    value={option}
+                    checked={friendPolicy.includes(option)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFriendPolicy([...friendPolicy, option])
+                      } else {
+                        setFriendPolicy(friendPolicy.filter((v) => v !== option))
+                      }
+                    }}
+                  />
+                  {option}
+                </label>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-2 mt-6 border-t pt-4">
+              <span className="text-lg font-bold">OKなこと・NGなこと</span>
+              
+              {interactions.map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <select
+                    value={item.mark}
+                    onChange={(e) => {
+                      const updated = [...interactions]
+                      updated[index].mark = e.target.value as MarkOption
+                      setInteractions(updated)
+                    }}
+                    className="w-16 p-1 border rounded"
+                  >
+                    <option value="-">―</option>
+                    <option value="◎">◎</option>
+                    <option value="◯">◯</option>
+                    <option value="△">△</option>
+                    <option value="✗">✗</option>
+                  </select>
+
+                  <input
+                    type="text"
+                    value={item.label}
+                    disabled={!item.isCustom}
+                    placeholder="カスタム項目"
+                    className="flex-1 p-1 border rounded"
+                    onChange={(e) => {
+                      const updated = [...interactions]
+                      updated[index].label = e.target.value
+                      setInteractions(updated)
+                    }}
+                  />
+                </div>
+              ))}
+
+              {interactions.filter(i => i.isCustom).length < 3 && (
+                <button
+                  onClick={() => setInteractions([...interactions, { label: '', mark: '', isCustom: true }])}
+                  className="mt-2 text-blue-600 underline text-sm"
+                >
+                  + カスタム項目を追加
+                </button>
+              )}
+            </div>
+
+
 
             <label className="flex flex-col">
               <span className="font-semibold">自己紹介</span>

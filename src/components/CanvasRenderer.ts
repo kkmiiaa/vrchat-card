@@ -1,16 +1,31 @@
 // components/CanvasRenderer.ts
 import { fabric } from 'fabric'
 
+export type MarkOption = '◎' | '◯' | '△' | '✗' | '-'
+
+export interface InteractionItem {
+  label: string
+  mark: MarkOption
+  isCustom?: boolean
+}
+
 interface RenderProps {
   name: string
   profileImage: File | null
-  language?: string
+  language?: string[]
+  gender?: string
   playEnv?: string[]
-  microphone?: string[]
+  micOnRate?: number
   selfIntro?: string
   vrchatId?: string
   twitterId?: string
   discordId?: string
+  statusBlue?: string
+  statusGreen?: string
+  statusYellow?: string
+  statusRed?: string
+  friendPolicy?: string[]
+  interactions: InteractionItem[]
 }
 
 interface GridArea {
@@ -55,13 +70,20 @@ export class CanvasRenderer {
     const { 
       name, 
       profileImage, 
+      gender,
       language, 
       playEnv, 
-      microphone, 
+      micOnRate, 
       selfIntro, 
       vrchatId, 
       twitterId,
-      discordId
+      discordId,
+      statusBlue,
+      statusGreen,
+      statusYellow,
+      statusRed,
+      friendPolicy,
+      interactions
     } = props
 
     this.clear()
@@ -71,35 +93,175 @@ export class CanvasRenderer {
     // 画像表示
     const imageSrc = profileImage ? URL.createObjectURL(profileImage) : '/default-profile.png'
     fabric.Image.fromURL(imageSrc, (img) => {
-      this.drawRoundedImage(img, { x: 0.05, y: 0.08, w: 0.2, h: 0.2 })
+      this.drawRoundedImage(
+        img, 
+        { x: 0.05, y: 0.08, w: 0.2, h: 0.2 }
+      )
     }, { crossOrigin: 'anonymous' })
 
-    // テキスト
-    this.drawTextBox("名前", "name", name || '', { x: 0.26, y: 0.08, w: 0.28, h: 0.075 }, false)
-    // this.drawText("使用言語: " + (language || '未入力'), { x: 0.3, y: 0.2, w: 0.5, h: 0.05 })
-    // this.drawText("プレイ環境: " + (playEnv?.join(', ') || '未入力'), { x: 0.3, y: 0.26, w: 0.5, h: 0.05 })
-    // this.drawText("マイク: " + (microphone?.join(', ') || '未入力'), { x: 0.3, y: 0.32, w: 0.5, h: 0.05 })
+    this.drawTextBox(
+      "名前", 
+      "name", 
+      name || '', 
+      { x: 0.26, y: 0.08, w: 0.28, h: 0.075 }, 
+      false,
+      0.016,
+      0.02,
+      0.013,
+      false,
+    )
+
+    this.drawInlineField(
+      '性別',
+      'gender',
+      gender ?? "", 
+      0.26,
+      0.21,
+      { x: 0.30, y: 0.21, w: 0.06, h: 0.045 }, 
+      0.013,
+      0.010,
+      0.011,
+      false,
+      'box'
+    )
+
+    this.drawInlineField(
+      '環境',
+      'env',
+      (playEnv ?? []).join(" / "), 
+      0.375,
+      0.21,
+      { x: 0.41, y: 0.21, w: 0.13, h: 0.045 }, 
+      0.013,
+      0.010,
+      0.010,
+      false,
+      'box'
+    )
 
     this.drawIconWithTextBox(
       'icon_vrchat.png',
       vrchatId ?? "",
-      { x: 0.26, y: 0.23, w: 0.03, h: 0.03 },  // icon area
-      { x: 0.30, y: 0.23, w: 0.24, h: 0.05 }   // text box area
+      { x: 0.26, y: 0.27, w: 0.03, h: 0.03 },
+      { x: 0.30, y: 0.27, w: 0.24, h: 0.05 },
+      0.012, 
+      0.15,
+      false,
     )
+
     this.drawIconWithTextBox(
       'icon_x.png',
       twitterId ?? "",
-      { x: 0.26, y: 0.29, w: 0.03, h: 0.03 },  // icon area
-      { x: 0.30, y: 0.29, w: 0.24, h: 0.05 }   // text box area
+      { x: 0.26, y: 0.33, w: 0.03, h: 0.03 },
+      { x: 0.30, y: 0.33, w: 0.24, h: 0.05 },
+      0.012, 
+      0.15,
+      false,
     )
+
     this.drawIconWithTextBox(
       'icon_discord.png',
       discordId ?? "",
-      { x: 0.2605, y: 0.355, w: 0.029, h: 0.03 },  // icon area
-      { x: 0.30, y: 0.35, w: 0.24, h: 0.05 }   // text box area
+      { x: 0.2605, y: 0.395, w: 0.029, h: 0.03 },
+      { x: 0.30, y: 0.39, w: 0.24, h: 0.05 },
+      0.012, 
+      0.15,
+      false,
     )
+
+    this.drawTextBox(
+      "言語", 
+      "language", 
+      (language ?? []).join(' / '), 
+      { x: 0.05, y: 0.455, w: 0.21, h: 0.05 }, 
+      false,
+      0.012,
+      0.01,
+      0.01,
+      false
+    )
+
+    this.drawMicGauge(
+      'マイクON率',
+      'mic usage',
+      micOnRate ?? 0,
+      { x: 0.05, y: 0.56, w: 0.18, h: 0.06 },
+      0.01,
+      0.01,
+      0.01,
+    )
+
+    this.drawStatusSection(
+      "ステータス", 
+      "statuses", 
+      {
+        blue: statusBlue ?? '',
+        green: statusGreen ?? '',
+        yellow: statusYellow ?? '',
+        red: statusRed ?? ''
+      }, 
+      { x: 0.05, y: 0.64, w: 0.24, h: 0.18 },
+      0.013,
+      0.01,
+      0.01,
+      0.018,
+      0.04,
+      0.015
+    )
+
+    this.drawTextBox(
+      "フレンド申請",
+      "friend request",
+      (friendPolicy ?? []).join(" / "),
+      { x: 0.28, y: 0.48, w: 0.26, h: 0.10 },
+      false,
+      0.013,
+      0.011,
+      0.01,
+      false
+    )
+
+    this.drawTitleAndSubtitle(
+      'OK / NG', 
+      'my boundaries', 
+      this.width * 0.28,
+      this.height * 0.64,
+      0.013,
+      0.01,
+    )
+
+    interactions.forEach((item, i) => {
+      this.drawInlineField(
+        '', // ラベルは使わない
+        '', // サブタイトルも不要
+        `${item.label}：${item.mark}`,
+        0,
+        0,
+        { 
+          x: 0.28 + 0.09 * (i%3), 
+          y: 0.68 + 0.07 * Math.floor(i/3), 
+          w: 0.08, 
+          h: 0.06 
+        },
+        0.013,
+        0.010,
+        0.010,
+        false,
+        'box'
+      )
+    })
     
-    this.drawTextBox("自己紹介", "self-introduction", selfIntro || '', { x: 0.56, y: 0.08, w: 0.40, h: 0.6 }, true)
+    this.drawTextBox(
+      "自己紹介", 
+      "introduction", 
+      selfIntro || '', 
+      { x: 0.56, y: 0.08, w: 0.40, h: 0.8 },
+      true,
+      0.016,
+      0.014,
+      0.012,
+      false
+    )
   }
 
   setBackgroundGradient(from: string, to: string) {
@@ -159,19 +321,6 @@ export class CanvasRenderer {
     this.canvas.add(path)
   }
 
-  drawText(text: string, xRatio: number, yRatio: number, fontSizeRatio = 1) {
-    const textObj = new fabric.Text(text, {
-      left: this.width * xRatio,
-      top: this.height * yRatio,
-      fontSize: this.fontSizeBase * fontSizeRatio,
-      fontFamily: '"Rounded Mplus 1c"',
-      fill: '#1f2937',
-      selectable: false,
-      evented: false,
-    })
-    this.canvas.add(textObj)
-  }
-
   drawTextBox(
     title: string,
     subtitle: string,
@@ -180,14 +329,15 @@ export class CanvasRenderer {
     multiline = false,
     labelFontSizeRatio = 0.016,
     valueFontSizeRatio = 0.016,
-    subtitleFontSizeRatio = 0.013
+    subtitleFontSizeRatio = 0.013,
+    isBorder = true,
   ) {
     const padding = this.width * 0.008
     const cornerRadius = this.width * 0.005
     const borderColor = '#ccc'
   
     const labelTop = this.height * area.y
-    const boxTop = this.height * (area.y + 0.05)
+    const boxTop = this.height * (area.y + 0.04)
     const boxLeft = this.width * area.x
     const boxWidth = this.width * area.w
     const boxHeight = this.height * area.h
@@ -233,8 +383,8 @@ export class CanvasRenderer {
       fill: 'white',
       rx: cornerRadius,
       ry: cornerRadius,
-      stroke: borderColor,
-      strokeWidth: this.width * 0.0015,
+      stroke: isBorder ? borderColor : undefined,
+      strokeWidth: isBorder ? this.width * 0.001 : 0,
       selectable: false,
       evented: false,
     })
@@ -264,7 +414,8 @@ export class CanvasRenderer {
     iconArea: GridArea,
     textArea: GridArea,
     valueFontSizeRatio = 0.014,
-    iconCornerRatio = 0.15
+    iconCornerRatio = 0.15,
+    isBorder = true,
   ) {
     const iconSize = this.width * iconArea.w
     const iconLeft = this.width * iconArea.x
@@ -309,7 +460,7 @@ export class CanvasRenderer {
       const boxWidth = this.width * textArea.w
       const boxHeight = this.height * textArea.h
       const cornerRadius = this.width * 0.005
-      const strokeWidth = this.width * 0.0015
+      const strokeWidth = this.width * 0.001
   
       const background = new fabric.Rect({
         left: boxLeft,
@@ -319,8 +470,8 @@ export class CanvasRenderer {
         fill: 'white',
         rx: cornerRadius,
         ry: cornerRadius,
-        stroke: '#ccc',
-        strokeWidth,
+        stroke: isBorder ? '#ccc' : undefined,
+        strokeWidth: isBorder ? strokeWidth : 0,
         selectable: false,
         evented: false,
       })
@@ -340,6 +491,152 @@ export class CanvasRenderer {
     }, { crossOrigin: 'anonymous' })
   }  
 
+  drawInlineField(
+    title: string,
+    subtitle: string,
+    value: string,
+    labelLeft: number,
+    labelTop: number,
+    boxArea: GridArea,
+    labelFontSizeRatio = 0.016,
+    subtitleFontSizeRatio = 0.012,
+    valueFontSizeRatio = 0.016,
+    withStroke = false,
+    variant: 'box' | 'underline' = 'box'  // ← 追加
+  ) {
+    const labelFontSize = this.width * labelFontSizeRatio
+    const subtitleFontSize = this.width * subtitleFontSizeRatio
+    const valueFontSize = this.width * valueFontSizeRatio
+    const padding = this.width * 0.006
+  
+    const label = new fabric.Text(title, {
+      left: this.width * labelLeft,
+      top: this.height * labelTop,
+      fontSize: labelFontSize,
+      fontFamily: 'Rounded Mplus 1c',
+      fill: '#1f2937',
+      selectable: false,
+      evented: false,
+    })
+  
+    const subtitleText = new fabric.Text(subtitle, {
+      left: label.left!,
+      top: label.top! + labelFontSize,
+      fontSize: subtitleFontSize,
+      fontFamily: 'Rounded Mplus 1c',
+      fill: '#6b7280',
+      selectable: false,
+      evented: false,
+    })
+  
+    const boxLeft = this.width * boxArea.x
+    const boxTop = this.height * boxArea.y
+    const boxWidth = this.width * boxArea.w
+    const boxHeight = this.height * boxArea.h
+    const cornerRadius = this.width * 0.005
+  
+    // optional background box（variantがboxの場合のみ描画）
+    if (variant === 'box') {
+      const background = new fabric.Rect({
+        left: boxLeft,
+        top: boxTop,
+        width: boxWidth,
+        height: boxHeight,
+        fill: 'white',
+        rx: cornerRadius,
+        ry: cornerRadius,
+        stroke: withStroke ? '#ccc' : undefined,
+        strokeWidth: withStroke ? this.width * 0.001 : 0,
+        selectable: false,
+        evented: false,
+      })
+      this.canvas.add(background)
+    }
+  
+    // テキストボックス
+    const textbox = new fabric.Textbox(value, {
+      left: boxLeft + padding,
+      top: boxTop + (boxHeight - valueFontSize) / 2,
+      width: boxWidth - padding * 2,
+      fontSize: valueFontSize,
+      fontFamily: 'Rounded Mplus 1c',
+      fill: '#1f2937',
+      selectable: false,
+      evented: false,
+      underline: variant === 'underline', // ← アンダーバー表示を制御
+    })
+  
+    this.canvas.add(label)
+    this.canvas.add(subtitleText)
+    this.canvas.add(textbox)
+  }
+
+  drawUnderlineField(
+    title: string,
+    subtitle: string,
+    value: string,
+    area: GridArea,
+    labelFontSizeRatio = 0.016,
+    subtitleFontSizeRatio = 0.012,
+    valueFontSizeRatio = 0.016
+  ) {
+    const left = this.width * area.x
+    const top = this.height * area.y
+    const width = this.width * area.w
+    const height = this.height * area.h
+  
+    const labelFontSize = this.width * labelFontSizeRatio
+    const subtitleFontSize = this.width * subtitleFontSizeRatio
+    const valueFontSize = this.width * valueFontSizeRatio
+  
+    const paddingY = height * 0.1
+  
+    const label = new fabric.Text(title, {
+      left,
+      top: top + paddingY,
+      fontSize: labelFontSize,
+      fontFamily: 'Rounded Mplus 1c',
+      fill: '#1f2937',
+      selectable: false,
+      evented: false,
+    })
+  
+    const subtitleText = new fabric.Text(subtitle, {
+      left,
+      top: label.top! + labelFontSize + (height * 0.02),
+      fontSize: subtitleFontSize,
+      fontFamily: 'Rounded Mplus 1c',
+      fill: '#6b7280',
+      selectable: false,
+      evented: false,
+    })
+  
+    const valueText = new fabric.Text(value, {
+      left,
+      top: subtitleText.top! + subtitleFontSize + (height * 0.03),
+      fontSize: valueFontSize,
+      fontFamily: 'Rounded Mplus 1c',
+      fill: '#1f2937',
+      selectable: false,
+      evented: false,
+    })
+  
+    const underline = new fabric.Line(
+      [left, top + height, left + width, top + height],
+      {
+        stroke: '#ccc',
+        strokeWidth: this.width * 0.001,
+        selectable: false,
+        evented: false,
+      }
+    )
+  
+    this.canvas.add(label)
+    this.canvas.add(subtitleText)
+    this.canvas.add(valueText)
+    this.canvas.add(underline)
+  }
+  
   drawRoundedImage(img: HTMLImageElement | fabric.Image, area: GridArea) {
     const size = this.width * area.w
     const left = this.width * area.x
@@ -370,6 +667,177 @@ export class CanvasRenderer {
     })
 
     this.canvas.add(group)
+  }
+
+  drawMicGauge(
+    title: string,
+    subtitle: string,
+    percent: number,
+    area: GridArea,
+    titleFontRatio = 0.016,
+    subtitleFontRatio = 0.012,
+    valueFontRatio = 0.014,
+    gradient: [string, string] = ['#60a5fa', '#a78bfa']
+  ) {
+    const padding = this.width * 0.006
+    const left = this.width * area.x
+    const top = this.height * area.y
+    const width = this.width * area.w
+    const height = this.height * area.h
+    const cornerRadius = this.width * 0.005
+    const barHeight = height * 0.3
+  
+    // ラベル横並び
+    const titleText = new fabric.Text(title, {
+      left,
+      top,
+      fontSize: this.width * titleFontRatio,
+      fontFamily: 'Rounded Mplus 1c',
+      fill: '#1f2937',
+      selectable: false,
+      evented: false,
+    })
+  
+    const subtitleText = new fabric.Text(subtitle, {
+      left: titleText.left! + titleText.width! + padding,
+      top: top + (titleText.fontSize! - this.width * subtitleFontRatio), // 下揃え
+      fontSize: this.width * subtitleFontRatio,
+      fontFamily: 'Rounded Mplus 1c',
+      fill: '#6b7280',
+      selectable: false,
+      evented: false,
+    })
+  
+    const barTop = top + titleText.fontSize! + padding * 1.5
+  
+    // 背景バー
+    const background = new fabric.Rect({
+      left,
+      top: barTop,
+      width,
+      height: barHeight,
+      fill: '#e5e7eb',
+      rx: cornerRadius,
+      ry: cornerRadius,
+      selectable: false,
+      evented: false,
+    })
+  
+    // ゲージ本体（グラデ）
+    const filled = new fabric.Rect({
+      left,
+      top: barTop,
+      width: width * (percent / 100),
+      height: barHeight,
+      rx: cornerRadius,
+      ry: cornerRadius,
+      fill: new fabric.Gradient({
+        type: 'linear',
+        gradientUnits: 'pixels',
+        coords: { x1: 0, y1: 0, x2: width, y2: 0 },
+        colorStops: [
+          { offset: 0, color: gradient[0] },
+          { offset: 1, color: gradient[1] },
+        ],
+      }),
+      selectable: false,
+      evented: false,
+    })
+  
+    // 数値表示
+    const valueText = new fabric.Text(`${percent}%`, {
+      left: left + width + padding,
+      top: barTop + (barHeight - this.width * valueFontRatio) / 2,
+      fontSize: this.width * valueFontRatio,
+      fontFamily: 'Rounded Mplus 1c',
+      fill: '#1f2937',
+      selectable: false,
+      evented: false,
+    })
+  
+    this.canvas.add(titleText, subtitleText, background, filled, valueText)
+  }
+
+  drawStatusSection(
+    title: string, 
+    subtitle: string, 
+    values: { blue: string, green: string, yellow: string, red: string }, 
+    area: GridArea,
+    titleFontRatio = 0.016,
+    subtitleFontRatio = 0.012,
+    valueFontRatio = 0.014,
+    iconSizeRatio = 0.03,
+    textBoxHeightRatio = 0.04,
+    rowSpacingRatio = 0.02, // 上下間の余白
+  ) {
+    const left = this.width * area.x
+    const top = this.height * area.y
+  
+    // タイトル・サブタイトル表示（横並び）
+    this.drawTitleAndSubtitle(title, subtitle, left, top, titleFontRatio, subtitleFontRatio)
+  
+    // 各行のスタート位置
+    const startY = area.y + 0.04 // 少し下に余白
+    const rowHeight = textBoxHeightRatio + rowSpacingRatio
+  
+    const colors = ['blue', 'green', 'yellow', 'red'] as const
+    colors.forEach((color, i) => {
+      const y = startY + rowHeight * i
+      const iconPath = `/icon_status_${color}.png`
+      const text = values[color]
+  
+      this.drawIconWithTextBox(
+        iconPath,
+        text,
+        {
+          x: area.x,
+          y,
+          w: iconSizeRatio,
+          h: iconSizeRatio
+        },
+        {
+          x: area.x + 0.03,
+          y,
+          w: area.w - 0.06,
+          h: textBoxHeightRatio
+        },
+        valueFontRatio, // 値のフォントサイズ比
+        0.15,
+        false
+      )
+    })
+  }
+
+  drawTitleAndSubtitle(
+    title: string,
+    subtitle: string,
+    left: number,
+    top: number,
+    titleFontRatio = 0.016,
+    subtitleFontRatio = 0.012,
+  ) {
+    const titleText = new fabric.Text(title, {
+      left,
+      top,
+      fontSize: this.width * titleFontRatio,
+      fontFamily: 'Rounded Mplus 1c',
+      fill: '#1f2937',
+      selectable: false,
+      evented: false,
+    })
+  
+    const subtitleText = new fabric.Text(subtitle, {
+      left: left + titleText.width! + this.width * 0.006,
+      top: top + (this.width * titleFontRatio - this.width * subtitleFontRatio), // 下揃え
+      fontSize: this.width * subtitleFontRatio,
+      fontFamily: 'Rounded Mplus 1c',
+      fill: '#6b7280',
+      selectable: false,
+      evented: false,
+    })
+  
+    this.canvas.add(titleText)
+    this.canvas.add(subtitleText)
   }
 
   download() {

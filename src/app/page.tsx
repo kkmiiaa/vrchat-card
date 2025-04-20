@@ -10,25 +10,8 @@ export default function Home() {
   const canvasEl = useRef<HTMLCanvasElement | null>(null)
   const rendererRef = useRef<CanvasRenderer | null>(null)
 
-  const saveToLocalStorage = (data: Record<string, any>) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-    } catch (e) {
-      console.warn('保存失敗:', e)
-    }
-  }
-
-  const loadFromLocalStorage = (): Partial<typeof initialState> => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      return saved ? JSON.parse(saved) : {}
-    } catch (e) {
-      console.warn('読み込み失敗:', e)
-      return {}
-    }
-  }
-
-  const cache = loadFromLocalStorage()
+  const [hasMounted, setHasMounted] = useState(false)
+  const [initialized, setInitialized] = useState(false)
 
   const initialState = {
     name: '',
@@ -49,34 +32,63 @@ export default function Home() {
     interactions: [] as InteractionItem[],
   }
 
-  const [name, setName] = useState(cache.name ?? '')
-  const [language, setLanguage] = useState<string[]>(cache.language ?? [])
-  const [gender, setGender] = useState(cache.gender ?? '')
-  const [playEnv, setPlayEnv] = useState<string[]>(cache.playEnv ?? [])
-  const [micOnRate, setMicOnRate] = useState<number>(cache.micOnRate ?? 0)
+  const [name, setName] = useState('')
+  const [language, setLanguage] = useState<string[]>([])
+  const [gender, setGender] = useState('')
+  const [playEnv, setPlayEnv] = useState<string[]>([])
+  const [micOnRate, setMicOnRate] = useState<number>(0)
   const [profileImage, setProfileImage] = useState<File | null>(null)
-  const [selfIntro, setSelfIntro] = useState(cache.selfIntro ?? '')
+  const [selfIntro, setSelfIntro] = useState('')
 
-  const [vrchatId, setVrchatId] = useState(cache.vrchatId ?? '')
-  const [twitterId, setTwitterId] = useState(cache.twitterId ?? '')
-  const [discordId, setDiscordId] = useState(cache.discordId ?? '')
+  const [vrchatId, setVrchatId] = useState('')
+  const [twitterId, setTwitterId] = useState('')
+  const [discordId, setDiscordId] = useState('')
 
-  const [statusBlue, setStatusBlue] = useState(cache.statusBlue ?? '')
-  const [statusGreen, setStatusGreen] = useState(cache.statusGreen ?? '')
-  const [statusYellow, setStatusYellow] = useState(cache.statusYellow ?? '')
-  const [statusRed, setStatusRed] = useState(cache.statusRed ?? '')
+  const [statusBlue, setStatusBlue] = useState('')
+  const [statusGreen, setStatusGreen] = useState('')
+  const [statusYellow, setStatusYellow] = useState('')
+  const [statusRed, setStatusRed] = useState('')
 
-  const [friendPolicy, setFriendPolicy] = useState<string[]>(cache.friendPolicy ?? [])
+  const [friendPolicy, setFriendPolicy] = useState<string[]>([])
 
   const defaultItems = ['触る', '近距離', 'お砂糖', '武器', '暴言/暴力', '下ネタ']
   const [interactions, setInteractions] = useState<InteractionItem[]>(
-    cache.interactions ?? defaultItems.map(label => ({ label, mark: '' }))
+    defaultItems.map(label => ({ label, mark: '-' }))
   )
 
   const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) setProfileImage(file)
   }
+
+  useEffect(() => {
+    setHasMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!hasMounted || initialized) return
+    const cache = loadFromLocalStorage()
+
+    if (cache.name) setName(cache.name)
+    if (cache.selfIntro) setSelfIntro(cache.selfIntro)
+    if (cache.language) setLanguage(cache.language)
+    if (cache.gender) setGender(cache.gender)
+    if (cache.playEnv) setPlayEnv(cache.playEnv)
+    if (cache.micOnRate) setMicOnRate(cache.micOnRate)
+    if (cache.vrchatId) setVrchatId(cache.vrchatId)
+    if (cache.twitterId) setTwitterId(cache.twitterId)
+    if (cache.discordId) setDiscordId(cache.discordId)
+    if (cache.statusBlue) setStatusBlue(cache.statusBlue)
+    if (cache.statusGreen) setStatusGreen(cache.statusGreen)
+    if (cache.statusYellow) setStatusYellow(cache.statusYellow)
+    if (cache.statusRed) setStatusRed(cache.statusRed)
+    if (cache.friendPolicy) setFriendPolicy(cache.friendPolicy)
+    if (cache.interactions) setInteractions(cache.interactions)
+    
+    console.log("initialization!")
+
+    setInitialized(true)
+  }, [hasMounted])
 
   useEffect(() => {
     const canvasElement = canvasEl.current
@@ -161,6 +173,7 @@ export default function Home() {
   ])
 
   useEffect(() => {
+    if (!initialized) return
     const data = {
       name,
       language,
@@ -186,6 +199,24 @@ export default function Home() {
     statusBlue, statusGreen, statusYellow, statusRed,
     friendPolicy,interactions
   ])
+
+  const saveToLocalStorage = (data: Record<string, any>) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    } catch (e) {
+      console.warn('保存失敗:', e)
+    }
+  }
+
+  const loadFromLocalStorage = (): Partial<typeof initialState> => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      return saved ? JSON.parse(saved) : {}
+    } catch (e) {
+      console.warn('読み込み失敗:', e)
+      return {}
+    }
+  }
   
   const handleDownload = () => {
     rendererRef.current?.download()
@@ -397,8 +428,22 @@ export default function Home() {
                       setInteractions(updated)
                     }}
                   />
+
+                  {item.isCustom && (
+                    <button
+                      onClick={() => {
+                        const updated = interactions.filter((_, i) => i !== index)
+                        setInteractions(updated)
+                      }}
+                      className="text-red-500 hover:underline text-sm"
+                      title="削除"
+                    >
+                      🗑️
+                    </button>
+                  )}
                 </div>
               ))}
+
 
               {interactions.filter(i => i.isCustom).length < 3 && (
                 <button

@@ -755,14 +755,16 @@ export class CanvasRenderer {
   }
   
   drawRoundedImage(img: HTMLImageElement | fabric.Image, area: GridArea) {
+    const image = img as fabric.Image
+
     const size = this.width * area.w
     const left = this.width * area.x
     const top = this.height * area.y
-    const scale = size / Math.max(img.width!, img.height!)
+    const scale = size / Math.max(image.width!, image.height!)
     const rx = size * 0.15
 
-    img.scale(scale)
-    img.set({ left: 0, top: 0, originX: 'left', originY: 'top' })
+    image.scale(scale)
+    image.set({ left: 0, top: 0, originX: 'left', originY: 'top' })
 
     const mask = new fabric.Rect({
       width: size,
@@ -776,7 +778,7 @@ export class CanvasRenderer {
       absolutePositioned: true,
     })
 
-    const group = new fabric.Group([img, mask], {
+    const group = new fabric.Group([image, mask], {
       left,
       top,
       selectable: false,

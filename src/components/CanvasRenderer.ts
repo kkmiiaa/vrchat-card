@@ -103,8 +103,9 @@ export class CanvasRenderer {
     // 画像表示
     const imageSrc = profileImage ? URL.createObjectURL(profileImage) : '/default-profile.png'
     fabric.Image.fromURL(imageSrc, (img) => {
+      const image = img as fabric.Image
       this.drawRoundedImage(
-        img, 
+        image, 
         { x: 0.05, y: 0.08, w: 0.2, h: 0.2 }
       )
     }, { crossOrigin: 'anonymous' })
@@ -297,22 +298,23 @@ export class CanvasRenderer {
         const url = URL.createObjectURL(file)
       
         fabric.Image.fromURL(url, (img) => {
+          const image = img as fabric.Image
           const targetSize = imageWidth // 正方形
         
           const scale = Math.max(
-            targetSize / img.width!,
-            targetSize / img.height!
+            targetSize / image.width!,
+            targetSize / image.height!
           )
         
-          img.scale(scale)
+          image.scale(scale)
         
-          const displayWidth = img.width! * scale
-          const displayHeight = img.height! * scale
+          const displayWidth = image.width! * scale
+          const displayHeight = image.height! * scale
         
           const offsetX = (displayWidth - targetSize) / 2
           const offsetY = (displayHeight - targetSize) / 2
         
-          img.set({
+          image.set({
             left: -offsetX,
             top: -offsetY,
             originX: 'left',
@@ -333,7 +335,7 @@ export class CanvasRenderer {
             absolutePositioned: true,
           })
         
-          const group = new fabric.Group([img, mask], {
+          const group = new fabric.Group([image, mask], {
             left,
             top,
             width: targetSize,
@@ -378,15 +380,16 @@ export class CanvasRenderer {
       })
     } else if (type === 'image' && typeof value === 'string') {
       fabric.Image.fromURL(value, (img) => {
-        img.set({
+        const image = img as fabric.Image
+        image.set({
           left: 0,
           top: 0,
-          scaleX: this.width / img.width!,
-          scaleY: this.height / img.height!,
+          scaleX: this.width / image.width!,
+          scaleY: this.height / image.height!,
           selectable: false,
           evented: false,
         })
-        this.canvas.add(img)
+        this.canvas.add(image)
       }, { crossOrigin: 'anonymous' })
       return
     }
@@ -535,9 +538,10 @@ export class CanvasRenderer {
     const iconTop = this.height * iconArea.y
   
     fabric.Image.fromURL(iconUrl, (img) => {
-      const scale = iconSize / Math.max(img.width!, img.height!)
-      img.scale(scale)
-      img.set({
+      const image = img as fabric.Image
+      const scale = iconSize / Math.max(image.width!, image.height!)
+      image.scale(scale)
+      image.set({
         left: 0,
         top: 0,
         originX: 'left',
@@ -557,7 +561,7 @@ export class CanvasRenderer {
         absolutePositioned: true,
       })
   
-      const group = new fabric.Group([img, mask], {
+      const group = new fabric.Group([image, mask], {
         left: iconLeft,
         top: iconTop,
         selectable: false,

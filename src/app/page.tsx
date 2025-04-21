@@ -294,14 +294,25 @@ export default function Home() {
       </header>
 
       <div className="flex flex-col lg:flex-1 lg:flex-row pt-[140px] lg:pt-0 lg:overflow-hidden">
-      <section className="relative w-full lg:flex-1 flex items-center justify-center p-4 max-w-full fixed top-[64px] lg:static z-10">
+        <section
+          className="
+            w-full max-w-full
+            flex items-center justify-center
+            p-4
+            lg:static
+            fixed 
+            top-[64px] lg:top-auto
+            z-10
+            lg:static
+          "
+        >
           <canvas
             ref={canvasEl}
             className="w-full max-w-[1920px] aspect-[16/9] border shadow-md"
           />
         </section>
 
-        <aside className="lg:w-[400px] lg:min-w-[300px] lg:max-w-[500px] w-full flex-1 overflow-y-auto p-4 border-t lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+64px)] lg:mt-0">
+        <aside className="lg:w-[400px] lg:min-w-[300px] lg:max-w-[500px] w-full flex-1 overflow-y-auto p-4 border-t lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+64px)] lg:mt-0 lg:pt-[80px]">
         <div className="flex flex-col gap-4">
             <label className="flex flex-col">
               <span className="font-semibold">プロフィール画像</span>

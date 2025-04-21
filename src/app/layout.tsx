@@ -24,7 +24,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <head>
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Rounded+Mplus+1c&display=swap" 
+          rel="stylesheet" 
+        />
+      </head>
+      <body className={`font-rounded ${geistSans.variable} ${geistMono.variable}`}>
         {children}
       </body>
     </html>

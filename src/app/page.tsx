@@ -312,7 +312,12 @@ export default function Home() {
           />
         </section>
 
-        <aside className="lg:w-[400px] lg:min-w-[300px] lg:max-w-[500px] w-full flex-1 overflow-y-auto p-4 border-t lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+64px)] lg:mt-0 lg:pt-[80px]">
+        <aside 
+          className="
+            lg:w-[400px] lg:min-w-[300px] lg:max-w-[500px] 
+            w-full flex-1 overflow-y-auto p-4 border-t 
+            lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+64px)] lg:mt-0 lg:pt-[80px]"
+          >
         <div className="flex flex-col gap-4">
             <label className="flex flex-col">
               <span className="font-semibold">プロフィール画像</span>

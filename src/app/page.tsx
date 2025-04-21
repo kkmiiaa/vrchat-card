@@ -20,6 +20,8 @@ type LocalStorageCache = {
   statusRed: string
   friendPolicy: string[]
   interactions: InteractionItem[]
+  backgroundType: "color" | "gradient" | "image"
+  backgroundValue: string | [string, string],   
 }
 
 export default function Home() {

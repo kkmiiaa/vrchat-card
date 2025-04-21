@@ -272,35 +272,37 @@ export default function Home() {
     for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i)
     return new Blob([ab], { type: mimeString })
   }
-  
 
   return (
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
-      <header className="p-4 text-xl font-bold border-b">VRChat自己紹介カードメーカー</header>
-      <div className="flex flex-1 overflow-hidden">
-        <section className="relative flex-1 flex items-center justify-center p-4">
-          <div className="absolute top-4 right-4 flex gap-2 z-10">
-            <button
-              onClick={handleDownload}
-              className="bg-green-600 text-white px-3 py-1.5 text-sm rounded shadow"
-            >
-              画像を保存
-            </button>
-            <button
-              onClick={handlePostToX}
-              className="bg-blue-600 text-white px-3 py-1.5 text-sm rounded shadow"
-            >
-              Xでシェア ※ 画像は手動で添付してください
-            </button>
-          </div>
+      <header className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b fixed top-0 left-0 w-full z-20 bg-white shadow-md">
+        <h1 className="text-xl font-bold">VRChat自己紹介カードメーカー</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={handleDownload}
+            className="bg-green-600 text-white px-3 py-1.5 text-sm rounded shadow"
+          >
+            画像を保存
+          </button>
+          <button
+            onClick={handlePostToX}
+            className="bg-blue-600 text-white px-3 py-1.5 text-sm rounded shadow"
+          >
+            Xでシェア ※画像は手動添付
+          </button>
+        </div>
+      </header>
 
+      <div className="flex flex-col lg:flex-1 lg:flex-row pt-[140px] lg:pt-0 lg:overflow-hidden">
+      <section className="relative w-full lg:flex-1 flex items-center justify-center p-4 max-w-full fixed top-[64px] lg:static z-10">
           <canvas
             ref={canvasEl}
             className="w-full max-w-[1920px] aspect-[16/9] border shadow-md"
           />
         </section>
-        <aside className="w-[400px] min-w-[300px] max-w-[500px] overflow-y-auto p-4 border-l">
-          <div className="flex flex-col gap-4">
+
+        <aside className="lg:w-[400px] lg:min-w-[300px] lg:max-w-[500px] w-full flex-1 overflow-y-auto p-4 border-t lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+64px)] lg:mt-0">
+        <div className="flex flex-col gap-4">
             <label className="flex flex-col">
               <span className="font-semibold">プロフィール画像</span>
               <input type="file" accept="image/*" onChange={handleProfileImageUpload} className="p-1" />
@@ -641,7 +643,8 @@ export default function Home() {
           </div>
         </aside>
       </div>
-      <footer className="p-4 flex justify-between items-center border-t bg-white">
+
+      <footer className="p-4 flex justify-between items-center border-t bg-white fixed bottom-0 left-0 w-full z-20">
         <div className="text-sm text-gray-500">ⓘ 広告スペース or サポートリンクなど</div>
       </footer>
     </main>

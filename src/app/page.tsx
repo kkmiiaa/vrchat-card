@@ -30,6 +30,8 @@ export default function Home() {
     statusRed: '',
     friendPolicy: [] as string[],
     interactions: [] as InteractionItem[],
+    backgroundType: '' as 'color' | 'gradient' | 'image',
+    backgroundValue: '' as string | [string, string] | File
   }
 
   const [name, setName] = useState('')
@@ -55,6 +57,9 @@ export default function Home() {
   const [interactions, setInteractions] = useState<InteractionItem[]>(
     defaultItems.map(label => ({ label, mark: '-' }))
   )
+
+  const [backgroundType, setBackgroundType] = useState<'color' | 'gradient' | 'image'>('color')
+  const [backgroundValue, setBackgroundValue] = useState<string | [string, string] | File>('#f87171')
 
   const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -84,6 +89,8 @@ export default function Home() {
     if (cache.statusRed) setStatusRed(cache.statusRed)
     if (cache.friendPolicy) setFriendPolicy(cache.friendPolicy)
     if (cache.interactions) setInteractions(cache.interactions)
+    if (cache.backgroundType) setBackgroundType(cache.backgroundType)
+    if (cache.backgroundValue) setBackgroundValue(cache.backgroundValue)
     
     console.log("initialization!")
 
@@ -138,7 +145,9 @@ export default function Home() {
           statusYellow,
           statusRed,
           friendPolicy,
-          interactions
+          interactions,
+          backgroundType,
+          backgroundValue,
         })
       } catch (err) {
         console.error('レンダリングエラー:', err)
@@ -169,7 +178,9 @@ export default function Home() {
     statusYellow,
     statusRed,
     friendPolicy,
-    interactions
+    interactions,
+    backgroundType,
+    backgroundValue,
   ])
 
   useEffect(() => {
@@ -189,7 +200,9 @@ export default function Home() {
       statusYellow,
       statusRed,
       friendPolicy,
-      interactions
+      interactions,
+      backgroundType,
+      backgroundValue,
       // 🔴 profileImage は File オブジェクトのため保存できない
     }
     saveToLocalStorage(data)
@@ -197,7 +210,7 @@ export default function Home() {
     name, language, gender, playEnv, micOnRate, selfIntro,
     vrchatId, twitterId, discordId,
     statusBlue, statusGreen, statusYellow, statusRed,
-    friendPolicy,interactions
+    friendPolicy, interactions, backgroundType, backgroundValue,
   ])
 
   const saveToLocalStorage = (data: Record<string, any>) => {
@@ -444,10 +457,9 @@ export default function Home() {
                 </div>
               ))}
 
-
               {interactions.filter(i => i.isCustom).length < 3 && (
                 <button
-                  onClick={() => setInteractions([...interactions, { label: '', mark: '', isCustom: true }])}
+                  onClick={() => setInteractions([...interactions, { label: '', mark: '-', isCustom: true }])}
                   className="mt-2 text-blue-600 underline text-sm"
                 >
                   + カスタム項目を追加
@@ -466,6 +478,80 @@ export default function Home() {
                 className="p-2 border rounded"
               />
             </label>
+
+            <div className="flex flex-col gap-4 mt-6 border-t pt-4">
+              <h2 className="text-lg font-bold">背景の設定</h2>
+
+              {/* 単色選択 */}
+              <div>
+                <span className="font-semibold">単色背景</span>
+                <div className="flex gap-2 mt-1">
+                  {[
+                    '#f87171', 
+                    '#fcd5ce',
+                    '#60a5fa', 
+                    '#e0f7fa',
+                    '#34d399', 
+                    '#facc15', 
+                    '#a78bfa', 
+                    '#e6e6fa',
+                    '#f3f4f6', 
+                    '#333333',
+                  ].map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => {
+                        setBackgroundType('color')
+                        setBackgroundValue(color)
+                      }}
+                      className="w-8 h-8 rounded"
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* グラデーション選択 */}
+              <div>
+                <span className="font-semibold">グラデーション背景</span>
+                <div className="flex gap-2 mt-1">
+                  {[
+                    { id: 'blue-purple', from: '#60a5fa', to: '#a78bfa' },
+                    { id: 'pink-red', from: '#f472b6', to: '#ef4444' },
+                    { id: 'pastel-sky', from: '#fcd5ce', to: '#e0f7fa' },
+                    { id: 'mint-lavender', from: '#34d399', to: '#e6e6fa' },
+                    { id: 'neutral-dark', from: '#f3f4f6', to: '#333333' },
+                  ].map(({ id, from, to }) => (
+                    <button
+                      key={id}
+                      onClick={() => {
+                        setBackgroundType('gradient')
+                        setBackgroundValue([from, to])
+                      }}
+                      className="w-16 h-8 rounded"
+                      style={{ backgroundImage: `linear-gradient(to right, ${from}, ${to})` }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* 背景画像アップロード */}
+              <div>
+                <span className="font-semibold">画像背景</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setBackgroundType('image')
+                      setBackgroundValue(file)
+                    }
+                  }}
+                  className="mt-1"
+                />
+              </div>
+            </div>
           </div>
         </aside>
       </div>

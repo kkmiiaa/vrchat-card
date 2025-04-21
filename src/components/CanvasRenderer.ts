@@ -26,6 +26,8 @@ interface RenderProps {
   statusRed?: string
   friendPolicy?: string[]
   interactions: InteractionItem[]
+  backgroundType?: 'color' | 'gradient' | 'image'
+  backgroundValue?: string | [string, string] | File
 }
 
 interface GridArea {
@@ -54,7 +56,6 @@ export class CanvasRenderer {
     this.width = canvas.getWidth()
     this.height = canvas.getHeight()
   
-    // 👇 画面幅の 4% をパディングに（例：1000px → 40px）
     this.balloonPadding = this.width * 0.02
     this.fontSizeBase = this.width * 0.018
     this.cornerRadius = this.width * 0.03
@@ -83,11 +84,16 @@ export class CanvasRenderer {
       statusYellow,
       statusRed,
       friendPolicy,
-      interactions
+      interactions,
+      backgroundType,
+      backgroundValue
     } = props
 
     this.clear()
-    this.setBackgroundGradient('#60a5fa', '#a78bfa')
+    this.setBackground(
+      backgroundType ?? "gradient", 
+      backgroundValue ?? ['#60a5fa', '#a78bfa']
+    )
     this.drawBalloon(0.9)
 
     // 画像表示
@@ -108,6 +114,7 @@ export class CanvasRenderer {
       0.016,
       0.02,
       0.013,
+      0.01,
       false,
     )
 
@@ -178,6 +185,7 @@ export class CanvasRenderer {
       0.012,
       0.01,
       0.01,
+      0.008,
       false
     )
 
@@ -218,6 +226,7 @@ export class CanvasRenderer {
       0.013,
       0.011,
       0.01,
+      0.008,
       false
     )
 
@@ -255,33 +264,57 @@ export class CanvasRenderer {
       "自己紹介", 
       "introduction", 
       selfIntro || '', 
-      { x: 0.56, y: 0.08, w: 0.40, h: 0.8 },
+      { x: 0.56, y: 0.08, w: 0.40, h: 0.76 },
       true,
       0.016,
       0.014,
       0.012,
+      0.015,
       false
     )
+
+    this.drawCopyright()
   }
 
-  setBackgroundGradient(from: string, to: string) {
+  setBackground(type: 'color' | 'gradient' | 'image', value: string | [string, string] | File) {
     const bg = new fabric.Rect({
       left: 0,
       top: 0,
       width: this.width,
       height: this.height,
-      fill: new fabric.Gradient({
-        type: 'linear',
-        gradientUnits: 'pixels',
-        coords: { x1: 0, y1: 0, x2: this.width, y2: 0 },
-        colorStops: [
-          { offset: 0, color: from },
-          { offset: 1, color: to },
-        ],
-      }),
       selectable: false,
-      evented: false,
+      evented: false
     })
+
+    if (type === 'color' && typeof value === 'string') {
+      bg.set({ fill: value })
+    } else if (type === 'gradient' && Array.isArray(value)) {
+      bg.set({
+        fill: new fabric.Gradient({
+          type: 'linear',
+          gradientUnits: 'pixels',
+          coords: { x1: 0, y1: 0, x2: this.width, y2: 0 },
+          colorStops: [
+            { offset: 0, color: value[0] },
+            { offset: 1, color: value[1] },
+          ],
+        })
+      })
+    } else if (type === 'image' && typeof value === 'string') {
+      fabric.Image.fromURL(value, (img) => {
+        img.set({
+          left: 0,
+          top: 0,
+          scaleX: this.width / img.width!,
+          scaleY: this.height / img.height!,
+          selectable: false,
+          evented: false,
+        })
+        this.canvas.add(img)
+      }, { crossOrigin: 'anonymous' })
+      return
+    }
+
     this.canvas.add(bg)
   }
 
@@ -293,33 +326,37 @@ export class CanvasRenderer {
     const r = this.cornerRadius
     const tailW = this.tailWidth
     const tailH = this.tailHeight
-
+  
+    // 👇 三角の位置を右寄りに移動（右端から余白40pxの位置に中心が来るように）
+    const tailCenterX = left + width - this.width * 0.08
+  
     const path = new fabric.Path(`
       M ${left + r} ${top}
       H ${left + width - r}
       A ${r} ${r} 0 0 1 ${left + width} ${top + r}
       V ${top + height - tailH - r}
       A ${r} ${r} 0 0 1 ${left + width - r} ${top + height - tailH}
-      H ${left + width / 2 + tailW / 2}
-      L ${left + width / 2} ${top + height}
-      L ${left + width / 2 - tailW / 2} ${top + height - tailH}
+      H ${tailCenterX + tailW / 2}
+      L ${tailCenterX + tailW * 0.5} ${top + height}
+      L ${tailCenterX - tailW / 2} ${top + height - tailH}
       H ${left + r}
       A ${r} ${r} 0 0 1 ${left} ${top + height - tailH - r}
       V ${top + r}
       A ${r} ${r} 0 0 1 ${left + r} ${top}
       Z
     `)
-
+  
     path.set({
       fill: `rgba(255,255,255,${alpha})`,
       stroke: '#000',
-      strokeWidth: this.width * 0.003, // ← 枠線もスケール
+      strokeWidth: this.width * 0.003,
       selectable: false,
       evented: false,
     })
-
+  
     this.canvas.add(path)
   }
+  
 
   drawTextBox(
     title: string,
@@ -330,9 +367,10 @@ export class CanvasRenderer {
     labelFontSizeRatio = 0.016,
     valueFontSizeRatio = 0.016,
     subtitleFontSizeRatio = 0.013,
+    paddingRatio = 0.008,
     isBorder = true,
   ) {
-    const padding = this.width * 0.008
+    const padding = this.width * paddingRatio
     const cornerRadius = this.width * 0.005
     const borderColor = '#ccc'
   
@@ -342,9 +380,7 @@ export class CanvasRenderer {
     const boxWidth = this.width * area.w
     const boxHeight = this.height * area.h
   
-    const contentHeight = multiline
-      ? this.height * 0.15
-      : boxHeight - padding * 2
+    const contentHeight = boxHeight - padding * 2
   
     const labelFontSize = this.width * labelFontSizeRatio
     const subtitleFontSize = this.width * subtitleFontSizeRatio
@@ -400,6 +436,7 @@ export class CanvasRenderer {
       fill: '#1f2937',
       selectable: false,
       evented: false,
+      splitByGrapheme: true
     })
   
     this.canvas.add(label)
@@ -838,6 +875,19 @@ export class CanvasRenderer {
   
     this.canvas.add(titleText)
     this.canvas.add(subtitleText)
+  }
+
+  drawCopyright() {
+    const text = new fabric.Text('VRChat自己紹介カードメーカー by @yota3d', {
+      left: this.balloonPadding,
+      top: this.height*(1 - 0.04),
+      fontSize: this.fontSizeBase * 0.5,
+      fontFamily: '"Rounded Mplus 1c"',
+      fill: '#ffffff',
+      selectable: false,
+      evented: false,
+    })
+    this.canvas.add(text)
   }
 
   download() {

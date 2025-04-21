@@ -280,7 +280,7 @@ export class CanvasRenderer {
 
     if (galleryEnabled) {
       const maxImages = 3
-      const padding = this.width * 0.01
+      const _padding = this.width * 0.01
       const areaX = 0.56
       const areaYBottom = 0.645
       const areaW = 0.40
@@ -288,7 +288,7 @@ export class CanvasRenderer {
       const margin = this.width * 0.008
       const totalWidth = this.width * areaW - margin * (maxImages - 1)
       const imageWidth = totalWidth / maxImages
-      const imageHeight = imageWidth * 0.5625 // 16:9
+      const _imageHeight = imageWidth * 0.5625 // 16:9
       const top = this.height * (areaYBottom + 0.01)
     
       galleryImages.slice(0, maxImages).forEach((file, i) => {
@@ -439,7 +439,7 @@ export class CanvasRenderer {
     subtitle: string,
     value: string,
     area: GridArea,
-    multiline = false,
+    _multiline = false,
     labelFontSizeRatio = 0.016,
     valueFontSizeRatio = 0.016,
     subtitleFontSizeRatio = 0.013,

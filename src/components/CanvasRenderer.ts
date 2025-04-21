@@ -263,28 +263,29 @@ export class CanvasRenderer {
         'box'
       )
     })
-    
+
+    const introductionHeight = galleryEnabled ? 0.52 : 0.76
     this.drawTextBox(
       "自己紹介", 
       "introduction", 
       selfIntro || '', 
-      { x: 0.56, y: 0.08, w: 0.40, h: 0.76 },
+      { x: 0.56, y: 0.08, w: 0.40, h: introductionHeight },
       true,
       0.016,
-      0.014,
+      0.013,
       0.012,
-      0.015,
+      0.014,
       false
     )
 
     if (galleryEnabled) {
       const maxImages = 3
-      const padding = this.width * 0.015
+      const padding = this.width * 0.01
       const areaX = 0.56
       const areaYBottom = 0.645
       const areaW = 0.40
     
-      const margin = this.width * 0.01
+      const margin = this.width * 0.008
       const totalWidth = this.width * areaW - margin * (maxImages - 1)
       const imageWidth = totalWidth / maxImages
       const imageHeight = imageWidth * 0.5625 // 16:9
@@ -294,19 +295,58 @@ export class CanvasRenderer {
         if (!file) return
         const left = this.width * areaX + i * (imageWidth + margin)
         const url = URL.createObjectURL(file)
-    
+      
         fabric.Image.fromURL(url, (img) => {
-          const scale = imageWidth / img.width!
+          const targetSize = imageWidth // 正方形
+        
+          const scale = Math.max(
+            targetSize / img.width!,
+            targetSize / img.height!
+          )
+        
           img.scale(scale)
+        
+          const displayWidth = img.width! * scale
+          const displayHeight = img.height! * scale
+        
+          const offsetX = (displayWidth - targetSize) / 2
+          const offsetY = (displayHeight - targetSize) / 2
+        
           img.set({
+            left: -offsetX,
+            top: -offsetY,
+            originX: 'left',
+            originY: 'top',
+          })
+        
+          const rx = targetSize * 0.05
+        
+          const mask = new fabric.Rect({
+            width: targetSize,
+            height: targetSize,
+            rx,
+            ry: rx,
+            fill: 'white',
+            globalCompositeOperation: 'destination-in',
+            originX: 'left',
+            originY: 'top',
+            absolutePositioned: true,
+          })
+        
+          const group = new fabric.Group([img, mask], {
             left,
             top,
+            width: targetSize,
+            height: targetSize,
             selectable: false,
             evented: false,
           })
-          this.canvas.add(img)
+        
+          this.canvas.add(group)
         }, { crossOrigin: 'anonymous' })
+
       })
+      
     }
 
     this.drawCopyright()

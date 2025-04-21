@@ -4,6 +4,24 @@ import { useEffect, useRef, useState } from 'react'
 import { fabric } from 'fabric'
 import { CanvasRenderer, InteractionItem, MarkOption } from '@/components/CanvasRenderer'
 
+type LocalStorageCache = {
+  name: string
+  language: string[]
+  gender: string
+  playEnv: string[]
+  micOnRate: number
+  selfIntro: string
+  vrchatId: string
+  twitterId: string
+  discordId: string
+  statusBlue: string
+  statusGreen: string
+  statusYellow: string
+  statusRed: string
+  friendPolicy: string[]
+  interactions: InteractionItem[]
+}
+
 export default function Home() {
   const STORAGE_KEY = 'vrchat-card-cache'
 
@@ -12,27 +30,6 @@ export default function Home() {
 
   const [hasMounted, setHasMounted] = useState(false)
   const [initialized, setInitialized] = useState(false)
-
-  const initialState = {
-    name: '',
-    language: [] as string[],
-    gender: '',
-    playEnv: [] as string[],
-    micOnRate: 0,
-    profileImage: null as File | null,
-    selfIntro: '',
-    vrchatId: '',
-    twitterId: '',
-    discordId: '',
-    statusBlue: '',
-    statusGreen: '',
-    statusYellow: '',
-    statusRed: '',
-    friendPolicy: [] as string[],
-    interactions: [] as InteractionItem[],
-    backgroundType: '' as 'color' | 'gradient' | 'image',
-    backgroundValue: '' as string | [string, string] | File
-  }
 
   const [name, setName] = useState('')
   const [language, setLanguage] = useState<string[]>([])
@@ -222,7 +219,7 @@ export default function Home() {
     friendPolicy, interactions, backgroundType, backgroundValue,
   ])
 
-  const saveToLocalStorage = (data: Record<string, any>) => {
+  const saveToLocalStorage = (data: Record<string, unknown>) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
     } catch (e) {
@@ -230,7 +227,7 @@ export default function Home() {
     }
   }
 
-  const loadFromLocalStorage = (): Partial<typeof initialState> => {
+  const loadFromLocalStorage = (): Partial<LocalStorageCache> => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
       return saved ? JSON.parse(saved) : {}
@@ -244,11 +241,57 @@ export default function Home() {
     rendererRef.current?.download()
   }
 
+  const handlePostToX = () => {
+    if (!rendererRef.current) return
+  
+    const dataURL = rendererRef.current.canvas.toDataURL({
+      format: 'png',
+      multiplier: 2,
+    })
+  
+    // ダウンロード
+    const link = document.createElement('a')
+    link.href = dataURL
+    link.download = 'vrchat_card.png'
+    link.click()
+  
+    // 投稿画面を開く
+    const tweetText = encodeURIComponent('自己紹介カードを作りました！ #VRChat自己紹介カード')
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`
+    window.open(tweetUrl, '_blank')
+  }
+  
+  // Data URL を Blob に変換
+  const dataURLtoBlob = (dataURL: string) => {
+    const byteString = atob(dataURL.split(',')[1])
+    const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0]
+    const ab = new ArrayBuffer(byteString.length)
+    const ia = new Uint8Array(ab)
+    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i)
+    return new Blob([ab], { type: mimeString })
+  }
+  
+
   return (
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
       <header className="p-4 text-xl font-bold border-b">VRChat自己紹介カードメーカー</header>
       <div className="flex flex-1 overflow-hidden">
-        <section className="flex-1 flex items-center justify-center p-4">
+        <section className="relative flex-1 flex items-center justify-center p-4">
+          <div className="absolute top-4 right-4 flex gap-2 z-10">
+            <button
+              onClick={handleDownload}
+              className="bg-green-600 text-white px-3 py-1.5 text-sm rounded shadow"
+            >
+              画像を保存
+            </button>
+            <button
+              onClick={handlePostToX}
+              className="bg-blue-600 text-white px-3 py-1.5 text-sm rounded shadow"
+            >
+              Xでシェア ※ 画像は手動で添付してください
+            </button>
+          </div>
+
           <canvas
             ref={canvasEl}
             className="w-full max-w-[1920px] aspect-[16/9] border shadow-md"
@@ -597,9 +640,6 @@ export default function Home() {
         </aside>
       </div>
       <footer className="p-4 flex justify-between items-center border-t bg-white">
-        <div className="flex gap-4">
-          <button onClick={handleDownload} className="bg-green-600 text-white px-4 py-2 rounded">ダウンロード</button>
-        </div>
         <div className="text-sm text-gray-500">ⓘ 広告スペース or サポートリンクなど</div>
       </footer>
     </main>

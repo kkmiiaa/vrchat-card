@@ -27,7 +27,9 @@ interface RenderProps {
   friendPolicy?: string[]
   interactions: InteractionItem[]
   backgroundType?: 'color' | 'gradient' | 'image'
-  backgroundValue?: string | [string, string] | File
+  backgroundValue?: string | [string, string] | File,
+  galleryEnabled: boolean
+  galleryImages: (File | null)[]
 }
 
 interface GridArea {
@@ -86,7 +88,9 @@ export class CanvasRenderer {
       friendPolicy,
       interactions,
       backgroundType,
-      backgroundValue
+      backgroundValue,
+      galleryEnabled,
+      galleryImages
     } = props
 
     this.clear()
@@ -272,6 +276,38 @@ export class CanvasRenderer {
       0.015,
       false
     )
+
+    if (galleryEnabled) {
+      const maxImages = 3
+      const padding = this.width * 0.015
+      const areaX = 0.56
+      const areaYBottom = 0.645
+      const areaW = 0.40
+    
+      const margin = this.width * 0.01
+      const totalWidth = this.width * areaW - margin * (maxImages - 1)
+      const imageWidth = totalWidth / maxImages
+      const imageHeight = imageWidth * 0.5625 // 16:9
+      const top = this.height * (areaYBottom + 0.01)
+    
+      galleryImages.slice(0, maxImages).forEach((file, i) => {
+        if (!file) return
+        const left = this.width * areaX + i * (imageWidth + margin)
+        const url = URL.createObjectURL(file)
+    
+        fabric.Image.fromURL(url, (img) => {
+          const scale = imageWidth / img.width!
+          img.scale(scale)
+          img.set({
+            left,
+            top,
+            selectable: false,
+            evented: false,
+          })
+          this.canvas.add(img)
+        }, { crossOrigin: 'anonymous' })
+      })
+    }
 
     this.drawCopyright()
   }

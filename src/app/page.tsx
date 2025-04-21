@@ -61,6 +61,9 @@ export default function Home() {
   const [backgroundType, setBackgroundType] = useState<'color' | 'gradient' | 'image'>('color')
   const [backgroundValue, setBackgroundValue] = useState<string | [string, string] | File>('#f87171')
 
+  const [galleryEnabled, setGalleryEnabled] = useState(false)
+  const [galleryImages, setGalleryImages] = useState<(File | null)[]>([null, null, null])
+
   const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) setProfileImage(file)
@@ -148,6 +151,8 @@ export default function Home() {
           interactions,
           backgroundType,
           backgroundValue,
+          galleryEnabled,
+          galleryImages
         })
       } catch (err) {
         console.error('レンダリングエラー:', err)
@@ -181,6 +186,8 @@ export default function Home() {
     interactions,
     backgroundType,
     backgroundValue,
+    galleryEnabled,
+    galleryImages,
   ])
 
   useEffect(() => {
@@ -203,6 +210,8 @@ export default function Home() {
       interactions,
       backgroundType,
       backgroundValue,
+      galleryEnabled,
+      galleryImages
       // 🔴 profileImage は File オブジェクトのため保存できない
     }
     saveToLocalStorage(data)
@@ -478,6 +487,38 @@ export default function Home() {
                 className="p-2 border rounded"
               />
             </label>
+
+            <div className="flex flex-col gap-2 mt-6 border-t pt-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={galleryEnabled}
+                  onChange={(e) => setGalleryEnabled(e.target.checked)}
+                />
+                ギャラリーを表示
+              </label>
+
+              {galleryEnabled && (
+                <div className="flex flex-col gap-2">
+                  {[0, 1, 2].map((index) => (
+                    <label key={index} className="flex flex-col">
+                      <span className="font-semibold">ギャラリー画像 {index + 1}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] ?? null
+                          const updated = [...galleryImages]
+                          updated[index] = file
+                          setGalleryImages(updated)
+                        }}
+                        className="p-1"
+                      />
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div className="flex flex-col gap-4 mt-6 border-t pt-4">
               <h2 className="text-lg font-bold">背景の設定</h2>

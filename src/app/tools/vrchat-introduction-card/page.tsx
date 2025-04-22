@@ -448,19 +448,7 @@ const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
         lg:overflow-hidden
         mt-12 sm:mt-16"
       >
-        <section
-          className="
-            w-full max-w-full
-            flex items-center justify-center
-            lg:p-4
-            lg:static
-            fixed 
-            lg:top-auto
-            z-10
-            lg:static
-            w-full sm:h-auto
-            cursor-zoom-in sm:cursor-default
-          "
+        <div
           onClick={(e) => {
             if (window.innerWidth < 768) {
               e.preventDefault();
@@ -468,11 +456,26 @@ const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
             }
           }}
         >
-          <canvas
-            ref={canvasEl}
-            className="w-full max-w-[1920px] aspect-[16/9] border-none shadow-md"
-          />
-        </section>
+          <section
+            className="
+              w-full max-w-full
+              flex items-center justify-center
+              lg:p-4
+              lg:static
+              fixed 
+              lg:top-auto
+              z-10
+              lg:static
+              w-full sm:h-auto
+              cursor-zoom-in sm:cursor-default
+            "
+          >
+            <canvas
+              ref={canvasEl}
+              className="w-full max-w-[1920px] aspect-[16/9] border-none shadow-md"
+            />
+          </section>
+        </div>
         <aside 
           className="
             lg:w-[400px] lg:min-w-[400px] lg:max-w-[500px] 

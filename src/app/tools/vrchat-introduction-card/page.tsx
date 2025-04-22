@@ -361,7 +361,7 @@ export default function Home() {
   return (
     <>
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
-      <header className="fixed top-0 left-0 right-0 z-30 bg-white h-12 sm:h-16 px-4 py-2 shadow flex justify-between items-center">
+      <header className="fixed top-0 left-0 right-0 z-30 bg-white h-12 sm:h-16 px-4 py-2 lg:shadow flex justify-between items-center">
         <div className="text-base sm:text-xl font-bold">
           VRChat自己紹介カードメーカー
         </div>
@@ -454,7 +454,19 @@ export default function Home() {
         lg:overflow-hidden
         mt-12 sm:mt-16"
       >
-        <div
+        <section
+          className="
+            w-full max-w-full
+            flex items-center justify-center
+            lg:p-4
+            lg:static
+            fixed 
+            lg:top-auto
+            z-10
+            lg:static
+            w-full sm:h-auto
+            cursor-zoom-in sm:cursor-default
+          "
           onClick={(e) => {
             if (window.innerWidth < 768) {
               e.preventDefault();
@@ -462,36 +474,19 @@ export default function Home() {
             }
           }}
         >
-          <section
-            className="
-              w-full max-w-full
-              flex items-center justify-center
-              lg:p-4
-              lg:static
-              fixed 
-              lg:top-auto
-              z-10
-              lg:static
-              w-full sm:h-auto
-              cursor-zoom-in sm:cursor-default
-            "
-          >
-            <canvas
-              ref={canvasEl}
-              className="w-full max-w-[1920px] aspect-[16/9] border-none shadow-md"
-            />
-          </section>
-        </div>
+          <canvas
+            ref={canvasEl}
+            className="w-full max-w-[1920px] aspect-[16/9] border-none shadow-md"
+          />
+        </section>
         <aside 
           className="
             lg:w-[400px] lg:min-w-[400px] lg:max-w-[500px] 
-            w-full overflow-y-auto flex-1 p-2
-            lg:border-t-0 lg:border-l mt-[calc(100vw*9/16)] pt-0 lg:mt-0"
+            w-full overflow-y-auto flex-1 p-2 
+            lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+16px)] pt-0 lg:mt-4"
         >
-          <PostTimeline />
-
           <AccordionSection title="カードデザイン" defaultOpen>
-            <div className="flex flex-col gap-4 pt-2 pb-2">
+            <div className="flex flex-col gap-4 pt-2 pb-2 ">
               <h2 className="text-lg font-bold">背景の設定</h2>
 
               {/* 単色選択 */}
@@ -856,7 +851,8 @@ export default function Home() {
               )}
             </div>
           </AccordionSection>
-          
+
+          <PostTimeline />
         </aside>
       </div>
 

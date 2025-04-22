@@ -5,6 +5,8 @@ import { fabric } from 'fabric'
 import { CanvasRenderer, InteractionItem, MarkOption } from '@/components/CanvasRenderer'
 import Cropper, { Area } from 'react-easy-crop'
 import { getCroppedImg } from '@/utils/cropUtils'
+import OnboardingBanner from '@/components/OnboardingBanne'
+import AccordionSection from '@/components/AccordionSection'
 
 type LocalStorageCache = {
   name: string
@@ -322,6 +324,8 @@ export default function Home() {
   }
 
   return (
+    <>
+    <OnboardingBanner />
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
       <header className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b fixed top-0 left-0 w-full z-20 bg-white shadow-md">
         <h1 className="text-xl font-bold">VRChat自己紹介カードメーカー</h1>
@@ -413,351 +417,362 @@ export default function Home() {
             w-full flex-1 overflow-y-auto p-4 border-t 
             lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+64px)] lg:mt-0 lg:pt-[80px]"
         >
-          <div className="flex flex-col gap-4 pt-4">
-            <h2 className="text-lg font-bold">背景の設定</h2>
+          <AccordionSection title="カードデザイン" defaultOpen>
+            <div className="flex flex-col gap-4 pt-2 pb-2">
+              <h2 className="text-lg font-bold">背景の設定</h2>
 
-            {/* 単色選択 */}
-            <div>
-              <span className="font-semibold">単色背景</span>
-              <div className="flex gap-2 mt-1">
-                {[
-                  '#f87171', 
-                  '#fcd5ce',
-                  '#60a5fa', 
-                  '#e0f7fa',
-                  '#34d399', 
-                  '#facc15', 
-                  '#a78bfa', 
-                  '#e6e6fa',
-                  '#f3f4f6', 
-                  '#333333',
-                ].map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => {
-                      setBackgroundType('color')
-                      setBackgroundValue(color)
-                    }}
-                    className="w-8 h-8 rounded"
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
+              {/* 単色選択 */}
+              <div>
+                <span className="font-semibold">単色背景</span>
+                <div className="flex gap-2 mt-1">
+                  {[
+                    '#f87171', 
+                    '#fcd5ce',
+                    '#60a5fa', 
+                    '#e0f7fa',
+                    '#34d399', 
+                    '#facc15', 
+                    '#a78bfa', 
+                    '#e6e6fa',
+                    '#f3f4f6', 
+                    '#333333',
+                  ].map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => {
+                        setBackgroundType('color')
+                        setBackgroundValue(color)
+                      }}
+                      className="w-8 h-8 rounded"
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* グラデーション選択 */}
+              <div>
+                <span className="font-semibold">グラデーション背景</span>
+                <div className="flex gap-2 mt-1">
+                  {[
+                    { id: 'blue-purple', from: '#60a5fa', to: '#a78bfa' },
+                    { id: 'pink-red', from: '#f472b6', to: '#ef4444' },
+                    { id: 'pastel-sky', from: '#fcd5ce', to: '#e0f7fa' },
+                    { id: 'mint-lavender', from: '#34d399', to: '#e6e6fa' },
+                    { id: 'neutral-dark', from: '#f3f4f6', to: '#333333' },
+                  ].map(({ id, from, to }) => (
+                    <button
+                      key={id}
+                      onClick={() => {
+                        setBackgroundType('gradient')
+                        setBackgroundValue([from, to])
+                      }}
+                      className="w-16 h-8 rounded"
+                      style={{ backgroundImage: `linear-gradient(to right, ${from}, ${to})` }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* 背景画像アップロード */}
+              <div>
+                <span className="font-semibold">画像背景</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setBackgroundType('image')
+                      setBackgroundValue(file)
+                    }
+                  }}
+                  className="mt-1"
+                />
               </div>
             </div>
+          </AccordionSection>
 
-            {/* グラデーション選択 */}
-            <div>
-              <span className="font-semibold">グラデーション背景</span>
-              <div className="flex gap-2 mt-1">
-                {[
-                  { id: 'blue-purple', from: '#60a5fa', to: '#a78bfa' },
-                  { id: 'pink-red', from: '#f472b6', to: '#ef4444' },
-                  { id: 'pastel-sky', from: '#fcd5ce', to: '#e0f7fa' },
-                  { id: 'mint-lavender', from: '#34d399', to: '#e6e6fa' },
-                  { id: 'neutral-dark', from: '#f3f4f6', to: '#333333' },
-                ].map(({ id, from, to }) => (
-                  <button
-                    key={id}
-                    onClick={() => {
-                      setBackgroundType('gradient')
-                      setBackgroundValue([from, to])
-                    }}
-                    className="w-16 h-8 rounded"
-                    style={{ backgroundImage: `linear-gradient(to right, ${from}, ${to})` }}
-                  />
-                ))}
-              </div>
+          <AccordionSection title="プロフィール情報">
+            <div className="flex flex-col gap-4 pt-2 pb-2">
+              <h2 className="text-lg font-bold">プロフィール画像</h2>
+              <input type="file" accept="image/*" onChange={handleProfileImageUpload} />
             </div>
 
-            {/* 背景画像アップロード */}
-            <div>
-              <span className="font-semibold">画像背景</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) {
-                    setBackgroundType('image')
-                    setBackgroundValue(file)
-                  }
-                }}
-                className="mt-1"
-              />
+            <div className="flex flex-col gap-4 mt-6">
+              <h2 className="text-lg font-bold">名前</h2>
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="p-2 border rounded" />
             </div>
-          </div>
 
-          <div className="flex flex-col gap-4 mt-6 border-t pt-4">
-            <h2 className="text-lg font-bold">プロフィール画像</h2>
-            <input type="file" accept="image/*" onChange={handleProfileImageUpload} />
-          </div>
-
-          <div className="flex flex-col gap-4 mt-6 border-t pt-4">
-            <h2 className="text-lg font-bold">名前</h2>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="p-2 border rounded" />
-          </div>
-
-          <div className="flex flex-col gap-4 mt-6 border-t pt-4">
-            <h2 className="text-lg font-bold">性別（4文字まで）</h2>
-            <input type="text" value={gender} onChange={(e) => setGender(e.target.value)} className="p-2 border rounded" />
-          </div>
-
-          <div className="flex flex-col gap-4 mt-6 border-t pt-4">
-            <h2 className="text-lg font-bold">使用環境</h2>
-            <div className="flex gap-3 mt-1">
-              {['PCVR', 'Quest', 'Desktop'].map((opt) => (
-                <label key={opt} className="flex items-center gap-1">
-                  <input
-                    type="checkbox"
-                    value={opt}
-                    checked={playEnv.includes(opt)}
-                    onChange={(e) => {
-                      if (e.target.checked) setPlayEnv([...playEnv, opt])
-                      else setPlayEnv(playEnv.filter((v) => v !== opt))
-                    }}
-                  />
-                  {opt}
-                </label>
-              ))}
+            <div className="flex flex-col gap-4 mt-6">
+              <h2 className="text-lg font-bold">性別（4文字まで）</h2>
+              <input type="text" value={gender} onChange={(e) => setGender(e.target.value)} className="p-2 border rounded" />
             </div>
-          </div>
 
-          <div className="flex flex-col gap-4 mt-6 border-t pt-4">
-            <h2 className="text-lg font-bold">使用言語</h2>
-            <label className="flex flex-col">
-              <div className="flex flex-wrap gap-3 mt-1">
-                {['日本語', 'English', 'Korean'].map((lang) => (
-                  <label key={lang} className="flex items-center gap-1">
+            <div className="flex flex-col gap-4 mt-6">
+              <h2 className="text-lg font-bold">使用環境</h2>
+              <div className="flex gap-3 mt-1">
+                {['PCVR', 'Quest', 'Desktop'].map((opt) => (
+                  <label key={opt} className="flex items-center gap-1">
                     <input
                       type="checkbox"
-                      value={lang}
-                      checked={language.includes(lang)}
+                      value={opt}
+                      checked={playEnv.includes(opt)}
                       onChange={(e) => {
-                        if (e.target.checked) {
-                          setLanguage([...language, lang])
-                        } else {
-                          setLanguage(language.filter((l) => l !== lang))
-                        }
+                        if (e.target.checked) setPlayEnv([...playEnv, opt])
+                        else setPlayEnv(playEnv.filter((v) => v !== opt))
                       }}
                     />
-                    {lang}
+                    {opt}
                   </label>
                 ))}
               </div>
-              <input
-                type="text"
-                placeholder="その他の言語（カンマ区切り）"
-                className="p-2 border rounded mt-2"
-                value={customLanguageInput}
-                onChange={(e) => {
-                  const customInput = e.target.value
-                  setCustomLanguageInput(customInput)
-                  const customLangs = customInput
-                    .split(',')
-                    .map((l) => l.trim())
-                    .filter((l) => l)
-                  setLanguage([...new Set([
-                    ...language.filter(l => ['日本語', 'English', 'Korean'].includes(l)),
-                    ...customLangs
-                  ])])
-                }}
-                />
-            </label>
-          </div>
+            </div>
 
-          <div className="flex flex-col gap-4 mt-6 border-t pt-4">
-            <h2 className="text-lg font-bold">マイクON率</h2>
-            <label className="flex flex-col">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={micOnRate}
-                onChange={(e) => setMicOnRate(Number(e.target.value))}
-              />
-              <span>{micOnRate}%</span>
-            </label>
-          </div>
-
-          <div className="flex flex-col gap-4 mt-6 border-t pt-4">
-            <h2 className="text-lg font-bold">コンタクト情報</h2>
-            <label className="flex flex-col">
-              <span className="font-semibold">VRChat ID</span>
-              <input
-                type="text"
-                value={vrchatId}
-                onChange={(e) => setVrchatId(e.target.value)}
-                className="p-2 border rounded"
-              />
-            </label>
-            <label className="flex flex-col">
-              <span className="font-semibold">X（旧Twitter）</span>
-              <input
-                type="text"
-                value={twitterId}
-                onChange={(e) => setTwitterId(e.target.value)}
-                placeholder="@yourhandle"
-                className="p-2 border rounded"
-              />
-            </label>
-            <label className="flex flex-col">
-              <span className="font-semibold">Discord</span>
-              <input
-                type="text"
-                value={discordId}
-                onChange={(e) => setDiscordId(e.target.value)}
-                placeholder="YourName#1234"
-                className="p-2 border rounded"
-              />
-            </label>
-          </div>
-
-          <div className="flex flex-col gap-4 mt-6 border-t pt-4">
-            <h2 className="text-lg font-bold">ステータスの説明</h2>
-            {[
-              { label: '青ステータス', value: statusBlue, setValue: setStatusBlue },
-              { label: '緑ステータス', value: statusGreen, setValue: setStatusGreen },
-              { label: '黄ステータス', value: statusYellow, setValue: setStatusYellow },
-              { label: '赤ステータス', value: statusRed, setValue: setStatusRed },
-            ].map(({ label, value, setValue }) => (
-              <label key={label} className="flex flex-col">
-                <span className="font-semibold">{label}</span>
+            <div className="flex flex-col gap-4 mt-6">
+              <h2 className="text-lg font-bold">使用言語</h2>
+              <label className="flex flex-col">
+                <div className="flex flex-wrap gap-3 mt-1">
+                  {['日本語', 'English', 'Korean'].map((lang) => (
+                    <label key={lang} className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        value={lang}
+                        checked={language.includes(lang)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setLanguage([...language, lang])
+                          } else {
+                            setLanguage(language.filter((l) => l !== lang))
+                          }
+                        }}
+                      />
+                      {lang}
+                    </label>
+                  ))}
+                </div>
                 <input
                   type="text"
-                  value={value}
-                  onChange={(e) => setValue(e.target.value)}
+                  placeholder="その他の言語（カンマ区切り）"
+                  className="p-2 border rounded mt-2"
+                  value={customLanguageInput}
+                  onChange={(e) => {
+                    const customInput = e.target.value
+                    setCustomLanguageInput(customInput)
+                    const customLangs = customInput
+                      .split(',')
+                      .map((l) => l.trim())
+                      .filter((l) => l)
+                    setLanguage([...new Set([
+                      ...language.filter(l => ['日本語', 'English', 'Korean'].includes(l)),
+                      ...customLangs
+                    ])])
+                  }}
+                  />
+              </label>
+            </div>
+
+            <div className="flex flex-col gap-4 mt-6 border-t pt-4">
+              <h2 className="text-lg font-bold">マイクON率</h2>
+              <label className="flex flex-col">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={micOnRate}
+                  onChange={(e) => setMicOnRate(Number(e.target.value))}
+                />
+                <span>{micOnRate}%</span>
+              </label>
+            </div>
+          </AccordionSection>
+
+          <AccordionSection title="SNS・コンタクト">
+            <div className="flex flex-col gap-4 pt-2">
+              <h2 className="text-lg font-bold">SNS情報</h2>
+              <label className="flex flex-col">
+                <span className="font-semibold">VRChat ID</span>
+                <input
+                  type="text"
+                  value={vrchatId}
+                  onChange={(e) => setVrchatId(e.target.value)}
                   className="p-2 border rounded"
                 />
               </label>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-4 mt-6 border-t pt-4">
-            <h2 className="text-lg font-bold">フレンド申請ポリシー</h2>
-            {[
-              'だれでもOK',
-              '仲良くなってから許可',
-              '気になったら許可',
-              'Twitter相互は申請OK',
-              '送らないでください',
-            ].map((option) => (
-              <label key={option} className="flex items-center gap-2">
+              <label className="flex flex-col">
+                <span className="font-semibold">X（旧Twitter）</span>
                 <input
-                  type="checkbox"
-                  value={option}
-                  checked={friendPolicy.includes(option)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setFriendPolicy([...friendPolicy, option])
-                    } else {
-                      setFriendPolicy(friendPolicy.filter((v) => v !== option))
-                    }
-                  }}
+                  type="text"
+                  value={twitterId}
+                  onChange={(e) => setTwitterId(e.target.value)}
+                  placeholder="@yourhandle"
+                  className="p-2 border rounded"
                 />
-                {option}
               </label>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-4 mt-6 border-t pt-4">
-            <h2 className="text-lg font-bold">OKなこと・NGなこと</h2>
-            {interactions.map((item, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <select
-                    value={item.mark}
-                    onChange={(e) => {
-                      const updated = [...interactions]
-                      updated[index].mark = e.target.value as MarkOption
-                      setInteractions(updated)
-                    }}
-                    className="w-16 p-1 border rounded"
-                  >
-                    <option value="-">―</option>
-                    <option value="◎">◎</option>
-                    <option value="◯">◯</option>
-                    <option value="△">△</option>
-                    <option value="✗">✗</option>
-                  </select>
-
+              <label className="flex flex-col">
+                <span className="font-semibold">Discord</span>
+                <input
+                  type="text"
+                  value={discordId}
+                  onChange={(e) => setDiscordId(e.target.value)}
+                  placeholder="YourName#1234"
+                  className="p-2 border rounded"
+                />
+              </label>
+            </div>
+          </AccordionSection>
+          
+          <AccordionSection title="VRChatの使い方">
+            <div className="flex flex-col gap-4 mt-6 border-t pt-4">
+              <h2 className="text-lg font-bold">ステータスの説明</h2>
+              {[
+                { label: '青ステータス', value: statusBlue, setValue: setStatusBlue },
+                { label: '緑ステータス', value: statusGreen, setValue: setStatusGreen },
+                { label: '黄ステータス', value: statusYellow, setValue: setStatusYellow },
+                { label: '赤ステータス', value: statusRed, setValue: setStatusRed },
+              ].map(({ label, value, setValue }) => (
+                <label key={label} className="flex flex-col">
+                  <span className="font-semibold">{label}</span>
                   <input
                     type="text"
-                    value={item.label}
-                    disabled={!item.isCustom}
-                    placeholder="カスタム項目"
-                    className="flex-1 p-1 border rounded"
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    className="p-2 border rounded"
+                  />
+                </label>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-4 mt-6 border-t pt-4">
+              <h2 className="text-lg font-bold">フレンド申請ポリシー</h2>
+              {[
+                'だれでもOK',
+                '仲良くなってから許可',
+                '気になったら許可',
+                'Twitter相互は申請OK',
+                '送らないでください',
+              ].map((option) => (
+                <label key={option} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    value={option}
+                    checked={friendPolicy.includes(option)}
                     onChange={(e) => {
-                      const updated = [...interactions]
-                      updated[index].label = e.target.value
-                      setInteractions(updated)
+                      if (e.target.checked) {
+                        setFriendPolicy([...friendPolicy, option])
+                      } else {
+                        setFriendPolicy(friendPolicy.filter((v) => v !== option))
+                      }
                     }}
                   />
+                  {option}
+                </label>
+              ))}
+            </div>
 
-                  {item.isCustom && (
-                    <button
-                      onClick={() => {
-                        const updated = interactions.filter((_, i) => i !== index)
+            <div className="flex flex-col gap-4 mt-6 border-t pt-4">
+              <h2 className="text-lg font-bold">OKなこと・NGなこと</h2>
+              {interactions.map((item, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <select
+                      value={item.mark}
+                      onChange={(e) => {
+                        const updated = [...interactions]
+                        updated[index].mark = e.target.value as MarkOption
                         setInteractions(updated)
                       }}
-                      className="text-red-500 hover:underline text-sm"
-                      title="削除"
+                      className="w-16 p-1 border rounded"
                     >
-                      🗑️
-                    </button>
-                  )}
-                </div>
-              ))}
+                      <option value="-">―</option>
+                      <option value="◎">◎</option>
+                      <option value="◯">◯</option>
+                      <option value="△">△</option>
+                      <option value="✗">✗</option>
+                    </select>
 
-              {interactions.filter(i => i.isCustom).length < 3 && (
-                <button
-                  onClick={() => setInteractions([...interactions, { label: '', mark: '-', isCustom: true }])}
-                  className="mt-2 text-blue-600 underline text-sm"
-                >
-                  + カスタム項目を追加
-                </button>
-              )}
-          </div>
-
-          <div className="flex flex-col gap-4 mt-6 border-t pt-4">
-            <h2 className="text-lg font-bold">自己紹介テキスト</h2>
-            <textarea
-              value={selfIntro}
-              onChange={(e) => setSelfIntro(e.target.value)}
-              rows={5}
-              className="p-2 border rounded"
-            />
-          </div>
-
-          <div className="flex flex-col gap-4 mt-6 border-t pt-4 mb-12">
-            <h2 className="text-lg font-bold">ギャラリー画像（３枚まで）</h2>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={galleryEnabled}
-                onChange={(e) => setGalleryEnabled(e.target.checked)}
-              />
-              ギャラリーを表示する（自己紹介エリアが小さくなります）
-            </label>
-            {galleryEnabled && (
-              <div className="flex flex-col gap-2">
-                {[0, 1, 2].map((index) => (
-                  <label key={index} className="flex flex-col">
-                    <span className="font-semibold">ギャラリー画像 {index + 1}</span>
                     <input
-                      type="file"
-                      accept="image/*"
+                      type="text"
+                      value={item.label}
+                      disabled={!item.isCustom}
+                      placeholder="カスタム項目"
+                      className="flex-1 p-1 border rounded"
                       onChange={(e) => {
-                        const file = e.target.files?.[0] ?? null
-                        const updated = [...galleryImages]
-                        updated[index] = file
-                        setGalleryImages(updated)
+                        const updated = [...interactions]
+                        updated[index].label = e.target.value
+                        setInteractions(updated)
                       }}
-                      className="p-1"
                     />
-                  </label>
+
+                    {item.isCustom && (
+                      <button
+                        onClick={() => {
+                          const updated = interactions.filter((_, i) => i !== index)
+                          setInteractions(updated)
+                        }}
+                        className="text-red-500 hover:underline text-sm"
+                        title="削除"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
                 ))}
-              </div>
-            )}
-          </div>
+
+                {interactions.filter(i => i.isCustom).length < 3 && (
+                  <button
+                    onClick={() => setInteractions([...interactions, { label: '', mark: '-', isCustom: true }])}
+                    className="mt-2 text-blue-600 underline text-sm"
+                  >
+                    + カスタム項目を追加
+                  </button>
+                )}
+            </div>
+          </AccordionSection>
+
+          <AccordionSection title="自己紹介">
+            <div className="flex flex-col gap-4 mt-6 border-t pt-4">
+              <h2 className="text-lg font-bold">自己紹介テキスト</h2>
+              <textarea
+                value={selfIntro}
+                onChange={(e) => setSelfIntro(e.target.value)}
+                rows={5}
+                className="p-2 border rounded"
+              />
+            </div>
+
+            <div className="flex flex-col gap-4 mt-6 border-t pt-4 mb-12">
+              <h2 className="text-lg font-bold">ギャラリー画像（３枚まで）</h2>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={galleryEnabled}
+                  onChange={(e) => setGalleryEnabled(e.target.checked)}
+                />
+                ギャラリーを表示する（自己紹介エリアが小さくなります）
+              </label>
+              {galleryEnabled && (
+                <div className="flex flex-col gap-2">
+                  {[0, 1, 2].map((index) => (
+                    <label key={index} className="flex flex-col">
+                      <span className="font-semibold">ギャラリー画像 {index + 1}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] ?? null
+                          const updated = [...galleryImages]
+                          updated[index] = file
+                          setGalleryImages(updated)
+                        }}
+                        className="p-1"
+                      />
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          </AccordionSection>
+          
         </aside>
       </div>
 
@@ -765,5 +780,6 @@ export default function Home() {
         <div className="text-sm text-gray-500">ⓘ 広告スペース or サポートリンクなど</div>
       </footer> */}
     </main>
+    </>
   )
 }

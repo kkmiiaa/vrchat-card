@@ -26,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+      <script async src="https://platform.twitter.com/widgets.js" charSet="utf-8"></script>
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-XMHKGYVDJW"></script>
         <script>
           {`

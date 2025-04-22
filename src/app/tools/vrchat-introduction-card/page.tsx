@@ -85,6 +85,8 @@ export default function Home() {
   const [fontFamily, setFontFamily] = useState('"Rounded Mplus 1c", sans-serif');
   const [showBalloon, setShowBalloon] = useState(true);
 
+  const [previewOpen, setPreviewOpen] = useState(false);
+const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     setHasMounted(true)
@@ -294,14 +296,12 @@ export default function Home() {
     window.open(tweetUrl, '_blank')
   }
 
-  const handleCanvasLongPress = () => {
-    const canvas = document.getElementById("your-canvas-id") as HTMLCanvasElement;
-    if (canvas) {
+  const handlePreviewOpen = () => {
+    const canvas = document.querySelector("canvas"); // ←id指定でもOK
+    if (canvas instanceof HTMLCanvasElement) {
       const dataUrl = canvas.toDataURL("image/png");
-      const win = window.open();
-      if (win) {
-        win.document.write(`<img src="${dataUrl}" style="width:100%;height:auto;" />`);
-      }
+      setPreviewImageUrl(dataUrl);
+      setPreviewOpen(true);
     }
   };
   
@@ -426,6 +426,19 @@ export default function Home() {
         </div>
       )}
 
+      {previewOpen && previewImageUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center"
+          onClick={() => setPreviewOpen(false)}
+        >
+          <img
+            src={previewImageUrl}
+            alt="拡大カードプレビュー"
+            className="max-w-[90%] max-h-[90%] rounded shadow-lg"
+          />
+        </div>
+      )}
+
       <div className="
         flex 
         flex-col 
@@ -446,11 +459,12 @@ export default function Home() {
             z-10
             lg:static
             w-full sm:h-auto
+            cursor-zoom-in sm:cursor-default
           "
-          onContextMenu={(e) => {
+          onClick={(e) => {
             if (window.innerWidth < 768) {
               e.preventDefault();
-              handleCanvasLongPress();
+              handlePreviewOpen();
             }
           }}
         >

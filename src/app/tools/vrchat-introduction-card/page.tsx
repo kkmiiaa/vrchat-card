@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { fabric } from 'fabric'
 import { CanvasRenderer, InteractionItem, MarkOption } from '@/components/CanvasRenderer'
+import Cropper from 'react-easy-crop'
+import { getCroppedImg } from '@/utils/cropUtils'
 
 type LocalStorageCache = {
   name: string
@@ -64,10 +66,11 @@ export default function Home() {
   const [galleryEnabled, setGalleryEnabled] = useState(false)
   const [galleryImages, setGalleryImages] = useState<(File | null)[]>([null, null, null])
 
-  const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) setProfileImage(file)
-  }
+  const [showCropModal, setShowCropModal] = useState(false)
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
 
   useEffect(() => {
     setHasMounted(true)
@@ -296,6 +299,28 @@ export default function Home() {
     }
   }
 
+  const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+  
+    const reader = new FileReader()
+    reader.onload = () => {
+      setUploadedImage(reader.result as string)
+      setShowCropModal(true)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleCropDone = async () => {
+    if (!uploadedImage || !croppedAreaPixels) return
+  
+    const croppedBlob = await getCroppedImg(uploadedImage, croppedAreaPixels)
+    const croppedFile = new File([croppedBlob], 'cropped.png', { type: 'image/png' })
+    
+    setProfileImage(croppedFile)
+    setShowCropModal(false)
+  }
+
   return (
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
       <header className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b fixed top-0 left-0 w-full z-20 bg-white shadow-md">
@@ -321,6 +346,47 @@ export default function Home() {
           </button>
         </div>
       </header>
+
+      {showCropModal && uploadedImage && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+          <div className="bg-white p-4 rounded shadow-lg w-[90vw] max-w-[400px] h-[90vw] max-h-[400px] relative">
+            <Cropper
+              image={uploadedImage}
+              crop={crop}
+              zoom={zoom}
+              aspect={1}
+              cropShape="rect"
+              showGrid={false}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={(_, areaPixels) => setCroppedAreaPixels(areaPixels)}
+              style={{
+                containerStyle: {
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '0.5rem',
+                  overflow: 'hidden',
+                  position: 'relative',
+                }
+              }}
+            />
+            <div className="absolute bottom-2 right-2 flex gap-2">
+              <button
+                onClick={handleCropDone}
+                className="bg-green-600 text-white px-3 py-1 text-sm rounded"
+              >
+                完了
+              </button>
+              <button
+                onClick={() => setShowCropModal(false)}
+                className="bg-gray-300 text-black px-3 py-1 text-sm rounded"
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-1 lg:flex-row pt-[140px] lg:pt-0 lg:overflow-hidden">
         <section

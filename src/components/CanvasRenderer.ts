@@ -39,6 +39,34 @@ interface GridArea {
   h: number
 }
 
+type TextOptions = {
+  text: string
+  left?: number
+  top?: number
+  fontSize?: number
+  fontFamily?: string
+  fill?: string
+  selectable?: boolean
+  evented?: boolean
+  maxWidth?: number // オプション：幅を指定すると自動で縮小
+}
+
+type TextboxOptions = {
+  text: string
+  left: number
+  top: number
+  width: number
+  height: number
+  fontSize?: number
+  fontFamily?: string
+  fill?: string
+  selectable?: boolean
+  evented?: boolean
+  underline?: boolean
+  padding?: number
+  minFontSize?: number
+}
+
 export class CanvasRenderer {
   canvas: fabric.Canvas
   width: number
@@ -152,7 +180,7 @@ export class CanvasRenderer {
     )
 
     this.drawIconWithTextBox(
-      'icon_vrchat.png',
+      '/icon_vrchat.png',
       vrchatId ?? "",
       { x: 0.26, y: 0.27, w: 0.03, h: 0.03 },
       { x: 0.30, y: 0.27, w: 0.24, h: 0.05 },
@@ -162,7 +190,7 @@ export class CanvasRenderer {
     )
 
     this.drawIconWithTextBox(
-      'icon_x.png',
+      '/icon_x.png',
       twitterId ?? "",
       { x: 0.26, y: 0.33, w: 0.03, h: 0.03 },
       { x: 0.30, y: 0.33, w: 0.24, h: 0.05 },
@@ -172,7 +200,7 @@ export class CanvasRenderer {
     )
 
     this.drawIconWithTextBox(
-      'icon_discord.png',
+      '/icon_discord.png',
       discordId ?? "",
       { x: 0.2605, y: 0.395, w: 0.029, h: 0.03 },
       { x: 0.30, y: 0.39, w: 0.24, h: 0.05 },
@@ -435,8 +463,40 @@ export class CanvasRenderer {
   
     this.canvas.add(path)
   }
-  
 
+  createFittedText({
+    text,
+    left = 0,
+    top = 0,
+    fontSize = 48,
+    fontFamily = 'Rounded Mplus 1c',
+    fill = '#000',
+    selectable = false,
+    evented = false,
+    maxWidth,
+  }: TextOptions): fabric.Text {
+    let t = new fabric.Text(text, {
+      left,
+      top,
+      fontSize,
+      fontFamily,
+      fill,
+      selectable,
+      evented,
+    })
+  
+    // maxWidth の範囲に収める処理（任意）
+    if (maxWidth !== undefined) {
+      while ((t.width ?? 0) > maxWidth && fontSize > 8) {
+        fontSize -= 1
+        t.set({ fontSize })
+        t.setCoords()
+      }
+    }
+  
+    return t
+  }
+  
   drawTextBox(
     title: string,
     subtitle: string,
@@ -593,15 +653,19 @@ export class CanvasRenderer {
         evented: false,
       })
   
-      const valueText = new fabric.Text(value, {
-        left: boxLeft + padding,
-        top: boxTop + (boxHeight - this.width * valueFontSizeRatio) / 2,
-        fontSize: this.width * valueFontSizeRatio,
-        fontFamily: '"Rounded Mplus 1c"',
-        fill: '#1f2937',
-        selectable: false,
-        evented: false,
-      })
+      const valueText = this.createFittedText(
+        {
+          text: value,
+          left: boxLeft + padding,
+          top: boxTop + (boxHeight - this.width * valueFontSizeRatio) / 2,
+          fontSize: this.width * valueFontSizeRatio,
+          fontFamily: '"Rounded Mplus 1c"',
+          fill: '#1f2937',
+          selectable: false,
+          evented: false,
+          maxWidth: boxWidth - padding * 2
+        }
+      )
   
       this.canvas.add(background)
       this.canvas.add(valueText)
@@ -680,78 +744,12 @@ export class CanvasRenderer {
       fill: '#1f2937',
       selectable: false,
       evented: false,
-      underline: variant === 'underline', // ← アンダーバー表示を制御
+      underline: variant === 'underline',
     })
   
     this.canvas.add(label)
     this.canvas.add(subtitleText)
     this.canvas.add(textbox)
-  }
-
-  drawUnderlineField(
-    title: string,
-    subtitle: string,
-    value: string,
-    area: GridArea,
-    labelFontSizeRatio = 0.016,
-    subtitleFontSizeRatio = 0.012,
-    valueFontSizeRatio = 0.016
-  ) {
-    const left = this.width * area.x
-    const top = this.height * area.y
-    const width = this.width * area.w
-    const height = this.height * area.h
-  
-    const labelFontSize = this.width * labelFontSizeRatio
-    const subtitleFontSize = this.width * subtitleFontSizeRatio
-    const valueFontSize = this.width * valueFontSizeRatio
-  
-    const paddingY = height * 0.1
-  
-    const label = new fabric.Text(title, {
-      left,
-      top: top + paddingY,
-      fontSize: labelFontSize,
-      fontFamily: 'Rounded Mplus 1c',
-      fill: '#1f2937',
-      selectable: false,
-      evented: false,
-    })
-  
-    const subtitleText = new fabric.Text(subtitle, {
-      left,
-      top: label.top! + labelFontSize + (height * 0.02),
-      fontSize: subtitleFontSize,
-      fontFamily: 'Rounded Mplus 1c',
-      fill: '#6b7280',
-      selectable: false,
-      evented: false,
-    })
-  
-    const valueText = new fabric.Text(value, {
-      left,
-      top: subtitleText.top! + subtitleFontSize + (height * 0.03),
-      fontSize: valueFontSize,
-      fontFamily: 'Rounded Mplus 1c',
-      fill: '#1f2937',
-      selectable: false,
-      evented: false,
-    })
-  
-    const underline = new fabric.Line(
-      [left, top + height, left + width, top + height],
-      {
-        stroke: '#ccc',
-        strokeWidth: this.width * 0.001,
-        selectable: false,
-        evented: false,
-      }
-    )
-  
-    this.canvas.add(label)
-    this.canvas.add(subtitleText)
-    this.canvas.add(valueText)
-    this.canvas.add(underline)
   }
   
   drawRoundedImage(img: HTMLImageElement | fabric.Image, area: GridArea) {

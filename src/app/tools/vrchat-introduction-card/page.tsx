@@ -283,7 +283,6 @@ export default function Home() {
 
   const handleShowDownloadPage = () => {
     if (!rendererRef.current) return
-    const dataUrl = rendererRef.current.canvas.toDataURL('image/png')
     const highResUrl = rendererRef.current.canvas.toDataURL({
       format: 'png',
       multiplier: 1920 / rendererRef.current.canvas.getWidth(),

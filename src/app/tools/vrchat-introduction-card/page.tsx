@@ -470,7 +470,7 @@ const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
         >
           <canvas
             ref={canvasEl}
-            className="w-full max-w-[1920px] aspect-[16/9] border shadow-md"
+            className="w-full max-w-[1920px] aspect-[16/9] border-none shadow-md"
           />
         </section>
         <aside 

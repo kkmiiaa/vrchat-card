@@ -293,6 +293,17 @@ export default function Home() {
     const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`
     window.open(tweetUrl, '_blank')
   }
+
+  const handleCanvasLongPress = () => {
+    const canvas = document.getElementById("your-canvas-id") as HTMLCanvasElement;
+    if (canvas) {
+      const dataUrl = canvas.toDataURL("image/png");
+      const win = window.open();
+      if (win) {
+        win.document.write(`<img src="${dataUrl}" style="width:100%;height:auto;" />`);
+      }
+    }
+  };
   
   // Data URL を Blob に変換
   const dataURLtoBlob = (dataURL: string) => {
@@ -436,6 +447,12 @@ export default function Home() {
             lg:static
             w-full sm:h-auto
           "
+          onContextMenu={(e) => {
+            if (window.innerWidth < 768) {
+              e.preventDefault();
+              handleCanvasLongPress();
+            }
+          }}
         >
           <canvas
             ref={canvasEl}

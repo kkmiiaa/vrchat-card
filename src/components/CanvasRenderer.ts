@@ -30,6 +30,7 @@ interface RenderProps {
   backgroundValue?: string | [string, string] | File,
   galleryEnabled: boolean
   galleryImages: (File | null)[]
+  fontFamily: string;
 }
 
 interface GridArea {
@@ -118,7 +119,8 @@ export class CanvasRenderer {
       backgroundType,
       backgroundValue,
       galleryEnabled,
-      galleryImages
+      galleryImages,
+      fontFamily
     } = props
 
     this.clear()
@@ -147,6 +149,7 @@ export class CanvasRenderer {
       0.016,
       0.02,
       0.013,
+      fontFamily,
       0.01,
       false,
     )
@@ -161,6 +164,7 @@ export class CanvasRenderer {
       0.013,
       0.010,
       0.011,
+      fontFamily,
       false,
       'box'
     )
@@ -175,6 +179,7 @@ export class CanvasRenderer {
       0.013,
       0.010,
       0.010,
+      fontFamily,
       false,
       'box'
     )
@@ -185,6 +190,7 @@ export class CanvasRenderer {
       { x: 0.26, y: 0.27, w: 0.03, h: 0.03 },
       { x: 0.30, y: 0.27, w: 0.24, h: 0.05 },
       0.012, 
+      fontFamily,
       0.15,
       false,
     )
@@ -195,6 +201,7 @@ export class CanvasRenderer {
       { x: 0.26, y: 0.33, w: 0.03, h: 0.03 },
       { x: 0.30, y: 0.33, w: 0.24, h: 0.05 },
       0.012, 
+      fontFamily,
       0.15,
       false,
     )
@@ -204,7 +211,8 @@ export class CanvasRenderer {
       discordId ?? "",
       { x: 0.2605, y: 0.395, w: 0.029, h: 0.03 },
       { x: 0.30, y: 0.39, w: 0.24, h: 0.05 },
-      0.012, 
+      0.012,
+      fontFamily, 
       0.15,
       false,
     )
@@ -218,6 +226,7 @@ export class CanvasRenderer {
       0.012,
       0.01,
       0.01,
+      fontFamily,
       0.008,
       false
     )
@@ -230,6 +239,7 @@ export class CanvasRenderer {
       0.01,
       0.01,
       0.01,
+      fontFamily,
     )
 
     this.drawStatusSection(
@@ -247,7 +257,8 @@ export class CanvasRenderer {
       0.01,
       0.018,
       0.04,
-      0.015
+      0.015,
+      fontFamily,
     )
 
     this.drawTextBox(
@@ -259,6 +270,7 @@ export class CanvasRenderer {
       0.013,
       0.011,
       0.01,
+      fontFamily,
       0.008,
       false
     )
@@ -270,6 +282,7 @@ export class CanvasRenderer {
       this.height * 0.64,
       0.013,
       0.01,
+      fontFamily,
     )
 
     interactions.forEach((item, i) => {
@@ -288,6 +301,7 @@ export class CanvasRenderer {
         0.013,
         0.010,
         0.010,
+        fontFamily,
         false,
         'box'
       )
@@ -303,6 +317,7 @@ export class CanvasRenderer {
       0.016,
       0.013,
       0.012,
+      fontFamily,
       0.014,
       false
     )
@@ -506,6 +521,7 @@ export class CanvasRenderer {
     labelFontSizeRatio = 0.016,
     valueFontSizeRatio = 0.016,
     subtitleFontSizeRatio = 0.013,
+    fontFamily = "Rounded Mplus 1c",
     paddingRatio = 0.008,
     isBorder = true,
   ) {
@@ -529,7 +545,7 @@ export class CanvasRenderer {
       left: boxLeft,
       top: labelTop,
       fontSize: labelFontSize,
-      fontFamily: '"Rounded Mplus 1c"',
+      fontFamily: fontFamily,
       fill: '#1f2937',
       selectable: false,
       evented: false,
@@ -542,7 +558,7 @@ export class CanvasRenderer {
         left: boxLeft + label.width! + this.width * 0.01, // ラベルの右＋余白
         top: labelTop + (labelFontSize - subtitleFontSize), // 下揃え
         fontSize: subtitleFontSize,
-        fontFamily: '"Rounded Mplus 1c"',
+        fontFamily: fontFamily,
         fill: '#6b7280', // グレー寄りの色
         selectable: false,
         evented: false,
@@ -571,7 +587,7 @@ export class CanvasRenderer {
       width: boxWidth - padding * 2,
       height: contentHeight,
       fontSize: this.width * valueFontSizeRatio,
-      fontFamily: '"Rounded Mplus 1c"',
+      fontFamily: fontFamily,
       fill: '#1f2937',
       selectable: false,
       evented: false,
@@ -590,6 +606,7 @@ export class CanvasRenderer {
     iconArea: GridArea,
     textArea: GridArea,
     valueFontSizeRatio = 0.014,
+    fontFamily = "Rounded Mplus 1c",
     iconCornerRatio = 0.15,
     isBorder = true,
   ) {
@@ -659,7 +676,7 @@ export class CanvasRenderer {
           left: boxLeft + padding,
           top: boxTop + (boxHeight - this.width * valueFontSizeRatio) / 2,
           fontSize: this.width * valueFontSizeRatio,
-          fontFamily: '"Rounded Mplus 1c"',
+          fontFamily: fontFamily,
           fill: '#1f2937',
           selectable: false,
           evented: false,
@@ -682,6 +699,7 @@ export class CanvasRenderer {
     labelFontSizeRatio = 0.016,
     subtitleFontSizeRatio = 0.012,
     valueFontSizeRatio = 0.016,
+    fontFamily = 'Rounded Mplus 1c',
     withStroke = false,
     variant: 'box' | 'underline' = 'box'  // ← 追加
   ) {
@@ -694,7 +712,7 @@ export class CanvasRenderer {
       left: this.width * labelLeft,
       top: this.height * labelTop,
       fontSize: labelFontSize,
-      fontFamily: 'Rounded Mplus 1c',
+      fontFamily: fontFamily,
       fill: '#1f2937',
       selectable: false,
       evented: false,
@@ -704,7 +722,7 @@ export class CanvasRenderer {
       left: label.left!,
       top: label.top! + labelFontSize,
       fontSize: subtitleFontSize,
-      fontFamily: 'Rounded Mplus 1c',
+      fontFamily: fontFamily,
       fill: '#6b7280',
       selectable: false,
       evented: false,
@@ -740,7 +758,7 @@ export class CanvasRenderer {
       top: boxTop + (boxHeight - valueFontSize) / 2,
       width: boxWidth - padding * 2,
       fontSize: valueFontSize,
-      fontFamily: 'Rounded Mplus 1c',
+      fontFamily: fontFamily,
       fill: '#1f2937',
       selectable: false,
       evented: false,
@@ -794,6 +812,7 @@ export class CanvasRenderer {
     titleFontRatio = 0.016,
     subtitleFontRatio = 0.012,
     valueFontRatio = 0.014,
+    fontFamily = 'Rounded Mplus 1c',
     gradient: [string, string] = ['#60a5fa', '#a78bfa']
   ) {
     const padding = this.width * 0.006
@@ -809,7 +828,7 @@ export class CanvasRenderer {
       left,
       top,
       fontSize: this.width * titleFontRatio,
-      fontFamily: 'Rounded Mplus 1c',
+      fontFamily: fontFamily,
       fill: '#1f2937',
       selectable: false,
       evented: false,
@@ -819,7 +838,7 @@ export class CanvasRenderer {
       left: titleText.left! + titleText.width! + padding,
       top: top + (titleText.fontSize! - this.width * subtitleFontRatio), // 下揃え
       fontSize: this.width * subtitleFontRatio,
-      fontFamily: 'Rounded Mplus 1c',
+      fontFamily: fontFamily,
       fill: '#6b7280',
       selectable: false,
       evented: false,
@@ -866,7 +885,7 @@ export class CanvasRenderer {
       left: left + width + padding,
       top: barTop + (barHeight - this.width * valueFontRatio) / 2,
       fontSize: this.width * valueFontRatio,
-      fontFamily: 'Rounded Mplus 1c',
+      fontFamily: fontFamily,
       fill: '#1f2937',
       selectable: false,
       evented: false,
@@ -886,12 +905,13 @@ export class CanvasRenderer {
     iconSizeRatio = 0.03,
     textBoxHeightRatio = 0.04,
     rowSpacingRatio = 0.02, // 上下間の余白
+    fontFamily = "Rounded Mplus 1c"
   ) {
     const left = this.width * area.x
     const top = this.height * area.y
   
     // タイトル・サブタイトル表示（横並び）
-    this.drawTitleAndSubtitle(title, subtitle, left, top, titleFontRatio, subtitleFontRatio)
+    this.drawTitleAndSubtitle(title, subtitle, left, top, titleFontRatio, subtitleFontRatio, fontFamily)
   
     // 各行のスタート位置
     const startY = area.y + 0.04 // 少し下に余白
@@ -919,6 +939,7 @@ export class CanvasRenderer {
           h: textBoxHeightRatio
         },
         valueFontRatio, // 値のフォントサイズ比
+        fontFamily,
         0.15,
         false
       )
@@ -932,12 +953,13 @@ export class CanvasRenderer {
     top: number,
     titleFontRatio = 0.016,
     subtitleFontRatio = 0.012,
+    fontFamily = 'Rounded Mplus 1c'
   ) {
     const titleText = new fabric.Text(title, {
       left,
       top,
       fontSize: this.width * titleFontRatio,
-      fontFamily: 'Rounded Mplus 1c',
+      fontFamily: fontFamily,
       fill: '#1f2937',
       selectable: false,
       evented: false,
@@ -947,7 +969,7 @@ export class CanvasRenderer {
       left: left + titleText.width! + this.width * 0.006,
       top: top + (this.width * titleFontRatio - this.width * subtitleFontRatio), // 下揃え
       fontSize: this.width * subtitleFontRatio,
-      fontFamily: 'Rounded Mplus 1c',
+      fontFamily: fontFamily,
       fill: '#6b7280',
       selectable: false,
       evented: false,

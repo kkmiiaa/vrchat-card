@@ -8,6 +8,7 @@ import { getCroppedImg } from '@/utils/cropUtils'
 import OnboardingBanner from '@/components/OnboardingBanne'
 import AccordionSection from '@/components/AccordionSection'
 import FloatingButtons from '@/components/FloatingButtons'
+import FontSelector from '@/components/FontSelector';
 import PostTimeline from '@/components/PostTimeline'
 
 type LocalStorageCache = {
@@ -27,7 +28,8 @@ type LocalStorageCache = {
   friendPolicy: string[]
   interactions: InteractionItem[]
   backgroundType: "color" | "gradient" | "image"
-  backgroundValue: string | [string, string],   
+  backgroundValue: string | [string, string], 
+  fontFamily: string  
 }
 
 export default function Home() {
@@ -75,6 +77,8 @@ export default function Home() {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+
+  const [fontFamily, setFontFamily] = useState('"Rounded Mplus 1c", sans-serif');
 
   useEffect(() => {
     setHasMounted(true)
@@ -166,7 +170,8 @@ export default function Home() {
           backgroundType,
           backgroundValue,
           galleryEnabled,
-          galleryImages
+          galleryImages,
+          fontFamily
         })
       } catch (err) {
         console.error('レンダリングエラー:', err)
@@ -202,6 +207,7 @@ export default function Home() {
     backgroundValue,
     galleryEnabled,
     galleryImages,
+    fontFamily
   ])
 
   useEffect(() => {
@@ -225,7 +231,8 @@ export default function Home() {
       backgroundType,
       backgroundValue,
       galleryEnabled,
-      galleryImages
+      galleryImages,
+      fontFamily
       // 🔴 profileImage は File オブジェクトのため保存できない
     }
     saveToLocalStorage(data)
@@ -472,6 +479,10 @@ export default function Home() {
                   className="mt-1"
                 />
               </div>
+            </div>
+
+            <div className="flex flex-col gap-4 pt-2 pb-2">
+              <FontSelector fontFamily={fontFamily} setFontFamily={setFontFamily} />
             </div>
           </AccordionSection>
 

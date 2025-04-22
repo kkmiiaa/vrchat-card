@@ -86,7 +86,7 @@ export default function Home() {
   const [showBalloon, setShowBalloon] = useState(true);
 
   const [previewOpen, setPreviewOpen] = useState(false);
-const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     setHasMounted(true)
@@ -217,7 +217,9 @@ const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
     galleryEnabled,
     galleryImages,
     fontFamily,
-    showBalloon
+    showBalloon,
+    previewOpen,
+    previewImageUrl
   ])
 
   useEffect(() => {
@@ -297,10 +299,14 @@ const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   }
 
   const handlePreviewOpen = () => {
+    if (!rendererRef.current) return
     const canvas = document.querySelector("canvas"); // ←id指定でもOK
     if (canvas instanceof HTMLCanvasElement) {
-      const dataUrl = canvas.toDataURL("image/png");
-      setPreviewImageUrl(dataUrl);
+      const highResUrl = rendererRef.current.canvas.toDataURL({
+        format: 'png',
+        multiplier: 1920 / rendererRef.current.canvas.getWidth(),
+      })
+      setPreviewImageUrl(highResUrl);
       setPreviewOpen(true);
     }
   };

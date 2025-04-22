@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { fabric } from 'fabric'
 import { CanvasRenderer, InteractionItem, MarkOption } from '@/components/CanvasRenderer'
-import Cropper from 'react-easy-crop'
+import Cropper, { Area } from 'react-easy-crop'
 import { getCroppedImg } from '@/utils/cropUtils'
 
 type LocalStorageCache = {
@@ -70,7 +70,7 @@ export default function Home() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   useEffect(() => {
     setHasMounted(true)

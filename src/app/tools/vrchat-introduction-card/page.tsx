@@ -275,28 +275,67 @@ export default function Home() {
   }
   
   const handleDownload = () => {
-    rendererRef.current?.download()
+    if (!rendererRef.current) return
+    const highResUrl = rendererRef.current.canvas.toDataURL({
+      format: 'png',
+      multiplier: 1920 / rendererRef.current.canvas.getWidth(),
+    })
+
+    if (window.innerWidth < 768) {
+      // モバイル：新しいタブで画像表示
+      const win = window.open()
+      if (win) {
+        win.document.write(`<img src="${highResUrl}" style="width:100%;height:auto;" />`)
+      }
+    } else {
+      // PC：通常のダウンロード処理
+      const link = document.createElement("a")
+      link.href = highResUrl
+      link.download = "vrchat-introduction-card.png"
+      link.click()
+    }
   }
 
   const handlePostToX = () => {
-    if (!rendererRef.current) return
+    if (!rendererRef.current) return;
   
-    const dataURL = rendererRef.current.canvas.toDataURL({
+    const canvas = rendererRef.current.canvas;
+    const highResUrl = rendererRef.current.canvas.toDataURL({
       format: 'png',
-      multiplier: 2,
+      multiplier: 1920 / rendererRef.current.canvas.getWidth(),
     })
+
+    const tweetText = encodeURIComponent("自己紹介カードを作りました！\n#VRChat自己紹介カード\n#VRChat自己紹介カードメーカー");
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
+
+    const isMobile = window.innerWidth < 768;
   
-    // ダウンロード
-    const link = document.createElement('a')
-    link.href = dataURL
-    link.download = 'vrchat_card.png'
-    link.click()
+    if (isMobile) {
+      // モバイル：画像だけ表示 → 手動で保存して添付してね
+      const win = window.open();
+      if (win) {
+        win.document.write(`
+          <div style="text-align:center;font-family:sans-serif;padding:1rem">
+            <p>画像を長押しで保存して、投稿時に添付してください📎</p>
+            <img src="${highResUrl}" style="max-width:100%;height:auto;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.2)" />
+            <p style="margin-top:1rem;">
+              <a href="${tweetUrl}" target="_blank" style="display:inline-block;padding:0.5rem 1rem;background:#1d9bf0;color:#fff;border-radius:6px;text-decoration:none">
+                Xで投稿画面を開く →
+              </a>
+            </p>
+          </div>
+        `);
+      }
+    } else {
+      // PC：画像を即DL
+      const link = document.createElement("a");
+      link.href = highResUrl;
+      link.download = "vrchat_card.png";
+      link.click();
+    }
   
-    // 投稿画面を開く
-    const tweetText = encodeURIComponent('自己紹介カードを作りました！\n#VRChat自己紹介カード\n#VRChat自己紹介カードメーカー')
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`
-    window.open(tweetUrl, '_blank')
-  }
+    window.open(tweetUrl, "_blank");
+  };
 
   const handlePreviewOpen = () => {
     if (!rendererRef.current) return

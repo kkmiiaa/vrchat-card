@@ -11,6 +11,8 @@ import FloatingButtons from '@/components/FloatingButtons'
 import FontSelector from '@/components/FontSelector';
 import PostTimeline from '@/components/PostTimeline'
 import BalloonToggle from '@/components/BaloonToggle'
+import { FiMessageCircle } from "react-icons/fi"
+
 
 type LocalStorageCache = {
   name: string
@@ -342,19 +344,33 @@ export default function Home() {
   return (
     <>
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
-      <header className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b fixed top-0 left-0 w-full z-20 bg-white shadow-md">
-        <h1 className="text-xl font-bold">VRChat自己紹介カードメーカー</h1>
-        <div className="text-sm text-gray-600 whitespace-nowrap">
-          質問・要望・コメントなどは{' '}
+    <header className="w-full flex justify-between items-center px-4 py-2 sm:py-4 bg-white shadow z-30 h-12 sm:h-16">
+        <div className="text-base sm:text-xl font-bold">
+          VRChat自己紹介カードメーカー
+        </div>
+        <div className="text-sm text-gray-600">
+          <span className="hidden sm:inline">
+            質問・要望・コメントなどは{' '}
+            <a
+              href="https://x.com/yota3d"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              @yota3d
+            </a>{' '}
+            まで！
+          </span>
+
           <a
             href="https://x.com/yota3d"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="inline sm:hidden text-blue-600"
+            aria-label="@yota3dへ連絡"
           >
-            @yota3d
+            要望<FiMessageCircle className="w-6 h-6" />
           </a>
-          {' '}まで！
         </div>
       </header>
 

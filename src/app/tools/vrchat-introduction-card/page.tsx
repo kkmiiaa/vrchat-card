@@ -344,7 +344,7 @@ export default function Home() {
   return (
     <>
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
-    <header className="w-full flex justify-between items-center px-4 py-2 sm:py-4 bg-white shadow z-30 h-12 sm:h-16">
+      <header className="fixed top-0 left-0 right-0 z-30 bg-white h-12 sm:h-16 px-4 py-2 shadow flex justify-between items-center">
         <div className="text-base sm:text-xl font-bold">
           VRChat自己紹介カードメーカー
         </div>
@@ -366,7 +366,7 @@ export default function Home() {
             href="https://x.com/yota3d"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline sm:hidden text-blue-600"
+            className="inline text-sm sm:hidden text-blue-600"
             aria-label="@yota3dへ連絡"
           >
             要望<FiMessageCircle className="w-6 h-6" />
@@ -415,7 +415,15 @@ export default function Home() {
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-1 lg:flex-row pt-[140px] lg:pt-0 lg:overflow-hidden">
+      <div className="
+        flex 
+        flex-col 
+        lg:flex-1 
+        lg:flex-row 
+        lg:pt-0
+        lg:overflow-hidden
+        mt-12 sm:mt-16"
+      >
         <section
           className="
             w-full max-w-full
@@ -423,10 +431,10 @@ export default function Home() {
             lg:p-4
             lg:static
             fixed 
-            top-[64px] lg:top-auto
+            lg:top-auto
             z-10
             lg:static
-            w-full h-[40vh] sm:h-auto
+            w-full sm:h-auto
           "
         >
           <canvas
@@ -438,7 +446,7 @@ export default function Home() {
           className="
             lg:w-[400px] lg:min-w-[400px] lg:max-w-[500px] 
             w-full overflow-y-auto flex-1 p-2
-            lg:border-t-0 lg:border-l mt-[calc(100vw*9/16)] pt-0 lg:mt-0 lg:pt-[80px]"
+            lg:border-t-0 lg:border-l mt-[calc(100vw*9/16)] pt-0 lg:mt-0"
         >
           <PostTimeline />
 

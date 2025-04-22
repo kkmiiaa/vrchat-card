@@ -8,6 +8,7 @@ import { getCroppedImg } from '@/utils/cropUtils'
 import OnboardingBanner from '@/components/OnboardingBanne'
 import AccordionSection from '@/components/AccordionSection'
 import FloatingButtons from '@/components/FloatingButtons'
+import PostTimeline from '@/components/PostTimeline'
 
 type LocalStorageCache = {
   name: string
@@ -326,7 +327,6 @@ export default function Home() {
 
   return (
     <>
-    <OnboardingBanner />
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
       <header className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b fixed top-0 left-0 w-full z-20 bg-white shadow-md">
         <h1 className="text-xl font-bold">VRChat自己紹介カードメーカー</h1>
@@ -395,7 +395,7 @@ export default function Home() {
         <aside 
           className="
             lg:w-[400px] lg:min-w-[400px] lg:max-w-[500px] 
-            w-full flex-1 overflow-y-auto p-4 border-t 
+            w-full flex-1 p-2
             lg:border-t-0 lg:border-l mt-[calc(100vw*9/16)] pt-0 lg:mt-0 lg:pt-[80px]"
         >
           <AccordionSection title="カードデザイン" defaultOpen>
@@ -756,10 +756,7 @@ export default function Home() {
             </div>
           </AccordionSection>
 
-          <FloatingButtons
-            onSave={handleDownload}
-            onShare={handlePostToX}
-          />
+          <PostTimeline />
           
         </aside>
       </div>
@@ -767,7 +764,13 @@ export default function Home() {
       {/* <footer className="p-4 flex justify-between items-center border-t bg-white fixed bottom-0 left-0 w-full z-20">
         <div className="text-sm text-gray-500">ⓘ 広告スペース or サポートリンクなど</div>
       </footer> */}
+
+      <FloatingButtons
+        onSave={handleDownload}
+        onShare={handlePostToX}
+      />
     </main>
+    <OnboardingBanner />
     </>
   )
 }

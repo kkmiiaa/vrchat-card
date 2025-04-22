@@ -344,6 +344,18 @@ export default function Home() {
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
       <header className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b fixed top-0 left-0 w-full z-20 bg-white shadow-md">
         <h1 className="text-xl font-bold">VRChat自己紹介カードメーカー</h1>
+        <div className="text-sm text-gray-600 whitespace-nowrap">
+          質問・要望・コメントなどは{' '}
+          <a
+            href="https://x.com/yota3d"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline"
+          >
+            @yota3d
+          </a>
+          {' '}まで！
+        </div>
       </header>
 
       {showCropModal && uploadedImage && (
@@ -398,6 +410,7 @@ export default function Home() {
             top-[64px] lg:top-auto
             z-10
             lg:static
+            w-full h-[40vh] sm:h-auto
           "
         >
           <canvas

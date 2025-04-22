@@ -395,7 +395,7 @@ export default function Home() {
         <aside 
           className="
             lg:w-[400px] lg:min-w-[400px] lg:max-w-[500px] 
-            w-full flex-1 p-2
+            w-full overflow-y-auto flex-1 p-2
             lg:border-t-0 lg:border-l mt-[calc(100vw*9/16)] pt-0 lg:mt-0 lg:pt-[80px]"
         >
           <AccordionSection title="カードデザイン" defaultOpen>

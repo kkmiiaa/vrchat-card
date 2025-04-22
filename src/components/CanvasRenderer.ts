@@ -31,6 +31,7 @@ interface RenderProps {
   galleryEnabled: boolean
   galleryImages: (File | null)[]
   fontFamily: string;
+  showBalloon: boolean;
 }
 
 interface GridArea {
@@ -120,7 +121,8 @@ export class CanvasRenderer {
       backgroundValue,
       galleryEnabled,
       galleryImages,
-      fontFamily
+      fontFamily,
+      showBalloon
     } = props
 
     this.clear()
@@ -128,7 +130,9 @@ export class CanvasRenderer {
       backgroundType ?? "gradient", 
       backgroundValue ?? ['#60a5fa', '#a78bfa']
     )
-    this.drawBalloon(0.9)
+    if (showBalloon) {
+      this.drawBalloon(0.9)
+    }
 
     // 画像表示
     const imageSrc = profileImage ? URL.createObjectURL(profileImage) : '/default-profile.png'

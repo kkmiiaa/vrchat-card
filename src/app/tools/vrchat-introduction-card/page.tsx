@@ -10,6 +10,7 @@ import AccordionSection from '@/components/AccordionSection'
 import FloatingButtons from '@/components/FloatingButtons'
 import FontSelector from '@/components/FontSelector';
 import PostTimeline from '@/components/PostTimeline'
+import BalloonToggle from '@/components/BaloonToggle'
 
 type LocalStorageCache = {
   name: string
@@ -29,7 +30,8 @@ type LocalStorageCache = {
   interactions: InteractionItem[]
   backgroundType: "color" | "gradient" | "image"
   backgroundValue: string | [string, string], 
-  fontFamily: string  
+  fontFamily: string,
+  showBalloon: boolean  
 }
 
 export default function Home() {
@@ -79,6 +81,8 @@ export default function Home() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   const [fontFamily, setFontFamily] = useState('"Rounded Mplus 1c", sans-serif');
+  const [showBalloon, setShowBalloon] = useState(true);
+
 
   useEffect(() => {
     setHasMounted(true)
@@ -171,7 +175,8 @@ export default function Home() {
           backgroundValue,
           galleryEnabled,
           galleryImages,
-          fontFamily
+          fontFamily,
+          showBalloon
         })
       } catch (err) {
         console.error('レンダリングエラー:', err)
@@ -207,7 +212,8 @@ export default function Home() {
     backgroundValue,
     galleryEnabled,
     galleryImages,
-    fontFamily
+    fontFamily,
+    showBalloon
   ])
 
   useEffect(() => {
@@ -232,7 +238,8 @@ export default function Home() {
       backgroundValue,
       galleryEnabled,
       galleryImages,
-      fontFamily
+      fontFamily,
+      showBalloon
       // 🔴 profileImage は File オブジェクトのため保存できない
     }
     saveToLocalStorage(data)
@@ -240,7 +247,7 @@ export default function Home() {
     name, language, gender, playEnv, micOnRate, selfIntro,
     vrchatId, twitterId, discordId,
     statusBlue, statusGreen, statusYellow, statusRed,
-    friendPolicy, interactions, backgroundType, backgroundValue,
+    friendPolicy, interactions, backgroundType, backgroundValue, fontFamily, showBalloon
   ])
 
   const saveToLocalStorage = (data: Record<string, unknown>) => {
@@ -483,6 +490,11 @@ export default function Home() {
 
             <div className="flex flex-col gap-4 pt-2 pb-2">
               <FontSelector fontFamily={fontFamily} setFontFamily={setFontFamily} />
+            </div>
+            
+            <div className="flex flex-col gap-4 pt-2 pb-2">
+              <h2 className="text-lg font-bold">吹き出し</h2>
+              <BalloonToggle showBalloon={showBalloon} setShowBalloon={setShowBalloon} />
             </div>
           </AccordionSection>
 

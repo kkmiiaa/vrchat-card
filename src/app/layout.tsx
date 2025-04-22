@@ -45,6 +45,10 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Rounded+Mplus+1c&display=swap" 
           rel="stylesheet" 
         />
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Zen+Maru+Gothic&display=swap" 
+          rel="stylesheet" 
+        />
       </head>
       <body className={`font-rounded ${geistSans.variable} ${geistMono.variable}`}>
         <AnalyticsProvider>

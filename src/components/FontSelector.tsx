@@ -7,9 +7,11 @@ type FontOption = {
 
 const fontOptions: FontOption[] = [
   { label: 'Rounded M+', value: '"Rounded Mplus 1c", sans-serif' },
-  { label: 'Noto Sans JP', value: '"Noto Sans JP", sans-serif' },
-  { label: 'Yomogi（手書き）', value: '"Yomogi", cursive' },
+  { label: 'Kosugi Maru', value: '"Kosugi Maru", sans-serif' },
   { label: 'Zen Maru Gothic', value: '"Zen Maru Gothic", sans-serif' },
+  { label: 'うずらフォント', value: 'Uzura' },
+  { label: 'kawaii手書き文字', value: 'kawaii手書き' },
+  { label: 'マルミーニャM', value: 'マルミーニャM' },
 ];
 
 export default function FontSelector({
@@ -20,8 +22,8 @@ export default function FontSelector({
     setFontFamily: (val: string) => void;
   }) {
     return (
-      <div className="mb-4">
-        <p className="text-sm font-semibold text-gray-700 mb-2">フォントを選択</p>
+    <div className="flex flex-col gap-4 pt-2 pb-2">
+      <h2 className="text-lg font-bold">フォントの設定</h2>
         <div className="flex flex-wrap gap-2">
           {fontOptions.map((opt) => (
             <button

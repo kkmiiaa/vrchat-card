@@ -508,8 +508,10 @@ export default function Home() {
               <h2 className="text-lg font-bold">性別（4文字まで）</h2>
               <input type="text" value={gender} onChange={(e) => setGender(e.target.value)} className="p-2 border rounded" />
             </div>
+          </AccordionSection>
 
-            <div className="flex flex-col gap-4 mt-6">
+          <AccordionSection title="使用環境・言語">
+            <div className="flex flex-col gap-4 mt-2">
               <h2 className="text-lg font-bold">使用環境</h2>
               <div className="flex gap-3 mt-1">
                 {['PCVR', 'Quest', 'Desktop'].map((opt) => (
@@ -572,7 +574,7 @@ export default function Home() {
               </label>
             </div>
 
-            <div className="flex flex-col gap-4 mt-6 border-t pt-4">
+            <div className="flex flex-col gap-4 mt-6">
               <h2 className="text-lg font-bold">マイクON率</h2>
               <label className="flex flex-col">
                 <input
@@ -587,7 +589,7 @@ export default function Home() {
             </div>
           </AccordionSection>
 
-          <AccordionSection title="SNS・コンタクト">
+          <AccordionSection title="SNS・コンタクト情報">
             <div className="flex flex-col gap-4 pt-2">
               <h2 className="text-lg font-bold">SNS情報</h2>
               <label className="flex flex-col">
@@ -622,8 +624,8 @@ export default function Home() {
             </div>
           </AccordionSection>
           
-          <AccordionSection title="VRChatの使い方">
-            <div className="flex flex-col gap-4 mt-6 border-t pt-4">
+          <AccordionSection title="関わり方">
+            <div className="flex flex-col gap-4 mt-2">
               <h2 className="text-lg font-bold">ステータスの説明</h2>
               {[
                 { label: '青ステータス', value: statusBlue, setValue: setStatusBlue },
@@ -643,7 +645,7 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="flex flex-col gap-4 mt-6 border-t pt-4">
+            <div className="flex flex-col gap-4 mt-6">
               <h2 className="text-lg font-bold">フレンド申請ポリシー</h2>
               {[
                 'だれでもOK',
@@ -670,7 +672,7 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="flex flex-col gap-4 mt-6 border-t pt-4">
+            <div className="flex flex-col gap-4 mt-6">
               <h2 className="text-lg font-bold">OKなこと・NGなこと</h2>
               {interactions.map((item, index) => (
                   <div key={index} className="flex items-center gap-2">
@@ -729,8 +731,8 @@ export default function Home() {
             </div>
           </AccordionSection>
 
-          <AccordionSection title="自己紹介">
-            <div className="flex flex-col gap-4 mt-6 border-t pt-4">
+          <AccordionSection title="自己紹介・画像">
+            <div className="flex flex-col gap-4 mt-2">
               <h2 className="text-lg font-bold">自己紹介テキスト</h2>
               <textarea
                 value={selfIntro}
@@ -740,7 +742,7 @@ export default function Home() {
               />
             </div>
 
-            <div className="flex flex-col gap-4 mt-6 border-t pt-4 mb-12">
+            <div className="flex flex-col gap-4 mt-6 border-t pt-4 mb-6">
               <h2 className="text-lg font-bold">ギャラリー画像（３枚まで）</h2>
               <label className="flex items-center gap-2">
                 <input

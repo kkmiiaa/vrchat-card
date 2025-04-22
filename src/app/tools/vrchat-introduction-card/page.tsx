@@ -7,6 +7,7 @@ import Cropper, { Area } from 'react-easy-crop'
 import { getCroppedImg } from '@/utils/cropUtils'
 import OnboardingBanner from '@/components/OnboardingBanne'
 import AccordionSection from '@/components/AccordionSection'
+import FloatingButtons from '@/components/FloatingButtons'
 
 type LocalStorageCache = {
   name: string
@@ -329,26 +330,6 @@ export default function Home() {
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
       <header className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b fixed top-0 left-0 w-full z-20 bg-white shadow-md">
         <h1 className="text-xl font-bold">VRChat自己紹介カードメーカー</h1>
-        <div className="flex gap-2">
-          <button
-            onClick={handleDownload}
-            className="hidden sm:inline-block bg-green-600 text-white px-3 py-1.5 text-sm rounded shadow"
-          >
-            画像を保存
-          </button>
-          <button
-            onClick={handleShowDownloadPage}
-            className="sm:hidden bg-green-600 text-white px-3 py-1.5 text-sm rounded shadow"
-          >
-            画像を保存
-          </button> 
-          <button
-            onClick={handlePostToX}
-            className="bg-black text-white px-3 py-1.5 text-sm rounded shadow"
-          >
-            Xでシェア ※画像は手動添付
-          </button>
-        </div>
       </header>
 
       {showCropModal && uploadedImage && (
@@ -415,7 +396,7 @@ export default function Home() {
           className="
             lg:w-[400px] lg:min-w-[400px] lg:max-w-[500px] 
             w-full flex-1 overflow-y-auto p-4 border-t 
-            lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+64px)] lg:mt-0 lg:pt-[80px]"
+            lg:border-t-0 lg:border-l mt-[calc(100vw*9/16)] pt-0 lg:mt-0 lg:pt-[80px]"
         >
           <AccordionSection title="カードデザイン" defaultOpen>
             <div className="flex flex-col gap-4 pt-2 pb-2">
@@ -774,6 +755,11 @@ export default function Home() {
               )}
             </div>
           </AccordionSection>
+
+          <FloatingButtons
+            onSave={handleDownload}
+            onShare={handlePostToX}
+          />
           
         </aside>
       </div>

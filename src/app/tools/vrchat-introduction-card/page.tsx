@@ -273,7 +273,7 @@ export default function Home() {
     link.click()
   
     // 投稿画面を開く
-    const tweetText = encodeURIComponent('自己紹介カードを作りました！ #VRChat自己紹介カード')
+    const tweetText = encodeURIComponent('自己紹介カードを作りました！\n#VRChat自己紹介カード\n#VRChat自己紹介カードメーカー')
     const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`
     window.open(tweetUrl, '_blank')
   }
@@ -391,13 +391,14 @@ export default function Home() {
             className="w-full max-w-[1920px] aspect-[16/9] border shadow-md"
           />
         </section>
-
         <aside 
           className="
             lg:w-[400px] lg:min-w-[400px] lg:max-w-[500px] 
             w-full overflow-y-auto flex-1 p-2
             lg:border-t-0 lg:border-l mt-[calc(100vw*9/16)] pt-0 lg:mt-0 lg:pt-[80px]"
         >
+          <PostTimeline />
+
           <AccordionSection title="カードデザイン" defaultOpen>
             <div className="flex flex-col gap-4 pt-2 pb-2">
               <h2 className="text-lg font-bold">背景の設定</h2>
@@ -755,8 +756,6 @@ export default function Home() {
               )}
             </div>
           </AccordionSection>
-
-          <PostTimeline />
           
         </aside>
       </div>

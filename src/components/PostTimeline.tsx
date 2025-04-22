@@ -1,39 +1,19 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-
 export default function PostTimeline() {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const scriptExists = document.querySelector('script[src="https://platform.twitter.com/widgets.js"]');
-    if (!scriptExists) {
-      const script = document.createElement('script');
-      script.setAttribute('src', 'https://platform.twitter.com/widgets.js');
-      script.setAttribute('async', '');
-      script.setAttribute('charset', 'utf-8');
-      document.head.appendChild(script);
-      script.onload = () => {
-        window?.twttr?.widgets?.load(ref.current ?? undefined);
-      };
-    } else {
-      window?.twttr?.widgets?.load(ref.current ?? undefined);
-    }
-  }, []);
-
   return (
-    <div ref={ref} className="w-full max-w-screen-md mx-auto my-8 px-4">
-      <h2 className="text-lg font-bold text-gray-800 text-center mb-4">
-        #VRChat自己紹介カード の投稿例
-      </h2>
+    <div className="w-full max-w-screen-md mx-auto my-8 px-4 text-center">
+      <h2 className="text-lg font-bold text-gray-800 mb-2">みんなの投稿を見る</h2>
+      <p className="text-sm text-gray-600 mb-4">
+        「#VRChat自己紹介カード」で検索すると、他の人の投稿をチェックできます！
+      </p>
       <a
-        className="twitter-timeline"
-        data-theme="light"
-        data-chrome="noheader nofooter"
-        data-tweet-limit="4"
-        href="https://twitter.com/hashtag/VRChat自己紹介カード"
+        href="https://twitter.com/hashtag/VRChat%E8%87%AA%E5%B7%B1%E7%B4%B9%E4%BB%8B%E3%82%AB%E3%83%BC%E3%83%89"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-block bg-black text-white rounded-full px-6 py-2 text-sm font-semibold hover:bg-blue-700 transition"
       >
-        ロード中…
+        Xで投稿一覧を見る
       </a>
     </div>
   );

@@ -425,20 +425,40 @@ export class CanvasRenderer {
           ],
         })
       })
-    } else if (type === 'image' && typeof value === 'string') {
-      fabric.Image.fromURL(value, (img) => {
-        const image = img as fabric.Image
-        image.set({
-          left: 0,
-          top: 0,
-          scaleX: this.width / image.width!,
-          scaleY: this.height / image.height!,
-          selectable: false,
-          evented: false,
-        })
-        this.canvas.add(image)
-      }, { crossOrigin: 'anonymous' })
-      return
+    } else if (type === 'image') {
+      let src: string | undefined;
+    
+      if (value instanceof File) {
+        src = URL.createObjectURL(value); // File → Blob URL
+      } else if (typeof value === 'string') {
+        src = value;
+      }
+    
+      if (!src) return;
+    
+      fabric.Image.fromURL(src, (img) => {
+        if (!img) return;
+    
+        img.set({
+          scaleX: this.width / img.width!,
+          scaleY: this.height / img.height!,
+          originX: 'left',
+          originY: 'top',
+        });
+    
+        this.canvas.setBackgroundImage(
+          img,
+          this.canvas.renderAll.bind(this.canvas),
+          {
+            scaleX: this.width / img.width!,
+            scaleY: this.height / img.height!,
+            originX: 'left',
+            originY: 'top',
+          }
+        );
+      }, { crossOrigin: 'anonymous' });
+    
+      return;
     }
 
     this.canvas.add(bg)

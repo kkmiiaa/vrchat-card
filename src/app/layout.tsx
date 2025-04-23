@@ -32,11 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <Script
-          src="https://platform.twitter.com/widgets.js"
-          strategy="afterInteractive"
-          charSet="utf-8"
-        />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-XMHKGYVDJW"></script>
         <script>
           {`

@@ -584,9 +584,9 @@ export default function Home() {
               {/* ヒツジ電気さん */}
               <div>
                 <span className="font-semibold">ヒツジ電気さんVer背景</span>
-                <p className='text-xs text-gray-600 pt-1 pb-1'>
-                  ヒツジ電気さんバージョンとは異なりますが、似た背景をつかっています。
-                  元バージョンもご参照ください！ → <a className='text-blue-600' target='_blank' href='https://booth.pm/ja/items/4028321'>Booth</a>
+                <p className="text-xs text-gray-600 pt-1 pb-1">
+                  背景画像はヒツジ電気さんの公開バージョンとは異なりますが、似た背景を使用しています。
+                  元のバージョンもぜひご覧ください → <a className="text-blue-600 underline" target="_blank" rel="noopener noreferrer" href="https://booth.pm/ja/items/4028321">Booth</a>
                 </p>
                 <div className="flex gap-2 mt-1">
                   {[

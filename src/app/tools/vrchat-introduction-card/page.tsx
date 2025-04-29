@@ -70,8 +70,8 @@ export default function Home() {
     defaultItems.map(label => ({ label, mark: '-' }))
   )
 
-  const [backgroundType, setBackgroundType] = useState<'color' | 'gradient' | 'image'>('color')
-  const [backgroundValue, setBackgroundValue] = useState<string | [string, string] | File>('#f87171')
+  const [backgroundType, setBackgroundType] = useState<'color' | 'gradient' | 'image'>('image')
+  const [backgroundValue, setBackgroundValue] = useState<string | [string, string] | File>('/backgrounds/bg_3.png')
 
   const [galleryEnabled, setGalleryEnabled] = useState(false)
   const [galleryImages, setGalleryImages] = useState<(File | null)[]>([null, null, null])

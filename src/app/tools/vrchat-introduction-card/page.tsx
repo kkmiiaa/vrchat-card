@@ -580,6 +580,33 @@ export default function Home() {
                   ))}
                 </div>
               </div>
+              
+              {/* ヒツジ電気さん */}
+              <div>
+                <span className="font-semibold">ヒツジ電気さんVer背景</span>
+                <p className='text-xs text-gray-600 pt-1 pb-1'>
+                  ヒツジ電気さんバージョンとは異なりますが、似た背景をつかっています。
+                  元バージョンもご参照ください！ → <a className='text-blue-600' target='_blank' href='https://booth.pm/ja/items/4028321'>Booth</a>
+                </p>
+                <div className="flex gap-2 mt-1">
+                  {[
+                    { id: 'bg1', src: '/backgrounds/bg_1.png' },
+                    { id: 'bg2', src: '/backgrounds/bg_2.png' },
+                    { id: 'bg3', src: '/backgrounds/bg_3.png' },
+                    { id: 'bg4', src: '/backgrounds/bg_4.png' },
+                  ].map(({ id, src }) => (
+                    <button
+                      key={id}
+                      onClick={() => {
+                        setBackgroundType('image')
+                        setBackgroundValue(src)
+                      }}
+                      className="w-16 h-8 rounded bg-cover bg-center"
+                      style={{ backgroundImage: `url(${src})` }}
+                    />
+                  ))}
+                </div>
+              </div>
 
               {/* 背景画像アップロード */}
               <div>

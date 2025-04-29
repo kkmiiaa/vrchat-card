@@ -29,7 +29,7 @@ export default function PostTimeline() {
           本ツールは、ヒツジ電機さんの自己紹介カードを参考に制作していますが、
           背景画像についてはオリジナル版とは異なる素材を使用しています。
         </p>
-        <p className="text-xs text-gray-600 mb-2 leading-snug">
+        <p className="text-xs text-gray-600 leading-snug">
           デザイン・コンセプトのもととなったのはヒツジ電機さんですが、
           ヒツジ電機さんご本人は本ツールの制作には関与しておらず、別個のプロジェクトです（許諾は頂いています）。
         </p>

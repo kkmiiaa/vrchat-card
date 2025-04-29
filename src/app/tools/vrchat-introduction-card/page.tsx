@@ -71,7 +71,7 @@ export default function Home() {
   )
 
   const [backgroundType, setBackgroundType] = useState<'color' | 'gradient' | 'image'>('image')
-  const [backgroundValue, setBackgroundValue] = useState<string | [string, string] | File>('/backgrounds/bg_3.png')
+  const [backgroundValue, setBackgroundValue] = useState<string | [string, string] | File>('/backgrounds/bg_1.png')
 
   const [galleryEnabled, setGalleryEnabled] = useState(false)
   const [galleryImages, setGalleryImages] = useState<(File | null)[]>([null, null, null])

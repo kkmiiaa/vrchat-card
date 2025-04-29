@@ -24,6 +24,16 @@ export default function PostTimeline() {
           Xで投稿一覧を見る →
         </a>
       </div>
+      <div className="border border-gray-300 rounded-xl bg-gray-50 p-4 text-sm text-gray-700 text-left shadow-sm mt-4">
+        <p className="text-xs text-gray-600 mb-2 leading-snug">
+          本ツールは、ヒツジ電機さんの自己紹介カードを参考に制作していますが、
+          背景画像についてはオリジナル版とは異なる素材を使用しています。
+        </p>
+        <p className="text-xs text-gray-600 mb-2 leading-snug">
+          デザイン・コンセプトのもととなったのはヒツジ電機さんですが、
+          ヒツジ電機さんご本人は本ツールの制作には関与しておらず、別個のプロジェクトです（許諾は頂いています）。
+        </p>
+      </div>
     </div>
   );
 }

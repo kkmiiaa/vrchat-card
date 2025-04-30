@@ -593,6 +593,7 @@ export default function Home() {
                     { id: 'bg2', src: '/backgrounds/bg_2.png' },
                     { id: 'bg3', src: '/backgrounds/bg_3.png' },
                     { id: 'bg4', src: '/backgrounds/bg_4.png' },
+                    { id: 'bg5', src: '/backgrounds/bg_5.png' },
                   ].map(({ id, src }) => (
                     <button
                       key={id}

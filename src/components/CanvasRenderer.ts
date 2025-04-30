@@ -130,6 +130,7 @@ export class CanvasRenderer {
       backgroundType ?? "gradient", 
       backgroundValue ?? ['#60a5fa', '#a78bfa']
     )
+
     if (showBalloon) {
       this.drawBalloon(0.9)
     }

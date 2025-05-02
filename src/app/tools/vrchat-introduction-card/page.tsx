@@ -71,7 +71,7 @@ export default function Home() {
   )
 
   const [backgroundType, setBackgroundType] = useState<'color' | 'gradient' | 'image'>('image')
-  const [backgroundValue, setBackgroundValue] = useState<string | [string, string] | File>('/backgrounds/bg_1.png')
+  const [backgroundValue, setBackgroundValue] = useState<string | [string, string] | File>('/backgrounds/bg_1.webp')
 
   const [galleryEnabled, setGalleryEnabled] = useState(false)
   const [galleryImages, setGalleryImages] = useState<(File | null)[]>([null, null, null])
@@ -589,11 +589,11 @@ export default function Home() {
                 </p>
                 <div className="flex gap-2 mt-1">
                   {[
-                    { id: 'bg1', src: '/backgrounds/bg_1.png' },
-                    { id: 'bg2', src: '/backgrounds/bg_2.png' },
-                    { id: 'bg3', src: '/backgrounds/bg_3.png' },
-                    { id: 'bg4', src: '/backgrounds/bg_4.png' },
-                    { id: 'bg5', src: '/backgrounds/bg_5.png' },
+                    { id: 'bg1', src: '/backgrounds/bg_1.webp' },
+                    { id: 'bg2', src: '/backgrounds/bg_2.webp' },
+                    { id: 'bg3', src: '/backgrounds/bg_3.webp' },
+                    { id: 'bg4', src: '/backgrounds/bg_4.webp' },
+                    { id: 'bg5', src: '/backgrounds/bg_5.webp' },
                   ].map(({ id, src }) => (
                     <button
                       key={id}

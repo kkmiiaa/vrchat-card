@@ -1,7 +1,24 @@
 // components/CanvasRenderer.ts
 import { fabric } from 'fabric'
+import {
+  RoundedMplus,
+  Kosugi,
+  ZenMaru,
+  Uzura,
+  Kawaii,
+  MaruMinya,
+} from '@/app/fonts'
 
 export type MarkOption = '◎' | '◯' | '△' | '✗' | '-'
+
+export const fontMap = {
+  rounded: RoundedMplus,
+  kosugi: Kosugi,
+  zenmaru: ZenMaru,
+  uzura: Uzura,
+  kawaii: Kawaii,
+  maruminya: MaruMinya,
+}
 
 export interface InteractionItem {
   label: string
@@ -509,7 +526,7 @@ export class CanvasRenderer {
     left = 0,
     top = 0,
     fontSize = 48,
-    fontFamily = 'Rounded Mplus 1c',
+    fontFamily = RoundedMplus.style.fontFamily,
     fill = '#000',
     selectable = false,
     evented = false,
@@ -546,7 +563,7 @@ export class CanvasRenderer {
     labelFontSizeRatio = 0.016,
     valueFontSizeRatio = 0.016,
     subtitleFontSizeRatio = 0.013,
-    fontFamily = "Rounded Mplus 1c",
+    fontFamily = RoundedMplus.style.fontFamily,
     paddingRatio = 0.008,
     isBorder = true,
   ) {
@@ -631,7 +648,7 @@ export class CanvasRenderer {
     iconArea: GridArea,
     textArea: GridArea,
     valueFontSizeRatio = 0.014,
-    fontFamily = "Rounded Mplus 1c",
+    fontFamily = RoundedMplus.style.fontFamily,
     iconCornerRatio = 0.15,
     isBorder = true,
   ) {
@@ -724,7 +741,7 @@ export class CanvasRenderer {
     labelFontSizeRatio = 0.016,
     subtitleFontSizeRatio = 0.012,
     valueFontSizeRatio = 0.016,
-    fontFamily = 'Rounded Mplus 1c',
+    fontFamily = RoundedMplus.style.fontFamily,
     withStroke = false,
     variant: 'box' | 'underline' = 'box'  // ← 追加
   ) {
@@ -837,7 +854,7 @@ export class CanvasRenderer {
     titleFontRatio = 0.016,
     subtitleFontRatio = 0.012,
     valueFontRatio = 0.014,
-    fontFamily = 'Rounded Mplus 1c',
+    fontFamily = RoundedMplus.style.fontFamily,
     gradient: [string, string] = ['#60a5fa', '#a78bfa']
   ) {
     const padding = this.width * 0.006
@@ -930,7 +947,7 @@ export class CanvasRenderer {
     iconSizeRatio = 0.03,
     textBoxHeightRatio = 0.04,
     rowSpacingRatio = 0.02, // 上下間の余白
-    fontFamily = "Rounded Mplus 1c"
+    fontFamily = RoundedMplus.style.fontFamily,
   ) {
     const left = this.width * area.x
     const top = this.height * area.y
@@ -978,7 +995,7 @@ export class CanvasRenderer {
     top: number,
     titleFontRatio = 0.016,
     subtitleFontRatio = 0.012,
-    fontFamily = 'Rounded Mplus 1c'
+    fontFamily = RoundedMplus.style.fontFamily,
   ) {
     const titleText = new fabric.Text(title, {
       left,
@@ -1009,7 +1026,7 @@ export class CanvasRenderer {
       left: this.balloonPadding,
       top: this.height*(1 - 0.04),
       fontSize: this.fontSizeBase * 0.5,
-      fontFamily: '"Rounded Mplus 1c"',
+      fontFamily: RoundedMplus.style.fontFamily,
       fill: '#ffffff',
       selectable: false,
       evented: false,

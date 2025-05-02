@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { fabric } from 'fabric'
-import { CanvasRenderer, InteractionItem, MarkOption } from '@/components/CanvasRenderer'
+import { CanvasRenderer, fontMap, InteractionItem, MarkOption } from '@/components/CanvasRenderer'
 import Cropper, { Area } from 'react-easy-crop'
 import { getCroppedImg } from '@/utils/cropUtils'
 import OnboardingBanner from '@/components/OnboardingBanne'
 import AccordionSection from '@/components/AccordionSection'
 import FloatingButtons from '@/components/FloatingButtons'
-import FontSelector from '@/components/FontSelector';
+import FontSelector, { FontKey } from '@/components/FontSelector';
 import PostTimeline from '@/components/PostTimeline'
 import BalloonToggle from '@/components/BaloonToggle'
 import { FiMessageCircle } from "react-icons/fi"
@@ -82,7 +82,7 @@ export default function Home() {
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
-  const [fontFamily, setFontFamily] = useState('"Rounded Mplus 1c", sans-serif');
+  const [fontKey, setFontKey] = useState<FontKey>('rounded')
   const [showBalloon, setShowBalloon] = useState(true);
 
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -155,6 +155,8 @@ export default function Home() {
   
       const renderer = new CanvasRenderer(canvas)
       rendererRef.current = renderer
+
+      const fontFamily = fontMap[fontKey]?.style?.fontFamily ?? 'sans-serif'
   
       // 🔹 描画実行（画像読み込みが非同期なので try-catch 推奨）
       try {
@@ -216,7 +218,7 @@ export default function Home() {
     backgroundValue,
     galleryEnabled,
     galleryImages,
-    fontFamily,
+    fontKey,
     showBalloon,
     previewOpen,
     previewImageUrl
@@ -224,6 +226,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!initialized) return
+    const fontFamily = fontMap[fontKey]?.style?.fontFamily ?? 'sans-serif'
     const data = {
       name,
       language,
@@ -253,7 +256,7 @@ export default function Home() {
     name, language, gender, playEnv, micOnRate, selfIntro,
     vrchatId, twitterId, discordId,
     statusBlue, statusGreen, statusYellow, statusRed,
-    friendPolicy, interactions, backgroundType, backgroundValue, fontFamily, showBalloon
+    friendPolicy, interactions, backgroundType, backgroundValue, fontKey, showBalloon
   ])
 
   const saveToLocalStorage = (data: Record<string, unknown>) => {
@@ -627,7 +630,7 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-4 pt-2 pb-2">
-              <FontSelector fontFamily={fontFamily} setFontFamily={setFontFamily} />
+              <FontSelector fontKey={fontKey} setFontKey={setFontKey} />
             </div>
             
             <div className="flex flex-col gap-4 pt-2 pb-2">

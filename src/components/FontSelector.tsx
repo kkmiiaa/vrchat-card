@@ -1,45 +1,61 @@
-'use client';
+'use client'
 
-type FontOption = {
-  label: string;
-  value: string;
-};
+import {
+  RoundedMplus,
+  Kosugi,
+  ZenMaru,
+  Uzura,
+  Kawaii,
+  MaruMinya,
+} from '@/app/fonts'
 
-const fontOptions: FontOption[] = [
-  { label: 'Rounded M+', value: '"Rounded Mplus 1c", sans-serif' },
-  { label: 'Kosugi Maru', value: '"Kosugi Maru", sans-serif' },
-  { label: 'Zen Maru Gothic', value: '"Zen Maru Gothic", sans-serif' },
-  { label: 'うずらフォント', value: 'Uzura' },
-  { label: 'kawaii手書き文字', value: 'kawaii手書き' },
-  { label: 'マルミーニャM', value: 'マルミーニャM' },
-];
+export type FontKey =
+  | 'rounded'
+  | 'kosugi'
+  | 'zenmaru'
+  | 'uzura'
+  | 'kawaii'
+  | 'maruminya'
+
+const fontOptions: {
+  key: FontKey
+  label: string
+  fontFamily: string
+}[] = [
+  { key: 'rounded', label: 'Rounded M+', fontFamily: RoundedMplus.style.fontFamily },
+  { key: 'kosugi', label: 'Kosugi Maru', fontFamily: Kosugi.style.fontFamily },
+  { key: 'zenmaru', label: 'Zen Maru Gothic', fontFamily: ZenMaru.style.fontFamily },
+  { key: 'uzura', label: 'うずらフォント', fontFamily: Uzura.style.fontFamily },
+  { key: 'kawaii', label: 'kawaii手書き文字', fontFamily: Kawaii.style.fontFamily },
+  { key: 'maruminya', label: 'マルミーニャM', fontFamily: MaruMinya.style.fontFamily },
+]
 
 export default function FontSelector({
-    fontFamily,
-    setFontFamily,
-  }: {
-    fontFamily: string;
-    setFontFamily: (val: string) => void;
-  }) {
-    return (
+  fontKey,
+  setFontKey,
+}: {
+  fontKey: FontKey
+  setFontKey: (val: FontKey) => void
+}) {
+  return (
     <div className="flex flex-col gap-4 pt-2 pb-2">
       <h2 className="text-lg font-bold">フォントの設定</h2>
-        <div className="flex flex-wrap gap-2">
-          {fontOptions.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setFontFamily(opt.value)}
-              className={`px-4 py-2 rounded border text-sm transition
-                ${fontFamily === opt.value
-                  ? 'border-blue-600 bg-blue-100 text-blue-800'
-                  : 'border-gray-300 bg-white hover:bg-gray-50'}
-              `}
-              style={{ fontFamily: opt.value }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-wrap gap-2">
+        {fontOptions.map((opt) => (
+          <button
+            key={opt.key}
+            onClick={() => setFontKey(opt.key)}
+            className={`px-4 py-2 rounded border text-sm transition
+              ${fontKey === opt.key
+                ? 'border-blue-600 bg-blue-100 text-blue-800'
+                : 'border-gray-300 bg-white hover:bg-gray-50'}
+            `}
+            style={{ fontFamily: opt.fontFamily }}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
-    );
-  }
+    </div>
+  )
+}

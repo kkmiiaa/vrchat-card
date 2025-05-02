@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AnalyticsProvider } from "./providers";
-import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,14 +41,6 @@ export default function RootLayout({
             gtag('config', 'G-XMHKGYVDJW');
           `}
         </script>
-        <link 
-          href="https://fonts.googleapis.com/css2?family=Rounded+Mplus+1c&display=swap" 
-          rel="stylesheet" 
-        />
-        <link 
-          href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Zen+Maru+Gothic&display=swap" 
-          rel="stylesheet" 
-        />
       </head>
       <body className={`font-rounded ${geistSans.variable} ${geistMono.variable}`}>
         <AnalyticsProvider>

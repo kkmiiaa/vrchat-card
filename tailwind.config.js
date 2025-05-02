@@ -1,11 +1,15 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/**/*.{js,ts,jsx,tsx}"], // ← App Router構成の場合これでOK
+  content: ["./src/**/*.{js,ts,jsx,tsx}", "./app/**/*.{js,ts,jsx,tsx}"], // App Router構成の場合
   theme: {
     extend: {
       fontFamily: {
-        rounded: ['"Rounded Mplus 1c"', 'sans-serif'],
-        mplus: ['"M PLUS 1c"', 'sans-serif'],
+        rounded: ['var(--font-rounded)', 'sans-serif'],
+        kosugi: ['var(--font-kosugi)', 'sans-serif'],
+        zenmaru: ['var(--font-zenmaru)', 'sans-serif'],
+        uzura: ['var(--font-uzura)', 'sans-serif'],
+        kawaii: ['var(--font-kawaii)', 'sans-serif'],
+        maruminya: ['var(--font-maruminya)', 'sans-serif'],
       },
     },
   },

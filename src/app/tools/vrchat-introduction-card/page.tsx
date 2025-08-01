@@ -444,7 +444,7 @@ export default function Home() {
               要望<FiMessageCircle className="w-6 h-6" />
             </a>
           </div>
-          <LanguageToggle language={language} setLanguage={setLanguage} />
+          <LanguageToggle language={systemLanguage} setSystemLanguage={setSystemLanguage} />
         </div>
       </header>
 

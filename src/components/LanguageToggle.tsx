@@ -3,12 +3,12 @@
 
 type Props = {
   language: 'ja' | 'en';
-  setLanguage: (language: 'ja' | 'en') => void;
+  setSystemLanguage: (language: 'ja' | 'en') => void;
 };
 
-export default function LanguageToggle({ language, setLanguage }: Props) {
+export default function LanguageToggle({ language, setSystemLanguage }: Props) {
   const toggleLanguage = () => {
-    setLanguage(language === 'ja' ? 'en' : 'ja');
+    setSystemLanguage(language === 'ja' ? 'en' : 'ja');
   };
 
   return (

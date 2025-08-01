@@ -5,6 +5,7 @@ type Props = {
   t: {
     support: string;
     supportButton: string;
+    supportLink: string;
   };
 };
 
@@ -15,7 +16,7 @@ export default function SupportBanner({ t }: Props) {
         {t.support}
       </p>
       <a
-        href="https://www.buymeacoffee.com/yota3d"
+        href={t.supportLink}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-2 inline-block bg-yellow-500 text-white font-bold py-2 px-4 rounded-full hover:bg-yellow-600 transition"

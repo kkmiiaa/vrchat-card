@@ -542,8 +542,8 @@ export default function Home() {
             w-full overflow-y-auto flex-1 p-2 
             lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+16px)] pt-0 lg:mt-4"
         >
+          <SupportBanner t={t} />
           <AccordionSection title={t.cardDesign} defaultOpen>
-            <SupportBanner t={t} />
             <div className="flex flex-col gap-4 pt-2 pb-2 ">
               <h2 className="text-lg font-bold">{t.backgroundSettings}</h2>
 

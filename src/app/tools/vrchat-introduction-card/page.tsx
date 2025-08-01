@@ -1,17 +1,26 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { fabric } from 'fabric'
-import { CanvasRenderer, fontMap, InteractionItem, MarkOption } from '@/components/CanvasRenderer'
-import Cropper, { Area } from 'react-easy-crop'
-import { getCroppedImg } from '@/utils/cropUtils'
-import OnboardingBanner from '@/components/OnboardingBanne'
-import AccordionSection from '@/components/AccordionSection'
-import FloatingButtons from '@/components/FloatingButtons'
-import FontSelector, { FontKey } from '@/components/FontSelector';
-import PostTimeline from '@/components/PostTimeline'
-import BalloonToggle from '@/components/BaloonToggle'
-import { FiMessageCircle } from "react-icons/fi"
+import { fabric } from 'fabric';
+import { FiMessageCircle } from 'react-icons/fi';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Cropper from 'react-easy-crop';
+
+import OnboardingBanner from '@/components/OnboardingBanne';
+import AccordionSection from '@/components/AccordionSection';
+import FontSelector from '@/components/FontSelector';
+import PostTimeline from '@/components/PostTimeline';
+import BalloonToggle from '@/components/BaloonToggle';
+import FloatingButtons from '@/components/FloatingButtons';
+import { CanvasRenderer, fontMap } from '@/components/CanvasRenderer';
+import SupportBanner from '@/components/SupportBanner';
+import LanguageToggle from '@/components/LanguageToggle';
+import { translations } from '@/utils/translations';
+
+import { useCanvas } from '@/hooks/useCanvas';
+import { MaruMinya, Uzura, Kawaii } from '@/app/fonts';
+import { calculateLayout } from '@/utils/layout';
+import { getCroppedImg } from '@/utils/cropUtils';
+
 
 
 type LocalStorageCache = {
@@ -37,6 +46,9 @@ type LocalStorageCache = {
 }
 
 export default function Home() {
+  const [systemLanguage, setSystemLanguage] = useState<'ja' | 'en'>('ja');
+  const t = translations[systemLanguage];
+
   const STORAGE_KEY = 'vrchat-card-cache'
 
   const canvasEl = useRef<HTMLCanvasElement | null>(null)
@@ -405,31 +417,34 @@ export default function Home() {
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
       <header className="fixed top-0 left-0 right-0 z-30 bg-white h-12 sm:h-16 px-4 py-2 lg:shadow flex justify-between items-center">
         <div className="text-base sm:text-xl font-bold">
-          VRChat自己紹介カードメーカー
+          {t.title}
         </div>
-        <div className="text-sm text-gray-600">
-          <span className="hidden sm:inline">
-            質問・要望・コメントなどは{' '}
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-600">
+            <span className="hidden sm:inline">
+              {t.contact}{' '}
+              <a
+                href="https://x.com/yota3d"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                @yota3d
+              </a>{' '}
+              まで！
+            </span>
+
             <a
               href="https://x.com/yota3d"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="inline text-sm sm:hidden text-blue-600"
+              aria-label="@yota3dへ連絡"
             >
-              @yota3d
-            </a>{' '}
-            まで！
-          </span>
-
-          <a
-            href="https://x.com/yota3d"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline text-sm sm:hidden text-blue-600"
-            aria-label="@yota3dへ連絡"
-          >
-            要望<FiMessageCircle className="w-6 h-6" />
-          </a>
+              要望<FiMessageCircle className="w-6 h-6" />
+            </a>
+          </div>
+          <LanguageToggle language={language} setLanguage={setLanguage} />
         </div>
       </header>
 
@@ -527,9 +542,10 @@ export default function Home() {
             w-full overflow-y-auto flex-1 p-2 
             lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+16px)] pt-0 lg:mt-4"
         >
-          <AccordionSection title="カードデザイン" defaultOpen>
+          <AccordionSection title={t.cardDesign} defaultOpen>
+            <SupportBanner t={t} />
             <div className="flex flex-col gap-4 pt-2 pb-2 ">
-              <h2 className="text-lg font-bold">背景の設定</h2>
+              <h2 className="text-lg font-bold">{t.backgroundSettings}</h2>
 
               {/* 単色選択 */}
               <div>
@@ -928,10 +944,10 @@ export default function Home() {
       {/* <footer className="p-4 flex justify-between items-center border-t bg-white fixed bottom-0 left-0 w-full z-20">
         <div className="text-sm text-gray-500">ⓘ 広告スペース or サポートリンクなど</div>
       </footer> */}
-
       <FloatingButtons
         onSave={handleDownload}
         onShare={handlePostToX}
+        t={t}
       />
     </main>
     <OnboardingBanner />

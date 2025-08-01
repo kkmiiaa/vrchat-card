@@ -1,4 +1,3 @@
-// components/CanvasRenderer.ts
 import { fabric } from 'fabric'
 import {
   RoundedMplus,
@@ -9,8 +8,6 @@ import {
   MaruMinya,
 } from '@/app/fonts'
 
-export type MarkOption = '◎' | '◯' | '△' | '✗' | '-'
-
 export const fontMap = {
   rounded: RoundedMplus,
   kosugi: Kosugi,
@@ -18,12 +15,6 @@ export const fontMap = {
   uzura: Uzura,
   kawaii: Kawaii,
   maruminya: MaruMinya,
-}
-
-export interface InteractionItem {
-  label: string
-  mark: MarkOption
-  isCustom?: boolean
 }
 
 interface RenderProps {

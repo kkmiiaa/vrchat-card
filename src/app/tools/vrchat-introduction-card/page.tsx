@@ -4,6 +4,7 @@ import { fabric } from 'fabric';
 import { FiMessageCircle } from 'react-icons/fi';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Cropper from 'react-easy-crop';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 import OnboardingBanner from '@/components/OnboardingBanne';
 import AccordionSection from '@/components/AccordionSection';
@@ -46,7 +47,32 @@ type LocalStorageCache = {
 }
 
 export default function Home() {
-  const [systemLanguage, setSystemLanguage] = useState<'ja' | 'en'>('ja');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const initialLang = searchParams.get('lang') === 'en' ? 'en' : 'ja';
+  const [systemLanguage, setSystemLanguageState] = useState<'ja' | 'en'>(initialLang);
+
+  const setSystemLanguage = useCallback((lang: 'ja' | 'en') => {
+    setSystemLanguageState(lang);
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    if (lang === 'en') {
+      newSearchParams.set('lang', 'en');
+    } else {
+      newSearchParams.delete('lang');
+    }
+    router.replace(`${pathname}?${newSearchParams.toString()}`);
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    // URLのlangパラメータとstateが一致しない場合、stateをURLに合わせる
+    const currentLangInUrl = searchParams.get('lang') === 'en' ? 'en' : 'ja';
+    if (currentLangInUrl !== systemLanguage) {
+      setSystemLanguageState(currentLangInUrl);
+    }
+  }, [searchParams, systemLanguage]);
+
   const t = translations[systemLanguage];
 
   const STORAGE_KEY = 'vrchat-card-cache'
@@ -103,12 +129,20 @@ export default function Home() {
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [currentUrlDisplay, setCurrentUrlDisplay] = useState('');
 
   useEffect(() => {
     if (t.title) {
       document.title = t.title;
     }
   }, [t.title]);
+
+  useEffect(() => {
+    // URLをクライアントサイドでのみ生成
+    if (typeof window !== 'undefined') {
+      setCurrentUrlDisplay(window.location.origin + pathname + (systemLanguage === 'en' ? '?lang=en' : ''));
+    }
+  }, [pathname, systemLanguage]);
 
   useEffect(() => {
     setHasMounted(true)
@@ -967,6 +1001,17 @@ export default function Home() {
           </AccordionSection>
 
           <PostTimeline t={t} />
+
+          <div className="w-full max-w-screen-md mx-auto mt-4 mb-4">
+            <div className="border border-gray-300 rounded-xl bg-gray-50 p-4 text-sm text-gray-700 text-center shadow-sm">
+              <p className="text-xs text-gray-600 mb-2 leading-snug">
+                {t.currentLanguageUrl}
+              </p>
+              <p className="text-sm font-medium text-blue-600 break-all">
+                {currentUrlDisplay}
+              </p>
+            </div>
+          </div>
         </aside>
       </div>
 

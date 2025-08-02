@@ -1,18 +1,27 @@
 'use client'
+import { Suspense } from 'react';
 
-import { useEffect, useRef, useState } from 'react'
-import { fabric } from 'fabric'
-import { CanvasRenderer, fontMap, InteractionItem, MarkOption } from '@/components/CanvasRenderer'
-import Cropper, { Area } from 'react-easy-crop'
-import { getCroppedImg } from '@/utils/cropUtils'
-import OnboardingBanner from '@/components/OnboardingBanne'
-import AccordionSection from '@/components/AccordionSection'
-import FloatingButtons from '@/components/FloatingButtons'
-import FontSelector, { FontKey } from '@/components/FontSelector';
-import PostTimeline from '@/components/PostTimeline'
-import BalloonToggle from '@/components/BaloonToggle'
-import { FiMessageCircle } from "react-icons/fi"
+import { fabric } from 'fabric';
+import { FiMessageCircle } from 'react-icons/fi';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Cropper from 'react-easy-crop';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
+import OnboardingBanner from '@/components/OnboardingBanne';
+import AccordionSection from '@/components/AccordionSection';
+import FontSelector from '@/components/FontSelector';
+import PostTimeline from '@/components/PostTimeline';
+import BalloonToggle from '@/components/BaloonToggle';
+import FloatingButtons from '@/components/FloatingButtons';
+import { CanvasRenderer, fontMap } from '@/components/CanvasRenderer';
+import SupportBanner from '@/components/SupportBanner';
+import LanguageToggle from '@/components/LanguageToggle';
+import { translations } from '@/utils/translations';
+
+import { useCanvas } from '@/hooks/useCanvas';
+import { MaruMinya, Uzura, Kawaii } from '@/app/fonts';
+import { calculateLayout } from '@/utils/layout';
+import { getCroppedImg } from '@/utils/cropUtils';
 
 type LocalStorageCache = {
   name: string
@@ -28,7 +37,7 @@ type LocalStorageCache = {
   statusGreen: string
   statusYellow: string
   statusRed: string
-  friendPolicy: string[]
+  friendPolicy: string[] // Store keys as strings
   interactions: InteractionItem[]
   backgroundType: "color" | "gradient" | "image"
   backgroundValue: string | [string, string], 
@@ -36,7 +45,35 @@ type LocalStorageCache = {
   showBalloon: boolean  
 }
 
-export default function Home() {
+function VRChatCardGenerator() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const initialLang = searchParams.get('lang') === 'en' ? 'en' : 'ja';
+  const [systemLanguage, setSystemLanguageState] = useState<'ja' | 'en'>(initialLang);
+
+  const setSystemLanguage = useCallback((lang: 'ja' | 'en') => {
+    setSystemLanguageState(lang);
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    if (lang === 'en') {
+      newSearchParams.set('lang', 'en');
+    } else {
+      newSearchParams.delete('lang');
+    }
+    router.replace(`${pathname}?${newSearchParams.toString()}`);
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    // URLのlangパラメータとstateが一致しない場合、stateをURLに合わせる
+    const currentLangInUrl = searchParams.get('lang') === 'en' ? 'en' : 'ja';
+    if (currentLangInUrl !== systemLanguage) {
+      setSystemLanguageState(currentLangInUrl);
+    }
+  }, [searchParams, systemLanguage]);
+
+  const t = translations[systemLanguage];
+
   const STORAGE_KEY = 'vrchat-card-cache'
 
   const canvasEl = useRef<HTMLCanvasElement | null>(null)
@@ -65,9 +102,13 @@ export default function Home() {
 
   const [friendPolicy, setFriendPolicy] = useState<string[]>([])
 
-  const defaultItems = ['触る', '近距離', 'お砂糖', '武器', '暴言/暴力', '下ネタ']
+  const defaultItems = translations.ja.okNgDefaults; // Use a fixed language for default keys
   const [interactions, setInteractions] = useState<InteractionItem[]>(
-    defaultItems.map(label => ({ label, mark: '-' }))
+    Object.keys(defaultItems).map(key => ({
+      label: key, // Store the key, not the translated text
+      mark: '-',
+      isCustom: false,
+    }))
   )
 
   const [backgroundType, setBackgroundType] = useState<'color' | 'gradient' | 'image'>('image')
@@ -87,6 +128,20 @@ export default function Home() {
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [currentUrlDisplay, setCurrentUrlDisplay] = useState('');
+
+  useEffect(() => {
+    if (t.title) {
+      document.title = t.title;
+    }
+  }, [t.title]);
+
+  useEffect(() => {
+    // URLをクライアントサイドでのみ生成
+    if (typeof window !== 'undefined') {
+      setCurrentUrlDisplay(window.location.origin + pathname + (systemLanguage === 'en' ? '?lang=en' : ''));
+    }
+  }, [pathname, systemLanguage]);
 
   useEffect(() => {
     setHasMounted(true)
@@ -100,7 +155,7 @@ export default function Home() {
     if (cache.selfIntro) setSelfIntro(cache.selfIntro)
     if (cache.language) {
       setLanguage(cache.language)
-      const preset = ['日本語', 'English', 'Korean']
+      const preset = [translations.ja.japanese, translations.ja.english, translations.ja.korean] // Use fixed keys for comparison
       const custom = cache.language.filter(l => !preset.includes(l))
       if (custom.length > 0) {
         setCustomLanguageInput(custom.join(', '))
@@ -116,7 +171,7 @@ export default function Home() {
     if (cache.statusGreen) setStatusGreen(cache.statusGreen)
     if (cache.statusYellow) setStatusYellow(cache.statusYellow)
     if (cache.statusRed) setStatusRed(cache.statusRed)
-    if (cache.friendPolicy) setFriendPolicy(cache.friendPolicy)
+    if (cache.friendPolicy) setFriendPolicy(cache.friendPolicy) // Cast removed
     if (cache.interactions) setInteractions(cache.interactions)
     if (cache.backgroundType) setBackgroundType(cache.backgroundType)
     if (cache.backgroundValue) setBackgroundValue(cache.backgroundValue)
@@ -124,7 +179,7 @@ export default function Home() {
     console.log("initialization!")
 
     setInitialized(true)
-  }, [hasMounted])
+  }, [hasMounted, initialized, t.japanese, t.english, t.korean]) // Add t.japanese, t.english, t.korean to dependencies
 
   useEffect(() => {
     const canvasElement = canvasEl.current
@@ -153,7 +208,7 @@ export default function Home() {
       const canvas = new fabric.Canvas(canvasElement, { width, height })
       currentCanvas = canvas
   
-      const renderer = new CanvasRenderer(canvas)
+      const renderer = new CanvasRenderer(canvas, { ...t, lang: systemLanguage })
       rendererRef.current = renderer
 
       const fontFamily = fontMap[fontKey]?.style?.fontFamily ?? 'sans-serif'
@@ -221,7 +276,8 @@ export default function Home() {
     fontKey,
     showBalloon,
     previewOpen,
-    previewImageUrl
+    previewImageUrl,
+    systemLanguage
   ])
 
   useEffect(() => {
@@ -308,7 +364,7 @@ export default function Home() {
       multiplier: 1920 / rendererRef.current.canvas.getWidth(),
     })
 
-    const tweetText = encodeURIComponent("自己紹介カードを作りました！\n#VRChat自己紹介カード\n#VRChat自己紹介カードメーカー");
+    const tweetText = encodeURIComponent(t.tweetText);
     const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
 
     const isMobile = window.innerWidth < 768;
@@ -319,11 +375,11 @@ export default function Home() {
       if (win) {
         win.document.write(`
           <div style="text-align:center;font-family:sans-serif;padding:1rem">
-            <p>画像を長押しで保存して、投稿時に添付してください📎</p>
+            <p>{t.pressAndHoldToSave}</p>
             <img src="${highResUrl}" style="max-width:100%;height:auto;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.2)" />
             <p style="margin-top:1rem;">
               <a href="${tweetUrl}" target="_blank" style="display:inline-block;padding:0.5rem 1rem;background:#1d9bf0;color:#fff;border-radius:6px;text-decoration:none">
-                Xで投稿画面を開く →
+                {t.openPostScreenOnX}
               </a>
             </p>
           </div>
@@ -372,7 +428,7 @@ export default function Home() {
     const win = window.open()
     if (win) {
       win.document.write(`
-        <p>下の画像を長押しして「写真に追加」してください。</p>
+        <p>{t.pressAndHoldToAdd}</p>
         <img src="${highResUrl}" style="max-width:100%;"/>
       `)
     }
@@ -405,31 +461,34 @@ export default function Home() {
     <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
       <header className="fixed top-0 left-0 right-0 z-30 bg-white h-12 sm:h-16 px-4 py-2 lg:shadow flex justify-between items-center">
         <div className="text-base sm:text-xl font-bold">
-          VRChat自己紹介カードメーカー
+          {t.title}
         </div>
-        <div className="text-sm text-gray-600">
-          <span className="hidden sm:inline">
-            質問・要望・コメントなどは{' '}
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-600">
+            <span className="hidden sm:inline">
+              {t.contact}{' '}
+              <a
+                href="https://x.com/yota3d"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                @yota3d
+              </a>{' '}
+              {t.left}
+            </span>
+
             <a
               href="https://x.com/yota3d"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="inline text-sm sm:hidden text-blue-600"
+              aria-label={t.contactTo}
             >
-              @yota3d
-            </a>{' '}
-            まで！
-          </span>
-
-          <a
-            href="https://x.com/yota3d"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline text-sm sm:hidden text-blue-600"
-            aria-label="@yota3dへ連絡"
-          >
-            要望<FiMessageCircle className="w-6 h-6" />
-          </a>
+              {t.requests}<FiMessageCircle className="w-6 h-6" />
+            </a>
+          </div>
+          <LanguageToggle language={systemLanguage} setSystemLanguage={setSystemLanguage} />
         </div>
       </header>
 
@@ -461,13 +520,13 @@ export default function Home() {
                 onClick={handleCropDone}
                 className="bg-green-600 text-white px-3 py-1 text-sm rounded"
               >
-                完了
+                {t.done}
               </button>
               <button
                 onClick={() => setShowCropModal(false)}
                 className="bg-gray-300 text-black px-3 py-1 text-sm rounded"
               >
-                キャンセル
+                {t.cancel}
               </button>
             </div>
           </div>
@@ -481,7 +540,7 @@ export default function Home() {
         >
           <img
             src={previewImageUrl}
-            alt="拡大カードプレビュー"
+            alt={t.enlargedCardPreview}
             className="max-w-[90%] max-h-[90%] rounded shadow-lg"
           />
         </div>
@@ -527,13 +586,14 @@ export default function Home() {
             w-full overflow-y-auto flex-1 p-2 
             lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+16px)] pt-0 lg:mt-4"
         >
-          <AccordionSection title="カードデザイン" defaultOpen>
+          <SupportBanner t={t} />
+          <AccordionSection title={t.cardDesign} defaultOpen t={t}>
             <div className="flex flex-col gap-4 pt-2 pb-2 ">
-              <h2 className="text-lg font-bold">背景の設定</h2>
+              <h2 className="text-lg font-bold">{t.backgroundSettings}</h2>
 
-              {/* 単色選択 */}
+              {/* {t.solidColorBg} */}
               <div>
-                <span className="font-semibold">単色背景</span>
+                <span className="font-semibold">{t.solidColorBg}</span>
                 <div className="flex gap-2 mt-1">
                   {[
                     '#f87171', 
@@ -560,9 +620,9 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* グラデーション選択 */}
+              {/* {t.gradientBg} */}
               <div>
-                <span className="font-semibold">グラデーション背景</span>
+                <span className="font-semibold">{t.gradientBg}</span>
                 <div className="flex gap-2 mt-1">
                   {[
                     { id: 'blue-purple', from: '#60a5fa', to: '#a78bfa' },
@@ -585,10 +645,10 @@ export default function Home() {
               </div>
               
               <div>
-                <span className="font-semibold">手書きカード版背景</span>
+                <span className="font-semibold">{t.handwrittenBg}</span>
                 <p className="text-xs text-gray-600 pt-1 pb-1">
-                  ※背景画像はヒツジ電機さんの公開バージョンとは異なりますが、似た背景を使用しています。
-                  元のバージョンもぜひご覧ください → <a className="text-blue-600 underline" target="_blank" rel="noopener noreferrer" href="https://booth.pm/ja/items/4028321">Booth</a>
+                  {t.handwrittenBgNote}
+                  {t.originalVersionLink} <a className="text-blue-600 underline" target="_blank" rel="noopener noreferrer" href="https://booth.pm/ja/items/4028321">Booth</a>
                 </p>
                 <div className="flex gap-2 mt-1">
                   {[
@@ -611,54 +671,63 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 背景画像アップロード */}
+              {/* {t.imageBg} */}
               <div>
-                <span className="font-semibold">画像背景</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      setBackgroundType('image')
-                      setBackgroundValue(file)
-                    }
-                  }}
-                  className="mt-1"
-                />
+                <span className="font-semibold">{t.imageBg}</span>
+                <label className="flex items-center mt-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        setBackgroundType('image')
+                        setBackgroundValue(file)
+                      }
+                    }}
+                    className="hidden" // Hide the native input
+                    id="image-bg-upload"
+                  />
+                  <span className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">
+                    {t.chooseFile}
+                  </span>
+                  <span className="ml-2 text-gray-600 text-sm">
+                    {backgroundValue instanceof File ? backgroundValue.name : t.noFileChosen}
+                  </span>
+                </label>
               </div>
             </div>
 
             <div className="flex flex-col gap-4 pt-2 pb-2">
-              <FontSelector fontKey={fontKey} setFontKey={setFontKey} />
+              <FontSelector fontKey={fontKey} setFontKey={setFontKey} t={t} />
             </div>
             
             <div className="flex flex-col gap-4 pt-2 pb-2">
-              <h2 className="text-lg font-bold">吹き出し</h2>
-              <BalloonToggle showBalloon={showBalloon} setShowBalloon={setShowBalloon} />
+              <h2 className="text-lg font-bold">{t.speechBubble}</h2>
+              <BalloonToggle showBalloon={showBalloon} setShowBalloon={setShowBalloon} t={t} />
             </div>
           </AccordionSection>
 
-          <AccordionSection title="プロフィール情報">
+          <AccordionSection title={t.profileInfo} t={t}>
             <div className="flex flex-col gap-4 pt-2 pb-2">
-              <h2 className="text-lg font-bold">プロフィール画像</h2>
+              <h2 className="text-lg font-bold">{t.profileImage}</h2>
               <input type="file" accept="image/*" onChange={handleProfileImageUpload} />
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">名前</h2>
+              <h2 className="text-lg font-bold">{t.name}</h2>
               <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="p-2 border rounded" />
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">性別（4文字まで）</h2>
+              <h2 className="text-lg font-bold">{t.gender}</h2>
               <input type="text" value={gender} onChange={(e) => setGender(e.target.value)} className="p-2 border rounded" />
             </div>
           </AccordionSection>
 
-          <AccordionSection title="使用環境・言語">
+          <AccordionSection title={t.envAndLang} t={t}>
             <div className="flex flex-col gap-4 mt-2">
-              <h2 className="text-lg font-bold">使用環境</h2>
+              <h2 className="text-lg font-bold">{t.environment}</h2>
               <div className="flex gap-3 mt-1">
                 {['PCVR', 'Quest', 'Desktop'].map((opt) => (
                   <label key={opt} className="flex items-center gap-1">
@@ -678,10 +747,10 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">使用言語</h2>
+              <h2 className="text-lg font-bold">{t.languages}</h2>
               <label className="flex flex-col">
                 <div className="flex flex-wrap gap-3 mt-1">
-                  {['日本語', 'English', 'Korean'].map((lang) => (
+                  {[t.japanese, t.english, t.korean].map((lang) => (
                     <label key={lang} className="flex items-center gap-1">
                       <input
                         type="checkbox"
@@ -701,7 +770,7 @@ export default function Home() {
                 </div>
                 <input
                   type="text"
-                  placeholder="その他の言語（カンマ区切り）"
+                  placeholder={t.otherLanguages}
                   className="p-2 border rounded mt-2"
                   value={customLanguageInput}
                   onChange={(e) => {
@@ -721,7 +790,7 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">マイクON率</h2>
+              <h2 className="text-lg font-bold">{t.micOnRate}</h2>
               <label className="flex flex-col">
                 <input
                   type="range"
@@ -735,9 +804,9 @@ export default function Home() {
             </div>
           </AccordionSection>
 
-          <AccordionSection title="SNS・コンタクト情報">
+          <AccordionSection title={t.snsContact} t={t}>
             <div className="flex flex-col gap-4 pt-2">
-              <h2 className="text-lg font-bold">SNS情報</h2>
+              <h2 className="text-lg font-bold">{t.snsInfo}</h2>
               <label className="flex flex-col">
                 <span className="font-semibold">VRChat ID</span>
                 <input
@@ -748,7 +817,7 @@ export default function Home() {
                 />
               </label>
               <label className="flex flex-col">
-                <span className="font-semibold">X（旧Twitter）</span>
+                <span className="font-semibold">{t.xFormerTwitter}</span>
                 <input
                   type="text"
                   value={twitterId}
@@ -770,14 +839,14 @@ export default function Home() {
             </div>
           </AccordionSection>
           
-          <AccordionSection title="関わり方">
+          <AccordionSection title={t.howToInteract} t={t}>
             <div className="flex flex-col gap-4 mt-2">
-              <h2 className="text-lg font-bold">ステータスの説明</h2>
+              <h2 className="text-lg font-bold">{t.statusDescription}</h2>
               {[
-                { label: '青ステータス', value: statusBlue, setValue: setStatusBlue },
-                { label: '緑ステータス', value: statusGreen, setValue: setStatusGreen },
-                { label: '黄ステータス', value: statusYellow, setValue: setStatusYellow },
-                { label: '赤ステータス', value: statusRed, setValue: setStatusRed },
+                { label: t.statusBlue, value: statusBlue, setValue: setStatusBlue },
+                { label: t.statusGreen, value: statusGreen, setValue: setStatusGreen },
+                { label: t.statusYellow, value: statusYellow, setValue: setStatusYellow },
+                { label: t.statusRed, value: statusRed, setValue: setStatusRed },
               ].map(({ label, value, setValue }) => (
                 <label key={label} className="flex flex-col">
                   <span className="font-semibold">{label}</span>
@@ -792,34 +861,34 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">フレンド申請ポリシー</h2>
+              <h2 className="text-lg font-bold">{t.friendRequestPolicy}</h2>
               {[
-                'だれでもOK',
-                '仲良くなってから許可',
-                '気になったら許可',
-                'Twitter相互は申請OK',
-                '送らないでください',
-              ].map((option) => (
-                <label key={option} className="flex items-center gap-2">
+                'frPolicyAnyone',
+                'frPolicyAfterGettingToKnow',
+                'frPolicyIfInterested',
+                'frPolicyMutualsOnX',
+                'frPolicyNo',
+              ].map((key) => (
+                <label key={key} className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    value={option}
-                    checked={friendPolicy.includes(option)}
+                    value={key}
+                    checked={friendPolicy.includes(key)}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setFriendPolicy([...friendPolicy, option])
+                        setFriendPolicy([...friendPolicy, key])
                       } else {
-                        setFriendPolicy(friendPolicy.filter((v) => v !== option))
+                        setFriendPolicy(friendPolicy.filter((v) => v !== key))
                       }
                     }}
                   />
-                  {option}
+                  {t[key as keyof typeof t] as string}
                 </label>
               ))}
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">OKなこと・NGなこと</h2>
+              <h2 className="text-lg font-bold">{t.okNg}</h2>
               {interactions.map((item, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <select
@@ -840,9 +909,9 @@ export default function Home() {
 
                     <input
                       type="text"
-                      value={item.label}
+                      value={item.isCustom ? item.label : t.okNgDefaults[item.label as keyof typeof t.okNgDefaults]}
                       disabled={!item.isCustom}
-                      placeholder="カスタム項目"
+                      placeholder={t.customItem}
                       className="flex-1 p-1 border rounded"
                       onChange={(e) => {
                         const updated = [...interactions]
@@ -858,7 +927,7 @@ export default function Home() {
                           setInteractions(updated)
                         }}
                         className="text-red-500 hover:underline text-sm"
-                        title="削除"
+                        title={t.delete}
                       >
                         🗑️
                       </button>
@@ -871,15 +940,15 @@ export default function Home() {
                     onClick={() => setInteractions([...interactions, { label: '', mark: '-', isCustom: true }])}
                     className="mt-2 text-blue-600 underline text-sm"
                   >
-                    + カスタム項目を追加
+                    {t.addCustomItem}
                   </button>
                 )}
             </div>
           </AccordionSection>
 
-          <AccordionSection title="自己紹介・画像">
+          <AccordionSection title={t.aboutMeAndImages} t={t}>
             <div className="flex flex-col gap-4 mt-2">
-              <h2 className="text-lg font-bold">自己紹介テキスト</h2>
+              <h2 className="text-lg font-bold">{t.aboutMeText}</h2>
               <textarea
                 value={selfIntro}
                 onChange={(e) => setSelfIntro(e.target.value)}
@@ -889,31 +958,40 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-4 mt-6 border-t pt-4 mb-6">
-              <h2 className="text-lg font-bold">ギャラリー画像（３枚まで）</h2>
+              <h2 className="text-lg font-bold">{t.galleryImages}</h2>
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={galleryEnabled}
                   onChange={(e) => setGalleryEnabled(e.target.checked)}
                 />
-                ギャラリーを表示する（自己紹介エリアが小さくなります）
+                {t.showGallery}
               </label>
               {galleryEnabled && (
                 <div className="flex flex-col gap-2">
                   {[0, 1, 2].map((index) => (
                     <label key={index} className="flex flex-col">
-                      <span className="font-semibold">ギャラリー画像 {index + 1}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0] ?? null
-                          const updated = [...galleryImages]
-                          updated[index] = file
-                          setGalleryImages(updated)
-                        }}
-                        className="p-1"
-                      />
+                      <span className="font-semibold">{t.galleryImage} {index + 1}</span>
+                      <label className="flex items-center mt-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] ?? null
+                            const updated = [...galleryImages]
+                            updated[index] = file
+                            setGalleryImages(updated)
+                          }}
+                          className="hidden"
+                          id={`gallery-image-upload-${index}`}
+                        />
+                        <span className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">
+                          {t.chooseFile}
+                        </span>
+                        <span className="ml-2 text-gray-600 text-sm">
+                          {galleryImages[index] instanceof File ? galleryImages[index]?.name : t.noFileChosen}
+                        </span>
+                      </label>
                     </label>
                   ))}
                 </div>
@@ -921,20 +999,39 @@ export default function Home() {
             </div>
           </AccordionSection>
 
-          <PostTimeline />
+          <PostTimeline t={t} />
+
+          <div className="w-full max-w-screen-md mx-auto mt-4 mb-4">
+            <div className="border border-gray-300 rounded-xl bg-gray-50 p-4 text-sm text-gray-700 text-center shadow-sm">
+              <p className="text-xs text-gray-600 mb-2 leading-snug">
+                {t.currentLanguageUrl}
+              </p>
+              <p className="text-sm font-medium text-blue-600 break-all">
+                {currentUrlDisplay}
+              </p>
+            </div>
+          </div>
         </aside>
       </div>
 
       {/* <footer className="p-4 flex justify-between items-center border-t bg-white fixed bottom-0 left-0 w-full z-20">
         <div className="text-sm text-gray-500">ⓘ 広告スペース or サポートリンクなど</div>
       </footer> */}
-
       <FloatingButtons
         onSave={handleDownload}
         onShare={handlePostToX}
+        t={t}
       />
     </main>
-    <OnboardingBanner />
+    <OnboardingBanner t={t} />
     </>
   )
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VRChatCardGenerator />
+    </Suspense>
+  );
 }

@@ -1,4 +1,3 @@
-// components/CanvasRenderer.ts
 import { fabric } from 'fabric'
 import {
   RoundedMplus,
@@ -9,8 +8,6 @@ import {
   MaruMinya,
 } from '@/app/fonts'
 
-export type MarkOption = '◎' | '◯' | '△' | '✗' | '-'
-
 export const fontMap = {
   rounded: RoundedMplus,
   kosugi: Kosugi,
@@ -18,12 +15,6 @@ export const fontMap = {
   uzura: Uzura,
   kawaii: Kawaii,
   maruminya: MaruMinya,
-}
-
-export interface InteractionItem {
-  label: string
-  mark: MarkOption
-  isCustom?: boolean
 }
 
 interface RenderProps {
@@ -95,8 +86,9 @@ export class CanvasRenderer {
   cornerRadius: number
   tailWidth: number
   tailHeight: number
+  t: any
 
-  constructor(canvas: fabric.Canvas) {
+  constructor(canvas: fabric.Canvas, t: { [key: string]: any, lang: string }) {
     if (!canvas || typeof canvas.getWidth !== 'function') {
       throw new Error('CanvasRenderer: invalid fabric.Canvas instance provided.')
     }
@@ -104,6 +96,7 @@ export class CanvasRenderer {
     this.canvas = canvas
     this.width = canvas.getWidth()
     this.height = canvas.getHeight()
+    this.t = t
   
     this.balloonPadding = this.width * 0.02
     this.fontSizeBase = this.width * 0.018
@@ -163,8 +156,8 @@ export class CanvasRenderer {
     }, { crossOrigin: 'anonymous' })
 
     this.drawTextBox(
-      "名前", 
-      "name", 
+      this.t.name, 
+      this.t.canvasSubtitleName, 
       name || '', 
       { x: 0.26, y: 0.08, w: 0.28, h: 0.075 }, 
       false,
@@ -177,8 +170,8 @@ export class CanvasRenderer {
     )
 
     this.drawInlineField(
-      '性別',
-      'gender',
+      this.t.canvasGender,
+      this.t.canvasSubtitleGender,
       gender ?? "", 
       0.26,
       0.21,
@@ -192,8 +185,8 @@ export class CanvasRenderer {
     )
 
     this.drawInlineField(
-      '環境',
-      'env',
+      this.t.canvasEnvironment,
+      this.t.canvasSubtitleEnvironment,
       (playEnv ?? []).join(" / "), 
       0.375,
       0.21,
@@ -240,8 +233,8 @@ export class CanvasRenderer {
     )
 
     this.drawTextBox(
-      "言語", 
-      "language", 
+      this.t.canvasLanguages, 
+      this.t.canvasSubtitleLanguages, 
       (language ?? []).join(' / '), 
       { x: 0.05, y: 0.455, w: 0.21, h: 0.05 }, 
       false,
@@ -254,8 +247,8 @@ export class CanvasRenderer {
     )
 
     this.drawMicGauge(
-      'マイクON率',
-      'mic usage',
+      this.t.canvasMicOnRate,
+      this.t.canvasSubtitleMicUsage,
       micOnRate ?? 0,
       { x: 0.05, y: 0.56, w: 0.18, h: 0.06 },
       0.01,
@@ -265,8 +258,8 @@ export class CanvasRenderer {
     )
 
     this.drawStatusSection(
-      "ステータス", 
-      "statuses", 
+      this.t.canvasStatus, 
+      this.t.canvasSubtitleStatuses, 
       {
         blue: statusBlue ?? '',
         green: statusGreen ?? '',
@@ -284,9 +277,9 @@ export class CanvasRenderer {
     )
 
     this.drawTextBox(
-      "フレンド申請",
-      "friend request",
-      (friendPolicy ?? []).join(" / "),
+      this.t.canvasFriendRequest,
+      this.t.canvasSubtitleFriendRequest,
+      (friendPolicy ?? []).map(key => this.t[key as keyof typeof this.t]).join(" / "),
       { x: 0.28, y: 0.48, w: 0.26, h: 0.10 },
       false,
       0.013,
@@ -298,8 +291,8 @@ export class CanvasRenderer {
     )
 
     this.drawTitleAndSubtitle(
-      'OK / NG', 
-      'my boundaries', 
+      this.t.okNg, 
+      this.t.canvasSubtitleBoundaries, 
       this.width * 0.28,
       this.height * 0.64,
       0.013,
@@ -311,7 +304,7 @@ export class CanvasRenderer {
       this.drawInlineField(
         '', // ラベルは使わない
         '', // サブタイトルも不要
-        `${item.label}：${item.mark}`,
+        `${item.isCustom ? item.label : this.t.okNgDefaults[item.label as keyof typeof this.t.okNgDefaults]}：${item.mark}`.replace(/：/g, `: `),
         0,
         0,
         { 
@@ -331,8 +324,8 @@ export class CanvasRenderer {
 
     const introductionHeight = galleryEnabled ? 0.52 : 0.76
     this.drawTextBox(
-      "自己紹介", 
-      "introduction", 
+      this.t.canvasAboutMe, 
+      this.t.canvasSubtitleIntroduction, 
       selfIntro || '', 
       { x: 0.56, y: 0.08, w: 0.40, h: introductionHeight },
       true,
@@ -456,6 +449,11 @@ export class CanvasRenderer {
     
       fabric.Image.fromURL(src, (img) => {
         if (!img) return;
+        // Canvasがまだ有効かチェック
+        if (!this.canvas) {
+          console.warn('Canvas context is null or disposed, skipping setBackgroundImage.');
+          return;
+        }
     
         img.set({
           scaleX: this.width / img.width!,
@@ -623,13 +621,13 @@ export class CanvasRenderer {
     })
   
     // テキストボックス
-    const textbox = new fabric.Textbox(value, {
+    const textbox = new fabric.Textbox(String(value), {
       left: boxLeft + padding,
       top: boxTop + padding,
       width: boxWidth - padding * 2,
       height: contentHeight,
       fontSize: this.width * valueFontSizeRatio,
-      fontFamily: fontFamily,
+      fontFamily: String(fontFamily),
       fill: '#1f2937',
       selectable: false,
       evented: false,
@@ -739,7 +737,7 @@ export class CanvasRenderer {
     labelTop: number,
     boxArea: GridArea,
     labelFontSizeRatio = 0.016,
-    subtitleFontSizeRatio = 0.012,
+    subtitleFontSizeRatio = 0.009,
     valueFontSizeRatio = 0.016,
     fontFamily = RoundedMplus.style.fontFamily,
     withStroke = false,
@@ -795,12 +793,12 @@ export class CanvasRenderer {
     }
   
     // テキストボックス
-    const textbox = new fabric.Textbox(value, {
+    const textbox = new fabric.Textbox(String(value), {
       left: boxLeft + padding,
       top: boxTop + (boxHeight - valueFontSize) / 2,
       width: boxWidth - padding * 2,
       fontSize: valueFontSize,
-      fontFamily: fontFamily,
+      fontFamily: String(fontFamily),
       fill: '#1f2937',
       selectable: false,
       evented: false,
@@ -1022,16 +1020,29 @@ export class CanvasRenderer {
   }
 
   drawCopyright() {
-    const text = new fabric.Text('VRChat自己紹介カードメーカー by @yota3d', {
+    const makerCreditText = new fabric.Text(this.t.canvasMakerCredit, {
       left: this.balloonPadding,
-      top: this.height*(1 - 0.04),
+      top: this.height * (1 - 0.04),
       fontSize: this.fontSizeBase * 0.5,
       fontFamily: RoundedMplus.style.fontFamily,
       fill: '#ffffff',
       selectable: false,
       evented: false,
-    })
-    this.canvas.add(text)
+    });
+    this.canvas.add(makerCreditText);
+
+    if (this.t.lang === 'en') {
+      const explanationText = new fabric.Text(this.t.canvasHeaderExplanation, {
+        left: this.balloonPadding,
+        top: this.height * (1 - 0.04) - makerCreditText.height! - (this.height * 0.005), // Adjust position above makerCreditText
+        fontSize: this.fontSizeBase * 0.5,
+        fontFamily: RoundedMplus.style.fontFamily,
+        fill: '#ffffff',
+        selectable: false,
+        evented: false,
+      });
+      this.canvas.add(explanationText);
+    }
   }
 
   download() {

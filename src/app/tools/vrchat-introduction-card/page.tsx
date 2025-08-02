@@ -1,4 +1,5 @@
 'use client'
+import { Suspense } from 'react';
 
 import { fabric } from 'fabric';
 import { FiMessageCircle } from 'react-icons/fi';
@@ -22,8 +23,6 @@ import { MaruMinya, Uzura, Kawaii } from '@/app/fonts';
 import { calculateLayout } from '@/utils/layout';
 import { getCroppedImg } from '@/utils/cropUtils';
 
-
-
 type LocalStorageCache = {
   name: string
   language: string[]
@@ -46,7 +45,7 @@ type LocalStorageCache = {
   showBalloon: boolean  
 }
 
-export default function Home() {
+function VRChatCardGenerator() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -883,7 +882,7 @@ export default function Home() {
                       }
                     }}
                   />
-                  {t[key as keyof typeof t]}
+                  {t[key as keyof typeof t] as string}
                 </label>
               ))}
             </div>
@@ -1027,4 +1026,12 @@ export default function Home() {
     <OnboardingBanner t={t} />
     </>
   )
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VRChatCardGenerator />
+    </Suspense>
+  );
 }

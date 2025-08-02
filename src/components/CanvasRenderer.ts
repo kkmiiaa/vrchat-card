@@ -449,6 +449,11 @@ export class CanvasRenderer {
     
       fabric.Image.fromURL(src, (img) => {
         if (!img) return;
+        // Canvasがまだ有効かチェック
+        if (!this.canvas || !this.canvas.contextContainer) {
+          console.warn('Canvas context is null or disposed, skipping setBackgroundImage.');
+          return;
+        }
     
         img.set({
           scaleX: this.width / img.width!,

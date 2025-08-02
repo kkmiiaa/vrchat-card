@@ -709,7 +709,7 @@ export default function Home() {
             </div>
           </AccordionSection>
 
-          <AccordionSection title={t.profileInfo}>
+          <AccordionSection title={t.profileInfo} t={t}>
             <div className="flex flex-col gap-4 pt-2 pb-2">
               <h2 className="text-lg font-bold">{t.profileImage}</h2>
               <input type="file" accept="image/*" onChange={handleProfileImageUpload} />
@@ -726,7 +726,7 @@ export default function Home() {
             </div>
           </AccordionSection>
 
-          <AccordionSection title={t.envAndLang}>
+          <AccordionSection title={t.envAndLang} t={t}>
             <div className="flex flex-col gap-4 mt-2">
               <h2 className="text-lg font-bold">{t.environment}</h2>
               <div className="flex gap-3 mt-1">
@@ -805,7 +805,7 @@ export default function Home() {
             </div>
           </AccordionSection>
 
-          <AccordionSection title={t.snsContact}>
+          <AccordionSection title={t.snsContact} t={t}>
             <div className="flex flex-col gap-4 pt-2">
               <h2 className="text-lg font-bold">{t.snsInfo}</h2>
               <label className="flex flex-col">
@@ -840,7 +840,7 @@ export default function Home() {
             </div>
           </AccordionSection>
           
-          <AccordionSection title={t.howToInteract}>
+          <AccordionSection title={t.howToInteract} t={t}>
             <div className="flex flex-col gap-4 mt-2">
               <h2 className="text-lg font-bold">{t.statusDescription}</h2>
               {[
@@ -947,7 +947,7 @@ export default function Home() {
             </div>
           </AccordionSection>
 
-          <AccordionSection title={t.aboutMeAndImages}>
+          <AccordionSection title={t.aboutMeAndImages} t={t}>
             <div className="flex flex-col gap-4 mt-2">
               <h2 className="text-lg font-bold">{t.aboutMeText}</h2>
               <textarea

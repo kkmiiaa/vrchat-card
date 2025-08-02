@@ -77,9 +77,9 @@ export default function Home() {
 
   const [friendPolicy, setFriendPolicy] = useState<string[]>([])
 
-  const defaultItems = ['触る', '近距離', 'お砂糖', '武器', '暴言/暴力', '下ネタ']
+  const defaultItems = t.okNgDefaults;
   const [interactions, setInteractions] = useState<InteractionItem[]>(
-    defaultItems.map(label => ({ label, mark: '-' }))
+    Object.values(defaultItems).map(label => ({ label, mark: '-' }))
   )
 
   const [backgroundType, setBackgroundType] = useState<'color' | 'gradient' | 'image'>('image')
@@ -101,6 +101,12 @@ export default function Home() {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    if (t.title) {
+      document.title = t.title;
+    }
+  }, [t.title]);
+
+  useEffect(() => {
     setHasMounted(true)
   }, [])
 
@@ -112,7 +118,7 @@ export default function Home() {
     if (cache.selfIntro) setSelfIntro(cache.selfIntro)
     if (cache.language) {
       setLanguage(cache.language)
-      const preset = ['日本語', 'English', 'Korean']
+      const preset = [t.japanese, t.english, t.korean]
       const custom = cache.language.filter(l => !preset.includes(l))
       if (custom.length > 0) {
         setCustomLanguageInput(custom.join(', '))
@@ -165,7 +171,7 @@ export default function Home() {
       const canvas = new fabric.Canvas(canvasElement, { width, height })
       currentCanvas = canvas
   
-      const renderer = new CanvasRenderer(canvas)
+      const renderer = new CanvasRenderer(canvas, t)
       rendererRef.current = renderer
 
       const fontFamily = fontMap[fontKey]?.style?.fontFamily ?? 'sans-serif'
@@ -320,7 +326,7 @@ export default function Home() {
       multiplier: 1920 / rendererRef.current.canvas.getWidth(),
     })
 
-    const tweetText = encodeURIComponent("自己紹介カードを作りました！\n#VRChat自己紹介カード\n#VRChat自己紹介カードメーカー");
+    const tweetText = encodeURIComponent(t.tweetText);
     const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
 
     const isMobile = window.innerWidth < 768;
@@ -331,11 +337,11 @@ export default function Home() {
       if (win) {
         win.document.write(`
           <div style="text-align:center;font-family:sans-serif;padding:1rem">
-            <p>画像を長押しで保存して、投稿時に添付してください📎</p>
+            <p>{t.pressAndHoldToSave}</p>
             <img src="${highResUrl}" style="max-width:100%;height:auto;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.2)" />
             <p style="margin-top:1rem;">
               <a href="${tweetUrl}" target="_blank" style="display:inline-block;padding:0.5rem 1rem;background:#1d9bf0;color:#fff;border-radius:6px;text-decoration:none">
-                Xで投稿画面を開く →
+                {t.openPostScreenOnX}
               </a>
             </p>
           </div>
@@ -384,7 +390,7 @@ export default function Home() {
     const win = window.open()
     if (win) {
       win.document.write(`
-        <p>下の画像を長押しして「写真に追加」してください。</p>
+        <p>{t.pressAndHoldToAdd}</p>
         <img src="${highResUrl}" style="max-width:100%;"/>
       `)
     }
@@ -431,7 +437,7 @@ export default function Home() {
               >
                 @yota3d
               </a>{' '}
-              まで！
+              {t.left}
             </span>
 
             <a
@@ -439,9 +445,9 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
               className="inline text-sm sm:hidden text-blue-600"
-              aria-label="@yota3dへ連絡"
+              aria-label={t.contactTo}
             >
-              要望<FiMessageCircle className="w-6 h-6" />
+              {t.requests}<FiMessageCircle className="w-6 h-6" />
             </a>
           </div>
           <LanguageToggle language={systemLanguage} setSystemLanguage={setSystemLanguage} />
@@ -476,13 +482,13 @@ export default function Home() {
                 onClick={handleCropDone}
                 className="bg-green-600 text-white px-3 py-1 text-sm rounded"
               >
-                完了
+                {t.done}
               </button>
               <button
                 onClick={() => setShowCropModal(false)}
                 className="bg-gray-300 text-black px-3 py-1 text-sm rounded"
               >
-                キャンセル
+                {t.cancel}
               </button>
             </div>
           </div>
@@ -496,7 +502,7 @@ export default function Home() {
         >
           <img
             src={previewImageUrl}
-            alt="拡大カードプレビュー"
+            alt={t.enlargedCardPreview}
             className="max-w-[90%] max-h-[90%] rounded shadow-lg"
           />
         </div>
@@ -543,13 +549,13 @@ export default function Home() {
             lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+16px)] pt-0 lg:mt-4"
         >
           <SupportBanner t={t} />
-          <AccordionSection title={t.cardDesign} defaultOpen>
+          <AccordionSection title={t.cardDesign} defaultOpen t={t}>
             <div className="flex flex-col gap-4 pt-2 pb-2 ">
               <h2 className="text-lg font-bold">{t.backgroundSettings}</h2>
 
-              {/* 単色選択 */}
+              {/* {t.solidColorBg} */}
               <div>
-                <span className="font-semibold">単色背景</span>
+                <span className="font-semibold">{t.solidColorBg}</span>
                 <div className="flex gap-2 mt-1">
                   {[
                     '#f87171', 
@@ -576,9 +582,9 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* グラデーション選択 */}
+              {/* {t.gradientBg} */}
               <div>
-                <span className="font-semibold">グラデーション背景</span>
+                <span className="font-semibold">{t.gradientBg}</span>
                 <div className="flex gap-2 mt-1">
                   {[
                     { id: 'blue-purple', from: '#60a5fa', to: '#a78bfa' },
@@ -601,10 +607,10 @@ export default function Home() {
               </div>
               
               <div>
-                <span className="font-semibold">手書きカード版背景</span>
+                <span className="font-semibold">{t.handwrittenBg}</span>
                 <p className="text-xs text-gray-600 pt-1 pb-1">
-                  ※背景画像はヒツジ電機さんの公開バージョンとは異なりますが、似た背景を使用しています。
-                  元のバージョンもぜひご覧ください → <a className="text-blue-600 underline" target="_blank" rel="noopener noreferrer" href="https://booth.pm/ja/items/4028321">Booth</a>
+                  {t.handwrittenBgNote}
+                  {t.originalVersionLink} <a className="text-blue-600 underline" target="_blank" rel="noopener noreferrer" href="https://booth.pm/ja/items/4028321">Booth</a>
                 </p>
                 <div className="flex gap-2 mt-1">
                   {[
@@ -627,9 +633,9 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 背景画像アップロード */}
+              {/* {t.imageBg} */}
               <div>
-                <span className="font-semibold">画像背景</span>
+                <span className="font-semibold">{t.imageBg}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -646,35 +652,35 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-4 pt-2 pb-2">
-              <FontSelector fontKey={fontKey} setFontKey={setFontKey} />
+              <FontSelector fontKey={fontKey} setFontKey={setFontKey} t={t} />
             </div>
             
             <div className="flex flex-col gap-4 pt-2 pb-2">
-              <h2 className="text-lg font-bold">吹き出し</h2>
-              <BalloonToggle showBalloon={showBalloon} setShowBalloon={setShowBalloon} />
+              <h2 className="text-lg font-bold">{t.speechBubble}</h2>
+              <BalloonToggle showBalloon={showBalloon} setShowBalloon={setShowBalloon} t={t} />
             </div>
           </AccordionSection>
 
-          <AccordionSection title="プロフィール情報">
+          <AccordionSection title={t.profileInfo}>
             <div className="flex flex-col gap-4 pt-2 pb-2">
-              <h2 className="text-lg font-bold">プロフィール画像</h2>
+              <h2 className="text-lg font-bold">{t.profileImage}</h2>
               <input type="file" accept="image/*" onChange={handleProfileImageUpload} />
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">名前</h2>
+              <h2 className="text-lg font-bold">{t.name}</h2>
               <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="p-2 border rounded" />
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">性別（4文字まで）</h2>
+              <h2 className="text-lg font-bold">{t.gender}</h2>
               <input type="text" value={gender} onChange={(e) => setGender(e.target.value)} className="p-2 border rounded" />
             </div>
           </AccordionSection>
 
-          <AccordionSection title="使用環境・言語">
+          <AccordionSection title={t.envAndLang}>
             <div className="flex flex-col gap-4 mt-2">
-              <h2 className="text-lg font-bold">使用環境</h2>
+              <h2 className="text-lg font-bold">{t.environment}</h2>
               <div className="flex gap-3 mt-1">
                 {['PCVR', 'Quest', 'Desktop'].map((opt) => (
                   <label key={opt} className="flex items-center gap-1">
@@ -694,10 +700,10 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">使用言語</h2>
+              <h2 className="text-lg font-bold">{t.languages}</h2>
               <label className="flex flex-col">
                 <div className="flex flex-wrap gap-3 mt-1">
-                  {['日本語', 'English', 'Korean'].map((lang) => (
+                  {[t.japanese, t.english, t.korean].map((lang) => (
                     <label key={lang} className="flex items-center gap-1">
                       <input
                         type="checkbox"
@@ -717,7 +723,7 @@ export default function Home() {
                 </div>
                 <input
                   type="text"
-                  placeholder="その他の言語（カンマ区切り）"
+                  placeholder={t.otherLanguages}
                   className="p-2 border rounded mt-2"
                   value={customLanguageInput}
                   onChange={(e) => {
@@ -737,7 +743,7 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">マイクON率</h2>
+              <h2 className="text-lg font-bold">{t.micOnRate}</h2>
               <label className="flex flex-col">
                 <input
                   type="range"
@@ -751,9 +757,9 @@ export default function Home() {
             </div>
           </AccordionSection>
 
-          <AccordionSection title="SNS・コンタクト情報">
+          <AccordionSection title={t.snsContact}>
             <div className="flex flex-col gap-4 pt-2">
-              <h2 className="text-lg font-bold">SNS情報</h2>
+              <h2 className="text-lg font-bold">{t.snsInfo}</h2>
               <label className="flex flex-col">
                 <span className="font-semibold">VRChat ID</span>
                 <input
@@ -764,7 +770,7 @@ export default function Home() {
                 />
               </label>
               <label className="flex flex-col">
-                <span className="font-semibold">X（旧Twitter）</span>
+                <span className="font-semibold">{t.xFormerTwitter}</span>
                 <input
                   type="text"
                   value={twitterId}
@@ -786,14 +792,14 @@ export default function Home() {
             </div>
           </AccordionSection>
           
-          <AccordionSection title="関わり方">
+          <AccordionSection title={t.howToInteract}>
             <div className="flex flex-col gap-4 mt-2">
-              <h2 className="text-lg font-bold">ステータスの説明</h2>
+              <h2 className="text-lg font-bold">{t.statusDescription}</h2>
               {[
-                { label: '青ステータス', value: statusBlue, setValue: setStatusBlue },
-                { label: '緑ステータス', value: statusGreen, setValue: setStatusGreen },
-                { label: '黄ステータス', value: statusYellow, setValue: setStatusYellow },
-                { label: '赤ステータス', value: statusRed, setValue: setStatusRed },
+                { label: t.statusBlue, value: statusBlue, setValue: setStatusBlue },
+                { label: t.statusGreen, value: statusGreen, setValue: setStatusGreen },
+                { label: t.statusYellow, value: statusYellow, setValue: setStatusYellow },
+                { label: t.statusRed, value: statusRed, setValue: setStatusRed },
               ].map(({ label, value, setValue }) => (
                 <label key={label} className="flex flex-col">
                   <span className="font-semibold">{label}</span>
@@ -808,13 +814,13 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">フレンド申請ポリシー</h2>
+              <h2 className="text-lg font-bold">{t.friendRequestPolicy}</h2>
               {[
-                'だれでもOK',
-                '仲良くなってから許可',
-                '気になったら許可',
-                'Twitter相互は申請OK',
-                '送らないでください',
+                t.frPolicyAnyone,
+                t.frPolicyAfterGettingToKnow,
+                t.frPolicyIfInterested,
+                t.frPolicyMutualsOnX,
+                t.frPolicyNo,
               ].map((option) => (
                 <label key={option} className="flex items-center gap-2">
                   <input
@@ -835,7 +841,7 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">OKなこと・NGなこと</h2>
+              <h2 className="text-lg font-bold">{t.okNg}</h2>
               {interactions.map((item, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <select
@@ -858,7 +864,7 @@ export default function Home() {
                       type="text"
                       value={item.label}
                       disabled={!item.isCustom}
-                      placeholder="カスタム項目"
+                      placeholder={t.customItem}
                       className="flex-1 p-1 border rounded"
                       onChange={(e) => {
                         const updated = [...interactions]
@@ -874,7 +880,7 @@ export default function Home() {
                           setInteractions(updated)
                         }}
                         className="text-red-500 hover:underline text-sm"
-                        title="削除"
+                        title={t.delete}
                       >
                         🗑️
                       </button>
@@ -887,15 +893,15 @@ export default function Home() {
                     onClick={() => setInteractions([...interactions, { label: '', mark: '-', isCustom: true }])}
                     className="mt-2 text-blue-600 underline text-sm"
                   >
-                    + カスタム項目を追加
+                    {t.addCustomItem}
                   </button>
                 )}
             </div>
           </AccordionSection>
 
-          <AccordionSection title="自己紹介・画像">
+          <AccordionSection title={t.aboutMeAndImages}>
             <div className="flex flex-col gap-4 mt-2">
-              <h2 className="text-lg font-bold">自己紹介テキスト</h2>
+              <h2 className="text-lg font-bold">{t.aboutMeText}</h2>
               <textarea
                 value={selfIntro}
                 onChange={(e) => setSelfIntro(e.target.value)}
@@ -905,20 +911,20 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-4 mt-6 border-t pt-4 mb-6">
-              <h2 className="text-lg font-bold">ギャラリー画像（３枚まで）</h2>
+              <h2 className="text-lg font-bold">{t.galleryImages}</h2>
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={galleryEnabled}
                   onChange={(e) => setGalleryEnabled(e.target.checked)}
                 />
-                ギャラリーを表示する（自己紹介エリアが小さくなります）
+                {t.showGallery}
               </label>
               {galleryEnabled && (
                 <div className="flex flex-col gap-2">
                   {[0, 1, 2].map((index) => (
                     <label key={index} className="flex flex-col">
-                      <span className="font-semibold">ギャラリー画像 {index + 1}</span>
+                      <span className="font-semibold">{t.galleryImage} {index + 1}</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -937,7 +943,7 @@ export default function Home() {
             </div>
           </AccordionSection>
 
-          <PostTimeline />
+          <PostTimeline t={t} />
         </aside>
       </div>
 
@@ -950,7 +956,7 @@ export default function Home() {
         t={t}
       />
     </main>
-    <OnboardingBanner />
+    <OnboardingBanner t={t} />
     </>
   )
 }

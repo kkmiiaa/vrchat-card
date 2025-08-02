@@ -6,10 +6,12 @@ export default function AccordionSection({
   title,
   children,
   defaultOpen = false,
+  t,
 }: {
   title: string;
   children: ReactNode;
   defaultOpen?: boolean;
+  t: any;
 }) {
   const [open, setOpen] = useState(defaultOpen);
 

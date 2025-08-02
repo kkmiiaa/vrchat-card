@@ -33,13 +33,28 @@ const fontOptions: {
 export default function FontSelector({
   fontKey,
   setFontKey,
+  t,
 }: {
   fontKey: FontKey
   setFontKey: (val: FontKey) => void
+  t: any
 }) {
+  const fontOptions: {
+    key: FontKey
+    label: string
+    fontFamily: string
+  }[] = [
+    { key: 'rounded', label: 'Rounded M+', fontFamily: RoundedMplus.style.fontFamily },
+    { key: 'kosugi', label: 'Kosugi Maru', fontFamily: Kosugi.style.fontFamily },
+    { key: 'zenmaru', label: 'Zen Maru Gothic', fontFamily: ZenMaru.style.fontFamily },
+    { key: 'uzura', label: t.uzuraFont, fontFamily: Uzura.style.fontFamily },
+    { key: 'kawaii', label: t.kawaiiFont, fontFamily: Kawaii.style.fontFamily },
+    { key: 'maruminya', label: t.maruminyaFont, fontFamily: MaruMinya.style.fontFamily },
+  ]
+
   return (
     <div className="flex flex-col gap-4 pt-2 pb-2">
-      <h2 className="text-lg font-bold">フォントの設定</h2>
+      <h2 className="text-lg font-bold">{t.fontSettings}</h2>
       <div className="flex flex-wrap gap-2">
         {fontOptions.map((opt) => (
           <button

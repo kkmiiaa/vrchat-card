@@ -1,9 +1,11 @@
 export default function BalloonToggle({
     showBalloon,
     setShowBalloon,
+    t,
   }: {
     showBalloon: boolean;
     setShowBalloon: (val: boolean) => void;
+    t: any;
   }) {
     return (
       <div className="mb-4">
@@ -14,7 +16,7 @@ export default function BalloonToggle({
             onChange={(e) => setShowBalloon(e.target.checked)}
             className="form-checkbox h-4 w-4 text-blue-600"
           />
-          吹き出しを表示する
+          {t.showSpeechBubble}
         </label>
       </div>
     );

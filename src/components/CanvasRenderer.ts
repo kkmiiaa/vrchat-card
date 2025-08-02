@@ -86,8 +86,9 @@ export class CanvasRenderer {
   cornerRadius: number
   tailWidth: number
   tailHeight: number
+  t: any
 
-  constructor(canvas: fabric.Canvas) {
+  constructor(canvas: fabric.Canvas, t: any) {
     if (!canvas || typeof canvas.getWidth !== 'function') {
       throw new Error('CanvasRenderer: invalid fabric.Canvas instance provided.')
     }
@@ -95,6 +96,7 @@ export class CanvasRenderer {
     this.canvas = canvas
     this.width = canvas.getWidth()
     this.height = canvas.getHeight()
+    this.t = t
   
     this.balloonPadding = this.width * 0.02
     this.fontSizeBase = this.width * 0.018
@@ -154,7 +156,7 @@ export class CanvasRenderer {
     }, { crossOrigin: 'anonymous' })
 
     this.drawTextBox(
-      "名前", 
+      this.t.name, 
       "name", 
       name || '', 
       { x: 0.26, y: 0.08, w: 0.28, h: 0.075 }, 
@@ -168,7 +170,7 @@ export class CanvasRenderer {
     )
 
     this.drawInlineField(
-      '性別',
+      this.t.canvasGender,
       'gender',
       gender ?? "", 
       0.26,
@@ -183,7 +185,7 @@ export class CanvasRenderer {
     )
 
     this.drawInlineField(
-      '環境',
+      this.t.canvasEnvironment,
       'env',
       (playEnv ?? []).join(" / "), 
       0.375,
@@ -231,7 +233,7 @@ export class CanvasRenderer {
     )
 
     this.drawTextBox(
-      "言語", 
+      this.t.canvasLanguages, 
       "language", 
       (language ?? []).join(' / '), 
       { x: 0.05, y: 0.455, w: 0.21, h: 0.05 }, 
@@ -245,7 +247,7 @@ export class CanvasRenderer {
     )
 
     this.drawMicGauge(
-      'マイクON率',
+      this.t.canvasMicOnRate,
       'mic usage',
       micOnRate ?? 0,
       { x: 0.05, y: 0.56, w: 0.18, h: 0.06 },
@@ -256,7 +258,7 @@ export class CanvasRenderer {
     )
 
     this.drawStatusSection(
-      "ステータス", 
+      this.t.canvasStatus, 
       "statuses", 
       {
         blue: statusBlue ?? '',
@@ -275,7 +277,7 @@ export class CanvasRenderer {
     )
 
     this.drawTextBox(
-      "フレンド申請",
+      this.t.canvasFriendRequest,
       "friend request",
       (friendPolicy ?? []).join(" / "),
       { x: 0.28, y: 0.48, w: 0.26, h: 0.10 },
@@ -289,7 +291,7 @@ export class CanvasRenderer {
     )
 
     this.drawTitleAndSubtitle(
-      'OK / NG', 
+      this.t.okNg, 
       'my boundaries', 
       this.width * 0.28,
       this.height * 0.64,
@@ -302,7 +304,7 @@ export class CanvasRenderer {
       this.drawInlineField(
         '', // ラベルは使わない
         '', // サブタイトルも不要
-        `${item.label}：${item.mark}`,
+        `${item.label}：${item.mark}`.replace(/：/g, `: `),
         0,
         0,
         { 
@@ -322,7 +324,7 @@ export class CanvasRenderer {
 
     const introductionHeight = galleryEnabled ? 0.52 : 0.76
     this.drawTextBox(
-      "自己紹介", 
+      this.t.canvasAboutMe, 
       "introduction", 
       selfIntro || '', 
       { x: 0.56, y: 0.08, w: 0.40, h: introductionHeight },
@@ -1013,7 +1015,7 @@ export class CanvasRenderer {
   }
 
   drawCopyright() {
-    const text = new fabric.Text('VRChat自己紹介カードメーカー by @yota3d', {
+    const text = new fabric.Text(this.t.canvasMakerCredit, {
       left: this.balloonPadding,
       top: this.height*(1 - 0.04),
       fontSize: this.fontSizeBase * 0.5,

@@ -105,6 +105,8 @@ export const translations = {
     enlargedCardPreview: '拡大カードプレビュー',
     contactTo: '@yota3dへ連絡',
     left: 'まで！',
+    chooseFile: 'ファイルを選択',
+    noFileChosen: '選択されていません',
     
     // Save/Share Modal
     pressAndHoldToSave: '画像を長押しで保存して、投稿時に添付してください📎',
@@ -241,6 +243,8 @@ export const translations = {
     enlargedCardPreview: 'Enlarged card preview',
     contactTo: 'Contact @yota3d',
     left: '',
+    chooseFile: 'Choose File',
+    noFileChosen: 'No file chosen',
 
     // Save/Share Modal
     pressAndHoldToSave: 'Press and hold the image to save, then attach it to your post 📎',

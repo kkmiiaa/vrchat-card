@@ -641,18 +641,27 @@ export default function Home() {
               {/* {t.imageBg} */}
               <div>
                 <span className="font-semibold">{t.imageBg}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      setBackgroundType('image')
-                      setBackgroundValue(file)
-                    }
-                  }}
-                  className="mt-1"
-                />
+                <label className="flex items-center mt-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        setBackgroundType('image')
+                        setBackgroundValue(file)
+                      }
+                    }}
+                    className="hidden" // Hide the native input
+                    id="image-bg-upload"
+                  />
+                  <span className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">
+                    {t.chooseFile}
+                  </span>
+                  <span className="ml-2 text-gray-600 text-sm">
+                    {backgroundValue instanceof File ? backgroundValue.name : t.noFileChosen}
+                  </span>
+                </label>
               </div>
             </div>
 
@@ -930,17 +939,26 @@ export default function Home() {
                   {[0, 1, 2].map((index) => (
                     <label key={index} className="flex flex-col">
                       <span className="font-semibold">{t.galleryImage} {index + 1}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0] ?? null
-                          const updated = [...galleryImages]
-                          updated[index] = file
-                          setGalleryImages(updated)
-                        }}
-                        className="p-1"
-                      />
+                      <label className="flex items-center mt-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] ?? null
+                            const updated = [...galleryImages]
+                            updated[index] = file
+                            setGalleryImages(updated)
+                          }}
+                          className="hidden"
+                          id={`gallery-image-upload-${index}`}
+                        />
+                        <span className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">
+                          {t.chooseFile}
+                        </span>
+                        <span className="ml-2 text-gray-600 text-sm">
+                          {galleryImages[index] instanceof File ? galleryImages[index]?.name : t.noFileChosen}
+                        </span>
+                      </label>
                     </label>
                   ))}
                 </div>

@@ -171,7 +171,7 @@ export default function Home() {
       const canvas = new fabric.Canvas(canvasElement, { width, height })
       currentCanvas = canvas
   
-      const renderer = new CanvasRenderer(canvas, t)
+      const renderer = new CanvasRenderer(canvas, { ...t, lang: systemLanguage })
       rendererRef.current = renderer
 
       const fontFamily = fontMap[fontKey]?.style?.fontFamily ?? 'sans-serif'

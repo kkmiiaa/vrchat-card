@@ -88,7 +88,7 @@ export class CanvasRenderer {
   tailHeight: number
   t: any
 
-  constructor(canvas: fabric.Canvas, t: any) {
+  constructor(canvas: fabric.Canvas, t: { [key: string]: any, lang: string }) {
     if (!canvas || typeof canvas.getWidth !== 'function') {
       throw new Error('CanvasRenderer: invalid fabric.Canvas instance provided.')
     }
@@ -157,7 +157,7 @@ export class CanvasRenderer {
 
     this.drawTextBox(
       this.t.name, 
-      "name", 
+      this.t.canvasSubtitleName, 
       name || '', 
       { x: 0.26, y: 0.08, w: 0.28, h: 0.075 }, 
       false,
@@ -171,7 +171,7 @@ export class CanvasRenderer {
 
     this.drawInlineField(
       this.t.canvasGender,
-      'gender',
+      this.t.canvasSubtitleGender,
       gender ?? "", 
       0.26,
       0.21,
@@ -186,7 +186,7 @@ export class CanvasRenderer {
 
     this.drawInlineField(
       this.t.canvasEnvironment,
-      'env',
+      this.t.canvasSubtitleEnvironment,
       (playEnv ?? []).join(" / "), 
       0.375,
       0.21,
@@ -234,7 +234,7 @@ export class CanvasRenderer {
 
     this.drawTextBox(
       this.t.canvasLanguages, 
-      "language", 
+      this.t.canvasSubtitleLanguages, 
       (language ?? []).join(' / '), 
       { x: 0.05, y: 0.455, w: 0.21, h: 0.05 }, 
       false,
@@ -248,7 +248,7 @@ export class CanvasRenderer {
 
     this.drawMicGauge(
       this.t.canvasMicOnRate,
-      'mic usage',
+      this.t.canvasSubtitleMicUsage,
       micOnRate ?? 0,
       { x: 0.05, y: 0.56, w: 0.18, h: 0.06 },
       0.01,
@@ -259,7 +259,7 @@ export class CanvasRenderer {
 
     this.drawStatusSection(
       this.t.canvasStatus, 
-      "statuses", 
+      this.t.canvasSubtitleStatuses, 
       {
         blue: statusBlue ?? '',
         green: statusGreen ?? '',
@@ -278,7 +278,7 @@ export class CanvasRenderer {
 
     this.drawTextBox(
       this.t.canvasFriendRequest,
-      "friend request",
+      this.t.canvasSubtitleFriendRequest,
       (friendPolicy ?? []).join(" / "),
       { x: 0.28, y: 0.48, w: 0.26, h: 0.10 },
       false,
@@ -292,7 +292,7 @@ export class CanvasRenderer {
 
     this.drawTitleAndSubtitle(
       this.t.okNg, 
-      'my boundaries', 
+      this.t.canvasSubtitleBoundaries, 
       this.width * 0.28,
       this.height * 0.64,
       0.013,
@@ -325,7 +325,7 @@ export class CanvasRenderer {
     const introductionHeight = galleryEnabled ? 0.52 : 0.76
     this.drawTextBox(
       this.t.canvasAboutMe, 
-      "introduction", 
+      this.t.canvasSubtitleIntroduction, 
       selfIntro || '', 
       { x: 0.56, y: 0.08, w: 0.40, h: introductionHeight },
       true,
@@ -616,13 +616,13 @@ export class CanvasRenderer {
     })
   
     // テキストボックス
-    const textbox = new fabric.Textbox(value, {
+    const textbox = new fabric.Textbox(String(value), {
       left: boxLeft + padding,
       top: boxTop + padding,
       width: boxWidth - padding * 2,
       height: contentHeight,
       fontSize: this.width * valueFontSizeRatio,
-      fontFamily: fontFamily,
+      fontFamily: String(fontFamily),
       fill: '#1f2937',
       selectable: false,
       evented: false,
@@ -732,7 +732,7 @@ export class CanvasRenderer {
     labelTop: number,
     boxArea: GridArea,
     labelFontSizeRatio = 0.016,
-    subtitleFontSizeRatio = 0.012,
+    subtitleFontSizeRatio = 0.009,
     valueFontSizeRatio = 0.016,
     fontFamily = RoundedMplus.style.fontFamily,
     withStroke = false,
@@ -788,12 +788,12 @@ export class CanvasRenderer {
     }
   
     // テキストボックス
-    const textbox = new fabric.Textbox(value, {
+    const textbox = new fabric.Textbox(String(value), {
       left: boxLeft + padding,
       top: boxTop + (boxHeight - valueFontSize) / 2,
       width: boxWidth - padding * 2,
       fontSize: valueFontSize,
-      fontFamily: fontFamily,
+      fontFamily: String(fontFamily),
       fill: '#1f2937',
       selectable: false,
       evented: false,
@@ -1015,16 +1015,29 @@ export class CanvasRenderer {
   }
 
   drawCopyright() {
-    const text = new fabric.Text(this.t.canvasMakerCredit, {
+    const makerCreditText = new fabric.Text(this.t.canvasMakerCredit, {
       left: this.balloonPadding,
-      top: this.height*(1 - 0.04),
+      top: this.height * (1 - 0.04),
       fontSize: this.fontSizeBase * 0.5,
       fontFamily: RoundedMplus.style.fontFamily,
       fill: '#ffffff',
       selectable: false,
       evented: false,
-    })
-    this.canvas.add(text)
+    });
+    this.canvas.add(makerCreditText);
+
+    if (this.t.lang === 'en') {
+      const explanationText = new fabric.Text(this.t.canvasHeaderExplanation, {
+        left: this.balloonPadding,
+        top: this.height * (1 - 0.04) - makerCreditText.height! - (this.height * 0.005), // Adjust position above makerCreditText
+        fontSize: this.fontSizeBase * 0.5,
+        fontFamily: RoundedMplus.style.fontFamily,
+        fill: '#ffffff',
+        selectable: false,
+        evented: false,
+      });
+      this.canvas.add(explanationText);
+    }
   }
 
   download() {

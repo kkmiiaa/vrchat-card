@@ -37,7 +37,7 @@ type LocalStorageCache = {
   statusGreen: string
   statusYellow: string
   statusRed: string
-  friendPolicy: string[]
+  friendPolicy: string[] // Store keys as strings
   interactions: InteractionItem[]
   backgroundType: "color" | "gradient" | "image"
   backgroundValue: string | [string, string], 
@@ -77,9 +77,13 @@ export default function Home() {
 
   const [friendPolicy, setFriendPolicy] = useState<string[]>([])
 
-  const defaultItems = t.okNgDefaults;
+  const defaultItems = translations.ja.okNgDefaults; // Use a fixed language for default keys
   const [interactions, setInteractions] = useState<InteractionItem[]>(
-    Object.values(defaultItems).map(label => ({ label, mark: '-' }))
+    Object.keys(defaultItems).map(key => ({
+      label: key, // Store the key, not the translated text
+      mark: '-',
+      isCustom: false,
+    }))
   )
 
   const [backgroundType, setBackgroundType] = useState<'color' | 'gradient' | 'image'>('image')
@@ -118,7 +122,7 @@ export default function Home() {
     if (cache.selfIntro) setSelfIntro(cache.selfIntro)
     if (cache.language) {
       setLanguage(cache.language)
-      const preset = [t.japanese, t.english, t.korean]
+      const preset = [translations.ja.japanese, translations.ja.english, translations.ja.korean] // Use fixed keys for comparison
       const custom = cache.language.filter(l => !preset.includes(l))
       if (custom.length > 0) {
         setCustomLanguageInput(custom.join(', '))
@@ -134,7 +138,7 @@ export default function Home() {
     if (cache.statusGreen) setStatusGreen(cache.statusGreen)
     if (cache.statusYellow) setStatusYellow(cache.statusYellow)
     if (cache.statusRed) setStatusRed(cache.statusRed)
-    if (cache.friendPolicy) setFriendPolicy(cache.friendPolicy)
+    if (cache.friendPolicy) setFriendPolicy(cache.friendPolicy) // Cast removed
     if (cache.interactions) setInteractions(cache.interactions)
     if (cache.backgroundType) setBackgroundType(cache.backgroundType)
     if (cache.backgroundValue) setBackgroundValue(cache.backgroundValue)
@@ -142,7 +146,7 @@ export default function Home() {
     console.log("initialization!")
 
     setInitialized(true)
-  }, [hasMounted])
+  }, [hasMounted, initialized, t.japanese, t.english, t.korean]) // Add t.japanese, t.english, t.korean to dependencies
 
   useEffect(() => {
     const canvasElement = canvasEl.current
@@ -239,7 +243,8 @@ export default function Home() {
     fontKey,
     showBalloon,
     previewOpen,
-    previewImageUrl
+    previewImageUrl,
+    systemLanguage
   ])
 
   useEffect(() => {
@@ -816,26 +821,26 @@ export default function Home() {
             <div className="flex flex-col gap-4 mt-6">
               <h2 className="text-lg font-bold">{t.friendRequestPolicy}</h2>
               {[
-                t.frPolicyAnyone,
-                t.frPolicyAfterGettingToKnow,
-                t.frPolicyIfInterested,
-                t.frPolicyMutualsOnX,
-                t.frPolicyNo,
-              ].map((option) => (
-                <label key={option} className="flex items-center gap-2">
+                'frPolicyAnyone',
+                'frPolicyAfterGettingToKnow',
+                'frPolicyIfInterested',
+                'frPolicyMutualsOnX',
+                'frPolicyNo',
+              ].map((key) => (
+                <label key={key} className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    value={option}
-                    checked={friendPolicy.includes(option)}
+                    value={key}
+                    checked={friendPolicy.includes(key)}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setFriendPolicy([...friendPolicy, option])
+                        setFriendPolicy([...friendPolicy, key])
                       } else {
-                        setFriendPolicy(friendPolicy.filter((v) => v !== option))
+                        setFriendPolicy(friendPolicy.filter((v) => v !== key))
                       }
                     }}
                   />
-                  {option}
+                  {t[key as keyof typeof t]}
                 </label>
               ))}
             </div>
@@ -862,7 +867,7 @@ export default function Home() {
 
                     <input
                       type="text"
-                      value={item.label}
+                      value={item.isCustom ? item.label : t.okNgDefaults[item.label as keyof typeof t.okNgDefaults]}
                       disabled={!item.isCustom}
                       placeholder={t.customItem}
                       className="flex-1 p-1 border rounded"

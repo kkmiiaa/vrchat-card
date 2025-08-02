@@ -279,7 +279,7 @@ export class CanvasRenderer {
     this.drawTextBox(
       this.t.canvasFriendRequest,
       this.t.canvasSubtitleFriendRequest,
-      (friendPolicy ?? []).join(" / "),
+      (friendPolicy ?? []).map(key => this.t[key as keyof typeof this.t]).join(" / "),
       { x: 0.28, y: 0.48, w: 0.26, h: 0.10 },
       false,
       0.013,
@@ -304,7 +304,7 @@ export class CanvasRenderer {
       this.drawInlineField(
         '', // ラベルは使わない
         '', // サブタイトルも不要
-        `${item.label}：${item.mark}`.replace(/：/g, `: `),
+        `${item.isCustom ? item.label : this.t.okNgDefaults[item.label as keyof typeof this.t.okNgDefaults]}：${item.mark}`.replace(/：/g, `: `),
         0,
         0,
         { 

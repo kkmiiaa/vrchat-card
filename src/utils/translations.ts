@@ -222,11 +222,11 @@ export const translations = {
     addCustomItem: '+ Add Custom Item',
     okNgDefaults: {
       touch: 'Touching',
-      closeRange: 'Close Range',
+      closeRange: 'CloseDist',
       romantic: 'Romantic',
       weapons: 'Weapons',
-      abuseViolence: 'Abuse/Violence',
-      dirtyJokes: 'Dirty Jokes',
+      abuseViolence: 'Violence',
+      dirtyJokes: 'DirtyJokes',
     },
 
     // About Me & Gallery Section

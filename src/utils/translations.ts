@@ -14,7 +14,7 @@ export const translations = {
     close: '閉じる',
     delete: '削除',
     requests: '要望',
-    seePostsOnX: 'Xで投稿一覧を見る →',
+    seePostsOnX: 'Xで投稿一覧を見る → ',
     searchWith: 'で検索すると、他の人の投稿が見られます。',
     
     // Onboarding
@@ -140,7 +140,7 @@ export const translations = {
     close: 'Close',
     delete: 'Delete',
     requests: 'Requests',
-    seePostsOnX: 'See posts on X →',
+    seePostsOnX: 'See posts on X → ',
     searchWith: 'to see other people\'s posts.',
 
     // Onboarding
@@ -236,7 +236,7 @@ export const translations = {
     pressAndHoldToSave: 'Press and hold the image to save, then attach it to your post 📎',
     openPostScreenOnX: 'Open post screen on X →',
     pressAndHoldToAdd: 'Press and hold the image below and "Add to Photos".',
-    tweetText: 'I made my profile card!\n#VRChatProfileCard\n#VRChatProfileCardMaker',
+    tweetText: 'I made my profile card!\n#MyVRChatCard\n#VRChatCardMaker',
 
     // Post Timeline
     postTimelineCredit: 'This tool was created with reference to Hitsuji Denki\'s profile card, but the background image uses different materials from the original version.',
@@ -244,10 +244,10 @@ export const translations = {
     
     // Canvas
     canvasGender: 'Gender',
-    canvasEnvironment: 'Environment',
+    canvasEnvironment: 'Env',
     canvasLanguages: 'Languages',
-    canvasMicOnRate: 'Mic ON Rate',
-    canvasStatus: 'Status',
+    canvasMicOnRate: 'Mic Usage Rate',
+    canvasStatus: 'Statues',
     canvasFriendRequest: 'Friend Request',
     canvasAboutMe: 'About Me',
     canvasMakerCredit: 'VRChatCardMaker by @yota3d',

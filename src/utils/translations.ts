@@ -4,8 +4,8 @@ export const translations = {
     // General
     title: 'VRChat自己紹介カードメーカー',
     contact: '質問・要望・コメントなどは',
-    support: 'このツールが役に立ったら、コーヒー代のサポートをお願いします！☕',
-    supportButton: 'サポートする',
+    support: 'ツールを維持していくためのサーバー運営費が必要なので、よかったらサポートお願いします',
+    supportButton: 'Paypayでサポート',
     supportLink: 'https://qr.paypay.ne.jp/p2p01_A7rB7I6eo1bUMSzY',
     save: '💾 保存',
     share: 'Xでシェア',
@@ -143,7 +143,7 @@ export const translations = {
     // General
     title: 'VRChatCardMaker',
     contact: 'For questions, requests, or comments,',
-    support: 'If you find this tool helpful, please consider buying me a coffee! ☕',
+    support: 'Server operating costs are needed to maintain this tool. If you find it helpful, please consider supporting us.',
     supportButton: 'Support Me',
     supportLink: 'https://ko-fi.com/yota3d',
     save: '💾 Save',

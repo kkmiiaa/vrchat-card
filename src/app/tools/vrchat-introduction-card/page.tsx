@@ -171,8 +171,26 @@ function VRChatCardGenerator() {
     if (cache.statusGreen) setStatusGreen(cache.statusGreen)
     if (cache.statusYellow) setStatusYellow(cache.statusYellow)
     if (cache.statusRed) setStatusRed(cache.statusRed)
-    if (cache.friendPolicy) setFriendPolicy(cache.friendPolicy) // Cast removed
-    if (cache.interactions) setInteractions(cache.interactions)
+    if (cache.friendPolicy) {
+      const validKeys = [
+        'frPolicyAnyone',
+        'frPolicyAfterGettingToKnow',
+        'frPolicyIfInterested',
+        'frPolicyMutualsOnX',
+        'frPolicyNo',
+      ];
+      const filteredPolicies = cache.friendPolicy.filter(policy => validKeys.includes(policy));
+      setFriendPolicy(filteredPolicies);
+    }
+
+    if (cache.interactions) {
+      const validLabels = Object.keys(translations.ja.okNgDefaults);
+      const filteredInteractions = cache.interactions.filter(item => 
+        item.isCustom || validLabels.includes(item.label)
+      );
+      setInteractions(filteredInteractions);
+    }
+
     if (cache.backgroundType) setBackgroundType(cache.backgroundType)
     if (cache.backgroundValue) setBackgroundValue(cache.backgroundValue)
     

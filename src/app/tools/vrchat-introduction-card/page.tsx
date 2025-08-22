@@ -184,11 +184,19 @@ function VRChatCardGenerator() {
     }
 
     if (cache.interactions) {
-      const validLabels = Object.keys(translations.ja.okNgDefaults);
-      const filteredInteractions = cache.interactions.filter(item => 
-        item.isCustom || validLabels.includes(item.label)
-      );
-      setInteractions(filteredInteractions);
+      const defaultKeys = Object.keys(translations.ja.okNgDefaults);
+      
+      // Restore default items, preserving their order and marks from cache
+      const restoredDefaults = defaultKeys.map(key => {
+        const cachedItem = cache.interactions.find(item => !item.isCustom && item.label === key);
+        return cachedItem || { label: key, mark: '-', isCustom: false };
+      });
+
+      // Restore custom items from cache
+      const customItems = cache.interactions.filter(item => item.isCustom);
+
+      // Combine them
+      setInteractions([...restoredDefaults, ...customItems]);
     }
 
     if (cache.backgroundType) setBackgroundType(cache.backgroundType)

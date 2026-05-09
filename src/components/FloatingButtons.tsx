@@ -3,7 +3,7 @@
 type Props = {
   onSave: () => void;
   onShare: () => void;
-  onUpgrade: () => void;
+  onUpgrade?: () => void;
   t: {
     save: string;
     share: string;

@@ -1,7 +1,4 @@
-// components/LanguageToggle.tsx
 'use client';
-
-import { GlobeAltIcon } from '@heroicons/react/24/outline';
 
 type Props = {
   language: 'ja' | 'en';
@@ -9,17 +6,12 @@ type Props = {
 };
 
 export default function LanguageToggle({ language, setSystemLanguage }: Props) {
-  const toggleLanguage = () => {
-    setSystemLanguage(language === 'ja' ? 'en' : 'ja');
-  };
-
   return (
     <button
-      onClick={toggleLanguage}
-      className="flex items-center gap-1 px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+      onClick={() => setSystemLanguage(language === 'ja' ? 'en' : 'ja')}
+      className="text-xs text-gray-400 hover:text-gray-600 transition-colors px-1"
     >
-      <GlobeAltIcon className="h-5 w-5" />
-      {language === 'ja' ? 'English' : '日本語'}
+      {language === 'ja' ? 'EN' : 'JA'}
     </button>
   );
 }

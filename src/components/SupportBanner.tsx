@@ -1,4 +1,3 @@
-// components/SupportBanner.tsx
 'use client';
 
 type Props = {
@@ -11,15 +10,13 @@ type Props = {
 
 export default function SupportBanner({ t }: Props) {
   return (
-    <div className="bg-gradient-to-r from-[#60a5fa] to-[#a78bfa] p-4 rounded-lg shadow-md text-center my-4">
-      <p className="font-bold text-white">
-        {t.support}
-      </p>
+    <div className="flex items-center justify-between gap-3 px-4 py-3 mb-3 rounded-xl bg-gray-50 border border-gray-200">
+      <p className="text-xs text-gray-500 leading-snug">{t.support}</p>
       <a
         href={t.supportLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-2 inline-block bg-blue-700 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-800 transition"
+        className="shrink-0 text-xs font-medium text-gray-700 bg-white border border-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
       >
         {t.supportButton}
       </a>

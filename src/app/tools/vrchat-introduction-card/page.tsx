@@ -485,36 +485,23 @@ function VRChatCardGenerator() {
 
   return (
     <>
-    <main className="font-rounded w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
-      <header className="fixed top-0 left-0 right-0 z-30 bg-white h-12 sm:h-16 px-4 py-2 lg:shadow flex justify-between items-center">
-        <div className="text-base sm:text-xl font-bold">
-          {t.title}
+    <main className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
+      <header className="fixed top-0 left-0 right-0 z-30 bg-white/90 backdrop-blur-sm h-12 sm:h-14 px-4 border-b border-gray-100 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <span className="text-sm sm:text-base font-semibold text-gray-900">自己紹介カード</span>
+          <span className="hidden sm:inline text-xs text-gray-400 font-medium border border-gray-200 rounded px-1.5 py-0.5">VRChat Card</span>
+          <span className="text-xs text-gray-400 font-medium">by <span className="font-black text-gray-700">Profy</span></span>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-600">
-            <span className="hidden sm:inline">
-              {t.contact}{' '}
-              <a
-                href="https://x.com/yota3d"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                @yota3d
-              </a>{' '}
-              {t.left}
-            </span>
-
-            <a
-              href="https://x.com/yota3d"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline text-sm sm:hidden text-blue-600"
-              aria-label={t.contactTo}
-            >
-              {t.requests}<FiMessageCircle className="w-6 h-6" />
-            </a>
-          </div>
+        <div className="flex items-center gap-3">
+          <a
+            href="https://x.com/yota3d"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label={t.requests}
+          >
+            <FiMessageCircle className="w-5 h-5" />
+          </a>
           <LanguageToggle language={systemLanguage} setSystemLanguage={setSystemLanguage} />
         </div>
       </header>
@@ -616,7 +603,7 @@ function VRChatCardGenerator() {
           <SupportBanner t={t} />
           <AccordionSection title={t.cardDesign} defaultOpen t={t}>
             <div className="flex flex-col gap-4 pt-2 pb-2 ">
-              <h2 className="text-lg font-bold">{t.backgroundSettings}</h2>
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.backgroundSettings}</h2>
 
               {/* {t.solidColorBg} */}
               <div>
@@ -640,7 +627,7 @@ function VRChatCardGenerator() {
                         setBackgroundType('color')
                         setBackgroundValue(color)
                       }}
-                      className="w-8 h-8 rounded"
+                      className="w-8 h-8 rounded-lg border border-black/10 hover:scale-110 transition-transform"
                       style={{ backgroundColor: color }}
                     />
                   ))}
@@ -715,7 +702,7 @@ function VRChatCardGenerator() {
                     className="hidden" // Hide the native input
                     id="image-bg-upload"
                   />
-                  <span className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">
+                  <span className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium py-1.5 px-3 rounded-lg cursor-pointer transition-colors">
                     {t.chooseFile}
                   </span>
                   <span className="ml-2 text-gray-600 text-sm">
@@ -730,31 +717,31 @@ function VRChatCardGenerator() {
             </div>
             
             <div className="flex flex-col gap-4 pt-2 pb-2">
-              <h2 className="text-lg font-bold">{t.speechBubble}</h2>
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.speechBubble}</h2>
               <BalloonToggle showBalloon={showBalloon} setShowBalloon={setShowBalloon} t={t} />
             </div>
           </AccordionSection>
 
           <AccordionSection title={t.profileInfo} t={t}>
             <div className="flex flex-col gap-4 pt-2 pb-2">
-              <h2 className="text-lg font-bold">{t.profileImage}</h2>
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.profileImage}</h2>
               <input type="file" accept="image/*" onChange={handleProfileImageUpload} />
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">{t.name}</h2>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="p-2 border rounded" />
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.name}</h2>
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300" />
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">{t.gender}</h2>
-              <input type="text" value={gender} onChange={(e) => setGender(e.target.value)} className="p-2 border rounded" />
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.gender}</h2>
+              <input type="text" value={gender} onChange={(e) => setGender(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300" />
             </div>
           </AccordionSection>
 
           <AccordionSection title={t.envAndLang} t={t}>
             <div className="flex flex-col gap-4 mt-2">
-              <h2 className="text-lg font-bold">{t.environment}</h2>
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.environment}</h2>
               <div className="flex gap-3 mt-1">
                 {['PCVR', 'Quest', 'Desktop'].map((opt) => (
                   <label key={opt} className="flex items-center gap-1">
@@ -774,7 +761,7 @@ function VRChatCardGenerator() {
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">{t.languages}</h2>
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.languages}</h2>
               <label className="flex flex-col">
                 <div className="flex flex-wrap gap-3 mt-1">
                   {[t.japanese, t.english, t.korean].map((lang) => (
@@ -817,7 +804,7 @@ function VRChatCardGenerator() {
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">{t.micOnRate}</h2>
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.micOnRate}</h2>
               <label className="flex flex-col">
                 <input
                   type="range"
@@ -833,14 +820,14 @@ function VRChatCardGenerator() {
 
           <AccordionSection title={t.snsContact} t={t}>
             <div className="flex flex-col gap-4 pt-2">
-              <h2 className="text-lg font-bold">{t.snsInfo}</h2>
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.snsInfo}</h2>
               <label className="flex flex-col">
                 <span className="font-semibold">VRChat ID</span>
                 <input
                   type="text"
                   value={vrchatId}
                   onChange={(e) => setVrchatId(e.target.value)}
-                  className="p-2 border rounded"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300"
                 />
               </label>
               <label className="flex flex-col">
@@ -850,7 +837,7 @@ function VRChatCardGenerator() {
                   value={twitterId}
                   onChange={(e) => setTwitterId(e.target.value)}
                   placeholder="@yourhandle"
-                  className="p-2 border rounded"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300"
                 />
               </label>
               <label className="flex flex-col">
@@ -860,7 +847,7 @@ function VRChatCardGenerator() {
                   value={discordId}
                   onChange={(e) => setDiscordId(e.target.value)}
                   placeholder="YourName#1234"
-                  className="p-2 border rounded"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300"
                 />
               </label>
             </div>
@@ -868,7 +855,7 @@ function VRChatCardGenerator() {
           
           <AccordionSection title={t.howToInteract} t={t}>
             <div className="flex flex-col gap-4 mt-2">
-              <h2 className="text-lg font-bold">{t.statusDescription}</h2>
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.statusDescription}</h2>
               {[
                 { label: t.statusBlue, value: statusBlue, setValue: setStatusBlue },
                 { label: t.statusGreen, value: statusGreen, setValue: setStatusGreen },
@@ -881,14 +868,14 @@ function VRChatCardGenerator() {
                     type="text"
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
-                    className="p-2 border rounded"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300"
                   />
                 </label>
               ))}
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">{t.friendRequestPolicy}</h2>
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.friendRequestPolicy}</h2>
               {[
                 'frPolicyAnyone',
                 'frPolicyAfterGettingToKnow',
@@ -915,7 +902,7 @@ function VRChatCardGenerator() {
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-lg font-bold">{t.okNg}</h2>
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.okNg}</h2>
               {interactions.map((item, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <select
@@ -975,17 +962,17 @@ function VRChatCardGenerator() {
 
           <AccordionSection title={t.aboutMeAndImages} t={t}>
             <div className="flex flex-col gap-4 mt-2">
-              <h2 className="text-lg font-bold">{t.aboutMeText}</h2>
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.aboutMeText}</h2>
               <textarea
                 value={selfIntro}
                 onChange={(e) => setSelfIntro(e.target.value)}
                 rows={5}
-                className="p-2 border rounded"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300"
               />
             </div>
 
             <div className="flex flex-col gap-4 mt-6 border-t pt-4 mb-6">
-              <h2 className="text-lg font-bold">{t.galleryImages}</h2>
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.galleryImages}</h2>
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -1012,7 +999,7 @@ function VRChatCardGenerator() {
                           className="hidden"
                           id={`gallery-image-upload-${index}`}
                         />
-                        <span className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">
+                        <span className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium py-1.5 px-3 rounded-lg cursor-pointer transition-colors">
                           {t.chooseFile}
                         </span>
                         <span className="ml-2 text-gray-600 text-sm">
@@ -1040,10 +1027,6 @@ function VRChatCardGenerator() {
           </div>
         </aside>
       </div>
-
-      {/* <footer className="p-4 flex justify-between items-center border-t bg-white fixed bottom-0 left-0 w-full z-20">
-        <div className="text-sm text-gray-500">ⓘ 広告スペース or サポートリンクなど</div>
-      </footer> */}
       <FloatingButtons
         onSave={handleDownload}
         onShare={handlePostToX}

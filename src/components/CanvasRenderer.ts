@@ -510,8 +510,14 @@ export class CanvasRenderer {
   
     path.set({
       fill: `rgba(255,255,255,${alpha})`,
-      stroke: '#000',
-      strokeWidth: this.width * 0.003,
+      stroke: 'rgba(0,0,0,0.12)',
+      strokeWidth: this.width * 0.002,
+      shadow: new fabric.Shadow({
+        color: 'rgba(0,0,0,0.15)',
+        blur: this.width * 0.02,
+        offsetX: 0,
+        offsetY: this.height * 0.005,
+      }),
       selectable: false,
       evented: false,
     })
@@ -567,18 +573,18 @@ export class CanvasRenderer {
   ) {
     const padding = this.width * paddingRatio
     const cornerRadius = this.width * 0.005
-    const borderColor = '#ccc'
-  
+
+    const labelFontSize = this.width * labelFontSizeRatio
+    const subtitleFontSize = this.width * subtitleFontSizeRatio
+    const labelGap = this.width * 0.006
+
     const labelTop = this.height * area.y
-    const boxTop = this.height * (area.y + 0.04)
+    const boxTop = labelTop + labelFontSize + labelGap
     const boxLeft = this.width * area.x
     const boxWidth = this.width * area.w
     const boxHeight = this.height * area.h
-  
+
     const contentHeight = boxHeight - padding * 2
-  
-    const labelFontSize = this.width * labelFontSizeRatio
-    const subtitleFontSize = this.width * subtitleFontSizeRatio
   
     // ラベル
     const label = new fabric.Text(title, {
@@ -590,16 +596,16 @@ export class CanvasRenderer {
       selectable: false,
       evented: false,
     })
-  
+
     let subtitleText: fabric.Text | undefined
-  
+
     if (subtitle) {
       subtitleText = new fabric.Text(subtitle, {
-        left: boxLeft + label.width! + this.width * 0.01, // ラベルの右＋余白
-        top: labelTop + (labelFontSize - subtitleFontSize), // 下揃え
+        left: boxLeft + label.width! + this.width * 0.01,
+        top: labelTop + (labelFontSize - subtitleFontSize),
         fontSize: subtitleFontSize,
         fontFamily: fontFamily,
-        fill: '#6b7280', // グレー寄りの色
+        fill: '#9ca3af',
         selectable: false,
         evented: false,
       })
@@ -614,7 +620,7 @@ export class CanvasRenderer {
       fill: 'white',
       rx: cornerRadius,
       ry: cornerRadius,
-      stroke: isBorder ? borderColor : undefined,
+      stroke: isBorder ? 'rgba(0,0,0,0.08)' : undefined,
       strokeWidth: isBorder ? this.width * 0.001 : 0,
       selectable: false,
       evented: false,
@@ -757,13 +763,13 @@ export class CanvasRenderer {
       selectable: false,
       evented: false,
     })
-  
+
     const subtitleText = new fabric.Text(subtitle, {
       left: label.left!,
       top: label.top! + labelFontSize,
       fontSize: subtitleFontSize,
       fontFamily: fontFamily,
-      fill: '#6b7280',
+      fill: '#9ca3af',
       selectable: false,
       evented: false,
     })
@@ -884,7 +890,7 @@ export class CanvasRenderer {
       evented: false,
     })
   
-    const barTop = top + titleText.fontSize! + padding * 1.5
+    const barTop = top + titleText.fontSize! + this.width * 0.006
   
     // 背景バー
     const background = new fabric.Rect({
@@ -953,8 +959,9 @@ export class CanvasRenderer {
     // タイトル・サブタイトル表示（横並び）
     this.drawTitleAndSubtitle(title, subtitle, left, top, titleFontRatio, subtitleFontRatio, fontFamily)
   
-    // 各行のスタート位置
-    const startY = area.y + 0.04 // 少し下に余白
+    // 各行のスタート位置（ラベルフォントサイズ＋余白に連動）
+    const labelPx = this.width * titleFontRatio + this.width * 0.006
+    const startY = area.y + labelPx / this.height
     const rowHeight = textBoxHeightRatio + rowSpacingRatio
   
     const colors = ['blue', 'green', 'yellow', 'red'] as const
@@ -1020,29 +1027,7 @@ export class CanvasRenderer {
   }
 
   drawCopyright() {
-    const makerCreditText = new fabric.Text(this.t.canvasMakerCredit, {
-      left: this.balloonPadding,
-      top: this.height * (1 - 0.04),
-      fontSize: this.fontSizeBase * 0.5,
-      fontFamily: RoundedMplus.style.fontFamily,
-      fill: '#ffffff',
-      selectable: false,
-      evented: false,
-    });
-    this.canvas.add(makerCreditText);
-
-    if (this.t.lang === 'en') {
-      const explanationText = new fabric.Text(this.t.canvasHeaderExplanation, {
-        left: this.balloonPadding,
-        top: this.height * (1 - 0.04) - makerCreditText.height! - (this.height * 0.005), // Adjust position above makerCreditText
-        fontSize: this.fontSizeBase * 0.5,
-        fontFamily: RoundedMplus.style.fontFamily,
-        fill: '#ffffff',
-        selectable: false,
-        evented: false,
-      });
-      this.canvas.add(explanationText);
-    }
+    // watermark intentionally removed
   }
 
   download() {

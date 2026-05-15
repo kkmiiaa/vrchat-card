@@ -36,7 +36,7 @@ export default function HeaderAuth({ variant = 'default' }: { variant?: 'default
         className={
           variant === 'white'
             ? 'text-xs font-semibold text-[#00AADB] bg-white/90 border border-white px-3 py-1.5 rounded-full hover:bg-white transition-colors shadow-sm'
-            : 'text-xs font-semibold text-[#00AADB] border-2 border-[#00AADB] px-3 py-1.5 rounded-full hover:bg-sky-50 transition-colors'
+            : 'text-xs font-semibold text-[#00AADB] border border-sky-200 px-3 py-1.5 rounded-full hover:bg-sky-50 transition-colors'
         }
       >
         マイページ

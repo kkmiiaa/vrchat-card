@@ -304,7 +304,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
   // カードスケール（v1: 1200px幅, v2: 900px幅を基準）
   useEffect(() => {
-    const cardNativeWidth = template.id === 'v1' ? 1200 : 900
+    const cardNativeWidth = 900
     const update = () => {
       const isLg = window.innerWidth >= 1024
       const available = window.innerWidth - (isLg ? 400 : 0) - (isLg ? 48 : 32)

@@ -386,7 +386,7 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
         </div>
 
         {/* カード一覧 */}
-        <>
+        <div className={`rounded-2xl transition-all ${editMode ? 'border-2 border-sky-200 bg-sky-50/40 px-4 py-4' : ''}`}>
             {isOwner && cards.length > 0 && (
               <div className="flex justify-end mb-4">
                 <Link href="/card/new"
@@ -527,7 +527,7 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
             ) : (
               <div className="text-center py-16 text-gray-300 text-sm">カードがまだありません</div>
             )}
-          </>
+          </div>
 
         <p className="text-center text-xs text-gray-300 mt-16">
           by <span className="font-bold text-[#00AADB]">vaacard</span>

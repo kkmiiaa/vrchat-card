@@ -45,7 +45,7 @@ type Props = {
 export const CARD_V1_WIDTH  = 1200
 export const CARD_V1_HEIGHT = 675
 export const CARD_V1_PORTRAIT_WIDTH  = 900
-export const CARD_V1_PORTRAIT_HEIGHT = 1350
+export const CARD_V1_PORTRAIT_HEIGHT = 1125
 
 const W = CARD_V1_WIDTH
 const H = CARD_V1_HEIGHT
@@ -217,7 +217,7 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
           }}>
             {/* ── Header: image + name/tags/sns ── */}
             <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexShrink: 0 }}>
-              <div style={{ width: 160, height: 160, borderRadius: 14, overflow: 'hidden', background: '#e5e7eb', flexShrink: 0 }}>
+              <div style={{ width: 220, height: 220, borderRadius: 14, overflow: 'hidden', background: '#e5e7eb', flexShrink: 0 }}>
                 {imgSrc && <img src={imgSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>

@@ -233,7 +233,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
           <div style={{ display: 'flex', gap: 24, padding: '28px 28px 20px', flexShrink: 0 }}>
             {/* 左: 画像 */}
             <div style={{
-              width: 160, height: 160, borderRadius: 16, overflow: 'hidden', flexShrink: 0,
+              width: 220, height: 220, borderRadius: 16, overflow: 'hidden', flexShrink: 0,
               border: '3px solid rgba(255,255,255,0.85)',
               boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
               background: 'rgba(0,0,0,0.06)',

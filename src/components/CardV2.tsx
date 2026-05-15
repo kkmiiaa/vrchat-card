@@ -387,7 +387,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
               )}
               {/* STATUS */}
               {statusItems.length > 0 && (
-                <div>
+                <div style={{ marginTop: 12 }}>
                   <div style={pLabel}>STATUS</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 6 }}>
                     {statusItems.map((s, i) => (

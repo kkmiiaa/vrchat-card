@@ -17,7 +17,7 @@ import { ageBlock }          from '@/blocks/age'
 import { showBalloonBlock }  from '@/blocks/showBalloon'
 import { friendPolicyMultiBlock } from '@/blocks/friendPolicyMulti'
 import { galleryBlock }      from '@/blocks/gallery'
-import CardV1, { CARD_V1_WIDTH, CARD_V1_HEIGHT } from '@/components/CardV1'
+import CardV1, { CARD_V1_WIDTH, CARD_V1_HEIGHT, CARD_V1_PORTRAIT_WIDTH, CARD_V1_PORTRAIT_HEIGHT } from '@/components/CardV1'
 import { fontMap } from '@/lib/fontMap'
 
 export const v1Template: CardTemplate = {
@@ -29,6 +29,8 @@ export const v1Template: CardTemplate = {
   communities: ['VRChat'],
   cardWidth: CARD_V1_WIDTH,
   cardHeight: CARD_V1_HEIGHT,
+  portraitWidth: CARD_V1_PORTRAIT_WIDTH,
+  portraitHeight: CARD_V1_PORTRAIT_HEIGHT,
   sections: [
     { titleKey: 'カードデザイン',   blockKeys: ['background', 'font', 'showBalloon'], defaultOpen: true },
     { titleKey: 'プロフィール情報', blockKeys: ['name', 'gender', 'age'] },
@@ -53,7 +55,7 @@ export const v1Template: CardTemplate = {
     interactionsBlock,
     galleryBlock,
   ],
-  CardRenderer({ values, fontFamily, t, isInteractive, noBackground }) {
+  CardRenderer({ values, fontFamily, t, isInteractive, noBackground, orientation }) {
     const sns    = (values.sns    as SnsValue)    ?? { vrchatId: '', twitterId: '', discordId: '' }
     const status = (values.status as StatusValue) ?? { blue: '', green: '', yellow: '', red: '' }
     const bg     = (values.background as BackgroundValue) ?? { type: 'gradient', value: ['#60a5fa', '#a78bfa'] }
@@ -98,6 +100,7 @@ export const v1Template: CardTemplate = {
         galleryImages={(gallery.base64?.length ? gallery.base64 : gallery.images) as (string | null)[]}
         isInteractive={isInteractive}
         noBackground={noBackground}
+        orientation={orientation}
       />
     )
   },

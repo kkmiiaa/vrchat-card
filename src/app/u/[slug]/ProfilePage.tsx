@@ -454,6 +454,7 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
                             templateId={card.template_id}
                             cardData={card.card_data}
                             onOrientation={o => setOrientation(card.id, o)}
+                            transparentBg
                           />
                         </div>
 

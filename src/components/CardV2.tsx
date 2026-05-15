@@ -354,7 +354,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
 
           {/* 中段: 2カラム */}
           <div style={{ display: 'flex', gap: 0, flexShrink: 0 }}>
-            {/* 左カラム: PROFILE + INTERACTION */}
+            {/* 左カラム: PROFILE + ACTIVITY */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, padding: '16px 16px 16px 24px', overflow: 'hidden' }}>
               {/* 環境・言語・マイク */}
               {((playEnv ?? []).length > 0 || (language ?? []).length > 0 || !!micOnRate) && (
@@ -385,45 +385,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                   </div>
                 </div>
               )}
-              {/* インタラクション */}
-              {visibleInteractions.length > 0 && (
-                <div>
-                  <div style={pLabel}>INTERACTION</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginTop: 6 }}>
-                    {visibleInteractions.slice(0, 6).map((item, i) => {
-                      const label = item.isCustom ? item.label : (okNgLabels[item.label] ?? item.label)
-                      const isOk = item.mark === 'OK' || item.mark === '○' || item.mark === '✓' || item.mark === '◎' || item.mark === '◯'
-                      const markSymbol = item.mark === '◎' ? '◎' : item.mark === '△' ? '△' : isOk ? '○' : '×'
-                      return (
-                        <div key={i} style={{ background: item.mark === '△' ? 'rgba(254,243,199,0.85)' : isOk ? 'rgba(220,252,231,0.85)' : 'rgba(254,226,226,0.85)', border: item.mark === '△' ? '1px solid rgba(253,211,77,0.8)' : isOk ? '1px solid rgba(134,239,172,0.8)' : '1px solid rgba(252,165,165,0.8)', borderRadius: 99, padding: '5px 10px', fontSize: pFs.sectionContent, color: item.mark === '△' ? '#92400e' : isOk ? '#15803d' : '#b91c1c', display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
-                          <span style={{ fontWeight: 700, flexShrink: 0 }}>{markSymbol}</span>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 縦区切り */}
-            <div style={{ width: 1, background: 'rgba(255,255,255,0.5)', flexShrink: 0, marginBlock: 16 }} />
-
-            {/* 右カラム: STATUS + ACTIVITY */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, padding: '16px 24px 16px 16px', overflow: 'hidden' }}>
-              {statusItems.length > 0 && (
-                <div>
-                  <div style={pLabel}>STATUS</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 6 }}>
-                    {statusItems.map((s, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.55)', border: `1px solid ${s.color}40`, borderLeft: `3px solid ${s.color}`, borderRadius: 8, padding: '6px 12px', minWidth: 0 }}>
-                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.color, flexShrink: 0, boxShadow: `0 0 4px ${s.color}` }} />
-                        <span style={{ fontSize: pFs.sectionContent, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* ACTIVITY */}
               {((weekdayStart && weekdayEnd) || (holidayStart && holidayEnd)) && (
                 <div>
                   <div style={pLabel}>ACTIVITY</div>
@@ -463,6 +425,45 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                         )}
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 縦区切り */}
+            <div style={{ width: 1, background: 'rgba(255,255,255,0.5)', flexShrink: 0, marginBlock: 16 }} />
+
+            {/* 右カラム: STATUS + INTERACTION */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, padding: '16px 24px 16px 16px', overflow: 'hidden' }}>
+              {statusItems.length > 0 && (
+                <div>
+                  <div style={pLabel}>STATUS</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 6 }}>
+                    {statusItems.map((s, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.55)', border: `1px solid ${s.color}40`, borderLeft: `3px solid ${s.color}`, borderRadius: 8, padding: '6px 12px', minWidth: 0 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.color, flexShrink: 0, boxShadow: `0 0 4px ${s.color}` }} />
+                        <span style={{ fontSize: pFs.sectionContent, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* インタラクション */}
+              {visibleInteractions.length > 0 && (
+                <div>
+                  <div style={pLabel}>INTERACTION</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginTop: 6 }}>
+                    {visibleInteractions.slice(0, 6).map((item, i) => {
+                      const label = item.isCustom ? item.label : (okNgLabels[item.label] ?? item.label)
+                      const isOk = item.mark === 'OK' || item.mark === '○' || item.mark === '✓' || item.mark === '◎' || item.mark === '◯'
+                      const markSymbol = item.mark === '◎' ? '◎' : item.mark === '△' ? '△' : isOk ? '○' : '×'
+                      return (
+                        <div key={i} style={{ background: item.mark === '△' ? 'rgba(254,243,199,0.85)' : isOk ? 'rgba(220,252,231,0.85)' : 'rgba(254,226,226,0.85)', border: item.mark === '△' ? '1px solid rgba(253,211,77,0.8)' : isOk ? '1px solid rgba(134,239,172,0.8)' : '1px solid rgba(252,165,165,0.8)', borderRadius: 99, padding: '5px 10px', fontSize: pFs.sectionContent, color: item.mark === '△' ? '#92400e' : isOk ? '#15803d' : '#b91c1c', display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
+                          <span style={{ fontWeight: 700, flexShrink: 0 }}>{markSymbol}</span>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}

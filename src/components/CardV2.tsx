@@ -321,6 +321,18 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                   })}
                 </div>
               )}
+              {/* ギャラリー: SNSの下、プロフィール画像右側 */}
+              {visibleGallery.length > 0 && (
+                <div style={{ marginTop: 'auto', paddingTop: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+                    {visibleGallery.slice(0, 3).map((src, i) => (
+                      <div key={i} style={{ aspectRatio: '1', borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.8)', background: 'rgba(0,0,0,0.06)' }}>
+                        <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -457,22 +469,6 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
             </div>
           </div>
 
-          {/* ギャラリー: 全幅・残りを埋める */}
-          {visibleGallery.length > 0 && (
-            <>
-              <div style={{ height: 1, background: 'rgba(255,255,255,0.5)', flexShrink: 0, marginInline: 28 }} />
-              <div style={{ flex: 1, minHeight: 0, padding: '16px 24px 20px', display: 'flex', flexDirection: 'column' }}>
-                <div style={pLabel}>GALLERY</div>
-                <div style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginTop: 8 }}>
-                  {visibleGallery.slice(0, 3).map((src, i) => (
-                    <div key={i} style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.8)', background: 'rgba(0,0,0,0.06)' }}>
-                      <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
         </div>
       </div>
     )

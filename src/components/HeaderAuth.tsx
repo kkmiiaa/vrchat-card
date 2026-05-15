@@ -29,6 +29,8 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
 
   if (loading) return <div className="w-16 h-6" />
 
+  if (slug && hideMyPage) return null
+
   if (slug && !hideMyPage) {
     return (
       <Link

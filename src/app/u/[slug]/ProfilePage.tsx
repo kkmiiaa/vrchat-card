@@ -530,17 +530,17 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
         </p>
       </main>
 
-      {/* 保存・キャンセル 固定バー（編集モード時のみ） */}
+      {/* 保存・キャンセル 固定フローティング（編集モード時のみ） */}
       {editMode && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-sky-100 px-4 py-3 flex gap-2 max-w-xl mx-auto" style={{ left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 608 }}>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-white/80 backdrop-blur-md rounded-full px-3 py-2 shadow-lg shadow-sky-100 border border-sky-100">
+          <button onClick={handleCancelEdit}
+            className="px-4 py-1.5 rounded-full text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
+            キャンセル
+          </button>
           <button onClick={handleSave}
             disabled={saving || slugStatus === 'taken' || slugStatus === 'invalid' || slugStatus === 'checking'}
-            className="flex-1 py-2.5 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md shadow-sky-200">
+            className="px-5 py-1.5 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm">
             {saved ? '✓ 保存しました' : saving ? '保存中...' : '保存する'}
-          </button>
-          <button onClick={handleCancelEdit}
-            className="px-5 py-2.5 rounded-full border-2 border-sky-100 text-sm text-gray-400 hover:text-gray-600 transition-colors">
-            キャンセル
           </button>
         </div>
       )}

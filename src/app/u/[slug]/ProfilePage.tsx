@@ -257,8 +257,11 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
 
       <main className="relative z-10 flex-1 max-w-xl mx-auto w-full px-4 py-12">
 
+        {/* 編集モード全体ラッパー */}
+        <div className={`rounded-2xl transition-all mb-4 ${editMode ? 'border-2 border-sky-200 bg-sky-50/40 px-4 pt-4 pb-4' : ''}`}>
+
         {/* アバター・名前・bio */}
-        <div className={`relative flex flex-col items-center text-center mb-10 rounded-2xl transition-all ${editMode ? 'border-2 border-sky-200 bg-sky-50/40 px-4 pt-6 pb-4' : 'px-0 pt-8 pb-0'}`}>
+        <div className={`relative flex flex-col items-center text-center mb-10 transition-all ${editMode ? 'pt-2 pb-2' : 'px-0 pt-8 pb-0'}`}>
           {isOwner && !editMode && (
             <button
               onClick={() => {
@@ -353,18 +356,6 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
                 className="mt-2 w-full py-2 rounded-xl border-2 border-dashed border-sky-100 text-xs text-sky-400 hover:border-[#00AADB] hover:text-[#00AADB] hover:bg-sky-50 transition-colors">
                 + リンクを追加
               </button>
-              {/* 保存・キャンセル */}
-              <div className="flex gap-2 mt-4">
-                <button onClick={handleSave}
-                  disabled={saving || slugStatus === 'taken' || slugStatus === 'invalid' || slugStatus === 'checking'}
-                  className="flex-1 py-2.5 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md shadow-sky-200">
-                  {saved ? '✓ 保存しました' : saving ? '保存中...' : '保存する'}
-                </button>
-                <button onClick={handleCancelEdit}
-                  className="px-5 py-2.5 rounded-full border-2 border-sky-100 text-sm text-gray-400 hover:text-gray-600 transition-colors">
-                  キャンセル
-                </button>
-              </div>
             </div>
           ) : (
             links.some(l => l.url.trim()) && (
@@ -386,7 +377,7 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
         </div>
 
         {/* カード一覧 */}
-        <div className={`rounded-2xl transition-all ${editMode ? 'border-2 border-sky-200 bg-sky-50/40 px-4 py-4' : ''}`}>
+        <div>
             {isOwner && cards.length > 0 && (
               <div className="flex justify-end mb-4">
                 <Link href="/card/new"
@@ -528,6 +519,23 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
               <div className="text-center py-16 text-gray-300 text-sm">カードがまだありません</div>
             )}
           </div>
+
+        {/* 保存・キャンセル（編集モード時のみ） */}
+        {editMode && (
+          <div className="flex gap-2 mt-4">
+            <button onClick={handleSave}
+              disabled={saving || slugStatus === 'taken' || slugStatus === 'invalid' || slugStatus === 'checking'}
+              className="flex-1 py-2.5 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md shadow-sky-200">
+              {saved ? '✓ 保存しました' : saving ? '保存中...' : '保存する'}
+            </button>
+            <button onClick={handleCancelEdit}
+              className="px-5 py-2.5 rounded-full border-2 border-sky-100 text-sm text-gray-400 hover:text-gray-600 transition-colors">
+              キャンセル
+            </button>
+          </div>
+        )}
+
+        </div>{/* /編集モード全体ラッパー */}
 
         <p className="text-center text-xs text-gray-300 mt-16">
           by <span className="font-bold text-[#00AADB]">vaacard</span>

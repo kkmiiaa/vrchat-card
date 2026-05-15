@@ -378,8 +378,8 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
       {/* バルーン＋コンテンツ まとめてホバー対象 */}
       <div className="vaacard-glass-panel" style={{
         position: 'absolute',
-        left: W * 0.02, top: H * 0.0525,
-        width: W * 0.96, height: H * 0.895,
+        left: 20, top: 20,
+        width: W - 40, height: H - 40,
         borderRadius: W * 0.025,
       }}>
         {/* バルーン背景 */}
@@ -397,8 +397,8 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
         <div style={{
           position: 'absolute',
           left: PAD_X, top: PAD_Y,
-          width:  W * 0.96 - PAD_X * 2,
-          height: H * 0.895 - PAD_Y * 2,
+          width:  (W - 40) - PAD_X * 2,
+          height: (H - 40) - PAD_Y * 2,
           display: 'flex',
           gap: COL_GAP,
         }}>

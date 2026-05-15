@@ -60,7 +60,7 @@ export default function ProfileCard({ profile, slug }: Props) {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-white/90 backdrop-blur-sm border-b border-gray-100 h-14 px-6 flex items-center justify-between">
-        <Link href="/" className="text-lg font-black tracking-tight text-gray-900">Profy</Link>
+        <Link href="/" className="text-lg font-black tracking-tight text-gray-900">vaacard</Link>
         <Link href="/auth/login" className="text-xs font-medium text-gray-600 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
           ログイン
         </Link>
@@ -120,7 +120,7 @@ export default function ProfileCard({ profile, slug }: Props) {
           )}
 
           <p className="text-center text-xs text-gray-300 mt-8">
-            by <span className="font-semibold">Profy</span>
+            by <span className="font-semibold">vaacard</span>
           </p>
         </div>
       </main>

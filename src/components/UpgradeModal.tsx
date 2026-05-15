@@ -3,13 +3,21 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
-import { saveCardToProfile } from '@/lib/saveCard'
+import { createCard, updateCard } from '@/lib/saveCard'
+
+type Visibility = 'public' | 'limited' | 'private'
 
 type Props = {
   onClose: () => void
   localStorageKey: string
-  getCanvasDataUrl: () => string | null
+  getCanvasDataUrl: () => Promise<string | null> | string | null
 }
+
+const VISIBILITY_OPTIONS: { value: Visibility; label: string; desc: string }[] = [
+  { value: 'public',  label: '公開',      desc: 'プロフィールページに表示されます' },
+  { value: 'limited', label: 'URLのみ',   desc: 'URLを知っている人だけ見られます' },
+  { value: 'private', label: '非公開',    desc: '自分だけ見られます' },
+]
 
 export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUrl }: Props) {
   const router = useRouter()
@@ -17,6 +25,9 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
   const [loading, setLoading] = useState(false)
   const [slug, setSlug] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [visibility, setVisibility] = useState<Visibility>('public')
+  const [savedImageUrl, setSavedImageUrl] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -46,25 +57,30 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
       return
     }
 
-    const dataUrl = getCanvasDataUrl()
+    const dataUrl = await getCanvasDataUrl()
     if (!dataUrl) { setLoading(false); return }
 
     const raw = localStorage.getItem(localStorageKey)
     const cardData = raw ? JSON.parse(raw) : {}
 
-    const result = await saveCardToProfile({
-      canvasDataUrl: dataUrl,
-      cardData,
-      title: 'VRChat Card',
-    })
+    const created = await createCard({ templateId: 'v2', cardData, title: 'VRChat Card', visibility })
 
-    setLoading(false)
-
-    if ('error' in result) {
-      alert('保存に失敗しました: ' + result.error)
+    if ('error' in created) {
+      setLoading(false)
+      alert('保存に失敗しました: ' + created.error)
       return
     }
 
+    const updated = await updateCard({ cardId: created.cardId, imageBase64: dataUrl })
+
+    setLoading(false)
+
+    if ('error' in updated) {
+      alert('画像の保存に失敗しました: ' + updated.error)
+      return
+    }
+
+    setSavedImageUrl(`${window.location.origin}/card/${created.cardId}`)
     setDone(true)
   }
 
@@ -73,34 +89,88 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
       <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8">
         {done ? (
           <>
-            <div className="text-3xl mb-3 text-center">✅</div>
-            <h2 className="text-xl font-bold text-gray-900 text-center mb-2">保存しました</h2>
-            <p className="text-gray-500 text-sm text-center mb-6">
-              プロフィールページにカードが追加されました。
+            <h2 className="text-lg font-bold text-gray-900 text-center mb-1">保存しました</h2>
+            <p className="text-gray-400 text-xs text-center mb-6">
+              vaa3d.studio/u/{slug}
             </p>
+
+            {/* URLコピー */}
             <button
-              onClick={() => slug && router.push(`/u/${slug}`)}
-              className="w-full py-3 rounded-xl bg-gray-900 text-white font-medium text-sm hover:bg-gray-700 transition-colors mb-3"
+              onClick={() => {
+                const url = `${window.location.origin}/u/${slug}`
+                navigator.clipboard.writeText(url)
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+              }}
+              className="w-full py-3 rounded-xl bg-gray-900 text-white font-medium text-sm hover:bg-gray-700 transition-colors mb-2"
             >
-              プロフィールページを見る
+              {copied ? 'コピーしました！' : 'プロフィールURLをコピー'}
             </button>
+
+            {/* 画像ダウンロード */}
+            {savedImageUrl && (
+              <a
+                href={savedImageUrl}
+                download="vrchat-card.png"
+                className="w-full py-3 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors mb-2 flex items-center justify-center"
+              >
+                画像をダウンロード
+              </a>
+            )}
+
+            {/* X でシェア */}
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`自己紹介カードを作りました！\nvaa3d.studio/u/${slug}\n#VRChat #vaacard`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 rounded-xl bg-black text-white font-medium text-sm hover:bg-gray-800 transition-colors mb-4 flex items-center justify-center gap-2"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              X でシェア
+            </a>
+
             <button onClick={onClose} className="w-full py-2 text-gray-400 text-sm hover:text-gray-600 transition-colors">
               閉じる
             </button>
           </>
         ) : isLoggedIn ? (
           <>
-            <div className="text-3xl mb-3 text-center">🔗</div>
-            <h2 className="text-xl font-bold text-gray-900 text-center mb-2">プロフィールに保存する</h2>
-            <p className="text-gray-500 text-sm text-center mb-6">
-              このカードを <span className="font-mono text-gray-700">vaa3d.studio/u/{slug}</span> に追加します。あとから編集・削除できます。
+            <h2 className="text-lg font-bold text-gray-900 text-center mb-1">プロフィールに保存する</h2>
+            <p className="text-gray-400 text-xs text-center mb-6">
+              vaa3d.studio/u/{slug}
             </p>
+
+            {/* 公開設定 */}
+            <div className="space-y-2 mb-6">
+              {VISIBILITY_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setVisibility(opt.value)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-colors ${
+                    visibility === opt.value
+                      ? 'border-gray-900 bg-gray-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div>
+                    <span className="text-sm font-medium text-gray-900">{opt.label}</span>
+                    <span className="text-xs text-gray-400 ml-2">{opt.desc}</span>
+                  </div>
+                  <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                    visibility === opt.value ? 'border-gray-900 bg-gray-900' : 'border-gray-300'
+                  }`} />
+                </button>
+              ))}
+            </div>
+
             <button
               onClick={handleSave}
               disabled={loading}
               className="w-full py-3 rounded-xl bg-gray-900 text-white font-medium text-sm hover:bg-gray-700 transition-colors disabled:opacity-50 mb-3"
             >
-              {loading ? '保存中...' : 'プロフィールに保存する'}
+              {loading ? '保存中...' : '保存する'}
             </button>
             <button onClick={onClose} className="w-full py-2 text-gray-400 text-sm hover:text-gray-600 transition-colors">
               今はしない
@@ -108,8 +178,7 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
           </>
         ) : (
           <>
-            <div className="text-3xl mb-3 text-center">✨</div>
-            <h2 className="text-xl font-bold text-gray-900 text-center mb-2">URLで共有しませんか？</h2>
+            <h2 className="text-lg font-bold text-gray-900 text-center mb-2">URLで共有しませんか？</h2>
             <p className="text-gray-500 text-sm text-center mb-6">
               ログインするとカードがプロフィールページに追加されます。あとから編集もできます。
             </p>

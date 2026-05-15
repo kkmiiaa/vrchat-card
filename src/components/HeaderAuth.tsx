@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
-export default function HeaderAuth() {
+export default function HeaderAuth({ variant = 'default' }: { variant?: 'default' | 'white' }) {
   const [slug, setSlug] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
@@ -31,21 +31,27 @@ export default function HeaderAuth() {
 
   if (slug) {
     return (
-      <div className="flex items-center gap-3">
-        <Link
-          href={`/u/${slug}`}
-          className="text-xs font-medium text-gray-600 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          マイページ
-        </Link>
-      </div>
+      <Link
+        href={`/u/${slug}`}
+        className={
+          variant === 'white'
+            ? 'text-xs font-semibold text-[#00AADB] bg-white/90 border border-white px-3 py-1.5 rounded-full hover:bg-white transition-colors shadow-sm'
+            : 'text-xs font-semibold text-[#00AADB] border-2 border-[#00AADB] px-3 py-1.5 rounded-full hover:bg-sky-50 transition-colors'
+        }
+      >
+        マイページ
+      </Link>
     )
   }
 
   return (
     <Link
       href="/auth/login"
-      className="text-xs font-medium text-gray-600 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+      className={
+        variant === 'white'
+          ? 'text-xs font-semibold text-white/80 hover:text-white transition-colors'
+          : 'text-xs font-semibold text-gray-400 hover:text-[#00AADB] transition-colors'
+      }
     >
       ログイン
     </Link>

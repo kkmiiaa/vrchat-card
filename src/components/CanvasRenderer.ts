@@ -448,30 +448,30 @@ export class CanvasRenderer {
       if (!src) return;
     
       fabric.Image.fromURL(src, (img) => {
-        if (!img) return;
-        // Canvasがまだ有効かチェック
-        if (!this.canvas) {
-          console.warn('Canvas context is null or disposed, skipping setBackgroundImage.');
-          return;
-        }
-    
+        const canvas = this.canvas;
+        if (!img || !canvas) return;
+
         img.set({
           scaleX: this.width / img.width!,
           scaleY: this.height / img.height!,
           originX: 'left',
           originY: 'top',
         });
-    
-        this.canvas.setBackgroundImage(
-          img,
-          this.canvas.renderAll.bind(this.canvas),
-          {
-            scaleX: this.width / img.width!,
-            scaleY: this.height / img.height!,
-            originX: 'left',
-            originY: 'top',
-          }
-        );
+
+        try {
+          canvas.setBackgroundImage(
+            img,
+            canvas.renderAll.bind(canvas),
+            {
+              scaleX: this.width / img.width!,
+              scaleY: this.height / img.height!,
+              originX: 'left',
+              originY: 'top',
+            }
+          );
+        } catch {
+          // canvas already disposed
+        }
       }, { crossOrigin: 'anonymous' });
     
       return;
@@ -1028,6 +1028,224 @@ export class CanvasRenderer {
 
   drawCopyright() {
     // watermark intentionally removed
+  }
+
+  renderV2(props: RenderProps) {
+    const {
+      name,
+      profileImage,
+      gender,
+      language,
+      playEnv,
+      micOnRate,
+      selfIntro,
+      vrchatId,
+      twitterId,
+      discordId,
+      statusBlue,
+      statusGreen,
+      statusYellow,
+      statusRed,
+      interactions,
+      backgroundType,
+      backgroundValue,
+      fontFamily,
+    } = props
+
+    this.clear()
+    this.setBackground(
+      backgroundType ?? 'gradient',
+      backgroundValue ?? ['#e0e7ff', '#fce7f3']
+    )
+
+    const W = this.width
+    const H = this.height
+    const photoW = W * 0.43
+    const rightX = photoW + W * 0.04
+    const rightW = W - rightX - W * 0.03
+    const pad = W * 0.018
+
+    // ── 左: 写真（上下フチなし） ──
+    const imageSrc = profileImage ? URL.createObjectURL(profileImage) : '/default-profile.png'
+    fabric.Image.fromURL(imageSrc, (img) => {
+      if (!this.canvas) return
+      const image = img as fabric.Image
+      const iw = image.width ?? 1
+      const ih = image.height ?? 1
+      const scale = Math.max(photoW / iw, H / ih)
+      const scaledW = iw * scale
+      const scaledH = ih * scale
+      image.set({
+        left: -(scaledW - photoW) / 2,
+        top: -(scaledH - H) / 2,
+        originX: 'left',
+        originY: 'top',
+      })
+      image.scale(scale)
+      const mask = new fabric.Rect({
+        width: photoW,
+        height: H,
+        fill: 'white',
+        globalCompositeOperation: 'destination-in',
+        originX: 'left',
+        originY: 'top',
+        absolutePositioned: true,
+      })
+      if (!this.canvas) return
+      this.canvas.add(new fabric.Group([image, mask], {
+        left: 0, top: 0,
+        width: photoW, height: H,
+        selectable: false, evented: false,
+      }))
+    }, { crossOrigin: 'anonymous' })
+
+    // ── 右: 名前 ──
+    const nameSize = W * 0.042
+    this.canvas.add(new fabric.Text(name || '名前未設定', {
+      left: rightX, top: H * 0.07,
+      fontSize: nameSize, fontFamily,
+      fill: '#111827', fontWeight: 'bold',
+      selectable: false, evented: false,
+    }))
+
+    // ── 属性タグ（固定幅・折り返しなし・1行） ──
+    const tagItems = [
+      gender,
+      (language ?? []).join(' / '),
+      (playEnv ?? []).join(' / '),
+      micOnRate ? `Mic ${micOnRate}%` : '',
+    ].filter(Boolean) as string[]
+
+    const tagY = H * 0.07 + nameSize + H * 0.018
+    const tagFontSize = W * 0.011
+    const tagH = tagFontSize + H * 0.018
+    const tagRadius = W * 0.005
+    const tagGap = W * 0.008
+    let tagX = rightX
+
+    tagItems.forEach((tag) => {
+      if (!this.canvas) return
+      const tagW = Math.min(tag.length * tagFontSize * 0.65 + W * 0.016, rightW * 0.45)
+      this.canvas.add(new fabric.Rect({
+        left: tagX, top: tagY,
+        width: tagW, height: tagH,
+        fill: 'rgba(255,255,255,0.7)',
+        rx: tagRadius, ry: tagRadius,
+        stroke: 'rgba(0,0,0,0.08)', strokeWidth: W * 0.001,
+        selectable: false, evented: false,
+      }))
+      this.canvas.add(new fabric.Text(tag, {
+        left: tagX + W * 0.008, top: tagY + (tagH - tagFontSize) / 2,
+        fontSize: tagFontSize, fontFamily,
+        fill: '#374151', selectable: false, evented: false,
+      }))
+      tagX += tagW + tagGap
+    })
+
+    // ── 自己紹介 ──
+    const introY = tagY + tagH + H * 0.022
+    const introH = H * 0.24
+    this.canvas.add(new fabric.Rect({
+      left: rightX, top: introY,
+      width: rightW, height: introH,
+      fill: 'rgba(255,255,255,0.6)',
+      rx: W * 0.005, ry: W * 0.005,
+      selectable: false, evented: false,
+    }))
+    this.canvas.add(new fabric.Textbox(selfIntro || '', {
+      left: rightX + pad, top: introY + pad,
+      width: rightW - pad * 2,
+      fontSize: W * 0.013, fontFamily,
+      fill: '#374151', selectable: false, evented: false,
+      splitByGrapheme: true,
+    }))
+
+    // ── SNS（縦並び） ──
+    const snsItems = [
+      { icon: '/icon_vrchat.png', value: vrchatId ?? '' },
+      { icon: '/icon_x.png',     value: twitterId ?? '' },
+      { icon: '/icon_discord.png', value: discordId ?? '' },
+    ].filter(s => s.value)
+
+    const snsStartY = introY + introH + H * 0.022
+    const snsRowH = H * 0.055
+    const iconSz = W * 0.022
+
+    snsItems.forEach((sns, i) => {
+      const sy = snsStartY + i * (snsRowH + H * 0.008)
+      this.drawIconWithTextBox(
+        sns.icon, sns.value,
+        { x: rightX / W, y: sy / H, w: iconSz / W, h: iconSz / W },
+        { x: (rightX + iconSz + W * 0.008) / W, y: sy / H, w: (rightW - iconSz - W * 0.01) / W, h: snsRowH / H },
+        0.011, fontFamily, 0.15, false,
+      )
+    })
+
+    const afterSnsY = snsStartY + snsItems.length * (snsRowH + H * 0.008) + H * 0.015
+
+    // ── ステータス（2列） ──
+    const statusEntries = [
+      { color: '#3b82f6', value: statusBlue ?? '' },
+      { color: '#22c55e', value: statusGreen ?? '' },
+      { color: '#f59e0b', value: statusYellow ?? '' },
+      { color: '#ef4444', value: statusRed ?? '' },
+    ].filter(s => s.value)
+
+    let afterStatusY = afterSnsY
+    if (statusEntries.length > 0) {
+      const sFontSize = W * 0.011
+      const dotR = W * 0.005
+      const rowH = sFontSize + H * 0.014
+      const colW = rightW / 2
+
+      statusEntries.forEach((s, i) => {
+        const sx = rightX + (i % 2) * colW
+        const sy = afterSnsY + Math.floor(i / 2) * (rowH + H * 0.006)
+        this.canvas.add(new fabric.Circle({
+          left: sx, top: sy + (rowH - dotR * 2) / 2,
+          radius: dotR, fill: s.color,
+          selectable: false, evented: false,
+        }))
+        this.canvas.add(new fabric.Text(s.value, {
+          left: sx + dotR * 2 + W * 0.007, top: sy + (rowH - sFontSize) / 2,
+          fontSize: sFontSize, fontFamily, fill: '#374151',
+          selectable: false, evented: false,
+        }))
+      })
+      afterStatusY = afterSnsY + Math.ceil(statusEntries.length / 2) * (rowH + H * 0.006) + H * 0.015
+    }
+
+    // ── OK/NG（グリッド） ──
+    const visibleItems = interactions.filter(item => item.mark !== '-')
+    if (visibleItems.length > 0) {
+      const bFontSize = W * 0.010
+      const bH = bFontSize + H * 0.016
+      const cols = 3
+      const bW = (rightW - (cols - 1) * W * 0.006) / cols
+
+      visibleItems.slice(0, 6).forEach((item, i) => {
+        const col = i % cols
+        const row = Math.floor(i / cols)
+        const bx = rightX + col * (bW + W * 0.006)
+        const by = afterStatusY + row * (bH + H * 0.006)
+        const label = item.isCustom
+          ? item.label
+          : (this.t?.okNgDefaults?.[item.label as keyof typeof this.t.okNgDefaults] ?? item.label)
+        const isOk = item.mark === 'OK' || item.mark === '○'
+        this.canvas.add(new fabric.Rect({
+          left: bx, top: by, width: bW, height: bH,
+          fill: isOk ? 'rgba(220,252,231,0.9)' : 'rgba(254,226,226,0.9)',
+          rx: W * 0.004, ry: W * 0.004,
+          selectable: false, evented: false,
+        }))
+        this.canvas.add(new fabric.Text(String(label ?? ''), {
+          left: bx + W * 0.006, top: by + (bH - bFontSize) / 2,
+          fontSize: bFontSize, fontFamily,
+          fill: isOk ? '#15803d' : '#b91c1c',
+          selectable: false, evented: false,
+        }))
+      })
+    }
   }
 
   download() {

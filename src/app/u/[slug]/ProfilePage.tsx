@@ -252,7 +252,7 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
 
       <header className="relative z-10 border-b border-sky-100 h-14 px-6 flex items-center justify-between bg-white/80 backdrop-blur-md">
         <Link href="/" className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</Link>
-        <HeaderAuth />
+        <HeaderAuth hideMyPage={isOwner} />
       </header>
 
       <main className="relative z-10 flex-1 max-w-xl mx-auto w-full px-4 py-12">

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
-export default function HeaderAuth({ variant = 'default' }: { variant?: 'default' | 'white' }) {
+export default function HeaderAuth({ variant = 'default', hideMyPage = false }: { variant?: 'default' | 'white'; hideMyPage?: boolean }) {
   const [slug, setSlug] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
@@ -29,7 +29,7 @@ export default function HeaderAuth({ variant = 'default' }: { variant?: 'default
 
   if (loading) return <div className="w-16 h-6" />
 
-  if (slug) {
+  if (slug && !hideMyPage) {
     return (
       <Link
         href={`/u/${slug}`}

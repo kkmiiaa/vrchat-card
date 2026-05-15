@@ -343,7 +343,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
           {selfIntro && (
             <div style={{ padding: '16px 24px 0', flexShrink: 0 }}>
               <div style={pLabel}>ABOUT</div>
-              <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.75, marginTop: 6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical', wordBreak: 'break-all', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '10px 14px' }}>
+              <div style={{ fontSize: 17, color: '#374151', lineHeight: 1.75, marginTop: 6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical', wordBreak: 'break-all', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '10px 14px' }}>
                 {selfIntro}
               </div>
             </div>

@@ -431,7 +431,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                     {activeDays && activeDays.length === 7 && (
                       <div style={{ display: 'flex', gap: 4 }}>
                         {['月','火','水','木','金','土','日'].map((d, i) => (
-                          <div key={i} style={{ flex: 1, height: 20, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: activeDays[i] ? (i >= 5 ? 'rgba(251,191,36,0.85)' : 'rgba(96,165,250,0.85)') : 'rgba(0,0,0,0.1)', fontSize: pFs.dayCircle, fontWeight: 700, color: activeDays[i] ? '#fff' : 'rgba(0,0,0,0.25)' }}>{d}</div>
+                          <div key={i} style={{ width: 20, height: 20, flexShrink: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: activeDays[i] ? (i >= 5 ? 'rgba(251,191,36,0.85)' : 'rgba(96,165,250,0.85)') : 'rgba(0,0,0,0.1)', fontSize: pFs.dayCircle, fontWeight: 700, color: activeDays[i] ? '#fff' : 'rgba(0,0,0,0.25)' }}>{d}</div>
                         ))}
                       </div>
                     )}

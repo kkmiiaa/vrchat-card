@@ -1,26 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Nunito, Noto_Sans_JP } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { AnalyticsProvider } from "./providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
+  weight: ["400", "600", "700", "800", "900"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const notoSansJP = Noto_Sans_JP({
+  variable: "--font-noto-sans-jp",
   subsets: ["latin"],
+  weight: ["400", "500", "700", "900"],
 });
 
 export const metadata: Metadata = {
-  title: "VRChat Profile Card Maker",
-  description: "VRChat Profile Card Maker by @yota3d",
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-32x32.png',
-    apple: '/apple-touch-icon.png',
-  },
+  title: "vaacard",
+  description: "自己紹介カードを作って、あなたのプロフィールページをシェアしよう。",
 };
 
 export default function RootLayout({
@@ -32,17 +30,16 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XMHKGYVDJW"></script>
-        <script>
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-XMHKGYVDJW');
-          `}
-        </script>
+        <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
       </head>
-      <body className={`font-rounded ${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${nunito.variable} ${notoSansJP.variable}`} style={{ fontFamily: "var(--font-nunito), var(--font-noto-sans-jp), sans-serif" }}>
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-XMHKGYVDJW" strategy="afterInteractive" />
+        <Script id="gtag-init" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-XMHKGYVDJW');
+        `}</Script>
         <AnalyticsProvider>
           {children}
         </AnalyticsProvider>

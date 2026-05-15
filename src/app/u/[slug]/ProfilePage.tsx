@@ -520,20 +520,8 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
             )}
           </div>
 
-        {/* 保存・キャンセル（編集モード時のみ） */}
-        {editMode && (
-          <div className="flex gap-2 mt-4">
-            <button onClick={handleSave}
-              disabled={saving || slugStatus === 'taken' || slugStatus === 'invalid' || slugStatus === 'checking'}
-              className="flex-1 py-2.5 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md shadow-sky-200">
-              {saved ? '✓ 保存しました' : saving ? '保存中...' : '保存する'}
-            </button>
-            <button onClick={handleCancelEdit}
-              className="px-5 py-2.5 rounded-full border-2 border-sky-100 text-sm text-gray-400 hover:text-gray-600 transition-colors">
-              キャンセル
-            </button>
-          </div>
-        )}
+        {/* 保存ボタンの高さ分のスペーサー */}
+        {editMode && <div className="h-20" />}
 
         </div>{/* /編集モード全体ラッパー */}
 
@@ -541,6 +529,21 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
           by <span className="font-bold text-[#00AADB]">vaacard</span>
         </p>
       </main>
+
+      {/* 保存・キャンセル 固定バー（編集モード時のみ） */}
+      {editMode && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-sky-100 px-4 py-3 flex gap-2 max-w-xl mx-auto" style={{ left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 608 }}>
+          <button onClick={handleSave}
+            disabled={saving || slugStatus === 'taken' || slugStatus === 'invalid' || slugStatus === 'checking'}
+            className="flex-1 py-2.5 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md shadow-sky-200">
+            {saved ? '✓ 保存しました' : saving ? '保存中...' : '保存する'}
+          </button>
+          <button onClick={handleCancelEdit}
+            className="px-5 py-2.5 rounded-full border-2 border-sky-100 text-sm text-gray-400 hover:text-gray-600 transition-colors">
+            キャンセル
+          </button>
+        </div>
+      )}
     </div>
   )
 }

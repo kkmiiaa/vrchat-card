@@ -324,26 +324,84 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
           {/* 区切り */}
           <div style={{ height: 1, background: 'rgba(255,255,255,0.5)', flexShrink: 0, marginInline: 28 }} />
 
-          {/* 下部: 2カラム */}
-          <div style={{ flex: 1, display: 'flex', gap: 0, overflow: 'hidden' }}>
-            {/* 左カラム */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, padding: '20px 20px 20px 28px', overflow: 'hidden' }}>
-              {/* 自己紹介 */}
-              {selfIntro && (
+          {/* ABOUT: 全幅 */}
+          {selfIntro && (
+            <div style={{ padding: '14px 28px 0', flexShrink: 0 }}>
+              <div style={sectionLabel}>ABOUT</div>
+              <div style={{ fontSize: 11, color: '#374151', lineHeight: 1.75, marginTop: 5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', wordBreak: 'break-all' }}>
+                {selfIntro}
+              </div>
+            </div>
+          )}
+
+          {/* 区切り */}
+          <div style={{ height: 1, background: 'rgba(255,255,255,0.5)', flexShrink: 0, marginInline: 28, marginTop: 14 }} />
+
+          {/* 中段: 2カラム（固定高さ） */}
+          <div style={{ display: 'flex', gap: 0, flexShrink: 0 }}>
+            {/* 左カラム: PROFILE + INTERACTION */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px 14px 24px', overflow: 'hidden' }}>
+              {/* 環境・言語・マイク */}
+              {((playEnv ?? []).length > 0 || (language ?? []).length > 0 || !!micOnRate) && (
                 <div>
-                  <div style={sectionLabel}>ABOUT</div>
-                  <div style={{ fontSize: 11, color: '#374151', lineHeight: 1.75, marginTop: 5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 7, WebkitBoxOrient: 'vertical', wordBreak: 'break-all' }}>
-                    {selfIntro}
+                  <div style={sectionLabel}>PROFILE</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 5 }}>
+                    {(playEnv ?? []).length > 0 && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '5px 10px' }}>
+                        <span style={{ fontSize: 9, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>環境</span>
+                        <span style={{ fontSize: 10, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(playEnv ?? []).join(' / ')}</span>
+                      </div>
+                    )}
+                    {(language ?? []).length > 0 && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '5px 10px' }}>
+                        <span style={{ fontSize: 9, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>言語</span>
+                        <span style={{ fontSize: 10, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(language ?? []).join(' / ')}</span>
+                      </div>
+                    )}
+                    {!!micOnRate && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '5px 10px' }}>
+                        <FiMic size={10} color="rgba(0,0,0,0.4)" style={{ flexShrink: 0 }} />
+                        <div style={{ flex: 1, height: 4, borderRadius: 99, background: 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${micOnRate}%`, borderRadius: 99, background: getMicColor(micOnRate) }} />
+                        </div>
+                        <span style={{ fontSize: 9, color: getMicColor(micOnRate), fontWeight: 700, flexShrink: 0 }}>{micOnRate}%</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
-              {/* ステータス */}
+              {/* インタラクション */}
+              {visibleInteractions.length > 0 && (
+                <div>
+                  <div style={sectionLabel}>INTERACTION</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginTop: 5 }}>
+                    {visibleInteractions.slice(0, 6).map((item, i) => {
+                      const label = item.isCustom ? item.label : (okNgLabels[item.label] ?? item.label)
+                      const isOk = item.mark === 'OK' || item.mark === '○' || item.mark === '✓' || item.mark === '◎' || item.mark === '◯'
+                      const markSymbol = item.mark === '◎' ? '◎' : item.mark === '△' ? '△' : isOk ? '○' : '×'
+                      return (
+                        <div key={i} style={{ background: item.mark === '△' ? 'rgba(254,243,199,0.85)' : isOk ? 'rgba(220,252,231,0.85)' : 'rgba(254,226,226,0.85)', border: item.mark === '△' ? '1px solid rgba(253,211,77,0.8)' : isOk ? '1px solid rgba(134,239,172,0.8)' : '1px solid rgba(252,165,165,0.8)', borderRadius: 99, padding: '4px 8px', fontSize: 10, color: item.mark === '△' ? '#92400e' : isOk ? '#15803d' : '#b91c1c', display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden' }}>
+                          <span style={{ fontWeight: 700, flexShrink: 0 }}>{markSymbol}</span>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 縦区切り */}
+            <div style={{ width: 1, background: 'rgba(255,255,255,0.5)', flexShrink: 0, marginBlock: 14 }} />
+
+            {/* 右カラム: STATUS + ACTIVITY */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 24px 14px 16px', overflow: 'hidden' }}>
               {statusItems.length > 0 && (
                 <div>
                   <div style={sectionLabel}>STATUS</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 5 }}>
                     {statusItems.map((s, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: `1px solid ${s.color}40`, borderLeft: `3px solid ${s.color}`, borderRadius: 6, padding: '4px 10px', minWidth: 0 }}>
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: `1px solid ${s.color}40`, borderLeft: `3px solid ${s.color}`, borderRadius: 6, padding: '5px 10px', minWidth: 0 }}>
                         <div style={{ width: 5, height: 5, borderRadius: '50%', background: s.color, flexShrink: 0, boxShadow: `0 0 4px ${s.color}` }} />
                         <span style={{ fontSize: 10, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.value}</span>
                       </div>
@@ -351,24 +409,14 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                   </div>
                 </div>
               )}
-              {/* アクティビティ */}
               {((weekdayStart && weekdayEnd) || (holidayStart && holidayEnd)) && (
                 <div>
                   <div style={sectionLabel}>ACTIVITY</div>
-                  <div style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '6px 8px', marginTop: 5, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '8px 10px', marginTop: 5, display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {activeDays && activeDays.length === 7 && (
                       <div style={{ display: 'flex', gap: 3 }}>
                         {['月','火','水','木','金','土','日'].map((d, i) => (
-                          <div key={i} style={{
-                            width: 14, height: 14, borderRadius: '50%',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: activeDays[i]
-                              ? (i >= 5 ? 'rgba(251,191,36,0.85)' : 'rgba(96,165,250,0.85)')
-                              : 'rgba(0,0,0,0.1)',
-                            fontSize: 7,
-                            fontWeight: 700,
-                            color: activeDays[i] ? '#fff' : 'rgba(0,0,0,0.25)',
-                          }}>{d}</div>
+                          <div key={i} style={{ width: 16, height: 16, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: activeDays[i] ? (i >= 5 ? 'rgba(251,191,36,0.85)' : 'rgba(96,165,250,0.85)') : 'rgba(0,0,0,0.1)', fontSize: 7, fontWeight: 700, color: activeDays[i] ? '#fff' : 'rgba(0,0,0,0.25)' }}>{d}</div>
                         ))}
                       </div>
                     )}
@@ -404,75 +452,24 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                 </div>
               )}
             </div>
-
-            {/* 縦区切り */}
-            <div style={{ width: 1, background: 'rgba(255,255,255,0.5)', flexShrink: 0, marginBlock: 20 }} />
-
-            {/* 右カラム */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, padding: '20px 28px 20px 20px', overflow: 'hidden' }}>
-              {/* 環境・言語・マイク */}
-              {((playEnv ?? []).length > 0 || (language ?? []).length > 0 || !!micOnRate) && (
-                <div>
-                  <div style={sectionLabel}>PROFILE</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 5 }}>
-                    {(playEnv ?? []).length > 0 && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '4px 10px' }}>
-                        <span style={{ fontSize: 9, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>環境</span>
-                        <span style={{ fontSize: 10, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(playEnv ?? []).join(' / ')}</span>
-                      </div>
-                    )}
-                    {(language ?? []).length > 0 && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '4px 10px' }}>
-                        <span style={{ fontSize: 9, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>言語</span>
-                        <span style={{ fontSize: 10, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(language ?? []).join(' / ')}</span>
-                      </div>
-                    )}
-                    {!!micOnRate && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '4px 10px' }}>
-                        <FiMic size={10} color="rgba(0,0,0,0.4)" style={{ flexShrink: 0 }} />
-                        <div style={{ flex: 1, height: 4, borderRadius: 99, background: 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${micOnRate}%`, borderRadius: 99, background: getMicColor(micOnRate) }} />
-                        </div>
-                        <span style={{ fontSize: 9, color: getMicColor(micOnRate), fontWeight: 700, flexShrink: 0 }}>{micOnRate}%</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {/* インタラクション */}
-              {visibleInteractions.length > 0 && (
-                <div>
-                  <div style={sectionLabel}>INTERACTION</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginTop: 5 }}>
-                    {visibleInteractions.slice(0, 8).map((item, i) => {
-                      const label = item.isCustom ? item.label : (okNgLabels[item.label] ?? item.label)
-                      const isOk = item.mark === 'OK' || item.mark === '○' || item.mark === '✓' || item.mark === '◎' || item.mark === '◯'
-                      const markSymbol = item.mark === '◎' ? '◎' : item.mark === '△' ? '△' : isOk ? '○' : '×'
-                      return (
-                        <div key={i} style={{ background: item.mark === '△' ? 'rgba(254,243,199,0.85)' : isOk ? 'rgba(220,252,231,0.85)' : 'rgba(254,226,226,0.85)', border: item.mark === '△' ? '1px solid rgba(253,211,77,0.8)' : isOk ? '1px solid rgba(134,239,172,0.8)' : '1px solid rgba(252,165,165,0.8)', borderRadius: 99, padding: '3px 8px', fontSize: 10, color: item.mark === '△' ? '#92400e' : isOk ? '#15803d' : '#b91c1c', display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden' }}>
-                          <span style={{ fontWeight: 700, flexShrink: 0 }}>{markSymbol}</span>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-              {/* ギャラリー */}
-              {visibleGallery.length > 0 && (
-                <div>
-                  <div style={sectionLabel}>GALLERY</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginTop: 5 }}>
-                    {visibleGallery.slice(0, 4).map((src, i) => (
-                      <div key={i} style={{ aspectRatio: '1', borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.8)', background: 'rgba(0,0,0,0.06)' }}>
-                        <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
+
+          {/* ギャラリー: 全幅・残りを埋める */}
+          {visibleGallery.length > 0 && (
+            <>
+              <div style={{ height: 1, background: 'rgba(255,255,255,0.5)', flexShrink: 0, marginInline: 28 }} />
+              <div style={{ flex: 1, minHeight: 0, padding: '14px 24px 18px', display: 'flex', flexDirection: 'column' }}>
+                <div style={sectionLabel}>GALLERY</div>
+                <div style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginTop: 5 }}>
+                  {visibleGallery.slice(0, 3).map((src, i) => (
+                    <div key={i} style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.8)', background: 'rgba(0,0,0,0.06)' }}>
+                      <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     )

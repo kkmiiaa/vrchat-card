@@ -6,7 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:unauth": "playwright test --project=unauthenticated",
+    "test:auth": "playwright test --project=authenticated",
+    "test:regression": "playwright test --project=unauthenticated --project=authenticated regression",
+    "test:local": "playwright test --config=playwright.local.config.ts",
+    "test:local:unauth": "playwright test --config=playwright.local.config.ts --project=unauthenticated",
+    "test:local:auth": "playwright test --config=playwright.local.config.ts --project=authenticated"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

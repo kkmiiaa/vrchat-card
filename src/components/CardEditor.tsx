@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
+import React, { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams, usePathname } from 'next/navigation'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
@@ -82,11 +82,14 @@ const CardPreview = forwardRef<HTMLDivElement, {
             ageDisplay={age.display || age.mode}
             trustRank={values.trustRank as string}
             activeDays={activity.days}
+            daysMode={activity.daysMode}
+            weekdayTimesMode={activity.weekdayTimesMode}
+            holidayTimesMode={activity.holidayTimesMode}
             weekdayStart={activity.weekdayStart}
             weekdayEnd={activity.weekdayEnd}
             holidayStart={activity.holidayStart}
             holidayEnd={activity.holidayEnd}
-            friendPolicy={Array.isArray(values.friendPolicy) ? values.friendPolicy.filter(Boolean) : [values.friendPolicy as string].filter(Boolean)}
+            friendPolicy={sns.friendPolicy ? [sns.friendPolicy] : []}
             friendPolicyLabels={frLabels}
             galleryImages={gallery.enabled ? gallery.base64 : undefined}
             isInteractive={isInteractive}
@@ -243,6 +246,9 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   const [userId, setUserId] = useState<string | null>(null)
   const supabase = createClient()
 
+  // --- Visibility ---
+  const [visibility, setVisibility] = useState<'public' | 'limited' | 'private'>('public')
+
   // テンプレートから自動取得
   const communities = template.communities ?? []
 
@@ -254,6 +260,21 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     })
   }, [])
 
+  // initialValues から visibility を初期化
+  useEffect(() => {
+    if (initialValues?.visibility) {
+      setVisibility(initialValues.visibility as 'public' | 'limited' | 'private')
+    }
+  }, [initialValues])
+
+  // visibility 変更時に即保存
+  const handleVisibilityChange = useCallback(async (newVal: 'public' | 'limited' | 'private') => {
+    setVisibility(newVal)
+    if (cardId) {
+      await updateCard({ cardId, visibility: newVal })
+    }
+  }, [cardId])
+
   // debounced auto-save card_data (ログイン済み & cardId がある場合のみ)
   useEffect(() => {
     if (!isLoggedIn || !cardId || !initialized) return
@@ -262,6 +283,30 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     }, 1500)
     return () => clearTimeout(timer)
   }, [values, communities, cardId, isLoggedIn, initialized])
+
+  // 画像自動更新用フラグ
+  const hasUnsavedImageRef = useRef(false)
+
+  // values が変わったらフラグを立てる
+  useEffect(() => {
+    if (!initialized || !cardId || !isLoggedIn) return
+    hasUnsavedImageRef.current = true
+  }, [values, initialized, cardId, isLoggedIn])
+
+  // 20秒 debounce で画像保存
+  useEffect(() => {
+    if (!isLoggedIn || !cardId || !initialized) return
+    const timer = setTimeout(async () => {
+      if (!hasUnsavedImageRef.current) return
+      hasUnsavedImageRef.current = false
+      const dataUrl = await getCardDataUrl()
+      if (dataUrl) {
+        await updateCard({ cardId, imageBase64: dataUrl })
+      }
+    }, 20000)
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values, cardId, isLoggedIn, initialized])
 
   // ギャラリー画像が変わったら Storage にアップロード
   const prevGalleryImages = useRef<(File | null)[]>([null, null, null])
@@ -307,7 +352,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     const cardNativeWidth = 900
     const update = () => {
       const isLg = window.innerWidth >= 1024
-      const available = window.innerWidth - (isLg ? 400 : 0) - (isLg ? 48 : 32)
+      const available = window.innerWidth - (isLg ? 400 : 0) - (isLg ? 48 : 8)
       setCardScale(available / cardNativeWidth)
     }
     update()
@@ -454,7 +499,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     }
   }
 
-  const handleShareByUrl = async () => {
+  const handleShareByUrl = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       const currentUrl = window.location.pathname + window.location.search
@@ -482,7 +527,21 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     }
 
     window.location.href = `/card/${currentCardId}`
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardId, values, communities, template.id, supabase])
+
+  // V1ログイン後の自動マイグレーション
+  const autoMigrateRef = useRef(false)
+  useEffect(() => {
+    if (!isLoggedIn || !initialized || cardId) return
+    if (autoMigrateRef.current) return
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return
+    autoMigrateRef.current = true
+    handleShareByUrl()
+  // cardId は意図的に依存配列から外す
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, initialized])
 
   const handlePostToX = async () => {
     const shareUrl = isLoggedIn && cardId ? `${window.location.origin}/card/${cardId}/view` : ''
@@ -515,10 +574,10 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     <main className="w-screen h-screen flex flex-col text-gray-800">
       {/* ヘッダー */}
       <header className="fixed top-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-md h-12 sm:h-14 px-4 border-b border-white/30 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <a href="/" className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</a>
-          <span className="text-gray-300 text-sm">/</span>
-          <span className="text-sm text-gray-500">{template.title}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <a href="/" className="text-xl font-black tracking-tight text-[#00AADB] shrink-0">vaacard</a>
+          <span className="hidden sm:inline text-gray-300 text-sm">/</span>
+          <span className="hidden sm:inline text-sm text-gray-500 truncate">{template.title}</span>
         </div>
         <div className="flex items-center gap-3">
           {/* PC のみヘッダーにボタン表示 */}
@@ -645,6 +704,45 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
                 </AccordionSection>
               )
             })}
+
+          {/* 公開設定（cardId がある場合のみ表示） */}
+          {cardId && (
+            <div className="w-full max-w-screen-md mx-auto px-2 mt-4">
+              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">公開設定</h2>
+              <div className="flex gap-2">
+                {([
+                  { value: 'public', label: '公開', icon: (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  ) },
+                  { value: 'limited', label: 'URLのみ', icon: (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                  ) },
+                  { value: 'private', label: '非公開', icon: (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  ) },
+                ] as { value: 'public' | 'limited' | 'private'; label: string; icon: React.ReactNode }[]).map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => handleVisibilityChange(opt.value)}
+                    className={`flex-1 flex flex-col items-center gap-1 py-2 px-3 rounded-lg border text-xs font-medium transition-all ${
+                      visibility === opt.value
+                        ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                    }`}
+                  >
+                    {opt.icon}
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <PostTimeline t={t} />
 

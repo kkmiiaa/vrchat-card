@@ -13,6 +13,7 @@ import Link from 'next/link'
 import HeaderAuth from '@/components/HeaderAuth'
 import { deleteCard } from '@/lib/saveCard'
 import { FREE_CARD_LIMIT } from '@/lib/plans'
+import { relativeDate } from '@/utils/relativeDate'
 import { fontMap } from '@/lib/fontMap'
 import { translations } from '@/utils/translations'
 
@@ -426,8 +427,9 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
                           />
                         </div>
                       ) : card.title ? (
-                        <p className="text-sm font-bold text-gray-700 mb-1 px-1 truncate">{card.title}</p>
+                        <p className="text-sm font-bold text-gray-700 mb-0.5 px-1 truncate">{card.title}</p>
                       ) : null}
+                      <p className="text-[10px] text-gray-300 px-1 mb-1">{relativeDate(card.created_at)}</p>
 
                       {/* カードプレビュー本体 */}
                       <Link href={`/card/${card.id}/view`} className="block cursor-pointer relative" style={{ padding: '20px 12px' }}>

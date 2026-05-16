@@ -3,6 +3,7 @@
 import { useState, useCallback, useTransition } from 'react'
 import Link from 'next/link'
 import HeaderAuth from '@/components/HeaderAuth'
+import { relativeDate } from '@/utils/relativeDate'
 
 type Card = {
   id: string
@@ -276,11 +277,14 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn }: Props
                   )}
                   <div className="p-2">
                     <p className="text-xs font-semibold text-gray-700 truncate">{getName(card)}</p>
-                    {isPro && (card.card_data?.playEnv as string[] | undefined)?.length ? (
-                      <p className="text-[10px] text-gray-400 mt-0.5 truncate">
-                        {(card.card_data.playEnv as string[]).join(' / ')}
-                      </p>
-                    ) : null}
+                    <div className="flex items-center justify-between mt-0.5 gap-1">
+                      {isPro && (card.card_data?.playEnv as string[] | undefined)?.length ? (
+                        <p className="text-[10px] text-gray-400 truncate">
+                          {(card.card_data.playEnv as string[]).join(' / ')}
+                        </p>
+                      ) : <span />}
+                      <p className="text-[10px] text-gray-300 shrink-0">{relativeDate(card.created_at)}</p>
+                    </div>
                   </div>
                 </Link>
               ))}

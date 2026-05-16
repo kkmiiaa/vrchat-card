@@ -6,6 +6,7 @@ import type { CardTemplate } from '@/blocks/types'
 import { fontMap } from '@/lib/fontMap'
 import HeaderAuth from '@/components/HeaderAuth'
 import { translations } from '@/utils/translations'
+import { relativeDate } from '@/utils/relativeDate'
 import { createClient } from '@/lib/supabase/client'
 
 export type CardViewWrapperProps = {
@@ -17,6 +18,7 @@ export type CardViewWrapperProps = {
   ownerSlug: string | null
   ownerName: string | null
   ownerAvatar: string | null
+  createdAt: string | null
 }
 
 type Props = CardViewWrapperProps
@@ -64,7 +66,7 @@ function LinkChip({ label, value, href, icon }: { label: string; value: string; 
   )
 }
 
-export default function CardViewClient({ cardId, templateId, isOwner, likeCount: initialLikeCount, viewCount, ownerSlug, ownerName, ownerAvatar }: Props) {
+export default function CardViewClient({ cardId, templateId, isOwner, likeCount: initialLikeCount, viewCount, ownerSlug, ownerName, ownerAvatar, createdAt }: Props) {
   const [cardData, setCardData] = useState<Record<string, unknown> | null>(null)
   const [template, setTemplate] = useState<CardTemplate | null>(null)
 
@@ -446,6 +448,14 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
             </svg>
             {viewCount + 1}
           </span>
+          {createdAt && (
+            <span className="flex items-center gap-1.5 px-4 py-3 rounded-full bg-white/60 backdrop-blur-sm border border-white/80 text-xs text-gray-400 min-h-[44px]">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {relativeDate(createdAt)}
+            </span>
+          )}
         </div>
 
         {(vrchatId || twitterId || discordId) && (

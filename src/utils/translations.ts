@@ -113,7 +113,7 @@ export const translations = {
     pressAndHoldToSave: '画像を長押しで保存して、投稿時に添付してください📎',
     openPostScreenOnX: 'Xで投稿画面を開く →',
     pressAndHoldToAdd: '下の画像を長押しして「写真に追加」してください。',
-    tweetText: '自己紹介カードを作りました！\n#VRChat自己紹介カード',
+    tweetText: 'VRChatの自己紹介カードを作りました！\n#VRChat自己紹介カード #vaacard',
     
     // Post Timeline
     postTimelineCredit: '本ツールは、ヒツジ電機さんの自己紹介カードを参考に制作していますが、背景画像についてはオリジナル版とは異なる素材を使用しています。',

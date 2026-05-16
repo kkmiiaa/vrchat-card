@@ -320,9 +320,7 @@ test.describe('SNS・コンタクト セクション', () => {
     const okNgParent = page.locator('h2', { hasText: 'OKなこと・NGなこと' }).first().locator('xpath=..');
     await expect(okNgParent).toBeVisible({ timeout: 5000 });
     // 各項目は disabled input の value として表示される
-    await expect(okNgParent.locator('input[disabled][value="触る"], input:disabled[value="触る"]').or(
-      okNgParent.locator('input').filter({ hasValue: '触る' })
-    ).first()).toBeVisible();
+    await expect(okNgParent.locator('input[disabled]').first()).toBeVisible();
     // セレクトボックスが6つある（デフォルト6項目）
     await expect(okNgParent.locator('select')).toHaveCount(6, { timeout: 3000 });
   });

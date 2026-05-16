@@ -7,14 +7,18 @@ export default function PostTimeline({ t }: { t: any }) {
         <span className="text-xs text-gray-500">
           {t.searchWith}
         </span>
-        <a
-          href="https://twitter.com/hashtag/VRChat%E8%87%AA%E5%B7%B1%E7%B4%B9%E4%BB%8B%E3%82%AB%E3%83%BC%E3%83%89"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs font-semibold text-sky-500 hover:text-sky-700 transition-colors whitespace-nowrap"
-        >
-          {t.seePostsOnX} #VRChat自己紹介カード →
-        </a>
+        <div className="flex items-center gap-1 text-xs whitespace-nowrap">
+          <span className="text-gray-500">{t.seePostsOnX}</span>
+          <span className="text-gray-400">→</span>
+          <a
+            href="https://twitter.com/hashtag/VRChat%E8%87%AA%E5%B7%B1%E7%B4%B9%E4%BB%8B%E3%82%AB%E3%83%BC%E3%83%89"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-sky-500 hover:text-sky-700 transition-colors"
+          >
+            #VRChat自己紹介カード
+          </a>
+        </div>
       </div>
     </div>
   );

@@ -246,6 +246,10 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const fontKey = (values.font as string) ?? 'rounded'
   const fontFamily = (fontMap as Record<string, { style: { fontFamily: string } }>)[fontKey]?.style?.fontFamily ?? 'sans-serif'
 
+  const tweetUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const tweetText = encodeURIComponent('VRChatの自己紹介カードを作りました！\n#VRChat自己紹介カード #vaacard')
+  const xShareHref = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(tweetUrl)}`
+
   const displayName = ownerName || ownerSlug || 'vaacard ユーザー'
   const initials = displayName.slice(0, 2).toUpperCase()
 
@@ -307,6 +311,15 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               >
                 編集
               </Link>
+              <a
+                href={xShareHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs font-semibold text-white bg-black rounded-full px-4 py-1.5 hover:opacity-80 transition-opacity shadow-sm"
+              >
+                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                Xで共有
+              </a>
               <button
                 onClick={handleDownload}
                 disabled={downloading}
@@ -510,6 +523,15 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
             </svg>
             編集
           </Link>
+          <a
+            href={xShareHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 bg-black text-white rounded-full px-4 py-3 shadow-lg text-sm font-semibold"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Xで共有
+          </a>
           <button
             onClick={handleDownload}
             disabled={downloading}

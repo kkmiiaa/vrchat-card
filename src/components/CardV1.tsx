@@ -119,11 +119,14 @@ const box = (extra?: React.CSSProperties): React.CSSProperties => ({
   ...extra,
 })
 
-function LabelRow({ title, sub, fontFamily }: { title: string; sub: string; fontFamily: string }) {
+function LabelRow({ title, sub, fontFamily, large }: { title: string; sub: string; fontFamily: string; large?: boolean }) {
+  const titleFs = large ? 16 : W * 0.011
+  const subFs   = large ? 13 : W * 0.008
+  const mb      = large ? 4  : H * 0.005
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: W * 0.004, marginBottom: H * 0.005 }}>
-      <span style={{ fontSize: W * 0.011, fontWeight: 700, color: '#1f2937', fontFamily }}>{title}</span>
-      <span style={{ fontSize: W * 0.008, color: '#9ca3af', fontFamily }}>{sub}</span>
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: W * 0.004, marginBottom: mb }}>
+      <span style={{ fontSize: titleFs, fontWeight: 700, color: '#1f2937', fontFamily }}>{title}</span>
+      <span style={{ fontSize: subFs, color: '#9ca3af', fontFamily }}>{sub}</span>
     </div>
   )
 }
@@ -166,12 +169,12 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
     const PH = CARD_V1_PORTRAIT_HEIGHT
     const pBox = (extra?: React.CSSProperties): React.CSSProperties => ({
       background: 'rgba(255,255,255,0.85)',
-      borderRadius: 7,
-      padding: '6px 10px',
+      borderRadius: PW * 0.006,
+      padding: `${H * 0.016}px ${PW * 0.016}px`,
       ...extra,
     })
-    const pFs = 13
-    const divider = <div style={{ height: 1, background: 'rgba(200,220,240,0.7)', margin: '8px 0' }} />
+    const pFs = 15
+    const divider = <div style={{ height: 1, background: 'rgba(200,220,240,0.7)', margin: '20px 0' }} />
 
     const imgSrc = profileImageUrl ?? profileImageBase64 ?? null
 
@@ -195,8 +198,8 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
       >
         {/* balloon panel */}
         <div className="vaacard-glass-panel" style={{
-          position: 'absolute', left: 18, top: 18,
-          width: PW - 36, height: PH - 36,
+          position: 'absolute', left: 20, top: 20,
+          width: PW - 40, height: PH - 40,
           borderRadius: 20,
         }}>
           {showBalloon && (
@@ -208,42 +211,49 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
             }} />
           )}
 
-          {/* scrollable content */}
+          {/* content */}
           <div style={{
             position: 'absolute', inset: 0,
-            padding: '18px 18px',
+            padding: `${H * 0.050}px ${PW * 0.030}px`,
             display: 'flex', flexDirection: 'column', gap: 0,
             overflowY: 'hidden',
           }}>
-            {/* ── Header: image + name/tags/sns ── */}
+            {/* ── Header: image + name/gender/env/SNS ── */}
             <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexShrink: 0 }}>
-              <div style={{ width: 220, height: 220, borderRadius: 14, overflow: 'hidden', background: '#e5e7eb', flexShrink: 0 }}>
+              <div style={{ width: 350, height: 350, borderRadius: 14, overflow: 'hidden', background: '#e5e7eb', flexShrink: 0 }}>
                 {imgSrc && <img src={imgSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
               </div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 {/* name */}
-                <div style={pBox({ padding: '5px 10px' })}>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name || '—'}</div>
+                <div>
+                  <LabelRow title={L.name} sub={L.sub_name} fontFamily={fontFamily} large />
+                  <div style={pBox({ padding: '10px 14px' })}>
+                    <div style={{ fontSize: 30, fontWeight: 700, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name || '—'}</div>
+                  </div>
                 </div>
                 {/* gender + env */}
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <div style={pBox({ flex: 1, padding: '4px 8px' })}>
-                    <div style={{ fontSize: 11, color: '#9ca3af', fontFamily }}>{L.gender}</div>
-                    <div style={{ fontSize: pFs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{gender || '—'}</div>
+                <div style={{ display: 'flex', gap: 5, marginTop: 10 }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <LabelRow title={L.gender} sub={L.sub_gender} fontFamily={fontFamily} large />
+                    <div style={pBox()}>
+                      <div style={{ fontSize: pFs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{gender || '—'}</div>
+                    </div>
                   </div>
-                  <div style={pBox({ flex: 2, padding: '4px 8px' })}>
-                    <div style={{ fontSize: 11, color: '#9ca3af', fontFamily }}>{L.env}</div>
-                    <div style={{ fontSize: pFs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(playEnv ?? []).join(' / ') || '—'}</div>
+                  <div style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
+                    <LabelRow title={L.env} sub={L.sub_env} fontFamily={fontFamily} large />
+                    <div style={pBox()}>
+                      <div style={{ fontSize: pFs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(playEnv ?? []).join(' / ') || '—'}</div>
+                    </div>
                   </div>
                 </div>
-                {/* sns compact */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {/* SNS */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10 }}>
                   {snsRows.map(({ icon, value, href }, i) => {
                     const content = (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <img src={icon} alt="" style={{ width: 18, height: 18, borderRadius: 3, objectFit: 'contain', flexShrink: 0 }} />
-                        <div style={pBox({ flex: 1, padding: '3px 7px', cursor: isInteractive && value ? 'pointer' : 'default' })}>
-                          <div style={{ fontSize: 12, color: '#374151', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value || '—'}</div>
+                        <img src={icon} alt="" style={{ width: 16, height: 16, borderRadius: 3, objectFit: 'contain', flexShrink: 0 }} />
+                        <div style={pBox({ flex: 1, cursor: isInteractive && value ? 'pointer' : 'default' })}>
+                          <div style={{ fontSize: 14, color: '#374151', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value || '—'}</div>
                         </div>
                       </div>
                     )
@@ -257,101 +267,103 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
 
             {divider}
 
-            {/* ── 言語 + マイクON率 ── */}
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, color: '#9ca3af', fontFamily, marginBottom: 3 }}>{L.lang}</div>
-                <div style={pBox()}>
-                  <div style={{ fontSize: pFs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(language ?? []).join(' / ') || '—'}</div>
-                </div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, color: '#9ca3af', fontFamily, marginBottom: 3 }}>{L.mic}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ flex: 1, height: 10, background: '#e5e7eb', borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
-                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${micOnRate}%`, background: 'linear-gradient(to right, #60a5fa, #a78bfa)', borderRadius: 5 }} />
-                  </div>
-                  <div style={{ fontSize: pFs, color: '#374151', fontFamily, flexShrink: 0, minWidth: 36, textAlign: 'right' }}>{micOnRate}%</div>
-                </div>
-              </div>
-            </div>
+            {/* ── 2-column body (50/50) ── */}
+            <div style={{ flex: 1, display: 'flex', gap: 0, overflow: 'hidden', minHeight: 0 }}>
 
-            {divider}
+              {/* Left column: 言語 / マイクON率 / ステータス / フレンド申請 / OKなこと・NGなこと */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, overflow: 'hidden', paddingRight: 20 }}>
 
-            {/* ── フレンド申請 ── */}
-            <div style={{ flexShrink: 0 }}>
-              <div style={{ fontSize: 11, color: '#9ca3af', fontFamily, marginBottom: 3 }}>{L.friend}</div>
-              <div style={pBox()}>
-                <div style={{ fontSize: 12, color: '#1f2937', fontFamily, lineHeight: 1.5, wordBreak: 'break-all' }}>
-                  {(friendPolicy ?? []).map(k => frLabels[k] ?? k).join(' / ') || '—'}
-                </div>
-              </div>
-            </div>
-
-            {divider}
-
-            {/* ── 自己紹介 ── */}
-            <div style={{ flexShrink: 0, maxHeight: 180, overflow: 'hidden' }}>
-              <div style={{ fontSize: 11, color: '#9ca3af', fontFamily, marginBottom: 3 }}>{L.about}</div>
-              <div style={pBox({ overflow: 'hidden' })}>
-                <div style={{ fontSize: 12, color: '#374151', fontFamily, lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-                  {selfIntro || ''}
-                </div>
-              </div>
-            </div>
-
-            {divider}
-
-            {/* ── OKなこと・NGなこと ── */}
-            <div style={{ flexShrink: 0 }}>
-              <div style={{ fontSize: 11, color: '#9ca3af', fontFamily, marginBottom: 3 }}>{L.okng}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-                {interactions.slice(0, 9).map((item, i) => (
-                  <div key={i} style={{
-                    background: markBg(item.mark), borderRadius: 5,
-                    padding: '7px 5px',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-                  }}>
-                    <div style={{ fontSize: 11, color: '#6b7280', fontFamily, textAlign: 'center', wordBreak: 'break-all', lineHeight: 1.2 }}>{iLabel(item)}</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: markFg(item.mark), fontFamily }}>{item.mark}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {divider}
-
-            {/* ── ステータス ── */}
-            <div style={{ flexShrink: 0 }}>
-              <div style={{ fontSize: 11, color: '#9ca3af', fontFamily, marginBottom: 3 }}>{L.status}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 5 }}>
-                {statuses.map((s, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: STATUS_COLORS[i], flexShrink: 0 }} />
-                    <div style={pBox({ flex: 1, padding: '4px 7px' })}>
-                      <div style={{ fontSize: 11, color: '#374151', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s || '—'}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ── ギャラリー ── */}
-            {galleryEnabled && (
-              <>
-                {divider}
+                {/* 言語 */}
                 <div style={{ flexShrink: 0 }}>
-                  <div style={{ fontSize: 11, color: '#9ca3af', fontFamily, marginBottom: 3 }}>GALLERY</div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {galleryImgSrcs.map((src, i) => (
-                      <div key={i} style={{ flex: 1, aspectRatio: '1', borderRadius: 8, overflow: 'hidden', background: '#e5e7eb' }}>
-                        {src && <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                  <LabelRow title={L.lang} sub={L.sub_lang} fontFamily={fontFamily} large />
+                  <div style={pBox()}>
+                    <div style={{ fontSize: pFs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(language ?? []).join(' / ') || '—'}</div>
+                  </div>
+                </div>
+
+                {/* マイクON率 */}
+                <div style={{ flexShrink: 0 }}>
+                  <LabelRow title={L.mic} sub={L.sub_mic} fontFamily={fontFamily} large />
+                  <div style={pBox({ display: 'flex', alignItems: 'center', gap: 6 })}>
+                    <div style={{ flex: 1, height: 8, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
+                      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${micOnRate}%`, background: 'linear-gradient(to right, #60a5fa, #a78bfa)', borderRadius: 4 }} />
+                    </div>
+                    <div style={{ fontSize: pFs, color: '#374151', fontFamily, flexShrink: 0, minWidth: 32, textAlign: 'right' }}>{micOnRate}%</div>
+                  </div>
+                </div>
+
+                {/* ステータス */}
+                <div style={{ flexShrink: 0 }}>
+                  <LabelRow title={L.status} sub={L.sub_status} fontFamily={fontFamily} large />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {statuses.map((s, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: 9, height: 9, borderRadius: '50%', background: STATUS_COLORS[i], flexShrink: 0 }} />
+                        <div style={pBox({ flex: 1 })}>
+                          <div style={{ fontSize: 13, color: '#374151', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s || '—'}</div>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              </>
-            )}
+
+                {/* フレンド申請 */}
+                <div style={{ flexShrink: 0 }}>
+                  <LabelRow title={L.friend} sub={L.sub_friend} fontFamily={fontFamily} large />
+                  <div style={pBox()}>
+                    <div style={{ fontSize: 14, color: '#1f2937', fontFamily, lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' }}>
+                      {(friendPolicy ?? []).map(k => frLabels[k] ?? k).join(' / ') || '—'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* OKなこと・NGなこと */}
+                <div style={{ flexShrink: 0 }}>
+                  <LabelRow title={L.okng} sub={L.sub_okng} fontFamily={fontFamily} large />
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+                    {interactions.slice(0, 9).map((item, i) => (
+                      <div key={i} style={{
+                        background: markBg(item.mark), borderRadius: PW * 0.006,
+                        padding: '5px 4px',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                      }}>
+                        <div style={{ fontSize: 12, color: '#6b7280', fontFamily, textAlign: 'center', wordBreak: 'break-all', lineHeight: 1.2 }}>{iLabel(item)}</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: markFg(item.mark), fontFamily }}>{item.mark}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right column: 自己紹介 / ギャラリー */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, overflow: 'hidden', borderLeft: '1px solid rgba(200,220,240,0.7)', paddingLeft: 20 }}>
+
+                {/* 自己紹介 */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <LabelRow title={L.about} sub={L.sub_about} fontFamily={fontFamily} large />
+                  <div style={pBox({ flex: 1, overflow: 'hidden' })}>
+                    <div style={{ fontSize: 15, color: '#374151', fontFamily, lineHeight: 1.75, whiteSpace: 'pre-wrap', wordBreak: 'break-all', overflow: 'hidden', height: '100%' }}>
+                      {selfIntro || ''}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ギャラリー */}
+                {galleryEnabled && (
+                  <div style={{ flexShrink: 0 }}>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {galleryImgSrcs.map((src, i) => (
+                        <div key={i} style={{ flex: 1, aspectRatio: '1', borderRadius: 8, overflow: 'hidden', background: '#e5e7eb' }}>
+                          {src && <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -517,7 +517,14 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         title: (values.name as string) || 'My Card',
         communities,
       })
-      if ('error' in result) { alert('保存に失敗しました: ' + result.error); return }
+      if ('error' in result) {
+        if (result.error === 'card_limit_reached') {
+          window.location.href = '/upgrade'
+        } else {
+          alert('保存に失敗しました: ' + result.error)
+        }
+        return
+      }
       currentCardId = result.cardId
       setCardId(currentCardId)
     }

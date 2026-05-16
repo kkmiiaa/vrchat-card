@@ -12,6 +12,7 @@ const templateMap: Record<string, CardTemplate> = { v1: v1Template, v2: v2Templa
 import Link from 'next/link'
 import HeaderAuth from '@/components/HeaderAuth'
 import { deleteCard } from '@/lib/saveCard'
+import { FREE_CARD_LIMIT } from '@/lib/stripe'
 import { fontMap } from '@/lib/fontMap'
 import { translations } from '@/utils/translations'
 
@@ -121,9 +122,10 @@ type Props = {
   userRowId: string
   cards: Card[]
   isOwner: boolean
+  plan?: 'free' | 'pro'
 }
 
-export default function ProfilePage({ profile, slug, userRowId, cards: initialCards, isOwner }: Props) {
+export default function ProfilePage({ profile, slug, userRowId, cards: initialCards, isOwner, plan = 'free' }: Props) {
   const router = useRouter()
   const supabase = createClient()
 
@@ -255,7 +257,7 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
         <HeaderAuth hideMyPage={isOwner} />
       </header>
 
-      <main className="relative z-10 flex-1 max-w-xl mx-auto w-full px-4 py-12">
+      <main className="relative z-10 flex-1 max-w-xl mx-auto w-full px-2 sm:px-4 py-12">
 
         {/* 編集モード全体ラッパー */}
         <div className={`rounded-2xl transition-all mb-4 ${editMode ? 'border-2 border-sky-200 bg-sky-50/40 px-4 pt-4 pb-4' : ''}`}>
@@ -378,17 +380,32 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
 
         {/* カード一覧 */}
         <div>
-            {isOwner && cards.length > 0 && (
-              <div className="flex justify-end mb-4">
-                <Link href="/card/new"
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white px-4 py-2 rounded-full hover:opacity-90 transition-opacity shadow-sm shadow-sky-200">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                  </svg>
-                  カードを追加
-                </Link>
-              </div>
-            )}
+            {isOwner && cards.length > 0 && (() => {
+              const atLimit = plan === 'free' && cards.length >= FREE_CARD_LIMIT
+              return (
+                <div className="flex items-center justify-between mb-4 gap-3">
+                  {atLimit ? (
+                    <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-3 py-1.5 flex-1 min-w-0">
+                      <span>Freeプランはカード{FREE_CARD_LIMIT}枚まで</span>
+                      <Link href="/upgrade" className="font-bold text-[#00AADB] hover:underline shrink-0">Proにアップグレード →</Link>
+                    </div>
+                  ) : <div className="flex-1" />}
+                  <Link
+                    href={atLimit ? '/upgrade' : '/card/new'}
+                    className={`inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full transition-opacity shadow-sm shrink-0 ${
+                      atLimit
+                        ? 'bg-gray-100 text-gray-400 shadow-none cursor-not-allowed'
+                        : 'bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white hover:opacity-90 shadow-sky-200'
+                    }`}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    カードを追加
+                  </Link>
+                </div>
+              )
+            })()}
 
             {cards.length > 0 ? (
               <div className="grid grid-cols-2 gap-x-3 gap-y-8">
@@ -397,7 +414,7 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
                   const colSpan = isPortrait ? 'col-span-1' : 'col-span-2'
                   return (
                     <div key={card.id} className={`group ${colSpan}`}>
-                      {editMode && (
+                      {editMode ? (
                         <div className="flex items-center gap-2 mb-1 px-1">
                           <input
                             type="text"
@@ -408,7 +425,9 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
                             className="flex-1 text-sm font-bold text-gray-700 bg-transparent border-b border-[#00AADB] focus:outline-none py-0.5"
                           />
                         </div>
-                      )}
+                      ) : card.title ? (
+                        <p className="text-sm font-bold text-gray-700 mb-1 px-1 truncate">{card.title}</p>
+                      ) : null}
 
                       {/* カードプレビュー本体 */}
                       <Link href={`/card/${card.id}/view`} className="block cursor-pointer relative" style={{ padding: '20px 12px' }}>

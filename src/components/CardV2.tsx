@@ -2,7 +2,8 @@
 
 import React, { forwardRef } from 'react'
 import { FiMic } from 'react-icons/fi'
-import { PiGenderMaleBold, PiGenderFemaleBold, PiGenderNonbinaryBold } from 'react-icons/pi'
+import { PiGenderMaleBold, PiGenderFemaleBold, PiGenderIntersexBold } from 'react-icons/pi'
+import { TbBadgeVr, TbDeviceGamepad2, TbDeviceDesktop, TbDeviceMobile } from 'react-icons/tb'
 
 type Interaction = {
   label: string
@@ -36,6 +37,9 @@ type Props = {
   holidayStart?: string
   holidayEnd?: string
   activeDays?: boolean[]
+  daysMode?: '' | 'irregular'
+  weekdayTimesMode?: 'irregular' | ''
+  holidayTimesMode?: 'irregular' | ''
 
   galleryImages?: (string | null)[]
   backgroundType?: 'color' | 'gradient' | 'image'
@@ -67,18 +71,25 @@ const STATUS_COLORS = {
 }
 
 const ENV_ICONS: Record<string, React.ReactNode> = {
-  'PCVR':    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7l-2 3v1h8v-1l-2-3h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H3V4h18v10z"/></svg>,
-  'Quest':   <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9-4-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7zm1-11h-2v3H8v2h3v3h2v-3h3v-2h-3z"/></svg>,
-  'Desktop': <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M20 3H4v10c0 1.1.9 2 2 2h3v1H7v2h10v-2h-2v-1h3c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 12H4V5h16v10z"/></svg>,
-  'Mobile':  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>,
+  'PCVR':    <TbBadgeVr size={13} />,
+  'Quest':   <TbDeviceGamepad2 size={13} />,
+  'Desktop': <TbDeviceDesktop size={13} />,
+  'Mobile':  <TbDeviceMobile size={13} />,
 }
 
-const GENDER_ICONS: Record<string, React.ReactNode> = {
-  '男性':  <PiGenderMaleBold size={11} />,
-  '女性':  <PiGenderFemaleBold size={11} />,
-  'male':   <PiGenderMaleBold size={11} />,
-  'female': <PiGenderFemaleBold size={11} />,
-  'その他': <PiGenderNonbinaryBold size={11} />,
+const MALE_KEYWORDS   = ['男性', '男', 'male', 'man', 'boy', 'おとこ']
+const FEMALE_KEYWORDS = ['女性', '女', 'female', 'woman', 'girl', 'おんな']
+const OTHER_KEYWORDS  = ['その他', '両', 'other', 'nonbinary', 'non-binary', 'nb']
+
+function getGenderIcon(gender: string): React.ReactNode | null {
+  const g = gender.toLowerCase()
+  const isMale   = MALE_KEYWORDS.some(k => g.includes(k.toLowerCase()))
+  const isFemale = FEMALE_KEYWORDS.some(k => g.includes(k.toLowerCase()))
+  const isOther  = OTHER_KEYWORDS.some(k => g.includes(k.toLowerCase()))
+  if (isOther || (isMale && isFemale)) return <PiGenderIntersexBold size={11} />
+  if (isMale)   return <PiGenderMaleBold size={11} />
+  if (isFemale) return <PiGenderFemaleBold size={11} />
+  return <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block', flexShrink: 0 }} />
 }
 
 const FRIEND_POLICY_ICONS: Record<string, React.ReactNode> = {
@@ -104,11 +115,7 @@ function timeBarSegments(start: string, end: string): { left: string; width: str
   ]
 }
 
-const getMicColor = (rate: number) => {
-  if (rate >= 70) return '#22c55e'
-  if (rate >= 40) return '#f59e0b'
-  return '#ef4444'
-}
+const getMicColor = (_rate: number) => '#60a5fa'
 
 const sectionLabel: React.CSSProperties = {
   fontSize: 9,
@@ -151,6 +158,9 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
     holidayStart,
     holidayEnd,
     activeDays,
+    daysMode,
+    weekdayTimesMode,
+    holidayTimesMode,
     galleryImages,
     backgroundType,
     backgroundValue,
@@ -176,17 +186,17 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
   ].filter(item => item.value) as { label: string; value: string }[]
 
   const snsItems = [
-    { src: '/icon_vrchat.png',  value: vrchatId },
-    { src: '/icon_x.png',       value: twitterId },
-    { src: '/icon_discord.png', value: discordId },
-  ].filter(s => s.value)
+    { src: '/icon_vrchat.png',  value: vrchatId  || '' },
+    { src: '/icon_x.png',       value: twitterId || '' },
+    { src: '/icon_discord.png', value: discordId || '' },
+  ]
 
   const statusItems = [
-    { color: STATUS_COLORS.blue,   value: statusBlue },
-    { color: STATUS_COLORS.green,  value: statusGreen },
-    { color: STATUS_COLORS.yellow, value: statusYellow },
-    { color: STATUS_COLORS.red,    value: statusRed },
-  ].filter(s => s.value)
+    { color: STATUS_COLORS.blue,   value: statusBlue   || '' },
+    { color: STATUS_COLORS.green,  value: statusGreen  || '' },
+    { color: STATUS_COLORS.yellow, value: statusYellow || '' },
+    { color: STATUS_COLORS.red,    value: statusRed    || '' },
+  ]
 
   const visibleInteractions = interactions.filter(i => i.mark !== '-')
 
@@ -258,19 +268,15 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
               </div>
               {/* タグ */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px 8px' }}>
-                {gender && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '4px 12px' }}>
-                    <span style={{ color: '#6b7280', display: 'flex' }}>{GENDER_ICONS[gender] ?? null}</span>
-                    <span style={{ fontSize: pFs.tag, color: '#1f2937' }}>{gender}</span>
-                  </div>
-                )}
-                {ageDisplay && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '4px 12px' }}>
-                    <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)', fontWeight: 700 }}>年齢</span>
-                    <span style={{ fontSize: pFs.tag, color: '#1f2937' }}>{ageDisplay}</span>
-                  </div>
-                )}
-                {trustRank && (() => {
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '4px 12px' }}>
+                  <span style={{ color: '#6b7280', display: 'flex' }}>{gender ? getGenderIcon(gender) : null}</span>
+                  <span style={{ fontSize: pFs.tag, color: gender ? '#1f2937' : 'rgba(0,0,0,0.3)' }}>{gender || '性別 —'}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '4px 12px' }}>
+                  <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)', fontWeight: 700 }}>年齢</span>
+                  <span style={{ fontSize: pFs.tag, color: ageDisplay ? '#1f2937' : 'rgba(0,0,0,0.3)' }}>{ageDisplay || '—'}</span>
+                </div>
+                {trustRank ? (() => {
                   const color = TRUST_COLORS[trustRank] ?? '#6b7280'
                   return (
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: `${color}18`, border: `1px solid ${color}60`, borderRadius: 99, padding: '4px 12px' }}>
@@ -278,7 +284,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                       <span style={{ fontSize: pFs.sectionSmall, color, fontWeight: 700 }}>{trustRank}</span>
                     </div>
                   )
-                })()}
+                })() : null}
               </div>
               {/* SNS */}
               {snsItems.length > 0 && (
@@ -296,7 +302,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                       <>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <img src={sns.src} alt="" style={{ width: 16, height: 16, borderRadius: 3, flexShrink: 0 }} />
-                          <span style={{ fontSize: pFs.sns, color: '#1f2937', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sns.value}</span>
+                          <span style={{ fontSize: pFs.sns, color: sns.value ? '#1f2937' : 'rgba(0,0,0,0.3)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sns.value || '—'}</span>
                           {isInteractive && <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)', flexShrink: 0 }}>{href ? '↗' : 'コピー'}</span>}
                         </div>
                         {showFr && (
@@ -340,14 +346,12 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
           <div style={{ height: 1, background: 'rgba(255,255,255,0.5)', flexShrink: 0, marginInline: 28 }} />
 
           {/* ABOUT: 全幅 */}
-          {selfIntro && (
-            <div style={{ padding: '16px 24px 0', flexShrink: 0 }}>
-              <div style={pLabel}>ABOUT</div>
-              <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.75, marginTop: 6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical', wordBreak: 'break-all', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '10px 14px' }}>
-                {selfIntro}
-              </div>
+          <div style={{ padding: '16px 24px 0', flexShrink: 0 }}>
+            <div style={pLabel}>ABOUT</div>
+            <div style={{ fontSize: 15, color: selfIntro ? '#374151' : 'rgba(0,0,0,0.3)', lineHeight: 1.75, marginTop: 6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical', wordBreak: 'break-all', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '10px 14px' }}>
+              {selfIntro || '—'}
             </div>
-          )}
+          </div>
 
           {/* 区切り */}
           <div style={{ height: 1, background: 'rgba(255,255,255,0.5)', flexShrink: 0, marginInline: 28, marginTop: 16 }} />
@@ -357,48 +361,38 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
             {/* 左カラム: PROFILE + STATUS */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '16px 16px 16px 24px', overflow: 'hidden' }}>
               {/* 環境・言語・マイク */}
-              {((playEnv ?? []).length > 0 || (language ?? []).length > 0 || !!micOnRate) && (
-                <div>
-                  <div style={pLabel}>PROFILE</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 6 }}>
-                    {(playEnv ?? []).length > 0 && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '7px 12px' }}>
-                        <span style={{ fontSize: pFs.sectionSmall, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>環境</span>
-                        <span style={{ fontSize: pFs.sectionContent, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(playEnv ?? []).join(' / ')}</span>
-                      </div>
-                    )}
-                    {(language ?? []).length > 0 && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '7px 12px' }}>
-                        <span style={{ fontSize: pFs.sectionSmall, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>言語</span>
-                        <span style={{ fontSize: pFs.sectionContent, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(language ?? []).join(' / ')}</span>
-                      </div>
-                    )}
-                    {!!micOnRate && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '7px 12px' }}>
-                        <FiMic size={12} color="rgba(0,0,0,0.4)" style={{ flexShrink: 0 }} />
-                        <div style={{ flex: 1, height: 5, borderRadius: 99, background: 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${micOnRate}%`, borderRadius: 99, background: getMicColor(micOnRate) }} />
-                        </div>
-                        <span style={{ fontSize: pFs.sectionSmall, color: getMicColor(micOnRate), fontWeight: 700, flexShrink: 0 }}>{micOnRate}%</span>
-                      </div>
-                    )}
+              <div>
+                <div style={pLabel}>PROFILE</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '7px 12px' }}>
+                    <span style={{ fontSize: pFs.sectionSmall, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>環境</span>
+                    <span style={{ fontSize: pFs.sectionContent, color: (playEnv ?? []).length > 0 ? '#374151' : 'rgba(0,0,0,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(playEnv ?? []).join(' / ') || '—'}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '7px 12px' }}>
+                    <span style={{ fontSize: pFs.sectionSmall, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>言語</span>
+                    <span style={{ fontSize: pFs.sectionContent, color: (language ?? []).length > 0 ? '#374151' : 'rgba(0,0,0,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(language ?? []).join(' / ') || '—'}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '7px 12px' }}>
+                    <FiMic size={12} color="rgba(0,0,0,0.4)" style={{ flexShrink: 0 }} />
+                    <div style={{ flex: 1, height: 5, borderRadius: 99, background: 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${micOnRate ?? 0}%`, borderRadius: 99, background: getMicColor(micOnRate ?? 0) }} />
+                    </div>
+                    <span style={{ fontSize: pFs.sectionSmall, color: micOnRate ? getMicColor(micOnRate) : 'rgba(0,0,0,0.3)', fontWeight: 700, flexShrink: 0 }}>{micOnRate ? `${micOnRate}%` : '—'}</span>
                   </div>
                 </div>
-              )}
+              </div>
               {/* STATUS */}
-              {statusItems.length > 0 && (
-                <div style={{ marginTop: 12 }}>
-                  <div style={pLabel}>STATUS</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 6 }}>
-                    {statusItems.map((s, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.55)', border: `1px solid ${s.color}40`, borderLeft: `3px solid ${s.color}`, borderRadius: 8, padding: '7px 12px', minWidth: 0 }}>
-                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.color, flexShrink: 0, boxShadow: `0 0 4px ${s.color}` }} />
-                        <span style={{ fontSize: pFs.sectionContent, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.value}</span>
-                      </div>
-                    ))}
-                  </div>
+              <div style={{ marginTop: 12 }}>
+                <div style={pLabel}>STATUS</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 6 }}>
+                  {statusItems.map((s, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.55)', border: `1px solid ${s.color}40`, borderLeft: `3px solid ${s.color}`, borderRadius: 8, padding: '7px 12px', minWidth: 0 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.color, flexShrink: 0, boxShadow: `0 0 4px ${s.color}` }} />
+                      <span style={{ fontSize: pFs.sectionContent, color: s.value ? '#374151' : 'rgba(0,0,0,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.value || '—'}</span>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
 
             {/* 縦区切り */}
@@ -407,29 +401,38 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
             {/* 右カラム: ACTIVITY + INTERACTION */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, padding: '16px 24px 16px 16px', overflow: 'hidden' }}>
               {/* ACTIVITY */}
-              {((weekdayStart && weekdayEnd) || (holidayStart && holidayEnd)) && (
-                <div>
+              <div>
                   <div style={pLabel}>ACTIVITY</div>
                   <div style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '10px 12px', marginTop: 6, display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {activeDays && activeDays.length === 7 && (
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        {['月','火','水','木','金','土','日'].map((d, i) => (
-                          <div key={i} style={{ width: 20, height: 20, flexShrink: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: activeDays[i] ? (i >= 5 ? 'rgba(251,191,36,0.85)' : 'rgba(96,165,250,0.85)') : 'rgba(0,0,0,0.1)', fontSize: pFs.dayCircle, fontWeight: 700, color: activeDays[i] ? '#fff' : 'rgba(0,0,0,0.25)' }}>{d}</div>
-                        ))}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          {['月','火','水','木','金','土','日'].map((d, i) => (
+                            <div key={i} style={{ width: 20, height: 20, flexShrink: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: daysMode ? 'rgba(0,0,0,0.08)' : (activeDays[i] ? (i >= 5 ? 'rgba(251,191,36,0.85)' : 'rgba(96,165,250,0.85)') : 'rgba(0,0,0,0.1)'), fontSize: pFs.dayCircle, fontWeight: 700, color: (!daysMode && activeDays[i]) ? '#fff' : 'rgba(0,0,0,0.25)' }}>{d}</div>
+                          ))}
+                        </div>
+                        {daysMode && (
+                          <div style={{ fontSize: 10, fontWeight: 700, color: '#60a5fa', background: 'rgba(96,165,250,0.15)', borderRadius: 99, padding: '2px 8px' }}>
+                            {'バラバラ'}
+                          </div>
+                        )}
                       </div>
                     )}
                     {[
-                      { label: '平日', start: weekdayStart, end: weekdayEnd, color: '#60a5fa' },
-                      { label: '休日', start: holidayStart, end: holidayEnd, color: '#f59e0b' },
-                    ].filter(r => r.start && r.end).map(({ label, start, end, color }, idx, arr) => (
+                      { label: '平日', start: weekdayStart, end: weekdayEnd, color: '#60a5fa', irregular: weekdayTimesMode === 'irregular' },
+                      { label: '休日', start: holidayStart, end: holidayEnd, color: '#f59e0b', irregular: holidayTimesMode === 'irregular' },
+                    ].map(({ label, start, end, color, irregular }, idx, arr) => (
                       <div key={label}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                           <span style={{ fontSize: pFs.activityLabel, color: 'rgba(0,0,0,0.4)', fontWeight: 600 }}>{label}</span>
-                          <span style={{ fontSize: pFs.activityTime, color: '#6b7280' }}>{start} – {end}</span>
+                          {irregular
+                            ? <span style={{ fontSize: pFs.activityTime, fontWeight: 700, color: '#60a5fa', background: 'rgba(96,165,250,0.15)', borderRadius: 99, padding: '1px 8px' }}>バラバラ</span>
+                            : <span style={{ fontSize: pFs.activityTime, color: '#6b7280' }}>{start && end ? `${start} – ${end}` : '—'}</span>
+                          }
                         </div>
                         <div style={{ position: 'relative' }}>
                           <div style={{ height: 8, borderRadius: 4, background: 'rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden' }}>
-                            {timeBarSegments(start!, end!).map((seg, i) => (
+                            {!irregular && start && end && timeBarSegments(start, end).map((seg, i) => (
                               <div key={i} style={{ position: 'absolute', top: 0, height: '100%', background: color, left: seg.left, width: seg.width }} />
                             ))}
                           </div>
@@ -448,26 +451,23 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                     ))}
                   </div>
                 </div>
-              )}
               {/* インタラクション */}
-              {visibleInteractions.length > 0 && (
-                <div>
-                  <div style={pLabel}>INTERACTION</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginTop: 6 }}>
-                    {visibleInteractions.slice(0, 6).map((item, i) => {
-                      const label = item.isCustom ? item.label : (okNgLabels[item.label] ?? item.label)
-                      const isOk = item.mark === 'OK' || item.mark === '○' || item.mark === '✓' || item.mark === '◎' || item.mark === '◯'
-                      const markSymbol = item.mark === '◎' ? '◎' : item.mark === '△' ? '△' : isOk ? '○' : '×'
-                      return (
-                        <div key={i} style={{ background: item.mark === '△' ? 'rgba(254,243,199,0.85)' : isOk ? 'rgba(220,252,231,0.85)' : 'rgba(254,226,226,0.85)', border: item.mark === '△' ? '1px solid rgba(253,211,77,0.8)' : isOk ? '1px solid rgba(134,239,172,0.8)' : '1px solid rgba(252,165,165,0.8)', borderRadius: 99, padding: '5px 10px', fontSize: pFs.sectionContent, color: item.mark === '△' ? '#92400e' : isOk ? '#15803d' : '#b91c1c', display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
-                          <span style={{ fontWeight: 700, flexShrink: 0 }}>{markSymbol}</span>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
+              <div>
+                <div style={pLabel}>INTERACTION</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginTop: 6 }}>
+                  {visibleInteractions.slice(0, 6).map((item, i) => {
+                    const label = item.isCustom ? item.label : (okNgLabels[item.label] ?? item.label)
+                    const isOk = item.mark === 'OK' || item.mark === '○' || item.mark === '✓' || item.mark === '◎' || item.mark === '◯'
+                    const markSymbol = item.mark === '◎' ? '◎' : item.mark === '△' ? '△' : isOk ? '○' : '×'
+                    return (
+                      <div key={i} style={{ background: item.mark === '△' ? 'rgba(254,243,199,0.85)' : isOk ? 'rgba(220,252,231,0.85)' : 'rgba(254,226,226,0.85)', border: item.mark === '△' ? '1px solid rgba(253,211,77,0.8)' : isOk ? '1px solid rgba(134,239,172,0.8)' : '1px solid rgba(252,165,165,0.8)', borderRadius: 99, padding: '5px 10px', fontSize: pFs.sectionContent, color: item.mark === '△' ? '#92400e' : isOk ? '#15803d' : '#b91c1c', display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
+                        <span style={{ fontWeight: 700, flexShrink: 0 }}>{markSymbol}</span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+                      </div>
+                    )
+                  })}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
@@ -544,15 +544,14 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
           </div>
 
           {/* SNS */}
-          {snsItems.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
               {snsItems.map((sns, i) => {
                 const isVrchat = sns.src === '/icon_vrchat.png'
-                const showFr = isVrchat && friendPolicy && friendPolicy.length > 0 && friendPolicyLabels
-                const href = isInteractive ? snsHref(sns.src, sns.value!) : null
-                const handleClick = isInteractive && !href
+                const frPolicy = isVrchat && friendPolicyLabels && friendPolicy?.[0]
+                const href = isInteractive && sns.value ? snsHref(sns.src, sns.value) : null
+                const handleClick = isInteractive && !href && sns.value
                   ? () => {
-                      navigator.clipboard.writeText(sns.value!)
+                      navigator.clipboard.writeText(sns.value)
                       window.dispatchEvent(new CustomEvent('vaacard:copied', { detail: `${sns.value} をコピーしました` }))
                     }
                   : undefined
@@ -570,19 +569,19 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <img src={sns.src} alt="" style={{ width: 12, height: 12, borderRadius: 3, flexShrink: 0 }} />
                       <span style={{ fontSize: 10, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0 }}>
-                        {sns.value}
+                        {sns.value || '—'}
                       </span>
                     </div>
-                    {showFr && (
+                    {isVrchat && (
                       <>
                         <div style={{ height: 1, background: 'rgba(0,0,0,0.08)', margin: '4px 0' }} />
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ color: '#9ca3af', display: 'flex', alignItems: 'center', flexShrink: 0, width: 12, justifyContent: 'center' }}>
-                            {FRIEND_POLICY_ICONS[friendPolicy![0]]}
+                            {frPolicy ? FRIEND_POLICY_ICONS[friendPolicy![0]] : null}
                           </span>
                           <span style={{ fontSize: 7, color: 'rgba(0,0,0,0.3)', fontWeight: 700, flexShrink: 0 }}>フレンド申請</span>
-                          <span style={{ fontSize: 8, color: '#6b7280', whiteSpace: 'nowrap' }}>
-                            {friendPolicyLabels![friendPolicy![0]] ?? friendPolicy![0]}
+                          <span style={{ fontSize: 8, color: frPolicy ? '#6b7280' : 'rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}>
+                            {frPolicy ? (friendPolicyLabels![friendPolicy![0]] ?? friendPolicy![0]) : '—'}
                           </span>
                         </div>
                       </>
@@ -593,8 +592,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                   ? <a key={i} href={href} target="_blank" rel="noopener noreferrer" style={boxStyle} className="vaacard-sns-item">{inner}</a>
                   : <div key={i} style={boxStyle} onClick={handleClick} className={isInteractive ? 'vaacard-sns-item' : ''}>{inner}</div>
               })}
-            </div>
-          )}
+          </div>
 
           {/* ギャラリーサムネイル */}
           {visibleGallery.length > 0 && (
@@ -657,25 +655,20 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
         </div>
 
         {/* PROFILE + Mic 行 */}
-        {(gender || ageDisplay || (language ?? []).length > 0 || (playEnv ?? []).length > 0 || !!micOnRate) && (
-          <div style={{ flexShrink: 0 }}>
+        <div style={{ flexShrink: 0 }}>
             <div style={sectionLabel}>PROFILE</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px 6px', marginTop: 4 }}>
-              {gender && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px' }}>
-                  <span style={{ color: '#6b7280', display: 'flex' }}>{GENDER_ICONS[gender] ?? <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12z"/></svg>}</span>
-                  <span style={{ fontSize: 10, color: '#1f2937', whiteSpace: 'nowrap' }}>{gender}</span>
-                </div>
-              )}
-              {ageDisplay && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px' }}>
-                  <span style={{ fontSize: 8, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>年齢</span>
-                  <span style={{ fontSize: 10, color: '#1f2937', whiteSpace: 'nowrap' }}>{ageDisplay}</span>
-                </div>
-              )}
-              {(playEnv ?? []).length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px' }}>
-                  <span style={{ fontSize: 8, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>環境</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px' }}>
+                <span style={{ color: '#6b7280', display: 'flex' }}>{gender ? getGenderIcon(gender) : null}</span>
+                <span style={{ fontSize: 10, color: gender ? '#1f2937' : 'rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}>{gender || '性別 —'}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px' }}>
+                <span style={{ fontSize: 8, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>年齢</span>
+                <span style={{ fontSize: 10, color: ageDisplay ? '#1f2937' : 'rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}>{ageDisplay || '—'}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px' }}>
+                <span style={{ fontSize: 8, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>環境</span>
+                {(playEnv ?? []).length > 0 ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {(playEnv ?? []).map((env, i) => (
                       <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 3, color: '#374151' }}>
@@ -684,33 +677,27 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                       </span>
                     ))}
                   </div>
+                ) : <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.3)' }}>—</span>}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px' }}>
+                <span style={{ fontSize: 8, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>言語</span>
+                <span style={{ fontSize: 10, color: (language ?? []).length > 0 ? '#1f2937' : 'rgba(0,0,0,0.3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>{(language ?? []).join(' / ') || '—'}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px' }}>
+                <FiMic size={10} color="rgba(0,0,0,0.4)" style={{ flexShrink: 0 }} />
+                <div style={{ width: 120, height: 4, borderRadius: 99, background: 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${micOnRate ?? 0}%`, borderRadius: 99, background: getMicColor(micOnRate ?? 0) }} />
                 </div>
-              )}
-              {(language ?? []).length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px' }}>
-                  <span style={{ fontSize: 8, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>言語</span>
-                  <span style={{ fontSize: 10, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>{(language ?? []).join(' / ')}</span>
-                </div>
-              )}
-              {!!micOnRate && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px' }}>
-                  <FiMic size={10} color="rgba(0,0,0,0.4)" style={{ flexShrink: 0 }} />
-                  <div style={{ width: 120, height: 4, borderRadius: 99, background: 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${micOnRate}%`, borderRadius: 99, background: getMicColor(micOnRate) }} />
-                  </div>
-                  <span style={{ fontSize: 8, color: getMicColor(micOnRate), fontWeight: 700, flexShrink: 0 }}>{micOnRate}%</span>
-                </div>
-              )}
+                <span style={{ fontSize: 8, color: micOnRate ? getMicColor(micOnRate) : 'rgba(0,0,0,0.3)', fontWeight: 700, flexShrink: 0 }}>{micOnRate ? `${micOnRate}%` : '—'}</span>
+              </div>
             </div>
           </div>
-        )}
 
         {/* 区切り */}
         <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', flexShrink: 0 }} />
 
         {/* 自己紹介 */}
-        {selfIntro && (
-          <div style={{ flexShrink: 0 }}>
+        <div style={{ flexShrink: 0 }}>
             <div style={sectionLabel}>ABOUT</div>
             <div style={{
               background: 'rgba(255,255,255,0.5)',
@@ -725,18 +712,14 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
               wordBreak: 'break-all',
               marginTop: 5,
             }}>
-              {selfIntro}
+              {selfIntro || '—'}
             </div>
           </div>
-        )}
 
         {/* STATUS + ACTIVITY 横並び */}
-        {(statusItems.length > 0 || (weekdayStart && weekdayEnd) || (holidayStart && holidayEnd)) && (
-          <div style={{ display: 'flex', gap: 16, flexShrink: 0, alignItems: 'flex-start' }}>
-            {(statusItems.length > 0 || (friendPolicy && friendPolicy.length > 0 && friendPolicyLabels)) && (
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {statusItems.length > 0 && (
-                  <div>
+        <div style={{ display: 'flex', gap: 16, flexShrink: 0, alignItems: 'flex-start' }}>
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div>
                     <div style={sectionLabel}>STATUS</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 4 }}>
                       {statusItems.map((s, i) => (
@@ -751,47 +734,54 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                         }}>
                           <div style={{ width: 5, height: 5, borderRadius: '50%', background: s.color, flexShrink: 0, boxShadow: `0 0 4px ${s.color}` }} />
                           <span style={{ fontSize: 9.5, color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {s.value}
+                            {s.value || '—'}
                           </span>
                         </div>
                       ))}
                     </div>
                   </div>
-                )}
               </div>
-            )}
-            {((weekdayStart && weekdayEnd) || (holidayStart && holidayEnd)) && (
-              <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={sectionLabel}>ACTIVITY</div>
                 <div style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '6px 8px', marginTop: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {activeDays && activeDays.length === 7 && (
-                    <div style={{ display: 'flex', gap: 3 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: 3 }}>
                       {['月','火','水','木','金','土','日'].map((d, i) => (
                         <div key={i} style={{
                           width: 14, height: 14, borderRadius: '50%',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: activeDays[i]
+                          background: daysMode ? 'rgba(0,0,0,0.08)' : (activeDays[i]
                             ? (i >= 5 ? 'rgba(251,191,36,0.85)' : 'rgba(96,165,250,0.85)')
-                            : 'rgba(0,0,0,0.1)',
+                            : 'rgba(0,0,0,0.1)'),
                           fontSize: 7,
                           fontWeight: 700,
-                          color: activeDays[i] ? '#fff' : 'rgba(0,0,0,0.25)',
+                          color: (!daysMode && activeDays[i]) ? '#fff' : 'rgba(0,0,0,0.25)',
                         }}>{d}</div>
                       ))}
+                      </div>
+                      {daysMode && (
+                        <div style={{ fontSize: 8, fontWeight: 700, color: '#60a5fa', background: 'rgba(96,165,250,0.15)', borderRadius: 99, padding: '1px 6px' }}>
+                          {'バラバラ'}
+                        </div>
+                      )}
                     </div>
                   )}
                   {[
-                    { label: '平日', start: weekdayStart, end: weekdayEnd, color: '#60a5fa' },
-                    { label: '休日', start: holidayStart, end: holidayEnd, color: '#f59e0b' },
-                  ].filter(r => r.start && r.end).map(({ label, start, end, color }, idx, arr) => (
+                    { label: '平日', start: weekdayStart, end: weekdayEnd, color: '#60a5fa', irregular: weekdayTimesMode === 'irregular' },
+                    { label: '休日', start: holidayStart, end: holidayEnd, color: '#f59e0b', irregular: holidayTimesMode === 'irregular' },
+                  ].map(({ label, start, end, color, irregular }, idx, arr) => (
                     <div key={label}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
                         <span style={{ fontSize: 8, color: 'rgba(0,0,0,0.4)', fontWeight: 600 }}>{label}</span>
-                        <span style={{ fontSize: 8, color: '#6b7280' }}>{start} – {end}</span>
+                        {irregular
+                          ? <span style={{ fontSize: 8, fontWeight: 700, color: '#60a5fa', background: 'rgba(96,165,250,0.15)', borderRadius: 99, padding: '1px 6px' }}>バラバラ</span>
+                          : <span style={{ fontSize: 8, color: '#6b7280' }}>{start && end ? `${start} – ${end}` : '—'}</span>
+                        }
                       </div>
                       <div style={{ position: 'relative' }}>
                         <div style={{ height: 6, borderRadius: 3, background: 'rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden' }}>
-                          {timeBarSegments(start!, end!).map((seg, i) => (
+                          {!irregular && start && end && timeBarSegments(start, end).map((seg, i) => (
                             <div key={i} style={{ position: 'absolute', top: 0, height: '100%', background: color, left: seg.left, width: seg.width }} />
                           ))}
                         </div>
@@ -809,16 +799,11 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+            </div>
           </div>
-        )}
-
-
 
         {/* OK/NG */}
-        {visibleInteractions.length > 0 && (
-          <div style={{ marginTop: 'auto', flexShrink: 0 }}>
+        <div style={{ marginTop: 'auto', flexShrink: 0 }}>
             <div style={sectionLabel}>INTERACTION</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 5 }}>
               {visibleInteractions.slice(0, 9).map((item, i) => {
@@ -845,7 +830,6 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
               })}
             </div>
           </div>
-        )}
         </div>
       </div>
     </div>

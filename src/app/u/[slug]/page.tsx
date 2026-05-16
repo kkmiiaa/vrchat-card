@@ -58,15 +58,21 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   if (!profile) notFound()
 
-  const { data: cards } = await supabase
-    .from('cards')
-    .select('*')
-    .eq('user_id', userRow.id)
-    .eq('visibility', 'public')
-    .order('created_at', { ascending: false })
-
   const { data: { user } } = await supabase.auth.getUser()
   const isOwner = user?.id === userRow.id
 
-  return <ProfilePage profile={profile} slug={slug} userRowId={userRow.id} cards={cards ?? []} isOwner={isOwner} />
+  // オーナーの場合は全カード取得（visibility問わず）、他者は公開のみ
+  const cardsQuery = supabase
+    .from('cards')
+    .select('*')
+    .eq('user_id', userRow.id)
+    .order('created_at', { ascending: false })
+  if (!isOwner) cardsQuery.eq('visibility', 'public')
+  const { data: cards } = await cardsQuery
+
+  const plan = (userRow.plan ?? 'free') as 'free' | 'pro'
+  const isPro = plan === 'pro' &&
+    (userRow.plan_expires_at == null || new Date(userRow.plan_expires_at) > new Date())
+
+  return <ProfilePage profile={profile} slug={slug} userRowId={userRow.id} cards={cards ?? []} isOwner={isOwner} plan={isPro ? 'pro' : 'free'} />
 }

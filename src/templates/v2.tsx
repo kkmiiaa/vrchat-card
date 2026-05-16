@@ -5,7 +5,7 @@ import { genderBlock }       from '@/blocks/gender'
 import { playEnvBlock }      from '@/blocks/playEnv'
 import { languageBlock }     from '@/blocks/language'
 import { micOnRateBlock }    from '@/blocks/micOnRate'
-import { snsBlock }          from '@/blocks/sns'
+import { snsWithFriendPolicyBlock } from '@/blocks/snsWithFriendPolicy'
 import { statusBlock }       from '@/blocks/status'
 import { selfIntroBlock }    from '@/blocks/selfIntro'
 import { interactionsBlock } from '@/blocks/interactions'
@@ -14,7 +14,6 @@ import { fontBlock }         from '@/blocks/font'
 import { ageBlock }          from '@/blocks/age'
 import { trustRankBlock }    from '@/blocks/trustRank'
 import { activityBlock }     from '@/blocks/activity'
-import { friendPolicyBlock } from '@/blocks/friendPolicy'
 import { galleryBlock }      from '@/blocks/gallery'
 import CardV2 from '@/components/CardV2'
 import { fontMap } from '@/lib/fontMap'
@@ -36,11 +35,10 @@ export const v2Template: CardTemplate = {
   portraitWidth: 900,
   portraitHeight: 1125,
   sections: [
-    { titleKey: 'カードデザイン',   blockKeys: ['background', 'font'],                              defaultOpen: true },
-    { titleKey: 'プロフィール情報', blockKeys: ['name', 'gender', 'age', 'trustRank'] },
-    { titleKey: 'SNS・コンタクト', blockKeys: ['sns', 'friendPolicy', 'status', 'interactions'] },
+    { titleKey: 'カードデザイン',   blockKeys: ['background', 'font'],                                        defaultOpen: true },
+    { titleKey: 'プロフィール情報', blockKeys: ['name', 'gender', 'age', 'trustRank', 'playEnv', 'language', 'micOnRate'] },
+    { titleKey: 'SNS・コンタクト', blockKeys: ['sns', 'status', 'activity', 'interactions'] },
     { titleKey: '自己紹介・画像',   blockKeys: ['selfIntro', 'gallery'] },
-    { titleKey: '使用環境・言語',   blockKeys: ['playEnv', 'language', 'micOnRate', 'activity'] },
   ],
   blocks: [
     backgroundBlock,
@@ -52,8 +50,8 @@ export const v2Template: CardTemplate = {
     playEnvBlock,
     languageBlock,
     micOnRateBlock,
-    snsBlock,
-    friendPolicyBlock,
+    snsWithFriendPolicyBlock,
+
     statusBlock,
     activityBlock,
     selfIntroBlock,
@@ -99,11 +97,14 @@ export const v2Template: CardTemplate = {
         trustRank={values.trustRank as string}
         ageDisplay={age.display || age.mode}
         activeDays={activity.days}
+        daysMode={activity.daysMode}
+        weekdayTimesMode={activity.weekdayTimesMode}
+        holidayTimesMode={activity.holidayTimesMode}
         weekdayStart={activity.weekdayStart}
         weekdayEnd={activity.weekdayEnd}
         holidayStart={activity.holidayStart}
         holidayEnd={activity.holidayEnd}
-        friendPolicy={Array.isArray(values.friendPolicy) ? values.friendPolicy.filter(Boolean) : [values.friendPolicy as string].filter(Boolean)}
+        friendPolicy={sns.friendPolicy ? [sns.friendPolicy] : []}
         friendPolicyLabels={{
           frPolicyAnyone: t.frPolicyAnyone,
           frPolicyAfterGettingToKnow: t.frPolicyAfterGettingToKnow,

@@ -51,3 +51,4 @@ node_modules/
 # Playwright
 tests/.auth/
 .env.test
+.claude/

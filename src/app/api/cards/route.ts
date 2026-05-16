@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { FREE_CARD_LIMIT } from '@/lib/stripe'
+import { FREE_CARD_LIMIT } from '@/lib/plans'
 
 // GET /api/cards — ログインユーザーのカード一覧
 export async function GET() {

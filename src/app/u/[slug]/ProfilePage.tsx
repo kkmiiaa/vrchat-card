@@ -12,7 +12,7 @@ const templateMap: Record<string, CardTemplate> = { v1: v1Template, v2: v2Templa
 import Link from 'next/link'
 import HeaderAuth from '@/components/HeaderAuth'
 import { deleteCard } from '@/lib/saveCard'
-import { FREE_CARD_LIMIT } from '@/lib/stripe'
+import { FREE_CARD_LIMIT } from '@/lib/plans'
 import { fontMap } from '@/lib/fontMap'
 import { translations } from '@/utils/translations'
 

@@ -61,6 +61,39 @@ test.describe('カードエディタ（ログイン済み）', () => {
   })
 })
 
+test.describe('/c/vrchat — ログイン済み（フリープラン）', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/c/vrchat');
+    await page.waitForLoadState('networkidle');
+  });
+
+  test('ページが表示される', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'VRChat 界隈のユーザーをみつける' })).toBeVisible();
+  });
+
+  test('「マイページ」リンクがヘッダーに表示される', async ({ page }) => {
+    await expect(page.locator('header').getByRole('link', { name: 'マイページ' })).toBeVisible();
+  });
+
+  test('検索フォームが表示されない（フリープラン）', async ({ page }) => {
+    await expect(page.getByPlaceholder('名前・自己紹介で検索...')).not.toBeVisible();
+  });
+
+  test('Proプランへの促進バナーが表示される（フリープラン）', async ({ page }) => {
+    await expect(page.getByText('Proプランで詳細検索が使えます')).toBeVisible();
+  });
+
+  test('カードにユーザー名が表示される', async ({ page }) => {
+    // カードが存在する場合、ユーザー名（プロフィールのdisplay_name）が表示される
+    const cardNames = page.locator('.grid a p.text-xs.font-semibold');
+    const count = await cardNames.count();
+    if (count > 0) {
+      const name = await cardNames.first().textContent();
+      expect(name).toBeTruthy();
+    }
+  });
+});
+
 test.describe('プロフィールページ（ログイン済み）', () => {
   test('マイページが表示される', async ({ page }) => {
     // ログイン済みならトップページからマイページリンクが見える

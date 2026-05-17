@@ -1,6 +1,7 @@
 'use client'
 
 import React, { forwardRef } from 'react'
+import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
 
 type Interaction = {
   label: string
@@ -87,13 +88,7 @@ const EN = {
 } as const
 
 function getBg(type?: string, value?: string | [string, string], base64?: string | null): string {
-  if (type === 'image') {
-    const src = base64 ?? (typeof value === 'string' ? value : null)
-    if (src) return `url(${src}) center/cover no-repeat`
-  }
-  if (type === 'gradient' && Array.isArray(value)) return `linear-gradient(to right, ${value[0]}, ${value[1]})`
-  if (type === 'color' && typeof value === 'string') return value
-  return 'linear-gradient(to right, #60a5fa, #a78bfa)'
+  return getBackgroundStyle(type, value, base64, CARD_BG_FALLBACK) as string
 }
 
 function isOkMark(m: string) {
@@ -311,7 +306,7 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
                 <div style={{ flexShrink: 0 }}>
                   <LabelRow title={L.friend} sub={L.sub_friend} fontFamily={fontFamily} large />
                   <div style={pBox()}>
-                    <div style={{ fontSize: 14, color: '#1f2937', fontFamily, lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' }}>
+                    <div style={{ fontSize: 14, color: '#1f2937', fontFamily, lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', minHeight: '3em' }}>
                       {(friendPolicy ?? []).map(k => frLabels[k] ?? k).join(' / ') || '—'}
                     </div>
                   </div>
@@ -520,7 +515,7 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             <LabelRow title={L.friend} sub={L.sub_friend} fontFamily={fontFamily} />
             <div style={box({ flex: 1 })}>
-              <div style={{ fontSize: W * 0.009, color: '#1f2937', fontFamily, lineHeight: 1.5, wordBreak: 'break-all' }}>
+              <div style={{ fontSize: W * 0.009, color: '#1f2937', fontFamily, lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', minHeight: '3em', wordBreak: 'break-all' }}>
                 {(friendPolicy ?? []).map(k => frLabels[k] ?? k).join(' / ') || '—'}
               </div>
             </div>

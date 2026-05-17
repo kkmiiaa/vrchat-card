@@ -1,0 +1,3 @@
+-- テスト用シードデータ
+-- supabase start 時に自動適用される
+-- テストユーザーの作成は tests/global-setup.ts が担当（GoTrue Admin API 経由）

@@ -1,10 +1,64 @@
-import { chromium, FullConfig } from '@playwright/test'
+import { FullConfig } from '@playwright/test'
 import * as fs from 'fs'
 import * as path from 'path'
 
-export default async function globalSetup(config: FullConfig) {
-  const authFile = path.join(__dirname, '.auth/user.json')
-  fs.mkdirSync(path.dirname(authFile), { recursive: true })
+async function ensureTestUser(email: string, password: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!supabaseUrl || !serviceRoleKey) return
+
+  // ローカルスタック（127.0.0.1）のみ自動作成を試みる
+  if (!supabaseUrl.includes('127.0.0.1') && !supabaseUrl.includes('localhost')) return
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${serviceRoleKey}`,
+    'apikey': serviceRoleKey,
+  }
+
+  // ユーザー一覧を取得して存在確認
+  const listRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, { headers })
+  const listJson = await listRes.json()
+  const existing = (listJson.users ?? []).find((u: { email: string }) => u.email === email)
+
+  let userId: string | undefined
+
+  if (!existing) {
+    const createRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ email, password, email_confirm: true }),
+    })
+    if (!createRes.ok) {
+      console.warn(`[global-setup] テストユーザー作成失敗: ${await createRes.text()}`)
+      return
+    }
+    const created = await createRes.json()
+    userId = created.id
+    console.log(`[global-setup] テストユーザー作成: ${email}`)
+  } else {
+    userId = existing.id
+    console.log(`[global-setup] テストユーザー確認済み: ${email}`)
+  }
+
+  // テストユーザーをProプランに設定（ローカル環境）
+  if (userId) {
+    const postgrestUrl = supabaseUrl.replace('/auth/v1', '') + '/rest/v1'
+    const updateRes = await fetch(`${postgrestUrl}/users?id=eq.${userId}`, {
+      method: 'PATCH',
+      headers: { ...headers, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ plan: 'pro', plan_expires_at: null }),
+    })
+    if (updateRes.ok) {
+      console.log(`[global-setup] テストユーザーをProプランに設定: ${email}`)
+    } else {
+      console.warn(`[global-setup] Proプラン設定失敗: ${await updateRes.text()}`)
+    }
+  }
+}
+
+export default async function globalSetup(_config: FullConfig) {
+  fs.mkdirSync(path.join(__dirname, '.auth'), { recursive: true })
 
   const email = process.env.TEST_USER_EMAIL
   const password = process.env.TEST_USER_PASSWORD
@@ -13,23 +67,7 @@ export default async function globalSetup(config: FullConfig) {
     return
   }
 
-  const browser = await chromium.launch()
-  const page = await browser.newPage()
-
-  const baseURL = config.projects[0].use.baseURL ?? 'http://localhost:3001'
-  await page.goto(`${baseURL}/auth/login`)
-
-  // メール・パスワードでログイン
-  await page.getByPlaceholder('メールアドレス').fill(email)
-  await page.getByPlaceholder('パスワード').fill(password)
-  await page.getByRole('button', { name: 'ログイン' }).click()
-
-  // ログイン後のリダイレクト待ち
-  await page.waitForURL(/\/(profile\/edit|u\/)/, { timeout: 10000 })
-
-  // セッションを保存
-  await page.context().storageState({ path: authFile })
-  await browser.close()
-
-  console.log('[global-setup] 認証済みセッションを保存しました:', authFile)
+  // ローカルスタック使用時はテストユーザーを自動作成する
+  // ブラウザログインは auth.setup.ts が担当
+  await ensureTestUser(email, password)
 }

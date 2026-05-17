@@ -12,6 +12,7 @@ type Card = {
   card_data: Record<string, unknown>
   created_at: string
   template_id: string
+  profile: { display_name: string | null; avatar_url: string | null } | null
 }
 
 type Filters = {
@@ -91,7 +92,7 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn }: Props
     updateFilter(key, current === value ? '' : value)
   }
 
-  const getName = (card: Card) => (card.card_data?.name as string) || card.title || 'vaacard User'
+  const getName = (card: Card) => card.profile?.display_name || 'vaacard User'
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -102,13 +103,18 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn }: Props
           <span className="text-gray-300 text-sm">/</span>
           <span className="text-sm font-semibold text-gray-600">VRChat</span>
         </div>
-        <HeaderAuth />
+        <div className="flex items-center gap-2">
+          <a href="/card/new" className="text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-4 py-1.5 rounded-full hover:opacity-90 transition-opacity">
+            カードを作る
+          </a>
+          <HeaderAuth />
+        </div>
       </header>
 
-      <main className="pt-16 px-4 pb-16 max-w-5xl mx-auto">
+      <main className="pt-20 px-4 pb-16 max-w-5xl mx-auto">
         {/* タイトル */}
-        <div className="mb-6">
-          <h1 className="text-xl font-bold text-gray-900">VRChat カード一覧</h1>
+        <div className="mb-6 mt-4">
+          <h1 className="text-xl font-bold text-gray-900">VRChat 界隈のユーザーをみつける</h1>
           <p className="text-sm text-gray-500 mt-1">VRChatユーザーの自己紹介カードをまとめて見られます</p>
         </div>
 
@@ -262,7 +268,7 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn }: Props
                   className="group block bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-sky-200 hover:shadow-md transition-all"
                 >
                   {card.image_url ? (
-                    <div className="aspect-[3/2] overflow-hidden bg-gray-100">
+                    <div className="aspect-video overflow-hidden bg-gray-100">
                       <img
                         src={card.image_url}
                         alt={getName(card)}
@@ -271,8 +277,9 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn }: Props
                       />
                     </div>
                   ) : (
-                    <div className="aspect-[3/2] bg-gradient-to-br from-sky-100 to-cyan-50 flex items-center justify-center">
-                      <span className="text-2xl font-black text-sky-200">vc</span>
+                    <div className="aspect-video bg-gradient-to-br from-[#00AADB]/10 to-cyan-100 flex flex-col items-center justify-center gap-1">
+                      <span className="text-3xl font-black text-[#00AADB]/30">vc</span>
+                      <span className="text-[10px] font-semibold text-[#00AADB]/50 px-2 text-center truncate max-w-full">{getName(card)}</span>
                     </div>
                   )}
                   <div className="p-2">

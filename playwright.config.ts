@@ -6,13 +6,14 @@ dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 
 export default defineConfig({
   testDir: './tests/e2e',
+  globalSetup: './tests/global-setup.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3001',
+    baseURL: 'http://localhost:3002',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -25,13 +26,13 @@ export default defineConfig({
     // Step 2: 未ログインテスト
     {
       name: 'unauthenticated',
-      testMatch: /\/(lp|login|v1-editor|v1-form|static-pages|regression-card-editor)\.spec\.ts/,
+      testMatch: /\/(lp|login|v1-editor|v1-form|static-pages|regression-card-editor|vrchat-maker|explore-vrchat)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     // Step 3: ログイン済みテスト（setupに依存）
     {
       name: 'authenticated',
-      testMatch: /\/(authenticated|regression-card-save|regression-card-view|regression-profile)\.spec\.ts/,
+      testMatch: /\/(authenticated|regression-card-save|regression-card-view|regression-profile|explore-search)\.spec\.ts/,
       dependencies: ['setup'],
       use: {
         ...devices['Desktop Chrome'],
@@ -40,8 +41,13 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev -- --port 3001',
-    url: 'http://localhost:3001',
+    command: 'npm run dev:test',
+    url: 'http://localhost:3002',
     reuseExistingServer: true,
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    },
   },
 });

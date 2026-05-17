@@ -2,7 +2,6 @@
  * プロフィールページ デグレ防止テスト（認証済み）
  *
  * - カード一覧の表示
- * - カードタイトルの表示
  * - カード追加・編集への遷移
  * - プロフィール編集
  */
@@ -61,35 +60,15 @@ test.describe('プロフィールページ — カード一覧（デグレ防止
     await expect(page.locator('a[href*="/card/"][href*="/view"]').first()).toBeVisible({ timeout: 10000 });
   });
 
-  test('カードにタイトルがある場合、タイトルが表示される（デグレ防止）', async ({ page }) => {
+  test('カードにタイトルがあっても、プロフィールページには表示されない', async ({ page }) => {
     const url = await getMyProfileUrl(page);
     if (!url) return test.skip();
 
-    // カード作成
-    await page.goto('/card/new');
-    await page.getByText('Standard').click();
-    await page.waitForURL(/\/card\/[a-z0-9-]+$/, { timeout: 15000 });
-    const cardUrl = page.url();
-
-    // マイページでタイトルを編集
     await page.goto(url);
     await page.waitForLoadState('networkidle');
 
-    const editBtn = page.getByRole('button', { name: '編集' }).first();
-    if (await editBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await editBtn.click();
-
-      // タイトル入力フィールドが表示される
-      const titleInput = page.getByPlaceholder('タイトルを入力').first();
-      if (await titleInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await titleInput.fill('デグレテストカード');
-        await page.getByRole('button', { name: '保存する' }).click();
-        await expect(page.getByText('✓ 保存しました')).toBeVisible({ timeout: 5000 });
-
-        // 保存後、タイトルが表示される
-        await expect(page.getByText('デグレテストカード')).toBeVisible({ timeout: 3000 });
-      }
-    }
+    // カードタイトル用の要素が存在しないこと
+    await expect(page.locator('p.text-sm.font-bold.text-gray-700')).toHaveCount(0);
   });
 
   test('「カードを追加」ボタンが表示される', async ({ page }) => {

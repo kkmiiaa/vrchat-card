@@ -531,7 +531,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
             ))}
           </div>
           <div className="text-left">
-            <p className="text-xs font-bold text-gray-700 group-hover:text-[#00AADB] transition-colors">他のVRChatユーザーを見る</p>
+            <p className="text-xs font-bold text-gray-700 group-hover:text-[#00AADB] transition-colors">他のVRChatユーザーをみつける</p>
             <p className="text-[10px] text-gray-400">カード一覧を見る →</p>
           </div>
         </Link>

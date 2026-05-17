@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { VRCHAT_COMPONENT_KEY_MAP } from '@/lib/components'
 
 const PAGE_SIZE = 24
 
@@ -20,22 +21,25 @@ export async function GET(request: NextRequest) {
       (userRow.plan_expires_at == null || new Date(userRow.plan_expires_at) > new Date())
   }
 
+  // 界隈（現状はVRChat固定）
+  const communitySlug = searchParams.get('community') ?? 'vrchat'
+
   // フィルターパラメータ（Proのみ有効）
-  const gender = isPro ? (searchParams.get('gender') ?? '') : ''
-  const env = isPro ? (searchParams.get('env') ?? '') : ''
-  const lang = isPro ? (searchParams.get('lang') ?? '') : ''
+  // component_key → card_data のキー名に変換
+  const gender      = isPro ? (searchParams.get('gender') ?? '') : ''
+  const platform    = isPro ? (searchParams.get('env') ?? '') : ''
+  const language    = isPro ? (searchParams.get('lang') ?? '') : ''
   const friendPolicy = isPro ? (searchParams.get('friendPolicy') ?? '') : ''
-  const q = isPro ? (searchParams.get('q') ?? '') : ''
-  const cursor = searchParams.get('cursor') ?? null // created_at for pagination
+  const q           = isPro ? (searchParams.get('q') ?? '') : ''
+  const cursor      = searchParams.get('cursor') ?? null
 
   let query = supabase
     .from('cards')
-    .select('id, title, image_url, card_data, created_at, template_id')
+    .select('id, title, image_url, card_data, created_at, template_id, community_slug, user_id')
     .eq('visibility', 'public')
-    .contains('communities', ['VRChat'])
+    .eq('community_slug', communitySlug)
     .order('created_at', { ascending: false })
 
-  // Freeは20件固定
   if (!isPro) {
     query = query.limit(20)
   } else {
@@ -43,26 +47,34 @@ export async function GET(request: NextRequest) {
     if (cursor) query = query.lt('created_at', cursor)
   }
 
-  // Pro フィルター: JSONB検索
+  // gender → card_data->>'gender'
   if (gender) {
-    query = query.ilike('card_data->>gender', `%${gender}%`)
+    const cardDataKey = VRCHAT_COMPONENT_KEY_MAP['gender']
+    query = query.ilike(`card_data->>${cardDataKey}`, `%${gender}%`)
   }
-  if (env) {
-    // playEnv は配列: card_data->'playEnv' ? 'PCVR'
-    query = query.filter('card_data->playEnv', 'cs', JSON.stringify([env]))
+
+  // platform → card_data->'playEnv'
+  if (platform) {
+    const cardDataKey = VRCHAT_COMPONENT_KEY_MAP['platform']
+    query = query.filter(`card_data->${cardDataKey}`, 'cs', JSON.stringify([platform]))
   }
-  if (lang) {
-    query = query.filter('card_data->language', 'cs', JSON.stringify([lang]))
+
+  // language → card_data->'language'
+  if (language) {
+    const cardDataKey = VRCHAT_COMPONENT_KEY_MAP['language']
+    query = query.filter(`card_data->${cardDataKey}`, 'cs', JSON.stringify([language]))
   }
+
+  // friend_policy → card_data->>'friendPolicy'（文字列または配列を両方サポート）
   if (friendPolicy) {
-    // friendPolicy は配列または文字列
-    query = query.or(
-      `card_data->>'friendPolicy'.eq.${friendPolicy},card_data->'friendPolicy'.cs.${JSON.stringify([friendPolicy])}`
-    )
+    const cardDataKey = VRCHAT_COMPONENT_KEY_MAP['friend_policy']
+    query = query.eq(`card_data->>${cardDataKey}`, friendPolicy)
   }
+
+  // 全文検索（name + selfIntro）
   if (q) {
     query = query.or(
-      `card_data->>'name'.ilike.%${q}%,card_data->>'selfIntro'.ilike.%${q}%`
+      `card_data->>name.ilike.%${q}%,card_data->>selfIntro.ilike.%${q}%`
     )
   }
 
@@ -70,5 +82,14 @@ export async function GET(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ cards: data ?? [], isPro })
+  // プロフィールをまとめて取得してカードに付与
+  const userIds = [...new Set((data ?? []).map(c => c.user_id).filter(Boolean))]
+  const { data: profiles } = userIds.length
+    ? await supabase.from('profiles').select('user_id, display_name, avatar_url').in('user_id', userIds)
+    : { data: [] }
+
+  const profileMap = Object.fromEntries((profiles ?? []).map(p => [p.user_id, p]))
+  const cards = (data ?? []).map(c => ({ ...c, profile: profileMap[c.user_id] ?? null }))
+
+  return NextResponse.json({ cards, isPro })
 }

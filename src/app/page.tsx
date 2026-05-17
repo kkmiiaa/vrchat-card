@@ -19,7 +19,7 @@ export default async function Home() {
         <span className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</span>
         <div className="flex items-center gap-3">
           <Link href="/c/vrchat" className="text-xs font-semibold text-gray-500 hover:text-[#00AADB] transition-colors hidden sm:inline">
-            探す
+            ユーザーを探す
           </Link>
           {user ? (
             <>
@@ -99,6 +99,12 @@ export default async function Home() {
                 className="px-7 py-3.5 bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white text-sm font-bold rounded-full hover:opacity-90 transition-opacity shadow-lg shadow-sky-200"
               >
                 カードを作る
+              </Link>
+              <Link
+                href="/c/vrchat"
+                className="px-7 py-3.5 border border-sky-200 text-[#00AADB] text-sm font-bold rounded-full hover:bg-sky-50 transition-colors"
+              >
+                カードを探す
               </Link>
             </div>
           </div>

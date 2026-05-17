@@ -292,7 +292,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
       <header className="relative z-10 border-b border-sky-100 h-14 px-6 flex items-center justify-between bg-white/80 backdrop-blur-md">
         <Link href="/" className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</Link>
         <div className="flex items-center gap-4">
-          <Link href="/c/vrchat" className="text-xs font-semibold text-gray-500 hover:text-[#00AADB] transition-colors hidden sm:inline">探す</Link>
+          <Link href="/c/vrchat" className="text-xs font-semibold text-gray-500 hover:text-[#00AADB] transition-colors hidden sm:inline">ユーザーを探す</Link>
           <HeaderAuth hideMyPage={isOwner} />
         </div>
       </header>
@@ -483,9 +483,6 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
                   const colSpan = 'col-span-1'
                   return (
                     <div key={card.id} className={`group ${colSpan}`}>
-                      {card.title ? (
-                        <p className="text-sm font-bold text-gray-700 mb-0.5 px-1 truncate">{card.title}</p>
-                      ) : null}
                       {/* カードプレビュー本体 */}
                       <div className="relative" style={{ padding: '32px 16px' }}>
                         {(() => {

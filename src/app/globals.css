@@ -74,11 +74,10 @@ a {
   transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
 }
 
-.profile-card-hover:hover .vaacard-glass-panel {
-  transform: translateY(-6px) scale(1.015);
-  box-shadow: 0 16px 60px rgba(0, 170, 219, 0.20), 0 4px 24px rgba(0, 170, 219, 0.10) !important;
+.profile-card-hover {
+  transition: transform 0.3s ease-out;
 }
 
-.profile-card-hover .vaacard-glass-panel {
-  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+.profile-card-hover:hover {
+  transform: translateY(-5px);
 }

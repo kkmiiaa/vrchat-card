@@ -34,5 +34,18 @@ export default async function CardPage({ params }: { params: Promise<{ cardId: s
 
   const isOwner = user?.id === card.user_id
 
-  return <CardEditorClient card={card} template={template} isOwner={isOwner} />
+  const { data: announcements } = await supabase
+    .from('announcements')
+    .select('id, title, body, published_at')
+    .eq('is_active', true)
+    .order('published_at', { ascending: false })
+
+  return (
+    <CardEditorClient
+      card={card}
+      template={template}
+      isOwner={isOwner}
+      announcements={announcements ?? []}
+    />
+  )
 }

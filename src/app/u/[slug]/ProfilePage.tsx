@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { getBackgroundStyle } from '@/utils/backgroundUtils'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { ProfileRow, ProfileLink } from '@/lib/types'
@@ -11,9 +12,9 @@ import { v2Template } from '@/templates/v2'
 const templateMap: Record<string, CardTemplate> = { v1: v1Template, v2: v2Template }
 import Link from 'next/link'
 import HeaderAuth from '@/components/HeaderAuth'
+import AnnouncementBanner from '@/components/AnnouncementBanner'
 import { deleteCard } from '@/lib/saveCard'
 import { FREE_CARD_LIMIT } from '@/lib/plans'
-import { relativeDate } from '@/utils/relativeDate'
 import { fontMap } from '@/lib/fontMap'
 import { translations } from '@/utils/translations'
 
@@ -31,10 +32,12 @@ type Card = {
 function cardBg(cardData: Record<string, unknown> | null): string | null {
   const bg = cardData?.background as { type?: string; value?: string | [string, string]; base64?: string } | undefined
   if (!bg) return null
-  if (bg.type === 'color' && typeof bg.value === 'string') return bg.value
-  if (bg.type === 'gradient' && Array.isArray(bg.value)) return `linear-gradient(135deg, ${bg.value[0]}, ${bg.value[1]})`
-  if (bg.type === 'image') return bg.base64 ? `url(${bg.base64}) center/cover no-repeat` : (typeof bg.value === 'string' ? `url(${bg.value}) center/cover no-repeat` : null)
-  return null
+  return getBackgroundStyle(bg.type, bg.value, bg.base64 ?? null)
+}
+
+function cardBgType(cardData: Record<string, unknown> | null): string | null {
+  const bg = cardData?.background as { type?: string } | undefined
+  return bg?.type ?? null
 }
 
 function LiveCardPreview({
@@ -117,6 +120,8 @@ function newLink(): ProfileLink & { _id: number } {
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{2,29}$/
 
+type Announcement = { id: string; title: string; body: string; published_at: string }
+
 type Props = {
   profile: ProfileRow
   slug: string
@@ -124,17 +129,17 @@ type Props = {
   cards: Card[]
   isOwner: boolean
   plan?: 'free' | 'pro'
+  announcements?: Announcement[]
 }
 
-export default function ProfilePage({ profile, slug, userRowId, cards: initialCards, isOwner, plan = 'free' }: Props) {
+export default function ProfilePage({ profile, slug, userRowId, cards: initialCards, isOwner, plan = 'free', announcements = [] }: Props) {
   const router = useRouter()
   const supabase = createClient()
 
   // --- 表示状態 ---
   const [cards, setCards] = useState(initialCards)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [titleEdits, setTitleEdits] = useState<Record<string, string>>({})
-  const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'portrait'>>({})
+const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'portrait'>>({})
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const setOrientation = useCallback((id: string, o: 'landscape' | 'portrait') => {
@@ -163,6 +168,34 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
   const slugTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(profile.avatar_url ?? null)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAvatarUploading(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const ext = file.name.split('.').pop()
+      const path = `${user.id}/avatar.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, contentType: file.type })
+      if (uploadError) throw uploadError
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+      const cacheBusted = `${publicUrl}?t=${Date.now()}`
+      await supabase.from('profiles').update({ avatar_url: cacheBusted }).eq('user_id', user.id)
+      setAvatarUrl(cacheBusted)
+    } catch (err) {
+      console.error('avatar upload failed', err)
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
 
   function onSlugChange(val: string) {
     const v = val.toLowerCase().replace(/[^a-z0-9-]/g, '')
@@ -193,24 +226,15 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
     if (slugStatus === 'taken' || slugStatus === 'invalid') return
     setSaving(true)
     const cleanLinks = links.filter(l => l.url.trim()).map(({ url, label }) => ({ url: url.trim(), label: label.trim() }))
-    const titleUpdates = cards
-      .filter(c => titleEdits[c.id] !== undefined && titleEdits[c.id] !== (c.title ?? ''))
-      .map(c => fetch(`/api/cards/${c.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: titleEdits[c.id] }),
-      }))
     const [profileRes, slugRes] = await Promise.all([
       supabase.from('profiles').update({ display_name: displayName, bio, links: cleanLinks }).eq('user_id', userRowId),
       slugInput !== currentSlug
         ? supabase.from('users').update({ username_slug: slugInput }).eq('id', userRowId)
         : Promise.resolve({ error: null }),
-      ...titleUpdates,
     ])
     setSaving(false)
     const error = profileRes.error ?? (slugRes as { error: unknown }).error
     if (error) { alert('保存に失敗しました'); return }
-    setCards(prev => prev.map(c => titleEdits[c.id] !== undefined ? { ...c, title: titleEdits[c.id] } : c))
     setSaved(true)
     if (slugInput !== currentSlug) {
       setCurrentSlug(slugInput)
@@ -228,7 +252,6 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
       : [newLink()])
     setSlugInput(currentSlug)
     setSlugStatus('idle')
-    setTitleEdits({})
     setEditMode(false)
   }
 
@@ -255,22 +278,26 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
 
       <header className="relative z-10 border-b border-sky-100 h-14 px-6 flex items-center justify-between bg-white/80 backdrop-blur-md">
         <Link href="/" className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</Link>
-        <HeaderAuth hideMyPage={isOwner} />
+        <div className="flex items-center gap-4">
+          <Link href="/c/vrchat" className="text-xs font-semibold text-gray-500 hover:text-[#00AADB] transition-colors hidden sm:inline">探す</Link>
+          <HeaderAuth hideMyPage={isOwner} />
+        </div>
       </header>
 
-      <main className="relative z-10 flex-1 max-w-xl mx-auto w-full px-2 sm:px-4 py-12">
+      <main className="relative z-10 flex-1 w-full py-12">
+        <div className="max-w-xl mx-auto px-2 sm:px-4">
+          <AnnouncementBanner announcements={announcements} />
+        </div>
 
-        {/* 編集モード全体ラッパー */}
-        <div className={`rounded-2xl transition-all mb-4 ${editMode ? 'border-2 border-sky-200 bg-sky-50/40 px-4 pt-4 pb-4' : ''}`}>
+        {/* 編集モード全体ラッパー（プロフィール＋カード一覧を1つの枠で囲む） */}
+        <div className={`transition-all ${editMode ? 'bg-sky-50/40 border-2 border-sky-200 rounded-2xl mx-4 py-4' : ''}`}>
+        <div className={`max-w-xl mx-auto px-2 sm:px-4 mb-4`}>
 
         {/* アバター・名前・bio */}
         <div className={`relative flex flex-col items-center text-center mb-10 transition-all ${editMode ? 'pt-2 pb-2' : 'px-0 pt-8 pb-0'}`}>
           {isOwner && !editMode && (
             <button
-              onClick={() => {
-                setTitleEdits(Object.fromEntries(cards.map(c => [c.id, c.title ?? ''])))
-                setEditMode(true)
-              }}
+              onClick={() => setEditMode(true)}
               className="absolute top-0 right-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-sky-200 text-xs font-semibold text-sky-400 hover:border-[#00AADB] hover:text-[#00AADB] hover:bg-sky-50 transition-all shadow-sm bg-white">
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -278,14 +305,41 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
               編集
             </button>
           )}
-          {profile.avatar_url ? (
-            <img src={profile.avatar_url} alt={displayName || currentSlug}
-              className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-sky-100 shadow-md shadow-sky-100" />
-          ) : (
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#00AADB] to-[#00C9B8] text-white flex items-center justify-center text-xl font-bold mb-4 shadow-md shadow-sky-200">
-              {initials}
-            </div>
-          )}
+          <div className="relative mb-4 group">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={displayName || currentSlug}
+                className="w-20 h-20 rounded-full object-cover border-2 border-sky-100 shadow-md shadow-sky-100" />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#00AADB] to-[#00C9B8] text-white flex items-center justify-center text-xl font-bold shadow-md shadow-sky-200">
+                {initials}
+              </div>
+            )}
+            {isOwner && (
+              <>
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={avatarUploading}
+                  className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                >
+                  {avatarUploading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  )}
+                </button>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+              </>
+            )}
+          </div>
 
           {/* 表示名 */}
           {editMode ? (
@@ -378,9 +432,10 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
             )
           )}
         </div>
+        </div>
 
         {/* カード一覧 */}
-        <div>
+        <div className="max-w-5xl mx-auto px-2 sm:px-4">
             {isOwner && cards.length > 0 && (() => {
               const atLimit = plan === 'free' && cards.length >= FREE_CARD_LIMIT
               return (
@@ -409,81 +464,71 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
             })()}
 
             {cards.length > 0 ? (
-              <div className="grid grid-cols-2 gap-x-3 gap-y-8">
+              <div className="grid gap-x-4 gap-y-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))' }}>
                 {cards.map(card => {
                   const isPortrait = orientations[card.id] === 'portrait'
-                  const colSpan = isPortrait ? 'col-span-1' : 'col-span-2'
+                  const colSpan = 'col-span-1'
                   return (
                     <div key={card.id} className={`group ${colSpan}`}>
-                      {editMode ? (
-                        <div className="flex items-center gap-2 mb-1 px-1">
-                          <input
-                            type="text"
-                            value={titleEdits[card.id] ?? card.title ?? ''}
-                            onChange={e => setTitleEdits(prev => ({ ...prev, [card.id]: e.target.value }))}
-                            maxLength={40}
-                            placeholder="タイトルを入力"
-                            className="flex-1 text-sm font-bold text-gray-700 bg-transparent border-b border-[#00AADB] focus:outline-none py-0.5"
-                          />
-                        </div>
-                      ) : card.title ? (
+                      {card.title ? (
                         <p className="text-sm font-bold text-gray-700 mb-0.5 px-1 truncate">{card.title}</p>
                       ) : null}
-                      <p className="text-[10px] text-gray-300 px-1 mb-1">{relativeDate(card.created_at)}</p>
-
                       {/* カードプレビュー本体 */}
-                      <Link href={`/card/${card.id}/view`} className="block cursor-pointer relative" style={{ padding: '20px 12px' }}>
-                        {cardBg(card.card_data) && (<>
-                          {/* 中心 */}
-                          <div aria-hidden style={{
-                            position: 'absolute',
-                            inset: '-12px -8px',
-                            background: cardBg(card.card_data)!,
-                            filter: 'blur(20px)',
-                            maskImage: 'radial-gradient(ellipse 80% 75% at 50% 50%, black 0%, black 40%, transparent 85%)',
-                            WebkitMaskImage: 'radial-gradient(ellipse 80% 75% at 50% 50%, black 0%, black 40%, transparent 85%)',
-                            opacity: 0.6,
-                            mixBlendMode: 'multiply',
-                            pointerEvents: 'none',
-                            zIndex: 0,
-                          }} />
-                          {/* 外側 */}
-                          <div aria-hidden style={{
-                            position: 'absolute',
-                            inset: '-80px -60px',
-                            background: cardBg(card.card_data)!,
-                            filter: 'blur(100px)',
-                            maskImage: 'radial-gradient(ellipse 75% 70% at 50% 50%, black 0%, transparent 75%)',
-                            WebkitMaskImage: 'radial-gradient(ellipse 75% 70% at 50% 50%, black 0%, transparent 75%)',
-                            opacity: 0.45,
-                            mixBlendMode: 'multiply',
-                            pointerEvents: 'none',
-                            zIndex: 0,
-                          }} />
-                        </>)}
-                        <div className="profile-card-hover" style={{ position: 'relative', zIndex: 1, borderRadius: 16, overflow: 'hidden', isolation: 'isolate' }}>
-                          <LiveCardPreview
-                            templateId={card.template_id}
-                            cardData={card.card_data}
-                            onOrientation={o => setOrientation(card.id, o)}
-                            transparentBg
-                          />
-                        </div>
-
-                        {/* 界隈タグ：左上に重ねる */}
-                        {card.communities?.length > 0 && (
-                          <div className="absolute top-1 left-2 flex gap-1 z-10 pointer-events-none">
-                            {card.communities.map((c, i) => (
-                              <span key={i} className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-sky-200 text-sky-400 bg-white/80 backdrop-blur-sm whitespace-nowrap">
-                                {c}
-                              </span>
-                            ))}
+                      <div className="relative" style={{ padding: '32px 16px' }}>
+                        {(() => {
+                          const bg = cardBg(card.card_data) ?? 'linear-gradient(135deg, #c7d2fe, #bae6fd)'
+                          const hasCustomBg = !!cardBg(card.card_data)
+                          const bgType = cardBgType(card.card_data)
+                          const isImage = bgType === 'image'
+                          return (<>
+                            {/* 近接層：カード背景をソリッドに表示 */}
+                            <div aria-hidden style={{
+                              position: 'absolute',
+                              inset: '28px 16px',
+                              background: bg,
+                              borderRadius: 12,
+                              opacity: hasCustomBg ? 1 : 0,
+                              boxShadow: hasCustomBg ? 'inset 0 0 0 1px rgba(0,0,0,0.06)' : 'none',
+                              pointerEvents: 'none',
+                              zIndex: 0,
+                            }} />
+                            {/* halo：カード輪郭から外側にぼかして広がる */}
+                            <div aria-hidden style={{
+                              position: 'absolute',
+                              inset: '10px 0px -18px',
+                              background: bg,
+                              borderRadius: 16,
+                              filter: isImage ? 'blur(18px)' : 'blur(14px)',
+                              opacity: hasCustomBg ? 0.25 : 0.12,
+                              pointerEvents: 'none',
+                              zIndex: 0,
+                            }} />
+                          </>)
+                        })()}
+                        <Link href={`/card/${card.id}/view`} className="profile-card-hover block cursor-pointer relative" style={{ zIndex: 1 }}>
+                          <div style={{ borderRadius: 16, overflow: 'hidden', isolation: 'isolate' }}>
+                            <LiveCardPreview
+                              templateId={card.template_id}
+                              cardData={card.card_data}
+                              onOrientation={o => setOrientation(card.id, o)}
+                              transparentBg
+                            />
                           </div>
-                        )}
 
-                        {/* オーナー操作：右下に重ねる */}
-                        {isOwner && (
-                          <div className="absolute bottom-1 right-2 flex gap-1.5 z-10" onClick={e => e.preventDefault()}>
+                          {/* 界隈タグ：左上に重ねる */}
+                          {card.communities?.length > 0 && (
+                            <div className="absolute top-1 left-2 flex gap-1 z-10 pointer-events-none">
+                              {card.communities.map((c, i) => (
+                                <span key={i} className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-sky-200 text-sky-400 bg-white/80 backdrop-blur-sm whitespace-nowrap">
+                                  {c}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* オーナー操作：右下に重ねる */}
+                          {isOwner && (
+                            <div className="absolute bottom-1 right-2 flex gap-1.5 z-10" onClick={e => e.preventDefault()}>
                             <button
                               onClick={() => handleCopyUrl(card.id)}
                               title="URLをコピー"
@@ -502,6 +547,15 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
                             }
                           </button>
                           <button
+                            title="共有ページを確認"
+                            className="w-8 h-8 flex items-center justify-center rounded-full border border-sky-200 text-sky-400 hover:text-[#00AADB] hover:border-sky-400 transition-all bg-white shadow-md"
+                            onClick={e => { e.stopPropagation(); e.preventDefault(); window.open(`/card/${card.id}/view`, '_blank') }}>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
+                          <button
                             title="編集"
                             className="w-8 h-8 flex items-center justify-center rounded-full border border-sky-200 text-sky-400 hover:text-[#00AADB] hover:border-sky-400 transition-all bg-white shadow-md"
                             onClick={e => { e.stopPropagation(); e.preventDefault(); router.push(`/card/${card.id}`) }}>
@@ -509,21 +563,22 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
                               <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                           </button>
-                          {editMode && (
-                            <button onClick={() => handleDelete(card.id)} disabled={deletingId === card.id}
-                              title="削除"
-                              className="w-8 h-8 flex items-center justify-center rounded-full border border-red-100 text-red-300 hover:text-red-500 hover:border-red-300 transition-all disabled:opacity-40 bg-white/80 backdrop-blur-sm">
-                              {deletingId === card.id
-                                ? <div className="w-3 h-3 border border-red-300 border-t-red-500 rounded-full animate-spin" />
-                                : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                              }
-                            </button>
-                          )}
+                            {editMode && (
+                              <button onClick={() => handleDelete(card.id)} disabled={deletingId === card.id}
+                                title="削除"
+                                className="w-8 h-8 flex items-center justify-center rounded-full border border-red-100 text-red-300 hover:text-red-500 hover:border-red-300 transition-all disabled:opacity-40 bg-white/80 backdrop-blur-sm">
+                                {deletingId === card.id
+                                  ? <div className="w-3 h-3 border border-red-300 border-t-red-500 rounded-full animate-spin" />
+                                  : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                }
+                              </button>
+                            )}
                           </div>
-                        )}
-                      </Link>
+                          )}
+                        </Link>
+                      </div>
                     </div>
                   )
                 })}

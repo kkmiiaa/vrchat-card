@@ -74,5 +74,21 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const isPro = plan === 'pro' &&
     (userRow.plan_expires_at == null || new Date(userRow.plan_expires_at) > new Date())
 
-  return <ProfilePage profile={profile} slug={slug} userRowId={userRow.id} cards={cards ?? []} isOwner={isOwner} plan={isPro ? 'pro' : 'free'} />
+  const { data: announcements } = await supabase
+    .from('announcements')
+    .select('id, title, body, published_at')
+    .eq('is_active', true)
+    .order('published_at', { ascending: false })
+
+  return (
+    <ProfilePage
+      profile={profile}
+      slug={slug}
+      userRowId={userRow.id}
+      cards={cards ?? []}
+      isOwner={isOwner}
+      plan={isPro ? 'pro' : 'free'}
+      announcements={announcements ?? []}
+    />
+  )
 }

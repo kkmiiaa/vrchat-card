@@ -1,198 +1,42 @@
 'use client'
 
-import React, { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams, usePathname } from 'next/navigation'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
 
-import type { CardTemplate, BlockValues, BackgroundValue, AgeValue, ActivityValue, SnsValue, StatusValue, GalleryValue } from '@/blocks/types'
+import type { CardTemplate, BlockValues, BackgroundValue, GalleryValue } from '@/blocks/types'
 import { createCard, updateCard } from '@/lib/saveCard'
 import { createClient } from '@/lib/supabase/client'
 import { uploadCardImage, ImageTooLargeError } from '@/lib/uploadImage'
-import type { InteractionItem } from '@/blocks/interactions'
 import type { FontKey } from '@/components/FontSelector'
 import { fontMap } from '@/components/CanvasRenderer'
 import { getCroppedImg } from '@/utils/cropUtils'
+import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
 import { translations } from '@/utils/translations'
+import { useCardValues } from '@/hooks/useCardValues'
+import { useCardExport } from '@/hooks/useCardExport'
 import AccordionSection from '@/components/AccordionSection'
 import HeaderAuth from '@/components/HeaderAuth'
 import OnboardingBanner from '@/components/OnboardingBanne'
 import FloatingButtons from '@/components/FloatingButtons'
 import PostTimeline from '@/components/PostTimeline'
-import CardV2 from '@/components/CardV2'
-import CardV1 from '@/components/CardV1'
+import CardScaledView from '@/components/CardScaledView'
+import AnnouncementBanner from '@/components/AnnouncementBanner'
 
 const STORAGE_KEY = 'vrchat-card-cache'
 
-// v1/v2 共通カードプレビューコンポーネント
-const CardPreview = forwardRef<HTMLDivElement, {
-  template: CardTemplate
-  values: BlockValues
-  scale: number
-  profileImageBase64: string | null
-  bg: BackgroundValue
-  sns: SnsValue
-  status: StatusValue
-  age: AgeValue
-  activity: ActivityValue
-  gallery: GalleryValue
-  interactions: InteractionItem[]
-  fontFamily: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  t: Record<string, any>
-  isInteractive?: boolean
-}>(function CardPreview({ template, values, scale, profileImageBase64, bg, sns, status, age, activity, gallery, interactions, fontFamily, t, isInteractive }, ref) {
-  const frLabels = {
-    frPolicyAnyone: (t as Record<string, string>).frPolicyAnyone,
-    frPolicyAfterGettingToKnow: (t as Record<string, string>).frPolicyAfterGettingToKnow,
-    frPolicyIfInterested: (t as Record<string, string>).frPolicyIfInterested,
-    frPolicyMutualsOnX: (t as Record<string, string>).frPolicyMutualsOnX,
-    frPolicyNo: (t as Record<string, string>).frPolicyNo,
-  }
-  const bgValue = (bg.imageFile ? '' : bg.value) as string | [string, string]
-
-  if (template.id === 'v2') {
-    const W = 900, H = 506
-    return (
-      <div className={isInteractive ? '' : 'shadow-md'} style={{ width: W * scale, height: H * scale, position: 'relative', overflow: 'hidden', flexShrink: 0, borderRadius: isInteractive ? 0 : undefined }}>
-        <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', position: 'absolute', top: 0, left: 0 }}>
-          <CardV2
-            ref={ref}
-            name={values.name as string ?? ''}
-            profileImageBase64={profileImageBase64}
-            profileImageUrl={values.profileImageUrl as string | null ?? null}
-            gender={values.gender as string}
-            language={values.language as string[]}
-            playEnv={values.playEnv as string[]}
-            micOnRate={values.micOnRate as number}
-            selfIntro={values.selfIntro as string}
-            vrchatId={sns.vrchatId}
-            twitterId={sns.twitterId}
-            discordId={sns.discordId}
-            statusBlue={status.blue}
-            statusGreen={status.green}
-            statusYellow={status.yellow}
-            statusRed={status.red}
-            interactions={interactions}
-            backgroundType={bg.type}
-            backgroundValue={bgValue}
-            backgroundImageBase64={bg.base64 ?? null}
-            fontFamily={fontFamily}
-            okNgLabels={(t as Record<string, Record<string, string>>).okNgDefaults}
-            ageDisplay={age.display || age.mode}
-            trustRank={values.trustRank as string}
-            activeDays={activity.days}
-            daysMode={activity.daysMode}
-            weekdayTimesMode={activity.weekdayTimesMode}
-            holidayTimesMode={activity.holidayTimesMode}
-            weekdayStart={activity.weekdayStart}
-            weekdayEnd={activity.weekdayEnd}
-            holidayStart={activity.holidayStart}
-            holidayEnd={activity.holidayEnd}
-            friendPolicy={sns.friendPolicy ? [sns.friendPolicy] : []}
-            friendPolicyLabels={frLabels}
-            galleryImages={gallery.enabled ? gallery.base64 : undefined}
-            isInteractive={isInteractive}
-          />
-        </div>
-      </div>
-    )
-  }
-
-  // v1
-  const W = 900, H = 506
-  return (
-    <div className={isInteractive ? '' : 'shadow-md'} style={{ width: W * scale, height: H * scale, position: 'relative', overflow: 'hidden', flexShrink: 0, borderRadius: isInteractive ? 0 : undefined }}>
-      <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', position: 'absolute', top: 0, left: 0 }}>
-        <CardV1
-          ref={ref}
-          name={values.name as string ?? ''}
-          profileImageBase64={profileImageBase64}
-          profileImageUrl={values.profileImageUrl as string | null ?? null}
-          gender={values.gender as string}
-          language={values.language as string[]}
-          playEnv={values.playEnv as string[]}
-          micOnRate={values.micOnRate as number}
-          selfIntro={values.selfIntro as string}
-          vrchatId={sns.vrchatId}
-          twitterId={sns.twitterId}
-          discordId={sns.discordId}
-          statusBlue={status.blue}
-          statusGreen={status.green}
-          statusYellow={status.yellow}
-          statusRed={status.red}
-          interactions={interactions}
-          backgroundType={bg.type}
-          backgroundValue={bgValue}
-          backgroundImageBase64={bg.base64 ?? null}
-          fontFamily={fontFamily}
-          showBalloon={values.showBalloon as boolean ?? true}
-          friendPolicy={Array.isArray(values.friendPolicy) ? values.friendPolicy.filter(Boolean) : [values.friendPolicy as string].filter(Boolean)}
-          friendPolicyLabels={frLabels}
-          okNgLabels={(t as Record<string, Record<string, string>>).okNgDefaults}
-          galleryEnabled={gallery.enabled}
-          galleryImagesBase64={gallery.enabled ? gallery.base64 : undefined}
-          isInteractive={isInteractive}
-        />
-      </div>
-    </div>
-  )
-})
-
-// --- localStorage 旧フォーマット → 新フォーマット変換 ---
-function migrateFromOld(raw: Record<string, unknown>): BlockValues {
-  if (raw.sns) return raw as BlockValues  // 既に新フォーマット
-  const presets = ['18歳未満', '18+', '非公開']
-  const ageDisplay = (raw.ageDisplay as string) ?? ''
-  return {
-    name:        raw.name        ?? '',
-    gender:      raw.gender      ?? '',
-    language:    raw.language    ?? [],
-    playEnv:     raw.playEnv     ?? [],
-    micOnRate:   raw.micOnRate   ?? 0,
-    selfIntro:   raw.selfIntro   ?? '',
-    sns: {
-      vrchatId:  raw.vrchatId  ?? '',
-      twitterId: raw.twitterId ?? '',
-      discordId: raw.discordId ?? '',
-    },
-    status: {
-      blue:   raw.statusBlue   ?? '',
-      green:  raw.statusGreen  ?? '',
-      yellow: raw.statusYellow ?? '',
-      red:    raw.statusRed    ?? '',
-    },
-    friendPolicy: Array.isArray(raw.friendPolicy) ? raw.friendPolicy : (raw.friendPolicy ?? ''),
-    interactions: raw.interactions ?? [],
-    background: {
-      type:  raw.backgroundType  ?? 'image',
-      value: raw.backgroundValue ?? '/backgrounds/bg_1.webp',
-    },
-    age: {
-      mode:    presets.includes(ageDisplay) ? ageDisplay : (ageDisplay ? '自由入力' : ''),
-      display: ageDisplay,
-    },
-    trustRank: raw.trustRank ?? '',
-    activity: {
-      days:          [true, true, true, true, true, false, false],
-      weekdayStart:  raw.weekdayStart  ?? '',
-      weekdayEnd:    raw.weekdayEnd    ?? '',
-      holidayStart:  raw.holidayStart  ?? '',
-      holidayEnd:    raw.holidayEnd    ?? '',
-    },
-    font:        'rounded',
-    showBalloon: raw.showBalloon ?? true,
-  }
-}
+type Announcement = { id: string; title: string; body: string; published_at: string }
 
 type Props = {
   template: CardTemplate
   cardId?: string
   initialValues?: Record<string, unknown>
   readOnly?: boolean
+  announcements?: Announcement[]
 }
 
-export default function CardEditor({ template, cardId: initialCardId, initialValues, readOnly = false }: Props) {
+export default function CardEditor({ template, cardId: initialCardId, initialValues, readOnly = false, announcements = [] }: Props) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -209,17 +53,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   }, [pathname, searchParams])
 
   // --- Block values ---
-  const initValues = (): BlockValues => {
-    const v: BlockValues = {}
-    for (const b of template.blocks) v[b.key] = b.defaultValue
-    return v
-  }
-  const [values, setValues] = useState<BlockValues>(initValues)
-  const updateValue = (key: string, val: unknown) =>
-    setValues(prev => ({ ...prev, [key]: val }))
-
-  const [hasMounted, setHasMounted] = useState(false)
-  const [initialized, setInitialized] = useState(false)
+  const { values, updateValue, initialized } = useCardValues(template.blocks, initialValues)
 
   // --- Profile image (special: cropper) ---
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null)
@@ -230,15 +64,17 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
 
-  // --- card ref & scale ---
-  const cardRef       = useRef<HTMLDivElement | null>(null)
-  const cardExportRef = useRef<HTMLDivElement | null>(null) // エクスポート専用（フルサイズ）
+  // --- Export ---
+  const { exportRef: cardExportRef, downloading, generatePng: getCardDataUrl, downloadPng: handleDownload } = useCardExport()
+
+  // --- card scale ---
   const [cardScale, setCardScale] = useState(1)
 
   // --- UI state ---
   const [previewOpen, setPreviewOpen]       = useState(false)
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
   const [currentUrlDisplay, setCurrentUrlDisplay] = useState('')
+  const [saveModalLoading, setSaveModalLoading] = useState(false)
 
   // --- Backend state ---
   const [cardId, setCardId] = useState<string | null>(initialCardId ?? null)
@@ -330,12 +166,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
   // helpers
   const bg         = (values.background  as BackgroundValue) ?? { type: 'image', value: '/backgrounds/bg_1.webp' }
-  const sns        = (values.sns         as SnsValue)        ?? { vrchatId: '', twitterId: '', discordId: '' }
-  const status     = (values.status      as StatusValue)     ?? { blue: '', green: '', yellow: '', red: '' }
-  const age        = (values.age         as AgeValue)        ?? { mode: '', display: '' }
-  const activity   = (values.activity    as ActivityValue)   ?? { days: [true,true,true,true,true,false,false], weekdayStart:'', weekdayEnd:'', holidayStart:'', holidayEnd:'' }
   const gallery    = (values.gallery     as GalleryValue)    ?? { enabled: false, images: [null,null,null], base64: [null,null,null] }
-  const interactions = (values.interactions as InteractionItem[]) ?? []
   const fontKey    = (values.font        as FontKey)         ?? 'rounded'
   const fontFamily = fontMap[fontKey]?.style?.fontFamily ?? 'sans-serif'
 
@@ -343,9 +174,6 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   useEffect(() => {
     setCurrentUrlDisplay(window.location.origin + pathname + (systemLanguage === 'en' ? '?lang=en' : ''))
   }, [pathname, systemLanguage])
-
-  // hasMounted
-  useEffect(() => { setHasMounted(true) }, [])
 
   // カードスケール（v1: 1200px幅, v2: 900px幅を基準）
   useEffect(() => {
@@ -391,52 +219,6 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialized, bg.type, bg.value, bg.imageFile])
 
-  // 初期値読み込み（バックエンド優先、なければ localStorage）
-  useEffect(() => {
-    if (!hasMounted || initialized) return
-    const blockKeys = new Set(template.blocks.map(b => b.key))
-    if (initialValues) {
-      setValues(prev => {
-        const next = { ...prev }
-        for (const key of blockKeys) {
-          if (initialValues[key] !== undefined) next[key] = initialValues[key]
-        }
-        // blockKeys 外のカスタムフィールドも復元
-        if (initialValues.profileImageUrl) next.profileImageUrl = initialValues.profileImageUrl
-        return next
-      })
-    } else {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY)
-        if (saved) {
-          const raw = JSON.parse(saved)
-          const migrated = migrateFromOld(raw)
-          setValues(prev => {
-            const next = { ...prev }
-            for (const key of blockKeys) {
-              if (migrated[key] !== undefined) next[key] = migrated[key]
-            }
-            return next
-          })
-        }
-      } catch (e) {
-        console.warn('localStorage 読み込み失敗:', e)
-      }
-    }
-    setInitialized(true)
-  }, [hasMounted, initialized, template.blocks, initialValues])
-
-  // localStorage 保存
-  useEffect(() => {
-    if (!initialized) return
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(values))
-    } catch (e) {
-      console.warn('localStorage 保存失敗:', e)
-    }
-  }, [values, initialized])
-
-
   // --- Profile image handlers ---
   const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -478,27 +260,6 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     })
   }
 
-  // --- Export ---
-  const getCardDataUrl = async (): Promise<string | null> => {
-    if (!cardExportRef.current) return null
-    const { toPng } = await import('html-to-image')
-    return await toPng(cardExportRef.current, { pixelRatio: 2 })
-  }
-
-  const handleDownload = async () => {
-    const dataUrl = await getCardDataUrl()
-    if (!dataUrl) return
-    if (window.innerWidth < 768) {
-      const win = window.open()
-      if (win) win.document.write(`<img src="${dataUrl}" style="width:100%;height:auto;" />`)
-    } else {
-      const link = document.createElement('a')
-      link.href = dataUrl
-      link.download = 'vrchat-introduction-card.png'
-      link.click()
-    }
-  }
-
   const handleShareByUrl = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -506,6 +267,8 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       window.location.href = `/auth/login?next=${encodeURIComponent(currentUrl)}`
       return
     }
+
+    setSaveModalLoading(true)
 
     const dataUrl = await getCardDataUrl()
     let currentCardId = cardId
@@ -516,8 +279,10 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         cardData: values as Record<string, unknown>,
         title: (values.name as string) || 'My Card',
         communities,
+        communitySlug: template.communitySlug,
       })
       if ('error' in result) {
+        setSaveModalLoading(false)
         if (result.error === 'card_limit_reached') {
           window.location.href = '/upgrade'
         } else {
@@ -533,9 +298,13 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       await updateCard({ cardId: currentCardId, imageBase64: dataUrl, cardData: values as Record<string, unknown> })
     }
 
+    await updateCard({ cardId: currentCardId, visibility: 'public' })
+    setVisibility('public')
+    setSaveModalLoading(false)
     window.location.href = `/card/${currentCardId}`
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardId, values, communities, template.id, supabase])
+
 
   // V1ログイン後の自動マイグレーション
   const autoMigrateRef = useRef(false)
@@ -589,15 +358,6 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         <div className="flex items-center gap-3">
           {/* PC のみヘッダーにボタン表示 */}
           <div className="hidden sm:flex items-center gap-2">
-            {!cardId && (
-              <button onClick={handleShareByUrl}
-                className="flex items-center gap-1.5 text-xs font-semibold text-sky-500 border border-sky-200 rounded-full px-4 py-1.5 hover:border-[#00AADB] hover:bg-sky-50 transition-all">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-                {isLoggedIn ? 'プロフィールに保存' : 'マイページを作成して保存'}
-              </button>
-            )}
             <button onClick={handlePostToX}
               className="flex items-center gap-1.5 text-xs font-medium text-white bg-black rounded-lg px-3 py-1.5 hover:bg-gray-800 transition-colors">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -606,11 +366,18 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
               {t.share}
             </button>
             <button onClick={handleDownload}
-              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] rounded-full px-4 py-1.5 hover:opacity-90 transition-opacity shadow-sm shadow-sky-200">
+              className="flex items-center gap-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               {t.save}
+            </button>
+            <button onClick={handleShareByUrl}
+              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] rounded-full px-4 py-1.5 hover:opacity-90 transition-opacity shadow-sm shadow-sky-200">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              {isLoggedIn ? 'マイページに保存' : 'マイページを作成'}
             </button>
           </div>
           <HeaderAuth />
@@ -648,27 +415,27 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
           className="w-full max-w-full flex items-center justify-center lg:flex-1 lg:min-w-0 lg:h-full lg:px-6 lg:static fixed lg:top-auto z-10 sm:h-auto cursor-zoom-in sm:cursor-default"
           onClick={e => { if (window.innerWidth < 768) { e.preventDefault(); handlePreviewOpen() } }}
           style={{
-            background: (() => {
-              if (bg.type === 'color' && typeof bg.value === 'string') return bg.value
-              if (bg.type === 'gradient' && Array.isArray(bg.value)) return `linear-gradient(135deg, ${bg.value[0]}, ${bg.value[1]})`
-              if (bg.type === 'image') return bg.base64 ? `url(${bg.base64}) center/cover no-repeat` : (typeof bg.value === 'string' ? `url(${bg.value}) center/cover no-repeat` : undefined)
-              return 'linear-gradient(135deg, #c7d2fe, #fbcfe8, #fde68a)'
-            })(),
+            background: getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK) ?? undefined,
             top: 48,
           }}
         >
-          {!debugMode && <CardPreview ref={cardRef} template={template} values={values} scale={cardScale} profileImageBase64={profileImageBase64} bg={bg} sns={sns} status={status} age={age} activity={activity} gallery={gallery} interactions={interactions} fontFamily={fontFamily} t={t} isInteractive />}
+          {!debugMode && <CardScaledView template={template} values={values} scale={cardScale} fontFamily={fontFamily} t={t} isInteractive />}
         </section>
 
         {/* エクスポート専用（フルサイズ、画面外に配置） */}
         <div style={debugMode
           ? { overflow: 'hidden', margin: '16px auto', outline: '2px dashed red' }
           : { position: 'fixed', top: -9999, left: -9999, overflow: 'hidden', pointerEvents: 'none' }}>
-          <CardPreview ref={cardExportRef} template={template} values={values} scale={1} profileImageBase64={profileImageBase64} bg={bg} sns={sns} status={status} age={age} activity={activity} gallery={gallery} interactions={interactions} fontFamily={fontFamily} t={t} />
+          <CardScaledView innerRef={cardExportRef} template={template} values={values} scale={1} fontFamily={fontFamily} t={t} />
         </div>
 
         {/* フォームサイドバー */}
-        <aside className="lg:w-[400px] lg:min-w-[400px] lg:max-w-[500px] lg:flex-none w-full overflow-y-auto flex-1 p-2 lg:border-t-0 lg:border-l mt-[calc(100vw*9/16+16px)] pt-0 lg:mt-4 bg-white text-gray-800">
+        <aside className="lg:w-[400px] lg:min-w-[400px] lg:max-w-[500px] lg:flex-none w-full overflow-y-auto flex-1 p-2 lg:border-t-0 lg:border-l bg-white text-gray-800 isolate">
+
+          {/* モバイルでfixedカードプレビューの下にフォームが来るためのスペーサー */}
+          <div className="lg:hidden" style={{ height: 'calc(100vw * 9 / 16 + 16px)' }} />
+
+          <AnnouncementBanner announcements={announcements} />
 
           {/* テンプレートの順番通りにセクションを描画 */}
           {template.sections.map(section => {
@@ -712,44 +479,6 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
               )
             })}
 
-          {/* 公開設定（cardId がある場合のみ表示） */}
-          {cardId && (
-            <div className="w-full max-w-screen-md mx-auto px-2 mt-4">
-              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">公開設定</h2>
-              <div className="flex gap-2">
-                {([
-                  { value: 'public', label: '公開', icon: (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  ) },
-                  { value: 'limited', label: 'URLのみ', icon: (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                    </svg>
-                  ) },
-                  { value: 'private', label: '非公開', icon: (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  ) },
-                ] as { value: 'public' | 'limited' | 'private'; label: string; icon: React.ReactNode }[]).map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => handleVisibilityChange(opt.value)}
-                    className={`flex-1 flex flex-col items-center gap-1 py-2 px-3 rounded-lg border text-xs font-medium transition-all ${
-                      visibility === opt.value
-                        ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
-                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                    }`}
-                  >
-                    {opt.icon}
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           <PostTimeline t={t} />
 
@@ -762,8 +491,16 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         </aside>
       </div>
 
-      <FloatingButtons onSave={handleDownload} onShare={handlePostToX} onUpgrade={handleShareByUrl} t={t} upgradeLabel={!cardId ? (isLoggedIn ? 'プロフィールに保存' : 'マイページを作成して保存') : undefined} />
+      <FloatingButtons onSave={handleShareByUrl} onShare={handlePostToX} onDownload={handleDownload} t={t} />
 
+      {/* 保存中オーバーレイ */}
+      {saveModalLoading && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl px-8 py-6 text-sm text-gray-600 font-medium shadow-xl">
+            保存中...
+          </div>
+        </div>
+      )}
 
     </main>
     <OnboardingBanner t={t} />

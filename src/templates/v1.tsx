@@ -3,7 +3,7 @@ import type { CardTemplate } from '@/blocks/types'
 import type { SnsValue, StatusValue, BackgroundValue, GalleryValue } from '@/blocks/types'
 import type { InteractionItem } from '@/blocks/interactions'
 import { nameBlock }         from '@/blocks/name'
-import { genderBlock }       from '@/blocks/gender'
+import { genderBlock, genderTagBlock } from '@/blocks/gender'
 import { playEnvBlock }      from '@/blocks/playEnv'
 import { languageBlock }     from '@/blocks/language'
 import { micOnRateBlock }    from '@/blocks/micOnRate'
@@ -27,13 +27,14 @@ export const v1Template: CardTemplate = {
   badge: '定番',
   badgeColor: 'bg-sky-100 text-sky-500',
   communities: ['VRChat'],
+  communitySlug: 'vrchat',
   cardWidth: CARD_V1_WIDTH,
   cardHeight: CARD_V1_HEIGHT,
   portraitWidth: CARD_V1_PORTRAIT_WIDTH,
   portraitHeight: CARD_V1_PORTRAIT_HEIGHT,
   sections: [
     { titleKey: 'カードデザイン',   blockKeys: ['background', 'font', 'showBalloon'], defaultOpen: true },
-    { titleKey: 'プロフィール情報', blockKeys: ['name', 'gender', 'age'] },
+    { titleKey: 'プロフィール情報', blockKeys: ['name', 'genderTag', 'gender', 'age'] },
     { titleKey: 'SNS・コンタクト', blockKeys: ['sns', 'friendPolicy', 'status', 'interactions'] },
     { titleKey: '自己紹介・画像',   blockKeys: ['selfIntro', 'gallery'] },
     { titleKey: '使用環境・言語',   blockKeys: ['playEnv', 'language', 'micOnRate'] },
@@ -43,6 +44,7 @@ export const v1Template: CardTemplate = {
     fontBlock,
     showBalloonBlock,
     nameBlock,
+    genderTagBlock,
     genderBlock,
     ageBlock,
     playEnvBlock,
@@ -76,6 +78,7 @@ export const v1Template: CardTemplate = {
         name={values.name as string ?? ''}
         profileImageBase64={values.profileImageBase64 as string | null ?? null}
         profileImageUrl={values.profileImageUrl as string | null ?? null}
+        genderTag={values.genderTag as string}
         gender={values.gender as string}
         language={values.language as string[]}
         playEnv={values.playEnv as string[]}
@@ -109,6 +112,7 @@ export const v1Template: CardTemplate = {
       <CardV1
         name="vaacard User"
         profileImageBase64={null}
+        genderTag="male"
         gender="男性"
         language={['日本語', 'English']}
         playEnv={['PCVR', 'Quest']}

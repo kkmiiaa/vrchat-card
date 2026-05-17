@@ -41,7 +41,7 @@ export type ResolvedComponent = {
  * 既存のcard_dataスキーマとの橋渡し
  */
 export const VRCHAT_COMPONENT_KEY_MAP: Record<string, string> = {
-  gender:        'gender',
+  gender:        'genderTag',
   platform:      'playEnv',
   language:      'language',
   friend_policy: 'friendPolicy',
@@ -61,7 +61,7 @@ export const VRCHAT_SEARCHABLE_COMPONENTS: ResolvedComponent[] = [
     input_type: 'select',
     is_searchable: true,
     is_required: false,
-    options: ['男性', '女性', 'その他', '非公開'],
+    options: ['male', 'female', 'nonbinary', 'none'],
     sort_order: 10,
   },
   {

@@ -23,6 +23,11 @@ type Filters = {
   friendPolicy: string
 }
 
+const GENDER_OPTIONS = [
+  { value: 'male',      label: '男性' },
+  { value: 'female',    label: '女性' },
+  { value: 'nonbinary', label: 'ノンバイナリ' },
+]
 const ENV_OPTIONS = ['PCVR', 'Quest', 'Desktop']
 const LANG_OPTIONS = ['日本語', 'English', 'Korean']
 const POLICY_OPTIONS = [
@@ -139,24 +144,19 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn }: Props
             <div>
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">性別</p>
               <div className="flex gap-2 flex-wrap">
-                {['男性', '女性', 'その他'].map(g => (
+                {GENDER_OPTIONS.map(({ value, label }) => (
                   <button
-                    key={g}
-                    onClick={() => toggleFilter('gender', g)}
+                    key={value}
+                    onClick={() => toggleFilter('gender', value)}
                     className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${
-                      filters.gender === g
+                      filters.gender === value
                         ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
                         : 'border-gray-200 text-gray-500 hover:border-gray-300'
                     }`}
                   >
-                    {g}
+                    {label}
                   </button>
                 ))}
-                {filters.gender && !['男性', '女性', 'その他'].includes(filters.gender) && (
-                  <span className="px-3 py-1 text-xs font-medium rounded-full border border-[#00AADB] bg-sky-50 text-[#00AADB]">
-                    {filters.gender}
-                  </span>
-                )}
               </div>
             </div>
 

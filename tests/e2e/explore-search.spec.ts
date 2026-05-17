@@ -16,6 +16,7 @@ import { test, expect } from '@playwright/test';
 const UNIQUE_TAG = `e2etest${Date.now()}`
 const BASE_CARD_DATA = {
   name: `テスト太郎_${UNIQUE_TAG}`,
+  genderTag: 'male',
   gender: '男性',
   playEnv: ['PCVR'],
   language: ['日本語'],
@@ -98,7 +99,7 @@ test.describe('/api/cards/explore — 検索テスト', () => {
   test.describe('フィルター検索（Proプランのみ有効）', () => {
     test('性別フィルターで絞り込める', async ({ request }) => {
       if (!publicCardId) return test.skip();
-      const res = await request.get('/api/cards/explore?gender=男性');
+      const res = await request.get('/api/cards/explore?gender=male');
       const json = await res.json();
       if (!json.isPro) return test.skip(); // フリープランはスキップ
 
@@ -106,7 +107,7 @@ test.describe('/api/cards/explore — 検索テスト', () => {
       expect(found, '性別フィルターで作成済みカードがヒットしない').toBeTruthy();
 
       // 非一致の性別では返ってこないこと
-      const res2 = await request.get('/api/cards/explore?gender=女性');
+      const res2 = await request.get('/api/cards/explore?gender=female');
       const json2 = await res2.json();
       const notFound = !json2.cards.some((c: { id: string }) => c.id === publicCardId);
       expect(notFound, '性別フィルターが効いていない（女性検索で男性カードがヒットした）').toBeTruthy();
@@ -159,7 +160,7 @@ test.describe('/api/cards/explore — 検索テスト', () => {
 
     test('複数フィルターの組み合わせで絞り込める', async ({ request }) => {
       if (!publicCardId) return test.skip();
-      const res = await request.get('/api/cards/explore?gender=男性&env=PCVR&lang=日本語');
+      const res = await request.get('/api/cards/explore?gender=male&env=PCVR&lang=日本語');
       const json = await res.json();
       if (!json.isPro) return test.skip();
 

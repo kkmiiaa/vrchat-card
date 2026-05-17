@@ -1,7 +1,15 @@
 'use client'
 
 import React, { forwardRef } from 'react'
+import { PiGenderMaleBold, PiGenderFemaleBold, PiGenderIntersexBold } from 'react-icons/pi'
 import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
+
+function GenderIcon({ tag, size = 13 }: { tag?: string; size?: number }) {
+  if (tag === 'male')      return <PiGenderMaleBold size={size} />
+  if (tag === 'female')    return <PiGenderFemaleBold size={size} />
+  if (tag === 'nonbinary') return <PiGenderIntersexBold size={size} />
+  return null
+}
 
 type Interaction = {
   label: string
@@ -13,6 +21,7 @@ type Props = {
   name: string
   profileImageBase64: string | null
   profileImageUrl?: string | null
+  genderTag?: string
   gender?: string
   language?: string[]
   playEnv?: string[]
@@ -130,7 +139,7 @@ const STATUS_COLORS = ['#3b82f6', '#22c55e', '#f97316', '#ef4444']
 
 const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
   {
-    name, profileImageBase64, profileImageUrl, gender, language, playEnv, micOnRate = 0,
+    name, profileImageBase64, profileImageUrl, genderTag, gender, language, playEnv, micOnRate = 0,
     selfIntro, vrchatId, twitterId, discordId,
     statusBlue, statusGreen, statusYellow, statusRed,
     friendPolicy, interactions,
@@ -231,7 +240,10 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <LabelRow title={L.gender} sub={L.sub_gender} fontFamily={fontFamily} large />
                     <div style={pBox()}>
-                      <div style={{ fontSize: pFs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{gender || '—'}</div>
+                      <div style={{ fontSize: pFs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <GenderIcon tag={genderTag} size={pFs} />
+                        {gender || (genderTag && genderTag !== 'none' ? '' : '—')}
+                      </div>
                     </div>
                   </div>
                   <div style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
@@ -477,7 +489,10 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
             <div style={{ flex: 1 }}>
               <LabelRow title={L.gender} sub={L.sub_gender} fontFamily={fontFamily} />
               <div style={box()}>
-                <div style={{ fontSize: fs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{gender || '—'}</div>
+                <div style={{ fontSize: fs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <GenderIcon tag={genderTag} size={fs} />
+                  {gender || (genderTag && genderTag !== 'none' ? '' : '—')}
+                </div>
               </div>
             </div>
             <div style={{ flex: 2 }}>

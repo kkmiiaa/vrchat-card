@@ -46,7 +46,7 @@ export const genderBlock: Block<string> = {
   FormItem({ value, onChange, t }) {
     return (
       <div className="flex flex-col gap-2">
-        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.gender_text ?? '性別テキスト'}</h2>
+        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">性別テキスト</h2>
         <input
           type="text"
           value={value}

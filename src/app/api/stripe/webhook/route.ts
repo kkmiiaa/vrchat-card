@@ -5,6 +5,12 @@ import type Stripe from 'stripe'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? ''
 
+function getPeriodEnd(sub: Stripe.Subscription): number {
+  // Stripe API 2026-04-22.dahlia 以降、current_period_end は items.data[0] に移動
+  const item = sub.items?.data?.[0] as unknown as { current_period_end?: number }
+  return item?.current_period_end ?? Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function setProPlan(supabase: SupabaseClient<any>, userId: string, periodEnd: number) {
   const expiresAt = new Date(periodEnd * 1000).toISOString()
@@ -36,8 +42,12 @@ export async function POST(request: NextRequest) {
       const userId = session.metadata?.user_id
       if (!userId || !session.subscription) break
 
-      const sub = await stripe.subscriptions.retrieve(session.subscription as string)
-      await setProPlan(supabase, userId, (sub as unknown as { current_period_end: number }).current_period_end)
+      const sub = await stripe.subscriptions.retrieve(session.subscription as string, { expand: ['items'] })
+      await setProPlan(supabase, userId, getPeriodEnd(sub))
+
+      if (session.customer) {
+        await supabase.from('users').update({ stripe_customer_id: session.customer as string }).eq('id', userId)
+      }
       break
     }
 
@@ -48,10 +58,10 @@ export async function POST(request: NextRequest) {
         : invoice.subscription?.id
       if (!subId) break
 
-      const sub = await stripe.subscriptions.retrieve(subId)
+      const sub = await stripe.subscriptions.retrieve(subId, { expand: ['items'] })
       const userId = sub.metadata?.user_id
       if (!userId) break
-      await setProPlan(supabase, userId, (sub as unknown as { current_period_end: number }).current_period_end)
+      await setProPlan(supabase, userId, getPeriodEnd(sub))
       break
     }
 

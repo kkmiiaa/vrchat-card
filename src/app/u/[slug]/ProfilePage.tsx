@@ -360,7 +360,18 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
               placeholder="あなたの名前"
               className="text-lg font-bold text-gray-900 text-center bg-transparent border-b-2 border-[#00AADB] focus:outline-none w-full max-w-[200px]" />
           ) : (
-            <h1 className="text-lg font-bold text-gray-900 tracking-tight">{displayName || currentSlug}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-bold text-gray-900 tracking-tight">{displayName || currentSlug}</h1>
+              {plan === 'pro' && (
+                <span className="text-[10px] font-bold bg-gradient-to-r from-sky-400 to-violet-400 text-white px-2 py-0.5 rounded-full leading-none">PRO</span>
+              )}
+            </div>
+          )}
+          {/* 設定ボタン（オーナーのみ） */}
+          {isOwner && !editMode && (
+            <Link href="/settings" className="mt-1 text-[11px] text-gray-400 hover:text-gray-600 transition-colors">
+              設定
+            </Link>
           )}
 
           {/* スラッグ */}

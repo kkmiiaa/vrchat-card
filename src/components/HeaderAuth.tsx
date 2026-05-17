@@ -42,7 +42,7 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
     const iconColor = variant === 'white' ? 'text-white/70 hover:text-white' : 'text-gray-400 hover:text-gray-600'
     return (
       <div className="flex items-center gap-3">
-        {isPro && <ProBadge size={22} />}
+        {isPro && <ProBadge size={18} />}
         {!hideMyPage && (
           <Link
             href={`/u/${slug}`}

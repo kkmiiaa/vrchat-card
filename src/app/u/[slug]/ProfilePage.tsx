@@ -363,7 +363,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
           ) : (
             <div className="flex items-center gap-1.5">
               <h1 className="text-lg font-bold text-gray-900 tracking-tight">{displayName || currentSlug}</h1>
-              {plan === 'pro' && <ProBadge size={20} />}
+              {plan === 'pro' && <ProBadge size={16} />}
             </div>
           )}
 

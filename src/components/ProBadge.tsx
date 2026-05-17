@@ -1,10 +1,10 @@
-import { PiStarFourFill } from 'react-icons/pi'
+import { PiStarFill } from 'react-icons/pi'
 
 type Props = {
   size?: number
 }
 
-export default function ProBadge({ size = 20 }: Props) {
+export default function ProBadge({ size = 16 }: Props) {
   return (
     <span
       title="Pro プラン"
@@ -15,11 +15,12 @@ export default function ProBadge({ size = 20 }: Props) {
         width: size,
         height: size,
         borderRadius: '50%',
-        background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+        background: 'linear-gradient(135deg, #FCD34D, #FBBF24)',
         flexShrink: 0,
+        verticalAlign: 'middle',
       }}
     >
-      <PiStarFourFill size={size * 0.55} color="white" />
+      <PiStarFill size={size * 0.58} color="white" />
     </span>
   )
 }

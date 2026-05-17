@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { IoSettingsOutline } from 'react-icons/io5'
-import { PiStarFourFill } from 'react-icons/pi'
+import ProBadge from '@/components/ProBadge'
 
 export default function HeaderAuth({ variant = 'default', hideMyPage = false }: { variant?: 'default' | 'white'; hideMyPage?: boolean }) {
   const [slug, setSlug] = useState<string | null>(null)
@@ -42,13 +42,7 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
     const iconColor = variant === 'white' ? 'text-white/70 hover:text-white' : 'text-gray-400 hover:text-gray-600'
     return (
       <div className="flex items-center gap-3">
-        {isPro && (
-          <PiStarFourFill
-            size={16}
-            className={variant === 'white' ? 'text-yellow-300' : 'text-yellow-400'}
-            title="Pro プラン"
-          />
-        )}
+        {isPro && <ProBadge size={22} />}
         {!hideMyPage && (
           <Link
             href={`/u/${slug}`}

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import ProBadge from '@/components/ProBadge'
 
 type Props = {
   email: string
@@ -78,7 +79,7 @@ export default function SettingsClient({ email, isPro, planExpiresAt, hasStripeC
                 <>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-gray-800">Pro プラン</span>
-                    <svg viewBox="0 0 16 16" className="w-4 h-4 text-yellow-400 fill-current"><path d="M8 1l1.8 3.6L14 5.6l-3 2.9.7 4.1L8 10.6l-3.7 2 .7-4.1-3-2.9 4.2-.6z"/></svg>
+                    <ProBadge size={18} />
                   </div>
                   {expiresLabel && (
                     <p className="text-xs text-gray-400 mt-0.5">次回更新: {expiresLabel}</p>

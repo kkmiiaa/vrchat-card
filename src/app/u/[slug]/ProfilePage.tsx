@@ -18,6 +18,7 @@ import { trackEvent } from '@/lib/gtag'
 import { deleteCard } from '@/lib/saveCard'
 import { FREE_CARD_LIMIT } from '@/lib/plans'
 import { fontMap } from '@/lib/fontMap'
+import ProBadge from '@/components/ProBadge'
 import { translations } from '@/utils/translations'
 
 type Card = {
@@ -362,11 +363,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
           ) : (
             <div className="flex items-center gap-1.5">
               <h1 className="text-lg font-bold text-gray-900 tracking-tight">{displayName || currentSlug}</h1>
-              {plan === 'pro' && (
-                <span title="Pro プラン">
-                  <svg viewBox="0 0 16 16" className="w-4 h-4 text-yellow-400 fill-current"><path d="M8 1l1.8 3.6L14 5.6l-3 2.9.7 4.1L8 10.6l-3.7 2 .7-4.1-3-2.9 4.2-.6z"/></svg>
-                </span>
-              )}
+              {plan === 'pro' && <ProBadge size={20} />}
             </div>
           )}
 

@@ -19,6 +19,8 @@ import { deleteCard } from '@/lib/saveCard'
 import { FREE_CARD_LIMIT } from '@/lib/plans'
 import { fontMap } from '@/lib/fontMap'
 import ProBadge from '@/components/ProBadge'
+import SettingsModal from '@/components/SettingsModal'
+import { IoSettingsOutline } from 'react-icons/io5'
 import { translations } from '@/utils/translations'
 
 type Card = {
@@ -181,6 +183,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
   const slugTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(profile.avatar_url ?? null)
   const [avatarUploading, setAvatarUploading] = useState(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
@@ -294,9 +297,20 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
         <Link href="/" className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</Link>
         <div className="flex items-center gap-4">
           <Link href="/c/vrchat" className="text-xs font-semibold text-gray-500 hover:text-[#00AADB] transition-colors hidden sm:inline">ユーザーを探す</Link>
-          <HeaderAuth hideMyPage={isOwner} />
+          {isOwner ? (
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              title="設定"
+            >
+              <IoSettingsOutline size={18} />
+            </button>
+          ) : (
+            <HeaderAuth hideMyPage={isOwner} />
+          )}
         </div>
       </header>
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
 
       <main className="relative z-10 flex-1 w-full py-12">
         <div className="max-w-xl mx-auto px-2 sm:px-4">

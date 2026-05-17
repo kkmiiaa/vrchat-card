@@ -316,19 +316,19 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
           {isOwner && !editMode && (
             <div className="absolute top-0 right-0 flex items-center gap-2">
               <button
-                onClick={() => setSettingsOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-xs font-semibold text-gray-400 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all shadow-sm bg-white"
-              >
-                <IoSettingsOutline size={12} />
-                設定
-              </button>
-              <button
                 onClick={() => setEditMode(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-sky-200 text-xs font-semibold text-sky-400 hover:border-[#00AADB] hover:text-[#00AADB] hover:bg-sky-50 transition-all shadow-sm bg-white">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 編集
+              </button>
+              <button
+                onClick={() => setSettingsOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-xs font-semibold text-gray-400 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all shadow-sm bg-white"
+              >
+                <IoSettingsOutline size={12} />
+                設定
               </button>
             </div>
           )}

@@ -3,9 +3,12 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import { IoSettingsOutline } from 'react-icons/io5'
+import { PiStarFourFill } from 'react-icons/pi'
 
 export default function HeaderAuth({ variant = 'default', hideMyPage = false }: { variant?: 'default' | 'white'; hideMyPage?: boolean }) {
   const [slug, setSlug] = useState<string | null>(null)
+  const [isPro, setIsPro] = useState(false)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
@@ -14,11 +17,15 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
       if (data.user) {
         supabase
           .from('users')
-          .select('username_slug')
+          .select('username_slug, plan, plan_expires_at')
           .eq('id', data.user.id)
           .single()
           .then(({ data: u }) => {
             setSlug(u?.username_slug ?? null)
+            setIsPro(
+              u?.plan === 'pro' &&
+              (u.plan_expires_at == null || new Date(u.plan_expires_at) > new Date())
+            )
             setLoading(false)
           })
       } else {
@@ -31,18 +38,33 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
 
   if (slug && hideMyPage) return null
 
-  if (slug && !hideMyPage) {
+  if (slug) {
+    const iconColor = variant === 'white' ? 'text-white/70 hover:text-white' : 'text-gray-400 hover:text-gray-600'
     return (
-      <Link
-        href={`/u/${slug}`}
-        className={
-          variant === 'white'
-            ? 'text-xs font-semibold text-[#00AADB] bg-white/90 border border-white px-3 py-1.5 rounded-full hover:bg-white transition-colors shadow-sm'
-            : 'text-xs font-semibold text-[#00AADB] border border-sky-200 px-3 py-1.5 rounded-full hover:bg-sky-50 transition-colors'
-        }
-      >
-        マイページ
-      </Link>
+      <div className="flex items-center gap-3">
+        {isPro && (
+          <PiStarFourFill
+            size={16}
+            className={variant === 'white' ? 'text-yellow-300' : 'text-yellow-400'}
+            title="Pro プラン"
+          />
+        )}
+        {!hideMyPage && (
+          <Link
+            href={`/u/${slug}`}
+            className={
+              variant === 'white'
+                ? 'text-xs font-semibold text-[#00AADB] bg-white/90 border border-white px-3 py-1.5 rounded-full hover:bg-white transition-colors shadow-sm'
+                : 'text-xs font-semibold text-[#00AADB] border border-sky-200 px-3 py-1.5 rounded-full hover:bg-sky-50 transition-colors'
+            }
+          >
+            マイページ
+          </Link>
+        )}
+        <Link href="/settings" className={`transition-colors ${iconColor}`} title="設定">
+          <IoSettingsOutline size={18} />
+        </Link>
+      </div>
     )
   }
 

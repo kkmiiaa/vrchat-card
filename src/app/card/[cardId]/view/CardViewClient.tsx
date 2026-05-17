@@ -520,6 +520,21 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
         <p className="text-xs text-white/60 drop-shadow-sm">
           by <span className="font-bold text-white/80">vaacard</span>
         </p>
+
+        <Link
+          href="/c/vrchat"
+          className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/70 backdrop-blur-sm border border-white/80 hover:bg-white/90 hover:border-sky-200 transition-all shadow-sm group"
+        >
+          <div className="flex -space-x-2">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00AADB] to-[#00C9B8] border-2 border-white opacity-80" style={{ opacity: 1 - i * 0.2 }} />
+            ))}
+          </div>
+          <div className="text-left">
+            <p className="text-xs font-bold text-gray-700 group-hover:text-[#00AADB] transition-colors">他のVRChatユーザーを見る</p>
+            <p className="text-[10px] text-gray-400">カード一覧を見る →</p>
+          </div>
+        </Link>
       </main>
 
       {isOwner && (

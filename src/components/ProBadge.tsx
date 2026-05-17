@@ -18,6 +18,8 @@ export default function ProBadge({ size = 16 }: Props) {
         background: 'linear-gradient(135deg, #FCD34D, #FBBF24)',
         flexShrink: 0,
         verticalAlign: 'middle',
+        position: 'relative',
+        top: '-1px',
       }}
     >
       <PiStarFill size={size * 0.58} color="white" />

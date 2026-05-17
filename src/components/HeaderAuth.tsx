@@ -36,8 +36,6 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
 
   if (loading) return <div className="w-16 h-6" />
 
-  if (slug && hideMyPage) return null
-
   if (slug) {
     const iconColor = variant === 'white' ? 'text-white/70 hover:text-white' : 'text-gray-400 hover:text-gray-600'
     return (

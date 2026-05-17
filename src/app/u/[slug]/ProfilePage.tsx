@@ -317,10 +317,10 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
             <div className="absolute top-0 right-0 flex items-center gap-2">
               <button
                 onClick={() => setSettingsOpen(true)}
-                className="text-gray-300 hover:text-gray-500 transition-colors"
-                title="設定"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-xs font-semibold text-gray-400 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all shadow-sm bg-white"
               >
-                <IoSettingsOutline size={16} />
+                <IoSettingsOutline size={12} />
+                設定
               </button>
               <button
                 onClick={() => setEditMode(true)}

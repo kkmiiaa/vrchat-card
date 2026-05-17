@@ -11,8 +11,10 @@ import { v2Template } from '@/templates/v2'
 
 const templateMap: Record<string, CardTemplate> = { v1: v1Template, v2: v2Template }
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import HeaderAuth from '@/components/HeaderAuth'
 import AnnouncementBanner from '@/components/AnnouncementBanner'
+import { trackEvent } from '@/lib/gtag'
 import { deleteCard } from '@/lib/saveCard'
 import { FREE_CARD_LIMIT } from '@/lib/plans'
 import { fontMap } from '@/lib/fontMap'
@@ -134,7 +136,16 @@ type Props = {
 
 export default function ProfilePage({ profile, slug, userRowId, cards: initialCards, isOwner, plan = 'free', announcements = [] }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  // 新規登録直後のイベント
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      trackEvent('sign_up', { method: 'email' })
+      router.replace(`/u/${slug}`)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- 表示状態 ---
   const [cards, setCards] = useState(initialCards)
@@ -151,6 +162,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
     navigator.clipboard.writeText(url)
     setCopiedId(cardId)
     setTimeout(() => setCopiedId(null), 2000)
+    trackEvent('card_url_shared', { card_id: cardId })
   }
 
   // --- 編集モード ---
@@ -235,6 +247,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
     setSaving(false)
     const error = profileRes.error ?? (slugRes as { error: unknown }).error
     if (error) { alert('保存に失敗しました'); return }
+    trackEvent('profile_edited')
     setSaved(true)
     if (slugInput !== currentSlug) {
       setCurrentSlug(slugInput)

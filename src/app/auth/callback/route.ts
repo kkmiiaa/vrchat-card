@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     }
     // 新規ユーザーは自分のプロフィールページへ
     const { data: newUser } = await admin.from('users').select('username_slug').eq('id', userId).single()
-    const profileUrl = newUser ? `${origin}/u/${newUser.username_slug}` : `${origin}/`
+    const profileUrl = newUser ? `${origin}/u/${newUser.username_slug}?new=1` : `${origin}/`
     return NextResponse.redirect(profileUrl)
   }
 

@@ -23,6 +23,7 @@ import FloatingButtons from '@/components/FloatingButtons'
 import PostTimeline from '@/components/PostTimeline'
 import CardScaledView from '@/components/CardScaledView'
 import AnnouncementBanner from '@/components/AnnouncementBanner'
+import { trackEvent } from '@/lib/gtag'
 
 const STORAGE_KEY = 'vrchat-card-cache'
 
@@ -292,6 +293,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       }
       currentCardId = result.cardId
       setCardId(currentCardId)
+      trackEvent('card_created', { template_id: template.id })
     }
 
     if (dataUrl) {

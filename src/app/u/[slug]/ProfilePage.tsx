@@ -297,17 +297,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
         <Link href="/" className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</Link>
         <div className="flex items-center gap-4">
           <Link href="/c/vrchat" className="text-xs font-semibold text-gray-500 hover:text-[#00AADB] transition-colors hidden sm:inline">ユーザーを探す</Link>
-          {isOwner ? (
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-              title="設定"
-            >
-              <IoSettingsOutline size={18} />
-            </button>
-          ) : (
-            <HeaderAuth hideMyPage={isOwner} />
-          )}
+          <HeaderAuth hideMyPage={isOwner} />
         </div>
       </header>
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
@@ -324,14 +314,23 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
         {/* アバター・名前・bio */}
         <div className={`relative flex flex-col items-center text-center mb-10 transition-all ${editMode ? 'pt-2 pb-2' : 'px-0 pt-8 pb-0'}`}>
           {isOwner && !editMode && (
-            <button
-              onClick={() => setEditMode(true)}
-              className="absolute top-0 right-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-sky-200 text-xs font-semibold text-sky-400 hover:border-[#00AADB] hover:text-[#00AADB] hover:bg-sky-50 transition-all shadow-sm bg-white">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              編集
-            </button>
+            <div className="absolute top-0 right-0 flex items-center gap-2">
+              <button
+                onClick={() => setSettingsOpen(true)}
+                className="text-gray-300 hover:text-gray-500 transition-colors"
+                title="設定"
+              >
+                <IoSettingsOutline size={16} />
+              </button>
+              <button
+                onClick={() => setEditMode(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-sky-200 text-xs font-semibold text-sky-400 hover:border-[#00AADB] hover:text-[#00AADB] hover:bg-sky-50 transition-all shadow-sm bg-white">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                編集
+              </button>
+            </div>
           )}
           <div className="relative mb-4 group">
             {avatarUrl ? (

@@ -312,7 +312,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
         <div className={`max-w-xl mx-auto px-2 sm:px-4 mb-4`}>
 
         {/* アバター・名前・bio */}
-        <div className={`relative flex flex-col items-center text-center mb-10 transition-all ${editMode ? 'pt-2 pb-2' : 'px-0 pt-8 pb-0'}`}>
+        <div className={`relative flex flex-col items-center text-center mb-10 transition-all ${editMode ? 'pt-2 pb-2' : 'px-0 pt-12 pb-0'}`}>
           {isOwner && !editMode && (
             <div className="absolute top-0 right-0 flex items-center gap-2">
               <button

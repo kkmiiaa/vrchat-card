@@ -27,19 +27,23 @@ export async function generateMetadata({ params }: { params: Promise<{ cardId: s
   const title = card.title ? `${card.title} — ${ownerName}` : `${ownerName} の自己紹介カード`
   const description = `${ownerName} が vaacard で作った自己紹介カードです。`
 
+  const ogImage = card.image_url
+    ? { url: card.image_url, width: 900, height: 506 }
+    : { url: '/og-default.png', width: 1200, height: 630 }
+
   return {
     title,
     description,
     openGraph: {
       title,
       description,
-      ...(card.image_url ? { images: [{ url: card.image_url, width: 900, height: 506 }] } : {}),
+      images: [ogImage],
     },
     twitter: {
-      card: card.image_url ? 'summary_large_image' : 'summary',
+      card: card.image_url ? 'summary_large_image' : 'summary_large_image',
       title,
       description,
-      ...(card.image_url ? { images: [card.image_url] } : {}),
+      images: [ogImage.url],
     },
   }
 }

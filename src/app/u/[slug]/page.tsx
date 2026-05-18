@@ -21,19 +21,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = `${name} — vaacard`
   const description = profile.bio ? profile.bio.slice(0, 100) : `${name} の自己紹介カードページ`
 
+  const ogImage = profile.avatar_url
+    ? { url: profile.avatar_url }
+    : { url: '/og-default.png', width: 1200, height: 630 }
+
   return {
     title,
     description,
     openGraph: {
       title,
       description,
-      ...(profile.avatar_url ? { images: [{ url: profile.avatar_url }] } : {}),
+      images: [ogImage],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title,
       description,
-      ...(profile.avatar_url ? { images: [profile.avatar_url] } : {}),
+      images: [ogImage.url],
     },
   }
 }

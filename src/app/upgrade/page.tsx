@@ -9,11 +9,20 @@ export default function UpgradePage() {
 
   async function handleUpgrade() {
     setLoading(true)
-    const res = await fetch('/api/stripe/checkout', { method: 'POST' })
-    const json = await res.json()
-    if (json.url) {
-      window.location.href = json.url
-    } else {
+    try {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      if (res.status === 401) {
+        router.push('/auth/login?next=/upgrade')
+        return
+      }
+      const json = await res.json()
+      if (json.url) {
+        window.location.href = json.url
+      } else {
+        alert('エラーが発生しました。もう一度お試しください。')
+        setLoading(false)
+      }
+    } catch {
       alert('エラーが発生しました。もう一度お試しください。')
       setLoading(false)
     }
@@ -37,13 +46,16 @@ export default function UpgradePage() {
             </div>
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-center gap-2">
-                <span className="text-green-500">✓</span> カード最大3枚
+                <span className="text-green-500">✓</span> カード最大5枚
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span> 全テンプレート利用可能
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span> 画像ダウンロード
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-gray-300">✗</span> <span className="text-gray-400">ユーザー検索（最新20件のみ）</span>
               </li>
             </ul>
           </div>
@@ -67,6 +79,9 @@ export default function UpgradePage() {
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-[#00AADB]">✓</span> 画像ダウンロード
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-[#00AADB]">✓</span> <strong>ユーザー検索・フィルター機能解放</strong>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-[#00AADB]">✓</span> 優先サポート

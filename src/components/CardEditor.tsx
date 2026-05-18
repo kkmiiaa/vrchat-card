@@ -66,7 +66,14 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
 
   // --- Export ---
-  const { exportRef: cardExportRef, downloading, generatePng: getCardDataUrl, downloadPng: handleDownload } = useCardExport()
+  const { exportRef: cardExportRef, downloading, generatePng: getCardDataUrl, downloadPng: _downloadPng } = useCardExport()
+
+  const handleDownload = async () => {
+    const dataUrl = await getCardDataUrl()
+    if (!dataUrl) return
+    if (cardId) await updateCard({ cardId, imageBase64: dataUrl })
+    await _downloadPng()
+  }
 
   // --- card scale ---
   const [cardScale, setCardScale] = useState(1)
@@ -327,6 +334,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`
     const dataUrl = await getCardDataUrl()
     if (dataUrl) {
+      if (cardId) await updateCard({ cardId, imageBase64: dataUrl })
       if (window.innerWidth < 768) {
         const win = window.open()
         if (win) win.document.write(`<img src="${dataUrl}" style="max-width:100%;height:auto;" />`)

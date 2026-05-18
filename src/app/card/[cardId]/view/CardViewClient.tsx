@@ -160,27 +160,6 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     setLiked(likedCards.includes(cardId))
   }, [cardId])
 
-  // オーナーかつ image_url 未保存の場合、ロード完了後に自動保存
-  useEffect(() => {
-    if (!isOwner || savedImageUrlRef.current || !template || cardData === null) return
-    const timer = setTimeout(async () => {
-      if (!exportRef.current) return
-      try {
-        const { toPng } = await import('html-to-image')
-        const dataUrl = await toPng(exportRef.current, { pixelRatio: 2 })
-        await fetch(`/api/cards/${cardId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: dataUrl }),
-        })
-        savedImageUrlRef.current = dataUrl
-      } catch {
-        // 失敗しても表示には影響しない
-      }
-    }, 1500)
-    return () => clearTimeout(timer)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [template, cardData])
 
   useEffect(() => {
     function onEnd() {

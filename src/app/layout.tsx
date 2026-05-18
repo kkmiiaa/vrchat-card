@@ -16,9 +16,28 @@ const notoSansJP = Noto_Sans_JP({
   weight: ["400", "500", "700", "900"],
 });
 
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://vaacard.com'
+
 export const metadata: Metadata = {
-  title: "vaacard",
-  description: "自己紹介カードを作って、あなたのプロフィールページをシェアしよう。",
+  metadataBase: new URL(baseUrl),
+  title: {
+    default: 'vaacard',
+    template: '%s | vaacard',
+  },
+  description: '自己紹介カードを作って、あなたのプロフィールページをシェアしよう。',
+  openGraph: {
+    siteName: 'vaacard',
+    title: 'vaacard',
+    description: '自己紹介カードを作って、あなたのプロフィールページをシェアしよう。',
+    images: [{ url: '/og-default.png', width: 1200, height: 630 }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'vaacard',
+    description: '自己紹介カードを作って、あなたのプロフィールページをシェアしよう。',
+    images: ['/og-default.png'],
+  },
 };
 
 export default function RootLayout({

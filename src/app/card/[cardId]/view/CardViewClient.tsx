@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect, useCallback } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { CardTemplate } from '@/blocks/types'
 import { fontMap } from '@/lib/fontMap'
@@ -68,6 +69,16 @@ function LinkChip({ label, value, href, icon }: { label: string; value: string; 
 }
 
 export default function CardViewClient({ cardId, templateId, isOwner, likeCount: initialLikeCount, viewCount, ownerSlug, ownerName, ownerAvatar, createdAt, imageUrl: initialImageUrl }: Props) {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const [showCreatedModal, setShowCreatedModal] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get('created') === '1') {
+      setShowCreatedModal(true)
+      router.replace(`/card/${cardId}/view`)
+    }
+  }, [])
   const [cardData, setCardData] = useState<Record<string, unknown> | null>(null)
   const [template, setTemplate] = useState<CardTemplate | null>(null)
 
@@ -326,12 +337,68 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const shadowBlur = 60 + Math.abs(tilt.x) * 3 + Math.abs(tilt.y) * 3
   const cardShadow = `${shadowX}px ${shadowY + 16}px ${shadowBlur}px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.12)`
 
+  const shareUrl = typeof window !== 'undefined' ? window.location.origin + `/card/${cardId}/view` : ''
+
   return (
     <div className="min-h-screen flex flex-col overflow-hidden" style={{ background: pageBg }}>
       <style>{`
         .vaacard-sns-item { transition: transform 0.15s ease, box-shadow 0.15s ease; }
         .vaacard-sns-item:hover { transform: scale(1.04); box-shadow: 0 2px 12px rgba(0,170,219,0.22); }
       `}</style>
+
+      {/* カード作成完了モーダル */}
+      {showCreatedModal && (
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" onClick={() => setShowCreatedModal(false)} />
+          <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-50 flex justify-center px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="px-6 pt-6 pb-4 text-center">
+                <div className="text-3xl mb-2">🎉</div>
+                <h2 className="text-base font-bold text-gray-900 mb-1">カードを保存しました！</h2>
+                <p className="text-xs text-gray-400">URLをシェアして、みんなに見てもらおう</p>
+              </div>
+              <div className="px-6 pb-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(shareUrl)
+                  }}
+                  className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-500 hover:border-sky-200 hover:bg-sky-50 transition-colors"
+                >
+                  <span className="truncate">{shareUrl}</span>
+                  <svg className="w-4 h-4 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+              <div className="px-6 pb-4 flex flex-col gap-2 mt-2">
+                <button
+                  onClick={handleXShare}
+                  disabled={sharing}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-black text-white text-sm font-semibold hover:opacity-80 transition-opacity disabled:opacity-50"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  {sharing ? '準備中...' : 'Xでシェアする'}
+                </button>
+                {ownerSlug && (
+                  <Link
+                    href={`/u/${ownerSlug}`}
+                    onClick={() => setShowCreatedModal(false)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-sky-200 text-[#00AADB] text-sm font-semibold hover:bg-sky-50 transition-colors"
+                  >
+                    マイページを見る
+                  </Link>
+                )}
+                <button
+                  onClick={() => setShowCreatedModal(false)}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors py-1"
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-black/10" />

@@ -303,7 +303,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     await updateCard({ cardId: currentCardId, visibility: 'public' })
     setVisibility('public')
     setSaveModalLoading(false)
-    window.location.href = `/card/${currentCardId}`
+    window.location.href = `/card/${currentCardId}?created=1`
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardId, values, communities, template.id, supabase])
 

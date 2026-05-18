@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import CardViewClient from './CardViewClient'
 
 export type CardViewWrapperProps = {
@@ -16,5 +17,9 @@ export type CardViewWrapperProps = {
 }
 
 export default function CardViewWrapper(props: CardViewWrapperProps) {
-  return <CardViewClient {...props} />
+  return (
+    <Suspense>
+      <CardViewClient {...props} />
+    </Suspense>
+  )
 }

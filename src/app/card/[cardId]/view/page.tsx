@@ -70,5 +70,5 @@ export default async function CardViewPage({ params }: { params: Promise<{ cardI
   const { data: userRow } = await supabase.from('users').select('username_slug').eq('id', card.user_id).single()
   const { data: profile } = await supabase.from('profiles').select('display_name, avatar_url').eq('user_id', card.user_id).single()
 
-  return <CardViewWrapper cardId={cardId} templateId={card.template_id} isOwner={isOwner} likeCount={card.like_count ?? 0} viewCount={card.view_count ?? 0} ownerSlug={userRow?.username_slug ?? null} ownerName={profile?.display_name ?? null} ownerAvatar={profile?.avatar_url ?? null} createdAt={card.created_at ?? null} />
+  return <CardViewWrapper cardId={cardId} templateId={card.template_id} isOwner={isOwner} likeCount={card.like_count ?? 0} viewCount={card.view_count ?? 0} ownerSlug={userRow?.username_slug ?? null} ownerName={profile?.display_name ?? null} ownerAvatar={profile?.avatar_url ?? null} createdAt={card.created_at ?? null} imageUrl={card.image_url ?? null} />
 }

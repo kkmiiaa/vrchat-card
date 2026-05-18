@@ -19,6 +19,7 @@ export type CardViewWrapperProps = {
   ownerName: string | null
   ownerAvatar: string | null
   createdAt: string | null
+  imageUrl: string | null
 }
 
 type Props = CardViewWrapperProps
@@ -66,7 +67,7 @@ function LinkChip({ label, value, href, icon }: { label: string; value: string; 
   )
 }
 
-export default function CardViewClient({ cardId, templateId, isOwner, likeCount: initialLikeCount, viewCount, ownerSlug, ownerName, ownerAvatar, createdAt }: Props) {
+export default function CardViewClient({ cardId, templateId, isOwner, likeCount: initialLikeCount, viewCount, ownerSlug, ownerName, ownerAvatar, createdAt, imageUrl: initialImageUrl }: Props) {
   const [cardData, setCardData] = useState<Record<string, unknown> | null>(null)
   const [template, setTemplate] = useState<CardTemplate | null>(null)
 
@@ -260,12 +261,48 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const twitterId = sns?.twitterId?.trim().replace(/^@/, '')
   const discordId = sns?.discordId?.trim()
 
+  const [sharing, setSharing] = useState(false)
+  const savedImageUrlRef = useRef<string | null>(initialImageUrl)
+
+  async function saveImageIfNeeded(): Promise<void> {
+    if (!isOwner || !exportRef.current) return
+    try {
+      const { toPng } = await import('html-to-image')
+      const dataUrl = await toPng(exportRef.current, { pixelRatio: 2 })
+      await fetch(`/api/cards/${cardId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: dataUrl }),
+      })
+      savedImageUrlRef.current = dataUrl
+    } catch {
+      // 保存失敗してもシェアは続行
+    }
+  }
+
+  async function handleXShare() {
+    setSharing(true)
+    if (!savedImageUrlRef.current) {
+      await saveImageIfNeeded()
+    }
+    setSharing(false)
+    window.open(xShareHref, '_blank', 'noopener,noreferrer')
+  }
+
   async function handleDownload() {
     if (!exportRef.current) return
     setDownloading(true)
     try {
       const { toPng } = await import('html-to-image')
       const dataUrl = await toPng(exportRef.current, { pixelRatio: 2 })
+      if (isOwner && !savedImageUrlRef.current) {
+        await fetch(`/api/cards/${cardId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: dataUrl }),
+        })
+        savedImageUrlRef.current = dataUrl
+      }
       const link = document.createElement('a')
       link.href = dataUrl
       link.download = 'vaacard.png'
@@ -313,15 +350,14 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               >
                 編集
               </Link>
-              <a
-                href={xShareHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs font-semibold text-white bg-black rounded-full px-4 py-1.5 hover:opacity-80 transition-opacity shadow-sm"
+              <button
+                onClick={handleXShare}
+                disabled={sharing}
+                className="flex items-center gap-1.5 text-xs font-semibold text-white bg-black rounded-full px-4 py-1.5 hover:opacity-80 transition-opacity shadow-sm disabled:opacity-50"
               >
                 <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                Xで共有
-              </a>
+                {sharing ? '...' : 'Xで共有'}
+              </button>
               <button
                 onClick={handleDownload}
                 disabled={downloading}
@@ -548,15 +584,14 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
             </svg>
             編集
           </Link>
-          <a
-            href={xShareHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 bg-black text-white rounded-full px-4 py-3 shadow-lg text-sm font-semibold"
+          <button
+            onClick={handleXShare}
+            disabled={sharing}
+            className="flex items-center gap-2 bg-black text-white rounded-full px-4 py-3 shadow-lg text-sm font-semibold disabled:opacity-50"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            Xで共有
-          </a>
+            {sharing ? '...' : 'Xで共有'}
+          </button>
           <button
             onClick={handleDownload}
             disabled={downloading}

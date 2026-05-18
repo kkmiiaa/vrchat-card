@@ -12,6 +12,7 @@ export type CardViewWrapperProps = {
   ownerName: string | null
   ownerAvatar: string | null
   createdAt: string | null
+  imageUrl: string | null
 }
 
 export default function CardViewWrapper(props: CardViewWrapperProps) {

@@ -26,15 +26,27 @@ export function useCardExport(filename = 'vrchat-introduction-card'): UseCardExp
     try {
       const dataUrl = await generatePng()
       if (!dataUrl) return
-      if (typeof window !== 'undefined' && window.innerWidth < 768) {
-        const win = window.open()
-        if (win) win.document.write(`<img src="${dataUrl}" style="width:100%;height:auto;" />`)
-      } else {
-        const link = document.createElement('a')
-        link.href = dataUrl
-        link.download = `${filename}.png`
-        link.click()
+
+      // モバイルは Web Share API でネイティブシェートシートを表示
+      if (typeof window !== 'undefined' && window.innerWidth < 768 && navigator.share) {
+        try {
+          const res = await fetch(dataUrl)
+          const blob = await res.blob()
+          const file = new File([blob], `${filename}.png`, { type: 'image/png' })
+          if (navigator.canShare?.({ files: [file] })) {
+            await navigator.share({ files: [file] })
+            return
+          }
+        } catch {
+          // キャンセルや非対応時はフォールバック
+        }
       }
+
+      // PC またはWeb Share API非対応はダウンロード
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `${filename}.png`
+      link.click()
     } finally {
       setDownloading(false)
     }

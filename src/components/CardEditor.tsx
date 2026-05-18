@@ -68,11 +68,15 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   // --- Export ---
   const { exportRef: cardExportRef, downloading, generatePng: getCardDataUrl, downloadPng: _downloadPng } = useCardExport()
 
+  const [showSaveNudge, setShowSaveNudge] = useState(false)
+
   const handleDownload = async () => {
     const dataUrl = await getCardDataUrl()
     if (!dataUrl) return
     if (cardId) await updateCard({ cardId, imageBase64: dataUrl })
     await _downloadPng()
+    setShowSaveNudge(true)
+    setTimeout(() => setShowSaveNudge(false), 8000)
   }
 
   // --- card scale ---
@@ -89,6 +93,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const supabase = createClient()
+  const [draftStatus, setDraftStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
 
   // --- Visibility ---
   const [visibility, setVisibility] = useState<'public' | 'limited' | 'private'>('public')
@@ -119,38 +124,16 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     }
   }, [cardId])
 
-  // debounced auto-save card_data (ログイン済み & cardId がある場合のみ)
+  // debounced auto-save card_data（下書き保存）
   useEffect(() => {
     if (!isLoggedIn || !cardId || !initialized) return
-    const timer = setTimeout(() => {
-      updateCard({ cardId, cardData: values as Record<string, unknown>, communities })
+    setDraftStatus('saving')
+    const timer = setTimeout(async () => {
+      await updateCard({ cardId, cardData: values as Record<string, unknown>, communities })
+      setDraftStatus('saved')
     }, 1500)
     return () => clearTimeout(timer)
   }, [values, communities, cardId, isLoggedIn, initialized])
-
-  // 画像自動更新用フラグ
-  const hasUnsavedImageRef = useRef(false)
-
-  // values が変わったらフラグを立てる
-  useEffect(() => {
-    if (!initialized || !cardId || !isLoggedIn) return
-    hasUnsavedImageRef.current = true
-  }, [values, initialized, cardId, isLoggedIn])
-
-  // 20秒 debounce で画像保存
-  useEffect(() => {
-    if (!isLoggedIn || !cardId || !initialized) return
-    const timer = setTimeout(async () => {
-      if (!hasUnsavedImageRef.current) return
-      hasUnsavedImageRef.current = false
-      const dataUrl = await getCardDataUrl()
-      if (dataUrl) {
-        await updateCard({ cardId, imageBase64: dataUrl })
-      }
-    }, 20000)
-    return () => clearTimeout(timer)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values, cardId, isLoggedIn, initialized])
 
   // ギャラリー画像が変わったら Storage にアップロード
   const prevGalleryImages = useRef<(File | null)[]>([null, null, null])
@@ -364,6 +347,11 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
           <a href="/" className="text-xl font-black tracking-tight text-[#00AADB] shrink-0">vaacard</a>
           <span className="hidden sm:inline text-gray-300 text-sm">/</span>
           <span className="hidden sm:inline text-sm text-gray-500 truncate">{template.title}</span>
+          {isLoggedIn && cardId && draftStatus !== 'idle' && (
+            <span className="hidden sm:inline text-[11px] text-gray-300 shrink-0">
+              {draftStatus === 'saving' ? '保存中...' : '下書き保存済み'}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {/* PC のみヘッダーにボタン表示 */}
@@ -502,6 +490,24 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       </div>
 
       <FloatingButtons onSave={handleShareByUrl} onShare={handlePostToX} onDownload={handleDownload} t={t} />
+
+      {/* ダウンロード後の保存誘導トースト */}
+      {showSaveNudge && (
+        <div className="fixed bottom-6 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-max z-50 bg-white border border-sky-100 rounded-2xl shadow-xl px-5 py-4">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <span className="text-sm text-gray-700 font-medium">マイページに保存して公開しませんか？</span>
+            <button onClick={() => setShowSaveNudge(false)} className="shrink-0 text-gray-300 hover:text-gray-500 transition-colors text-xs">
+              閉じる
+            </button>
+          </div>
+          <button
+            onClick={() => { setShowSaveNudge(false); handleShareByUrl() }}
+            className="w-full text-sm font-bold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+          >
+            保存する
+          </button>
+        </div>
+      )}
 
       {/* 保存中オーバーレイ */}
       {saveModalLoading && (

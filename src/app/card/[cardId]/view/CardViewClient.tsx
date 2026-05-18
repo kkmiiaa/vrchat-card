@@ -91,6 +91,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const [likeCount, setLikeCount] = useState(initialLikeCount)
   const [liked, setLiked] = useState(false)
   const [liking, setLiking] = useState(false)
+  const [sharing, setSharing] = useState(false)
 
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const [offset, setOffset] = useState({ x: 0, y: 0 })
@@ -99,6 +100,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
 
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const savedImageUrlRef = useRef<string | null>(initialImageUrl)
 
   const showToast = useCallback((msg: string) => {
     setToast(msg)
@@ -272,9 +274,6 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const vrchatId = sns?.vrchatId?.trim()
   const twitterId = sns?.twitterId?.trim().replace(/^@/, '')
   const discordId = sns?.discordId?.trim()
-
-  const [sharing, setSharing] = useState(false)
-  const savedImageUrlRef = useRef<string | null>(initialImageUrl)
 
   async function saveImageIfNeeded(): Promise<void> {
     if (!isOwner || !exportRef.current) return

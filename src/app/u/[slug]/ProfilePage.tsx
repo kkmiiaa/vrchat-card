@@ -553,6 +553,15 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
                             </div>
                           )}
 
+                          {/* 下書きバッジ：image_url未保存のカードにオーナーのみ表示 */}
+                          {isOwner && !card.image_url && (
+                            <div className="absolute top-1 right-2 z-10 pointer-events-none">
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-500">
+                                下書き
+                              </span>
+                            </div>
+                          )}
+
                           {/* オーナー操作：右下に重ねる */}
                           {isOwner && (
                             <div className="absolute bottom-1 right-2 flex gap-1.5 z-10" onClick={e => e.preventDefault()}>

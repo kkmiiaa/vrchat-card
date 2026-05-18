@@ -316,15 +316,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     const tweetText = shareUrl ? `${t.tweetText}\n${shareUrl}` : t.tweetText
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`
     const dataUrl = await getCardDataUrl()
-    if (dataUrl) {
-      if (cardId) await updateCard({ cardId, imageBase64: dataUrl })
-      if (window.innerWidth < 768) {
-        const win = window.open()
-        if (win) win.document.write(`<img src="${dataUrl}" style="max-width:100%;height:auto;" />`)
-      } else {
-        const link = document.createElement('a'); link.href = dataUrl; link.download = 'card.png'; link.click()
-      }
-    }
+    if (dataUrl && cardId) await updateCard({ cardId, imageBase64: dataUrl })
     window.open(tweetUrl, '_blank')
   }
 

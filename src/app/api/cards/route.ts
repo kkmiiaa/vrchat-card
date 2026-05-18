@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'not_authenticated' }, { status: 401 })
 
-  const { templateId, title, cardData, visibility = 'public', communities = [] } = await request.json()
+  const { templateId, title, cardData, visibility = 'public', communities = [], communitySlug } = await request.json()
   if (!templateId) return NextResponse.json({ error: 'templateId is required' }, { status: 400 })
 
   // プラン制限チェック
@@ -50,7 +50,15 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('cards')
-    .insert({ user_id: user.id, template_id: templateId, title, card_data: cardData ?? {}, visibility, communities })
+    .insert({
+      user_id: user.id,
+      template_id: templateId,
+      title,
+      card_data: cardData ?? {},
+      visibility,
+      communities,
+      community_slug: communitySlug ?? null,
+    })
     .select('id')
     .single()
 

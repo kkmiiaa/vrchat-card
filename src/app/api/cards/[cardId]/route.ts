@@ -46,12 +46,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const filename = `${user.id}/${cardId}.png`
 
     const { error: uploadError } = await admin.storage
-      .from('cards')
+      .from('card-images')
       .upload(filename, buffer, { upsert: true, contentType: 'image/png' })
 
     if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
 
-    const { data: { publicUrl } } = admin.storage.from('cards').getPublicUrl(filename)
+    const { data: { publicUrl } } = admin.storage.from('card-images').getPublicUrl(filename)
     updates.image_url = publicUrl
   }
 

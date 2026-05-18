@@ -15,7 +15,7 @@ type Props = {
 
 const VISIBILITY_OPTIONS: { value: Visibility; label: string; desc: string }[] = [
   { value: 'public',  label: '公開',      desc: 'プロフィールページに表示されます' },
-  { value: 'limited', label: 'URLのみ',   desc: 'URLを知っている人だけ見られます' },
+  { value: 'limited', label: '限定公開', desc: 'URLを知っている人だけ見られます。一覧には表示されません' },
   { value: 'private', label: '非公開',    desc: '自分だけ見られます' },
 ]
 
@@ -91,7 +91,7 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
           <>
             <h2 className="text-lg font-bold text-gray-900 text-center mb-1">保存しました</h2>
             <p className="text-gray-400 text-xs text-center mb-6">
-              vaa3d.studio/u/{slug}
+              vaacard.me/u/{slug}
             </p>
 
             {/* URLコピー */}
@@ -120,7 +120,7 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
 
             {/* X でシェア */}
             <a
-              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`自己紹介カードを作りました！\nvaa3d.studio/u/${slug}\n#VRChat #vaacard`)}`}
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`自己紹介カードを作りました！\n${window.location.origin}/u/${slug}\n#VRChat #vaacard`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-3 rounded-xl bg-black text-white font-medium text-sm hover:bg-gray-800 transition-colors mb-4 flex items-center justify-center gap-2"
@@ -139,7 +139,7 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
           <>
             <h2 className="text-lg font-bold text-gray-900 text-center mb-1">プロフィールに保存する</h2>
             <p className="text-gray-400 text-xs text-center mb-6">
-              vaa3d.studio/u/{slug}
+              vaacard.me/u/{slug}
             </p>
 
             {/* 公開設定 */}
@@ -178,10 +178,17 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
           </>
         ) : (
           <>
-            <h2 className="text-lg font-bold text-gray-900 text-center mb-2">URLで共有しませんか？</h2>
-            <p className="text-gray-500 text-sm text-center mb-6">
-              ログインするとカードがプロフィールページに追加されます。あとから編集もできます。
-            </p>
+            <h2 className="text-lg font-bold text-gray-900 text-center mb-2">vaacardに保存しませんか？</h2>
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-start gap-2 text-sm text-gray-600">
+                <span className="mt-0.5 text-[#00AADB]">✦</span>
+                <span><span className="font-semibold text-gray-800">新デザインが使える</span> — メーカーとは違うテンプレートで作れます</span>
+              </li>
+              <li className="flex items-start gap-2 text-sm text-gray-600">
+                <span className="mt-0.5 text-[#00AADB]">✦</span>
+                <span><span className="font-semibold text-gray-800">共有用ページが作れる</span> — <span className="text-gray-400">vaacard.me/u/あなたのID</span> というURLでいつでも共有できます</span>
+              </li>
+            </ul>
             <button
               onClick={handleSave}
               disabled={loading}

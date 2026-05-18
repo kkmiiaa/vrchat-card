@@ -4,6 +4,7 @@ type CreateCardParams = {
   title?: string
   visibility?: 'public' | 'limited' | 'private'
   communities?: string[]
+  communitySlug?: string
 }
 
 type UpdateCardParams = {

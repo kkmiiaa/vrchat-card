@@ -42,6 +42,7 @@ export type CardTemplate = {
   badge: string
   badgeColor: string
   communities: string[]
+  communitySlug?: string  // DBの communities.slug に対応
   cardWidth: number
   cardHeight: number
   PreviewCard: () => ReactNode

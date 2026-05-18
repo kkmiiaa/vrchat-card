@@ -1,6 +1,7 @@
 'use client'
 
 import React, { forwardRef } from 'react'
+import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
 import { FiMic } from 'react-icons/fi'
 import { PiGenderMaleBold, PiGenderFemaleBold, PiGenderIntersexBold } from 'react-icons/pi'
 import { TbBadgeVr, TbDeviceGamepad2, TbDeviceDesktop, TbDeviceMobile } from 'react-icons/tb'
@@ -57,10 +58,7 @@ function getBackground(
   value?: string | [string, string],
   bgBase64?: string | null
 ): string {
-  if (type === 'image' && bgBase64) return `url(${bgBase64}) center/cover no-repeat`
-  if (type === 'color' && typeof value === 'string') return value
-  if (type === 'gradient' && Array.isArray(value)) return `linear-gradient(135deg, ${value[0]}, ${value[1]})`
-  return 'linear-gradient(135deg, #c7d2fe, #fbcfe8, #fde68a)'
+  return getBackgroundStyle(type, value, bgBase64, CARD_BG_FALLBACK) as string
 }
 
 const STATUS_COLORS = {

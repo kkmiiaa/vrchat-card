@@ -30,6 +30,7 @@ export const v2Template: CardTemplate = {
   badge: 'NEW',
   badgeColor: 'bg-[#00AADB] text-white',
   communities: ['VRChat'],
+  communitySlug: 'vrchat',
   cardWidth: 900,
   cardHeight: 506,
   portraitWidth: 900,

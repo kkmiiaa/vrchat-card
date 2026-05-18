@@ -1335,9 +1335,9 @@ export default function VRChatCardGenerator({ forcedTemplate }: { forcedTemplate
         </aside>
       </div>
       <FloatingButtons
-        onSave={handleDownload}
+        onSave={() => setShowUpgradeModal(true)}
         onShare={handlePostToX}
-        onUpgrade={() => setShowUpgradeModal(true)}
+        onDownload={handleDownload}
         t={t}
       />
       {showUpgradeModal && (

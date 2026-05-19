@@ -1,6 +1,6 @@
 name: E2E Tests
 
-# `run-e2e` ラベルをPRに付与したときだけ実行する。
+# `run-test` ラベルをPRに付与したときだけ実行する。
 # ブランチ保護の required status check に "playwright" を追加することで、
 # ラベルを付けてテストを走らせた場合はパスがマージの条件になる。
 on:
@@ -10,7 +10,7 @@ on:
 jobs:
   playwright:
     name: playwright
-    if: github.event.label.name == 'run-e2e'
+    if: github.event.label.name == 'run-test'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 

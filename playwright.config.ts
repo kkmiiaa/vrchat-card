@@ -13,7 +13,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3002',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3002',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -26,13 +26,13 @@ export default defineConfig({
     // Step 2: 未ログインテスト
     {
       name: 'unauthenticated',
-      testMatch: /\/(lp|login|v1-editor|v1-form|static-pages|regression-card-editor|vrchat-maker|explore-vrchat)\.spec\.ts/,
+      testMatch: /\/(lp|login|v1-editor|v1-form|static-pages|regression-card-editor|vrchat-maker|explore-vrchat|spec-legacy-maker)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     // Step 3: ログイン済みテスト（setupに依存）
     {
       name: 'authenticated',
-      testMatch: /\/(authenticated|regression-card-save|regression-card-view|regression-profile|explore-search)\.spec\.ts/,
+      testMatch: /\/(authenticated|regression-card-save|regression-card-view|regression-profile|explore-search|spec-header|spec-draft|spec-card-flow|spec-settings-auth|spec-explore|spec-legacy-maker)\.spec\.ts/,
       dependencies: ['setup'],
       use: {
         ...devices['Desktop Chrome'],
@@ -42,7 +42,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'npm run dev:test',
-    url: 'http://localhost:3002',
+    url: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3002',
     reuseExistingServer: true,
     env: {
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -329,7 +329,8 @@ POST /api/stripe/checkout
 
 | input_type | 検索 | card_data の値形式 | 用途例 |
 |---|---|---|---|
-| `select` | ◎ タグで完全一致 | `{ tag: string, display?: string }` | 性別、フレンドポリシー |
+| `select` | ◎ タグで完全一致 | `string` | フレンドポリシー |
+| `expressive-select` | ◎ tag で完全一致 | `{ tag: string, display?: string }` | 性別 |
 | `multi-select` | ◎ 配列内包含 | `string[]` | プレイ環境、言語 |
 | `text` | △ 全文検索のみ | `string` | 自己紹介、一言コメント |
 | `number` | ○ 範囲検索 | `number` | 年齢 |
@@ -337,9 +338,10 @@ POST /api/stripe/checkout
 | `sns` | ✕ | `{ twitterId?: string, ... }` | SNSリンク |
 | `gallery` | ✕ | `{ images: string[] }` | 画像ギャラリー |
 
-### select 型の二層構造
+### expressive-select 型の二層構造
 
-`select` 型は検索可能性と自己表現を両立するため、`tag`（構造化値）と `display`（表示テキスト）を持つ。
+選択肢による検索可能性と、自由テキストによる自己表現を両立するための型。
+**自己表現が意味を持つコンポーネントにのみ使う**（性別など）。
 
 ```json
 "genderTag": { "tag": "male", "display": "男の娘" }
@@ -382,7 +384,8 @@ community_components
 
 | input_type | PostgREST クエリ |
 |---|---|
-| `select` | `card_data->'fieldKey'->>'tag' = 'value'` |
+| `select` | `card_data->>'fieldKey' = 'value'` |
+| `expressive-select` | `card_data->'fieldKey'->>'tag' = 'value'` |
 | `multi-select` | `card_data->'fieldKey' @> '["value"]'` |
 | `text` | `card_data->>'fieldKey' ilike '%q%'` |
 

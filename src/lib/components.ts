@@ -1,4 +1,4 @@
-export type InputType = 'select' | 'multi-select' | 'text' | 'number' | 'boolean' | 'sns' | 'gallery'
+export type InputType = 'select' | 'expressive-select' | 'multi-select' | 'text' | 'number' | 'boolean' | 'sns' | 'gallery'
 
 export type Component = {
   key: string
@@ -58,7 +58,7 @@ export const VRCHAT_SEARCHABLE_COMPONENTS: ResolvedComponent[] = [
   {
     key: 'gender',
     label: '性別',
-    input_type: 'select',
+    input_type: 'expressive-select',
     is_searchable: true,
     is_required: false,
     options: ['male', 'female', 'nonbinary', 'none'],

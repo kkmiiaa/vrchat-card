@@ -521,6 +521,43 @@ template_components
 
 ---
 
+## 15. 多言語・ラベル設計方針
+
+### translations.ts の役割
+
+`src/utils/translations.ts` は**システム UI の日英切り替え専用**。  
+対象はシステム定義の固定ラベル（ボタン・セクション見出し・固定選択肢）のみ。
+
+```
+translations.ja.age        → '年齢'
+translations.en.age        → 'Age'
+```
+
+### ユーザー定義テンプレートのラベル
+
+ユーザーが作るテンプレート・コンポーネントのラベルは翻訳対象外。  
+**データとして `label: string` で保持する**のが基本方針。
+
+```ts
+// 現在
+{ key: 'gender', label: '性別', input_type: 'expressive-select', ... }
+
+// 将来的に多言語が必要になった場合
+{ key: 'gender', label: { ja: '性別', en: 'Gender' }, input_type: 'expressive-select', ... }
+```
+
+| 対象 | 方針 |
+|---|---|
+| システム UI（ボタン・見出し） | `translations.ts` で管理 |
+| ブロック FormItem のラベル | `t.*` キー経由（`translations.ts` に追加） |
+| テンプレート・コンポーネントのラベル | データとして `label: string` で保持 |
+| 多言語テンプレートが必要な場合 | `label: Record<string, string>` に拡張（将来対応） |
+
+> ユーザー定義テンプレートに対して翻訳を用意することは原理的に不可能。  
+> `translations.ts` をテンプレートラベルに使おうとしてはいけない。
+
+---
+
 ## 12. 未対応・要検討事項
 
 | # | 内容 | 方針 |

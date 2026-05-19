@@ -6,13 +6,15 @@ const OPTIONS = ['PCVR', 'Quest', 'Desktop'] as const
 export const playEnvBlock: Block<string[]> = {
   key: 'playEnv',
   defaultValue: [],
-  CardItem({ value }) {
+  variants: ['default', 'slash', 'icon'],  // default=バッジ, slash=スラッシュ区切り, icon=アイコン付きバッジ
+  CardItem({ value, ctx }) {
     const items = Array.isArray(value) ? value : []
     if (!items.length) return null
+    const fs = ctx.cardWidth * 0.012
     return (
-      <div className="flex flex-wrap gap-1">
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
         {items.map(v => (
-          <span key={v} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{v}</span>
+          <span key={v} style={{ fontSize: fs, color: ctx.theme.text, background: ctx.theme.bg, padding: '2px 8px', borderRadius: 999, fontFamily: ctx.fontFamily, border: `1px solid ${ctx.theme.accent}40` }}>{v}</span>
         ))}
       </div>
     )

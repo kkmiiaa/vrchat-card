@@ -5,13 +5,15 @@ import type { Block } from './types'
 export const languageBlock: Block<string[]> = {
   key: 'language',
   defaultValue: [],
-  CardItem({ value }) {
+  variants: ['default', 'slash'],  // default=バッジ, slash=スラッシュ区切りテキスト
+  CardItem({ value, ctx }) {
     const items = Array.isArray(value) ? value : []
     if (!items.length) return null
+    const fs = ctx.cardWidth * 0.012
     return (
-      <div className="flex flex-wrap gap-1">
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
         {items.map(v => (
-          <span key={v} className="text-xs bg-sky-50 text-sky-600 px-2 py-0.5 rounded-full">{v}</span>
+          <span key={v} style={{ fontSize: fs, color: ctx.theme.accent, background: `${ctx.theme.accent}18`, padding: '2px 8px', borderRadius: 999, fontFamily: ctx.fontFamily }}>{v}</span>
         ))}
       </div>
     )

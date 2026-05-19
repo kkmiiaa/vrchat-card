@@ -7,6 +7,7 @@ const MODES = ['18歳未満', '18+', '非公開', '自由入力'] as const
 export const ageBlock: Block<AgeValue> = {
   key: 'age',
   defaultValue: { mode: '', display: '' },
+  variants: ['default', 'badge'],  // default=テキスト, badge=バッジ形式
   CardItem({ value, ctx }) {
     const safe: AgeValue = (value && typeof value === 'object' && 'mode' in value) ? value as AgeValue : { mode: '', display: '' }
     const text = safe.display || safe.mode

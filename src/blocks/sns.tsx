@@ -4,6 +4,7 @@ import type { Block, SnsValue } from './types'
 export const snsBlock: Block<SnsValue> = {
   key: 'sns',
   defaultValue: { vrchatId: '', twitterId: '', discordId: '' },
+  variants: ['default', 'icon'],  // default=ラベル+テキスト, icon=アイコン+テキスト
   CardItem({ value, ctx }) {
     const safe: SnsValue = (value && typeof value === 'object') ? value as SnsValue : { vrchatId: '', twitterId: '', discordId: '' }
     const entries = [

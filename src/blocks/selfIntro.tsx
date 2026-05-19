@@ -4,10 +4,12 @@ import type { Block } from './types'
 export const selfIntroBlock: Block<string> = {
   key: 'selfIntro',
   defaultValue: '',
-  CardItem({ value }) {
+  variants: ['default'],
+  CardItem({ value, ctx }) {
     if (!value) return null
+    const fs = ctx.cardWidth * 0.015
     return (
-      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{value as string}</p>
+      <p style={{ fontSize: fs, color: ctx.theme.text, lineHeight: 1.75, whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontFamily: ctx.fontFamily, margin: 0 }}>{value as string}</p>
     )
   },
   FormItem({ value, onChange, t }) {

@@ -21,6 +21,7 @@ export const DEFAULT_GENDER_VALUE: GenderValue = { tag: 'none', display: '' }
 export const genderTagBlock: Block<GenderValue> = {
   key: 'genderTag',
   defaultValue: DEFAULT_GENDER_VALUE,
+  variants: ['default', 'icon'],  // default=テキスト+アイコン, icon=アイコンのみ
   CardItem({ value, ctx }) {
     const safe: GenderValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as GenderValue

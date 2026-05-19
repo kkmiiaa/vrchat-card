@@ -24,6 +24,7 @@ function markStyle(mark: string): { bg: string; border: string; text: string } {
 export const interactionsBlock: Block<InteractionItem[]> = {
   key: 'interactions',
   defaultValue: defaultItems(),
+  variants: ['default', 'grid'],  // default=横長タグ(マーク|ラベル), grid=グリッド(ラベル上/マーク下)
   CardItem({ value, ctx }) {
     const items = Array.isArray(value) ? value : []
     const visible = items.filter(item => item.mark !== '-' && item.mark !== '―')

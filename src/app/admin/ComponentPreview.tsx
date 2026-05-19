@@ -48,16 +48,36 @@ const INPUT_TYPE_COLORS: Record<string, string> = {
 
 function BlockPreview({ block, inputType, description }: typeof PREVIEW_BLOCKS[number]) {
   const [value, setValue] = useState(block.defaultValue)
+  const variants = block.variants ?? ['default']
+  const [selectedVariant, setSelectedVariant] = useState(variants[0])
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       {/* ヘッダー */}
-      <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+      <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
         <span className="font-mono text-sm font-semibold text-gray-800">{block.key}</span>
         <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${INPUT_TYPE_COLORS[inputType] ?? 'bg-gray-100 text-gray-600 border-gray-200'}`}>
           {inputType}
         </span>
         <span className="text-xs text-gray-400">{description}</span>
+        {/* variants */}
+        <div className="ml-auto flex items-center gap-1">
+          <span className="text-[10px] text-gray-300 uppercase tracking-wider mr-1">variant</span>
+          {variants.map(v => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setSelectedVariant(v)}
+              className={`text-xs px-2 py-0.5 rounded border font-mono transition-colors ${
+                selectedVariant === v
+                  ? 'bg-gray-800 text-white border-gray-800'
+                  : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
+              }`}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* FormItem / CardItem を横並び */}
@@ -73,7 +93,7 @@ function BlockPreview({ block, inputType, description }: typeof PREVIEW_BLOCKS[n
           <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
           <div className="min-h-[40px] flex items-start">
             {block.CardItem
-              ? <block.CardItem value={value} ctx={DEFAULT_CARD_RENDER_CONTEXT} />
+              ? <block.CardItem value={value} ctx={DEFAULT_CARD_RENDER_CONTEXT} variant={selectedVariant} />
               : <span className="text-xs text-gray-300 italic">未実装</span>
             }
           </div>

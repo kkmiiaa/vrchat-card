@@ -12,7 +12,8 @@ const POLICY_KEYS = [
 export const friendPolicyMultiBlock: Block<string[]> = {
   key: 'friendPolicy',
   defaultValue: [],
-  CardItem({ value, fontFamily }) {
+  variants: ['default', 'icon'],  // default=テキストバッジ, icon=アイコン付き
+  CardItem({ value, ctx }) {
     const selected = Array.isArray(value) ? value : [value].filter(Boolean)
     const LABELS: Record<string, string> = {
       frPolicyAnyone: 'だれでもOK',
@@ -22,10 +23,11 @@ export const friendPolicyMultiBlock: Block<string[]> = {
       frPolicyNo: '送らないで',
     }
     if (!selected.length) return null
+    const fs = ctx.cardWidth * 0.013
     return (
-      <div className="flex flex-wrap gap-1">
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
         {selected.map(k => (
-          <span key={k} className="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full">
+          <span key={k} style={{ fontSize: fs, color: ctx.theme.text, background: ctx.theme.bg, padding: '2px 8px', borderRadius: 999, fontFamily: ctx.fontFamily, border: `1px solid ${ctx.theme.subText}40` }}>
             {LABELS[k] ?? k}
           </span>
         ))}

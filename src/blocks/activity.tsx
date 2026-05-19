@@ -5,6 +5,7 @@ const DAYS = ['月', '火', '水', '木', '金', '土', '日']
 
 export const activityBlock: Block<ActivityValue> = {
   key: 'activity',
+  variants: ['default'],  // default=曜日ドット+時間帯テキスト
   CardItem({ value, ctx }) {
     const safe: ActivityValue = (value && typeof value === 'object' && 'days' in value) ? value as ActivityValue : { days: [], weekdayStart: '', weekdayEnd: '', holidayStart: '', holidayEnd: '' }
     const fs = ctx.cardWidth * 0.012

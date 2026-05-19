@@ -12,6 +12,7 @@ const RANKS = [
 export const trustRankBlock: Block<string> = {
   key: 'trustRank',
   defaultValue: '',
+  variants: ['default'],  // default=カラーバッジ
   CardItem({ value, ctx }) {
     if (!value) return null
     const rankInfo = RANKS.find(r => r.rank === value)

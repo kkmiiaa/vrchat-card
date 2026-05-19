@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { ResolvedComponent } from '@/lib/components'
-import ComponentPreview from './ComponentPreview'
+import TemplateComponentList, { ComponentBlockList } from './BlockPreviewList'
 
 type Card = {
   id: string
@@ -86,9 +86,9 @@ export default function AdminClient({ templateComponents, componentKeyMap, sampl
           {TABS.find(t => t.key === tab)?.sub}
         </p>
 
-        {/* コンポーネント：input_typeの型定義一覧 */}
+        {/* コンポーネント：input_type定義テーブル ＋ variantプレビュー */}
         {tab === 'components' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
@@ -115,11 +115,12 @@ export default function AdminClient({ templateComponents, componentKeyMap, sampl
                 </tbody>
               </table>
             </div>
+            <ComponentBlockList />
           </div>
         )}
 
-        {/* テンプレートコンポーネント：フィールドインスタンスのFormItemプレビュー */}
-        {tab === 'template-components' && <ComponentPreview />}
+        {/* テンプレートコンポーネント：variantが固定されたフィールドインスタンス */}
+        {tab === 'template-components' && <TemplateComponentList />}
 
         {/* カード：完成品のインスタンス */}
         {tab === 'cards' && (

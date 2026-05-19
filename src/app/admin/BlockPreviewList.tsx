@@ -19,7 +19,7 @@ import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
 
 const t = translations.ja
 
-const PREVIEW_BLOCKS: { block: Block<unknown>; inputType: string; description: string }[] = [
+export const PREVIEW_BLOCKS: { block: Block<unknown>; inputType: string; description: string }[] = [
   { block: genderTagBlock as Block<unknown>,        inputType: 'expressive-select', description: 'タグ（検索用）＋自由テキスト（表示用）の二層構造' },
   { block: playEnvBlock as Block<unknown>,          inputType: 'multi-select',      description: '複数選択。PCVR/Quest/Desktop' },
   { block: languageBlock as Block<unknown>,         inputType: 'multi-select',      description: '複数選択。プリセット＋自由入力' },
@@ -34,7 +34,7 @@ const PREVIEW_BLOCKS: { block: Block<unknown>; inputType: string; description: s
   { block: interactionsBlock as Block<unknown>,     inputType: 'mark-list',         description: 'ラベル＋記号（◎◯△✗）の汎用リスト。順序性なし' },
 ]
 
-const INPUT_TYPE_COLORS: Record<string, string> = {
+export const INPUT_TYPE_COLORS: Record<string, string> = {
   'expressive-select': 'bg-purple-100 text-purple-700 border-purple-200',
   'multi-select':      'bg-blue-100 text-blue-700 border-blue-200',
   'select':            'bg-sky-100 text-sky-700 border-sky-200',
@@ -46,10 +46,18 @@ const INPUT_TYPE_COLORS: Record<string, string> = {
   'gallery':           'bg-yellow-100 text-yellow-700 border-yellow-200',
 }
 
-function BlockPreview({ block, inputType, description }: typeof PREVIEW_BLOCKS[number]) {
+type BlockPreviewProps = typeof PREVIEW_BLOCKS[number] & {
+  /** trueのとき variant 切り替えボタンを表示（コンポーネントタブ用） */
+  showVariantSwitcher?: boolean
+  /** showVariantSwitcher=falseのとき使用する固定 variant */
+  fixedVariant?: string
+}
+
+function BlockPreview({ block, inputType, description, showVariantSwitcher = false, fixedVariant }: BlockPreviewProps) {
   const [value, setValue] = useState(block.defaultValue)
   const variants = block.variants ?? ['default']
-  const [selectedVariant, setSelectedVariant] = useState(variants[0])
+  const [selectedVariant, setSelectedVariant] = useState(fixedVariant ?? variants[0])
+  const displayVariant = showVariantSwitcher ? selectedVariant : (fixedVariant ?? variants[0])
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -60,24 +68,37 @@ function BlockPreview({ block, inputType, description }: typeof PREVIEW_BLOCKS[n
           {inputType}
         </span>
         <span className="text-xs text-gray-400">{description}</span>
-        {/* variants */}
-        <div className="ml-auto flex items-center gap-1">
-          <span className="text-[10px] text-gray-300 uppercase tracking-wider mr-1">variant</span>
-          {variants.map(v => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => setSelectedVariant(v)}
-              className={`text-xs px-2 py-0.5 rounded border font-mono transition-colors ${
-                selectedVariant === v
-                  ? 'bg-gray-800 text-white border-gray-800'
-                  : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
-              }`}
-            >
-              {v}
-            </button>
-          ))}
-        </div>
+
+        {/* variant 切り替え（コンポーネントタブのみ） */}
+        {showVariantSwitcher && (
+          <div className="ml-auto flex items-center gap-1">
+            <span className="text-[10px] text-gray-300 uppercase tracking-wider mr-1">variant</span>
+            {variants.map(v => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setSelectedVariant(v)}
+                className={`text-xs px-2 py-0.5 rounded border font-mono transition-colors ${
+                  selectedVariant === v
+                    ? 'bg-gray-800 text-white border-gray-800'
+                    : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* 固定 variant 表示（テンプレートコンポーネントタブ） */}
+        {!showVariantSwitcher && (
+          <div className="ml-auto">
+            <span className="text-[10px] text-gray-300 uppercase tracking-wider mr-1">variant</span>
+            <span className="text-xs font-mono px-2 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200">
+              {displayVariant}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* FormItem / CardItem を横並び */}
@@ -93,7 +114,7 @@ function BlockPreview({ block, inputType, description }: typeof PREVIEW_BLOCKS[n
           <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
           <div className="min-h-[40px] flex items-start">
             {block.CardItem
-              ? <block.CardItem value={value} ctx={DEFAULT_CARD_RENDER_CONTEXT} variant={selectedVariant} />
+              ? <block.CardItem value={value} ctx={DEFAULT_CARD_RENDER_CONTEXT} variant={displayVariant} />
               : <span className="text-xs text-gray-300 italic">未実装</span>
             }
           </div>
@@ -109,12 +130,25 @@ function BlockPreview({ block, inputType, description }: typeof PREVIEW_BLOCKS[n
   )
 }
 
-export default function ComponentPreview() {
+/** コンポーネントタブ用：variant 切り替えあり */
+export function ComponentBlockList() {
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-400">FormItemで入力した値がCardItemにリアルタイム反映されます。</p>
+      <p className="text-sm text-gray-400">variant を切り替えてCardItemのデザインパターンを確認できます。</p>
       {PREVIEW_BLOCKS.map(item => (
-        <BlockPreview key={item.block.key} {...item} />
+        <BlockPreview key={item.block.key} {...item} showVariantSwitcher />
+      ))}
+    </div>
+  )
+}
+
+/** テンプレートコンポーネントタブ用：variant 固定（デフォルト） */
+export default function TemplateComponentList() {
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-gray-400">各フィールドのFormItem/CardItemプレビュー。variantはテンプレート定義で固定されます。</p>
+      {PREVIEW_BLOCKS.map(item => (
+        <BlockPreview key={item.block.key} {...item} showVariantSwitcher={false} />
       ))}
     </div>
   )

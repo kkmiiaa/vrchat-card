@@ -4,6 +4,12 @@ import type { Block } from './types'
 export const selfIntroBlock: Block<string> = {
   key: 'selfIntro',
   defaultValue: '',
+  CardItem({ value }) {
+    if (!value) return null
+    return (
+      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{value as string}</p>
+    )
+  },
   FormItem({ value, onChange, t }) {
     return (
       <div className="flex flex-col gap-2">

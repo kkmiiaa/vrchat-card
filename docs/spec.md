@@ -336,6 +336,24 @@ POST /api/stripe/checkout
 > 界隈（Community）はテンプレートが属する文脈であり、独立したレイヤーは持たない。
 > テンプレートコンポーネントが界隈固有の設定（カードデータキー・選択肢）を内包する。
 
+### FormItem と CardItem
+
+コンポーネント・テンプレートコンポーネントはいずれも2つのUI表現を持つ。
+
+| 表現 | 役割 | 実装場所 |
+|---|---|---|
+| **FormItem** | ユーザーが値を入力・編集するUI（カードエディター内） | `Block.FormItem` |
+| **CardItem** | カード上に値を表示するUI（汎用レンダラーが使用） | `Block.CardItem` |
+
+```
+genderTag ブロック（テンプレートコンポーネント）
+  ├── FormItem → タグ選択ボタン群 ＋ displayテキスト入力
+  └── CardItem → ♂ アイコン ＋ テキスト（display ?? tagラベル）
+```
+
+現状の CardV1/V2 はカード全体の描画をReactコードに直接埋め込んでいるため、`CardItem` はほぼ未実装。
+汎用レンダラー（セクション14）への移行に伴い、各ブロックに `CardItem` を実装していく。
+
 ### コンポーネント（input_type）一覧
 
 | input_type | 検索 | card_data の値形式 | 用途例 |

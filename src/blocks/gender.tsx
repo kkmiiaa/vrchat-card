@@ -21,6 +21,21 @@ export const DEFAULT_GENDER_VALUE: GenderValue = { tag: 'none', display: '' }
 export const genderTagBlock: Block<GenderValue> = {
   key: 'genderTag',
   defaultValue: DEFAULT_GENDER_VALUE,
+  CardItem({ value }) {
+    const safe: GenderValue = (value && typeof value === 'object' && 'tag' in value)
+      ? value as GenderValue
+      : DEFAULT_GENDER_VALUE
+    const label = GENDER_TAG_OPTIONS.find(o => o.value === safe.tag)?.label
+    const display = safe.display || label
+    if (!display || safe.tag === 'none') return null
+    const Icon = safe.tag === 'male' ? PiGenderMaleBold : safe.tag === 'female' ? PiGenderFemaleBold : safe.tag === 'nonbinary' ? PiGenderIntersexBold : null
+    return (
+      <span className="flex items-center gap-1 text-sm text-gray-700">
+        {Icon && <Icon size={14} className="text-gray-400" />}
+        {display}
+      </span>
+    )
+  },
   FormItem({ value, onChange, t }) {
     const safe: GenderValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as GenderValue

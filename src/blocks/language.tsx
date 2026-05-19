@@ -5,6 +5,17 @@ import type { Block } from './types'
 export const languageBlock: Block<string[]> = {
   key: 'language',
   defaultValue: [],
+  CardItem({ value }) {
+    const items = Array.isArray(value) ? value : []
+    if (!items.length) return null
+    return (
+      <div className="flex flex-wrap gap-1">
+        {items.map(v => (
+          <span key={v} className="text-xs bg-sky-50 text-sky-600 px-2 py-0.5 rounded-full">{v}</span>
+        ))}
+      </div>
+    )
+  },
   FormItem({ value, onChange, t }) {
     const presets = [t.japanese, t.english, t.korean]
     const customLangs = value.filter(l => !presets.includes(l))

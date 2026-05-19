@@ -6,6 +6,17 @@ const OPTIONS = ['PCVR', 'Quest', 'Desktop'] as const
 export const playEnvBlock: Block<string[]> = {
   key: 'playEnv',
   defaultValue: [],
+  CardItem({ value }) {
+    const items = Array.isArray(value) ? value : []
+    if (!items.length) return null
+    return (
+      <div className="flex flex-wrap gap-1">
+        {items.map(v => (
+          <span key={v} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{v}</span>
+        ))}
+      </div>
+    )
+  },
   FormItem({ value, onChange, t }) {
     return (
       <div className="flex flex-col gap-2">

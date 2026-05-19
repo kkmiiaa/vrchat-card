@@ -16,10 +16,16 @@ export const ageBlock: Block<AgeValue> = {
       <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily }}>{text}</span>
     )
   },
-  FormItem({ value, onChange }) {
+  FormItem({ value, onChange, t }) {
+    const modeLabels: Record<string, string> = {
+      '18歳未満': t.ageModes.under18,
+      '18+':      t.ageModes.over18,
+      '非公開':   t.ageModes.private,
+      '自由入力': t.ageModes.custom,
+    }
     return (
       <div className="flex flex-col gap-2">
-        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">年齢</h2>
+        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.age}</h2>
         <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
           {MODES.map(opt => (
             <button
@@ -35,7 +41,7 @@ export const ageBlock: Block<AgeValue> = {
                   : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
             >
-              {opt}
+              {modeLabels[opt] ?? opt}
             </button>
           ))}
         </div>

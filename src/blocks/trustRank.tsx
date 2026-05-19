@@ -23,10 +23,10 @@ export const trustRankBlock: Block<string> = {
       </span>
     )
   },
-  FormItem({ value, onChange }) {
+  FormItem({ value, onChange, t }) {
     return (
       <div className="flex flex-col gap-2">
-        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">Trust Rank</h2>
+        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.trustRank}</h2>
         <div className="flex flex-wrap gap-1.5">
           {RANKS.map(({ rank, color }) => (
             <button

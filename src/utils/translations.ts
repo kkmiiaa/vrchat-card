@@ -61,6 +61,24 @@ export const translations = {
     // Mic Section
     micOnRate: 'マイクON率',
 
+    // Age Section
+    age: '年齢',
+    ageModes: { under18: '18歳未満', over18: '18+', private: '非公開', custom: '自由入力' },
+
+    // Trust Rank Section
+    trustRank: 'Trust Rank',
+
+    // Gender display text
+    genderDisplayText: '表示テキスト（任意）',
+    genderDisplayTextHint: '未入力の場合はタグのラベルを表示します',
+
+    // Activity Section
+    activityTime: '活動時間',
+    activityWeekday: '平日',
+    activityHoliday: '休日',
+    activityIrregular: 'バラバラ',
+    activityClear: 'クリア',
+
     // SNS Section
     snsContact: 'SNS・コンタクト情報',
     snsInfo: 'SNS情報',
@@ -199,6 +217,24 @@ export const translations = {
 
     // Mic Section
     micOnRate: 'Mic ON Rate',
+
+    // Age Section
+    age: 'Age',
+    ageModes: { under18: 'Under 18', over18: '18+', private: 'Private', custom: 'Custom' },
+
+    // Trust Rank Section
+    trustRank: 'Trust Rank',
+
+    // Gender display text
+    genderDisplayText: 'Display Text (optional)',
+    genderDisplayTextHint: 'If empty, the tag label will be shown.',
+
+    // Activity Section
+    activityTime: 'Active Hours',
+    activityWeekday: 'Weekdays',
+    activityHoliday: 'Weekends',
+    activityIrregular: 'Irregular',
+    activityClear: 'Clear',
 
     // SNS Section
     snsContact: 'SNS & Contact Info',

@@ -37,19 +37,19 @@ export const activityBlock: Block<ActivityValue> = {
     holidayStart: '',
     holidayEnd: '',
   },
-  FormItem({ value, onChange }) {
+  FormItem({ value, onChange, t }) {
     const update = (patch: Partial<ActivityValue>) => onChange({ ...value, ...patch })
     const toggleDay = (i: number) =>
       update({ days: value.days.map((v, j) => j === i ? !v : v) })
 
     const timeRanges = [
-      { label: '平日', startKey: 'weekdayStart' as const, endKey: 'weekdayEnd' as const, modeKey: 'weekdayTimesMode' as const },
-      { label: '休日', startKey: 'holidayStart' as const, endKey: 'holidayEnd' as const, modeKey: 'holidayTimesMode' as const },
+      { label: t.activityWeekday, startKey: 'weekdayStart' as const, endKey: 'weekdayEnd' as const, modeKey: 'weekdayTimesMode' as const },
+      { label: t.activityHoliday, startKey: 'holidayStart' as const, endKey: 'holidayEnd' as const, modeKey: 'holidayTimesMode' as const },
     ]
 
     return (
       <div className="flex flex-col gap-3">
-        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">活動時間</h2>
+        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.activityTime}</h2>
 
         {/* 曜日選択 */}
         <div className="flex flex-col gap-2">
@@ -78,7 +78,6 @@ export const activityBlock: Block<ActivityValue> = {
           </div>
           <div className="flex gap-2">
             {(['irregular'] as const).map(mode => {
-              const label = 'バラバラ'
               const selected = value.daysMode === mode
               return (
                 <button
@@ -91,7 +90,7 @@ export const activityBlock: Block<ActivityValue> = {
                       : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
                   }`}
                 >
-                  {label}
+                  {t.activityIrregular}
                 </button>
               )
             })}
@@ -119,7 +118,7 @@ export const activityBlock: Block<ActivityValue> = {
                       : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
                   }`}
                 >
-                  バラバラ
+                  {t.activityIrregular}
                 </button>
               </div>
               {!isIrregular && (
@@ -130,7 +129,7 @@ export const activityBlock: Block<ActivityValue> = {
                     className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200 bg-white"
                   >
                     <option value="">--</option>
-                    {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                    {timeOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
                   <span className="text-gray-400 text-sm flex-shrink-0">〜</span>
                   <select
@@ -139,14 +138,14 @@ export const activityBlock: Block<ActivityValue> = {
                     className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200 bg-white"
                   >
                     <option value="">--</option>
-                    {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                    {timeOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
                   <button
                     type="button"
                     onClick={() => update({ [startKey]: '', [endKey]: '' })}
                     className="text-xs text-gray-400 hover:text-gray-600 flex-shrink-0"
                   >
-                    クリア
+                    {t.activityClear}
                   </button>
                 </div>
               )}

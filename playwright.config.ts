@@ -39,6 +39,22 @@ export default defineConfig({
         storageState: 'tests/.auth/user.json',
       },
     },
+    // Step 4: モバイル未ログインテスト
+    {
+      name: 'mobile-unauthenticated',
+      testMatch: /\/mobile\.spec\.ts/,
+      use: { ...devices['iPhone 14'] },
+    },
+    // Step 5: モバイルログイン済みテスト
+    {
+      name: 'mobile-authenticated',
+      testMatch: /\/mobile-authenticated\.spec\.ts/,
+      dependencies: ['setup'],
+      use: {
+        ...devices['iPhone 14'],
+        storageState: 'tests/.auth/user.json',
+      },
+    },
   ],
   webServer: {
     command: 'npm run dev:test',

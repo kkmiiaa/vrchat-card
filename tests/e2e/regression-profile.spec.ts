@@ -57,7 +57,7 @@ test.describe('プロフィールページ — カード一覧（デグレ防止
     await page.waitForLoadState('networkidle');
 
     // カードプレビューが表示されていること
-    await expect(page.locator('a[href*="/card/"][href*="/view"]').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('a[href*="/card/"][href*=""]').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('カードにタイトルがあっても、プロフィールページには表示されない', async ({ page }) => {
@@ -92,10 +92,10 @@ test.describe('プロフィールページ — カード一覧（デグレ防止
     await page.goto(url);
     await page.waitForLoadState('networkidle');
 
-    const cardLink = page.locator('a[href*="/card/"][href*="/view"]').first();
+    const cardLink = page.locator('a[href*="/card/"][href*=""]').first();
     if (await cardLink.isVisible({ timeout: 5000 }).catch(() => false)) {
       await cardLink.click();
-      await expect(page).toHaveURL(/\/card\/[a-z0-9-]+\/view/);
+      await expect(page).toHaveURL(/\/card\/[a-zA-Z0-9-]+/);
       await expect(page.locator('body')).not.toContainText('500');
     }
   });

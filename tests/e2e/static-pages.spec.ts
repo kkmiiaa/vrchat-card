@@ -18,7 +18,7 @@ test.describe('静的ページ', () => {
 
 test.describe('存在しないページ', () => {
   test('存在しないカードIDにアクセスすると適切に処理される', async ({ page }) => {
-    await page.goto('/card/nonexistent-card-id-12345/view');
+    await page.goto('/card/nonexistent-card-id-12345');
     // ローディング表示かエラー表示になること（500 は出ないこと）
     await expect(page.locator('body')).not.toContainText('Internal Server Error');
   });

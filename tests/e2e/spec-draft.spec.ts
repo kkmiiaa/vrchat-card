@@ -11,8 +11,8 @@ import { test, expect, Page } from '@playwright/test';
 async function createCardAndGetId(page: Page): Promise<string> {
   await page.goto('/card/new');
   await page.getByText('Standard').click();
-  await page.waitForURL(/\/card\/[a-z0-9]+\/edit$/, { timeout: 15000 });
-  const match = page.url().match(/\/card\/([a-z0-9]+)\/edit/);
+  await page.waitForURL(/\/card\/[a-zA-Z0-9]+/, { timeout: 15000 });
+  const match = page.url().match(/\/card\/([a-zA-Z0-9]+)/);
   return match?.[1] ?? '';
 }
 

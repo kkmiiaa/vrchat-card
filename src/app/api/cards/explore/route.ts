@@ -71,11 +71,23 @@ export async function GET(request: NextRequest) {
     query = query.eq(`card_data->>${cardDataKey}`, friendPolicy)
   }
 
-  // 全文検索（name + selfIntro）
+  // 全文検索（card_data name/selfIntro + profiles display_name）
   if (q) {
-    query = query.or(
-      `card_data->>name.ilike.%${q}%,card_data->>selfIntro.ilike.%${q}%`
-    )
+    // display_name がマッチするユーザーIDを取得してOR結合
+    const { data: matchedProfiles } = await supabase
+      .from('profiles')
+      .select('user_id')
+      .ilike('display_name', `%${q}%`)
+
+    const matchedUserIds = (matchedProfiles ?? []).map(p => p.user_id)
+
+    const orClause = [
+      `card_data->>name.ilike.%${q}%`,
+      `card_data->>selfIntro.ilike.%${q}%`,
+      ...(matchedUserIds.length > 0 ? [`user_id.in.(${matchedUserIds.join(',')})`] : []),
+    ].join(',')
+
+    query = query.or(orClause)
   }
 
   const { data, error } = await query

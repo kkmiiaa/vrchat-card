@@ -9,19 +9,86 @@ export type BlockFormProps<T> = {
   t: Translations
 }
 
+/** カードレンダリング時のスタイルコンテキスト */
+export type CardRenderContext = {
+  /** フォントファミリー */
+  fontFamily: string
+  /** カード幅（px）。フォントサイズ等のスケール基準 */
+  cardWidth: number
+  /** テーマカラー */
+  theme: {
+    accent: string       // アクセントカラー（ボーダー・ハイライト等）
+    text: string         // 本文テキスト色
+    subText: string      // サブテキスト・ラベル色
+    bg: string           // セル背景色
+  }
+}
+
+export const DEFAULT_CARD_RENDER_CONTEXT: CardRenderContext = {
+  fontFamily: 'sans-serif',
+  cardWidth: 900,
+  theme: {
+    accent:  '#00AADB',
+    text:    '#1f2937',
+    subText: '#9ca3af',
+    bg:      'rgba(255,255,255,0.6)',
+  },
+}
+
+/** ブロックのデザインバリアント識別子 */
+export type BlockVariant = string
+
 export type BlockCardProps<T> = {
   value: T
-  fontFamily?: string
+  ctx: CardRenderContext
+  /** 選択されたデザインバリアント。未指定時は 'default' */
+  variant?: BlockVariant
 }
 
 /** ブロック定義: フォームUIとカードUIをセットで持つ単位 */
 export type Block<T = unknown> = {
   key: string
   defaultValue: T
+  /** このブロックが対応するデザインバリアント一覧。未定義は ['default'] 扱い */
+  variants?: BlockVariant[]
   /** フォームエリアに描画されるUI */
   FormItem: (props: BlockFormProps<T>) => ReactNode
   /** カードエリアに描画されるUI（テンプレートが参照可能） */
   CardItem?: (props: BlockCardProps<T>) => ReactNode
+}
+
+// --- テンプレート定義型 ---
+
+/** テンプレートコンポーネント: ブロックをテンプレートに配置する際のインスタンス */
+export type TemplateComponentDef = {
+  /** 対応するブロックの key */
+  blockKey: string
+  /** 選択されたデザインバリアント */
+  variant: BlockVariant
+  /** レイアウト上の横幅（1〜12グリッド。省略時は12=全幅） */
+  span?: number
+}
+
+/** テンプレートレイアウトのセクション */
+export type TemplateSectionDef = {
+  /** セクション見出し（データとして保持。翻訳対象外） */
+  label: string
+  components: TemplateComponentDef[]
+}
+
+/** テンプレート全体の定義（汎用レンダラーが参照するJSON構造） */
+export type TemplateDefinition = {
+  id: string
+  label: string
+  /** カードのアスペクト比・サイズ */
+  cardWidth: number
+  cardHeight: number
+  /** デフォルトテーマ */
+  theme: CardRenderContext['theme']
+  /** デフォルトフォント */
+  fontFamily: string
+  /** セクションとコンポーネントの配置定義 */
+  sections: TemplateSectionDef[]
 }
 
 /** ブロック値の集合 */

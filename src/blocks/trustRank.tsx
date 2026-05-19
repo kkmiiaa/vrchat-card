@@ -12,6 +12,17 @@ const RANKS = [
 export const trustRankBlock: Block<string> = {
   key: 'trustRank',
   defaultValue: '',
+  CardItem({ value, ctx }) {
+    if (!value) return null
+    const rankInfo = RANKS.find(r => r.rank === value)
+    const color = rankInfo?.color ?? ctx.theme.subText
+    const fs = ctx.cardWidth * 0.012
+    return (
+      <span style={{ fontSize: fs, color, fontWeight: 700, background: color + '20', padding: '2px 10px', borderRadius: 999, border: `1px solid ${color}60`, fontFamily: ctx.fontFamily }}>
+        {value}
+      </span>
+    )
+  },
   FormItem({ value, onChange }) {
     return (
       <div className="flex flex-col gap-2">

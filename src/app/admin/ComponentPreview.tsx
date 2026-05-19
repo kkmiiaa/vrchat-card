@@ -8,6 +8,7 @@ import { friendPolicyMultiBlock } from '@/blocks/friendPolicyMulti'
 import { selfIntroBlock } from '@/blocks/selfIntro'
 import { translations } from '@/utils/translations'
 import type { Block } from '@/blocks/types'
+import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
 
 const t = translations.ja
 
@@ -53,7 +54,7 @@ function BlockPreview({ block, inputType, description }: typeof PREVIEW_BLOCKS[n
           <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
           <div className="min-h-[40px] flex items-start">
             {block.CardItem
-              ? <block.CardItem value={value} />
+              ? <block.CardItem value={value} ctx={DEFAULT_CARD_RENDER_CONTEXT} />
               : <span className="text-xs text-gray-300 italic">未実装</span>
             }
           </div>

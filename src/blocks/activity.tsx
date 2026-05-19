@@ -5,6 +5,31 @@ const DAYS = ['月', '火', '水', '木', '金', '土', '日']
 
 export const activityBlock: Block<ActivityValue> = {
   key: 'activity',
+  CardItem({ value, ctx }) {
+    const safe: ActivityValue = (value && typeof value === 'object' && 'days' in value) ? value as ActivityValue : { days: [], weekdayStart: '', weekdayEnd: '', holidayStart: '', holidayEnd: '' }
+    const fs = ctx.cardWidth * 0.012
+    const activeDays = safe.daysMode === 'irregular' ? null : DAYS.map((d, i) => ({ d, active: safe.days[i] }))
+    const hasTime = safe.weekdayStart || safe.holidayStart
+    if (!activeDays && !hasTime) return null
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontFamily: ctx.fontFamily }}>
+        {activeDays && (
+          <div style={{ display: 'flex', gap: 3 }}>
+            {activeDays.map(({ d, active }, i) => (
+              <span key={i} style={{ fontSize: fs * 0.9, fontWeight: 700, color: active ? (i >= 5 ? '#f59e0b' : ctx.theme.accent) : ctx.theme.subText, opacity: active ? 1 : 0.4 }}>{d}</span>
+            ))}
+            {safe.daysMode === 'irregular' && <span style={{ fontSize: fs, color: ctx.theme.subText }}>バラバラ</span>}
+          </div>
+        )}
+        {(safe.weekdayStart || safe.holidayStart) && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {safe.weekdayStart && <span style={{ fontSize: fs, color: ctx.theme.text }}>平日 {safe.weekdayStart}〜{safe.weekdayEnd}</span>}
+            {safe.holidayStart && <span style={{ fontSize: fs, color: ctx.theme.text }}>休日 {safe.holidayStart}〜{safe.holidayEnd}</span>}
+          </div>
+        )}
+      </div>
+    )
+  },
   defaultValue: {
     days: [true, true, true, true, true, false, false],
     weekdayStart: '',

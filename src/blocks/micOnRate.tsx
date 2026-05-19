@@ -4,6 +4,19 @@ import type { Block } from './types'
 export const micOnRateBlock: Block<number> = {
   key: 'micOnRate',
   defaultValue: 0,
+  CardItem({ value, ctx }) {
+    const rate = typeof value === 'number' ? value : 0
+    const fs = ctx.cardWidth * 0.012
+    const barWidth = ctx.cardWidth * 0.18
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: ctx.fontFamily }}>
+        <div style={{ width: barWidth, height: 6, borderRadius: 999, background: `${ctx.theme.subText}30`, overflow: 'hidden' }}>
+          <div style={{ width: `${rate}%`, height: '100%', borderRadius: 999, background: ctx.theme.accent }} />
+        </div>
+        <span style={{ fontSize: fs, color: ctx.theme.text, fontWeight: 600 }}>{rate}%</span>
+      </div>
+    )
+  },
   FormItem({ value, onChange, t }) {
     return (
       <div className="flex flex-col gap-2">

@@ -7,6 +7,15 @@ const MODES = ['18歳未満', '18+', '非公開', '自由入力'] as const
 export const ageBlock: Block<AgeValue> = {
   key: 'age',
   defaultValue: { mode: '', display: '' },
+  CardItem({ value, ctx }) {
+    const safe: AgeValue = (value && typeof value === 'object' && 'mode' in value) ? value as AgeValue : { mode: '', display: '' }
+    const text = safe.display || safe.mode
+    if (!text || safe.mode === '非公開' || safe.mode === '') return null
+    const fs = ctx.cardWidth * 0.013
+    return (
+      <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily }}>{text}</span>
+    )
+  },
   FormItem({ value, onChange }) {
     return (
       <div className="flex flex-col gap-2">

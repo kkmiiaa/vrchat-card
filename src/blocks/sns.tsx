@@ -4,6 +4,26 @@ import type { Block, SnsValue } from './types'
 export const snsBlock: Block<SnsValue> = {
   key: 'sns',
   defaultValue: { vrchatId: '', twitterId: '', discordId: '' },
+  CardItem({ value, ctx }) {
+    const safe: SnsValue = (value && typeof value === 'object') ? value as SnsValue : { vrchatId: '', twitterId: '', discordId: '' }
+    const entries = [
+      { label: 'VRC', val: safe.vrchatId },
+      { label: 'X', val: safe.twitterId },
+      { label: 'DC', val: safe.discordId },
+    ].filter(e => e.val)
+    if (!entries.length) return null
+    const fs = ctx.cardWidth * 0.012
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {entries.map(({ label, val }) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: fs * 0.85, color: ctx.theme.subText, fontWeight: 600, fontFamily: ctx.fontFamily, minWidth: '2em' }}>{label}</span>
+            <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily }}>{val}</span>
+          </div>
+        ))}
+      </div>
+    )
+  },
   FormItem({ value, onChange, t }) {
     const update = (key: keyof SnsValue) => (v: string) =>
       onChange({ ...value, [key]: v })

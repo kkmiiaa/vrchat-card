@@ -284,7 +284,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
   const initials = (displayName || currentSlug).slice(0, 2).toUpperCase()
 
   return (
-    <div className="min-h-screen flex flex-col overflow-hidden" style={{ background: '#f8fafc' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#f8fafc' }}>
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-10 -right-10 w-64 h-64 rounded-full border-2 border-sky-100 opacity-50" />
         <div className="absolute bottom-20 -left-10 w-56 h-56 rounded-full border border-cyan-100 opacity-40" />

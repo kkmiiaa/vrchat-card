@@ -257,7 +257,55 @@ POST /api/stripe/checkout
 
 ---
 
-## 10. 未対応・要検討事項
+## 10. 既存メーカーユーザーの挙動
+
+旧カードメーカー（`/tools/vrchat-introduction-card`）はアカウント不要の独立ツールとして存在しており、vaacard の登録ユーザーとは異なる導線を持つ。
+
+### 旧メーカーの仕様
+
+| 項目 | 内容 |
+|---|---|
+| パス | `/tools/vrchat-introduction-card` |
+| アカウント | 不要 |
+| データ永続化 | `localStorage`（キー: `vrchat-card-cache`） |
+| 保存・公開 | なし（ダウンロードのみ） |
+| カード ID | なし |
+
+- カードデータは `localStorage` に JSON で保存され、ブラウザを閉じても再開できる
+- 画像保存: PC → ダウンロード、モバイル → 新しいタブで開く（旧実装）
+- X 共有: 画像を新しいタブで開き、Twitter リンクを別途表示（旧実装）
+
+🔴 旧メーカーのモバイル画像保存は Web Share API に未対応。新メーカーと挙動が異なる。
+
+### 新メーカーへの自動マイグレーション
+
+旧メーカーと新メーカー（CardEditor）は同じ `localStorage` キー（`vrchat-card-cache`）を共有している。
+
+**フロー:**
+1. ユーザーが旧メーカーでカードを作成 → `localStorage` に保存
+2. ユーザーが vaacard にログイン（新規または既存）
+3. CardEditor（`/card/new` または `/card/{id}`）を開いた際、`isLoggedIn && !cardId && localStorage に保存データあり` の条件を満たすと自動マイグレーション発動
+4. `handleShareByUrl()` が呼ばれ、カードを自動的にマイページに保存
+5. ログイン後はそのまま新メーカーで継続編集できる
+
+```typescript
+// CardEditor.tsx
+const autoMigrateRef = useRef(false)
+useEffect(() => {
+  if (!isLoggedIn || !initialized || cardId) return
+  if (autoMigrateRef.current) return
+  const saved = localStorage.getItem('vrchat-card-cache')
+  if (!saved) return
+  autoMigrateRef.current = true
+  handleShareByUrl() // カードをマイページに自動保存
+}, [isLoggedIn, initialized])
+```
+
+🔴 自動マイグレーション時にユーザーへの説明・確認UIがない。突然保存が走ることへのフィードバックが不足している可能性がある。
+
+---
+
+## 11. 未対応・要検討事項
 
 | # | 内容 |
 |---|---|

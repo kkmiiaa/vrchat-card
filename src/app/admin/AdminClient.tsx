@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { ResolvedComponent } from '@/lib/components'
+import ComponentPreview from './ComponentPreview'
 
 type Card = {
   id: string
@@ -13,14 +13,12 @@ type Card = {
 }
 
 type Props = {
-  components: ResolvedComponent[]
-  componentKeyMap: Record<string, string>
   sampleCards: Card[]
 }
 
 type Tab = 'components' | 'cards'
 
-export default function AdminClient({ components, componentKeyMap, sampleCards }: Props) {
+export default function AdminClient({ sampleCards }: Props) {
   const [tab, setTab] = useState<Tab>('components')
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
 
@@ -48,47 +46,7 @@ export default function AdminClient({ components, componentKeyMap, sampleCards }
           ))}
         </div>
 
-        {tab === 'components' && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">コンポーネント定義（VRChat界隈）</h2>
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">key</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">label</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">input_type</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">card_data key</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">searchable</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">options</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {components.map(c => (
-                    <tr key={c.key} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-mono text-xs text-gray-700">{c.key}</td>
-                      <td className="px-4 py-3 text-gray-900">{c.label}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                          c.input_type === 'expressive-select'
-                            ? 'bg-purple-100 text-purple-700'
-                            : c.input_type === 'select'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {c.input_type}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs text-gray-500">{componentKeyMap[c.key] ?? c.key}</td>
-                      <td className="px-4 py-3 text-center">{c.is_searchable ? '✓' : '—'}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-gray-400">{c.options?.join(', ') ?? '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+        {tab === 'components' && <ComponentPreview />}
 
         {tab === 'cards' && (
           <div className="space-y-4">

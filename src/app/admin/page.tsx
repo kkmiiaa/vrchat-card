@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminClient from './AdminClient'
-import { VRCHAT_SEARCHABLE_COMPONENTS, VRCHAT_COMPONENT_KEY_MAP } from '@/lib/components'
 
 export const metadata = { title: 'Admin | vaacard' }
 
@@ -25,11 +24,5 @@ export default async function AdminPage() {
     .order('created_at', { ascending: false })
     .limit(10)
 
-  return (
-    <AdminClient
-      components={VRCHAT_SEARCHABLE_COMPONENTS}
-      componentKeyMap={VRCHAT_COMPONENT_KEY_MAP}
-      sampleCards={cards ?? []}
-    />
-  )
+  return <AdminClient sampleCards={cards ?? []} />
 }

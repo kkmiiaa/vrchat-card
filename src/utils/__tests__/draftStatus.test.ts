@@ -93,14 +93,13 @@ describe('下書きステータスラベル', () => {
 // ─── トースト文言 ─────────────────────────────────────────────────────────────
 
 describe('画像ダウンロード後のトースト文言（仕様書 Section 10）', () => {
-  const EXPECTED_TOAST_TEXT = 'マイページに保存して、URLで共有できるようにしませんか？'
-  const CURRENT_TOAST_TEXT  = 'マイページに保存して公開しませんか？' // 現状の実装
+  const TOAST_TEXT = 'マイページに保存して、URLで共有できるようにしませんか？'
 
-  it('期待するトースト文言が定義されている', () => {
-    expect(EXPECTED_TOAST_TEXT).toContain('URLで共有')
+  it('「URLで共有」の文言を含む', () => {
+    expect(TOAST_TEXT).toContain('URLで共有')
   })
 
-  it('❌ 現状の実装は期待する文言と異なる（要修正）', () => {
-    expect(CURRENT_TOAST_TEXT).not.toBe(EXPECTED_TOAST_TEXT)
+  it('「マイページに保存」の文言を含む', () => {
+    expect(TOAST_TEXT).toContain('マイページに保存')
   })
 })

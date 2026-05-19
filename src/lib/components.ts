@@ -41,7 +41,7 @@ export type ResolvedComponent = {
  * 既存のcard_dataスキーマとの橋渡し
  */
 export const VRCHAT_COMPONENT_KEY_MAP: Record<string, string> = {
-  gender:        'genderTag',
+  gender:        'gender',
   platform:      'playEnv',
   language:      'language',
   friend_policy: 'friendPolicy',

@@ -10,6 +10,11 @@ PRを作成してマージしそうなタイミング（develop→main PR作成�
 ローカルでのE2E実行を提案すること。
 E2EはCIでは実行しない（時間がかかりすぎるため）。ローカル実行コマンド: `npx playwright test`
 
+## 変更禁止範囲
+
+`src/app/card/vrchat/` 以下（旧メーカー）は変更禁止。
+既存ユーザーが利用中のため、挙動を変えてはいけない。
+
 ## ドキュメント管理
 
 `docs/spec.md` と `docs/testcases.md` は常に最新の状態に保つこと。

@@ -63,10 +63,12 @@ export type Block<T = unknown> = {
 export type TemplateComponentDef = {
   /** 対応するブロックの key */
   blockKey: string
-  /** 選択されたデザインバリアント */
+  /** 選択されたデザインバリアント（運営者が定義したパターンから選択） */
   variant: BlockVariant
   /** レイアウト上の横幅（1〜12グリッド。省略時は12=全幅） */
   span?: number
+  /** 縦方向に残りスペースを埋める（自己紹介など可変高さ要素に使用） */
+  grow?: boolean
 }
 
 /** テンプレートレイアウトのセクション */

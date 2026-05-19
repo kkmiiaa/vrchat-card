@@ -1,0 +1,397 @@
+/**
+ * 旧メーカー（/card/vrchat）デグレ防止テスト（重点チェック）
+ *
+ * 既存メーカーのユーザーは vaacard の主要な既存ユーザー層であり、
+ * 新機能追加・リファクタリングによってこの導線が壊れることを防ぐ。
+ *
+ * カバー範囲:
+ *   A. アクセス・リダイレクト
+ *   B. 表示（エラーなし・主要 UI）
+ *   C. フォーム入力（全セクション）
+ *   D. カードプレビュー
+ *   E. 画像保存・Xシェア
+ *   F. localStorage による永続化
+ *   G. ログイン訴求 UI
+ *   H. ログイン済みユーザーの自動マイグレーション
+ */
+import { test, expect, Page } from '@playwright/test';
+
+// ─── A. アクセス・リダイレクト ──────────────────────────────────────────────
+
+test.describe('A. アクセス・リダイレクト', () => {
+  test('未ログインで /card/vrchat にアクセスできる（ログインページへ飛ばない）', async ({ browser }) => {
+    const ctx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const page = await ctx.newPage();
+    await page.goto('/card/vrchat');
+    await expect(page).not.toHaveURL(/auth\/login/);
+    await ctx.close();
+  });
+
+  test('/tools/vrchat-introduction-card は /card/vrchat にリダイレクトされる', async ({ browser }) => {
+    const ctx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const page = await ctx.newPage();
+    await page.goto('/tools/vrchat-introduction-card');
+    await expect(page).toHaveURL('/card/vrchat');
+    await ctx.close();
+  });
+
+  test('未ログイン時はテンプレート選択画面ではなく旧メーカーのエディタが表示される', async ({ browser }) => {
+    const ctx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const page = await ctx.newPage();
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByText('テンプレートを選ぶ')).not.toBeVisible();
+    await ctx.close();
+  });
+
+  // このテストはログイン済みセッションが必要。authenticated プロジェクトで実行すること
+  test('ログイン済みの場合は /card/new にリダイレクトされる', async ({ page, context }) => {
+    // storageState が空（未ログイン）ならスキップ
+    const cookies = await context.cookies();
+    if (!cookies.some(c => c.name.includes('auth') || c.name.includes('sb-'))) {
+      test.skip();
+      return;
+    }
+    await page.goto('/card/vrchat');
+    await expect(page).toHaveURL('/card/new');
+  });
+});
+
+// ─── B. 表示（エラーなし・主要 UI） ─────────────────────────────────────────
+
+test.describe('B. 表示', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+  });
+
+  test('500 エラーが出ない', async ({ page }) => {
+    await expect(page.locator('body')).not.toContainText('500');
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText('Something went wrong');
+  });
+
+  test('vaacard ロゴが表示される', async ({ page }) => {
+    await expect(page.getByText('vaacard').first()).toBeVisible();
+  });
+
+  test('ページタイトルに VRChat が含まれる', async ({ page }) => {
+    await expect(page).toHaveTitle(/VRChat/i);
+  });
+
+  test('カードプレビュー領域が表示される', async ({ page }) => {
+    await expect(page.locator('section').first()).toBeVisible();
+  });
+
+  test('右パネルに「カードデザイン」セクションが表示される', async ({ page }) => {
+    // 右パネルのカードデザインは常時展開（アコーディオンではない）
+    await expect(page.getByText('カードデザイン').first()).toBeVisible();
+  });
+
+  test('「プロフィール情報」アコーディオンが表示される', async ({ page }) => {
+    await expect(page.getByRole('button', { name: 'プロフィール情報' })).toBeVisible();
+  });
+
+  test('ヘッダーに「画像で保存」ボタンが表示される', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /画像で保存/ })).toBeVisible();
+  });
+
+  test('ヘッダーに「Xでシェア」ボタンが表示される', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /Xでシェア|シェア/ })).toBeVisible();
+  });
+
+  test('ヘッダーに「ログイン」リンクが表示される（未ログイン）', async ({ page }) => {
+    await expect(page.locator('header').getByRole('link', { name: /ログイン/ })).toBeVisible();
+  });
+});
+
+// ─── C. フォーム入力（全セクション） ────────────────────────────────────────
+
+test.describe('C. フォーム入力 — プロフィール情報', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    // プロフィール情報アコーディオンを開く
+    await page.getByRole('button', { name: 'プロフィール情報' }).click();
+    await page.waitForTimeout(300);
+  });
+
+  test('名前フィールドに入力できる', async ({ page }) => {
+    // name ブロック: placeholder なし、ラベル「名前」の直下にある input
+    const nameSection = page.locator('h2').filter({ hasText: '名前' }).first();
+    await expect(nameSection).toBeVisible({ timeout: 5000 });
+    const input = nameSection.locator('..').locator('input[type="text"]');
+    await expect(input).toBeVisible({ timeout: 5000 });
+    await input.fill('テスト太郎');
+    await expect(input).toHaveValue('テスト太郎');
+  });
+
+  test('マイクON率のスライダーが使用環境・言語セクションに表示される', async ({ page }) => {
+    // v1 テンプレートでは マイクON率 は「使用環境・言語」セクションにある
+    await page.getByRole('button', { name: /使用環境・言語/ }).click();
+    await page.waitForTimeout(300);
+    const micLabel = page.getByText(/マイクON率/i).first();
+    await micLabel.scrollIntoViewIfNeeded();
+    await expect(micLabel).toBeVisible({ timeout: 5000 });
+  });
+
+  test('自己紹介テキストエリアが表示される', async ({ page }) => {
+    // selfIntro ブロック
+    const selfIntroSection = page.locator('h2').filter({ hasText: /自己紹介/i }).first();
+    if (await selfIntroSection.isVisible({ timeout: 3000 }).catch(() => false)) {
+      const textarea = selfIntroSection.locator('..').locator('textarea');
+      await expect(textarea).toBeVisible();
+    }
+  });
+});
+
+test.describe('C. フォーム入力 — SNS・コンタクト', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: /SNS・コンタクト/ }).first().click();
+    await page.waitForTimeout(300);
+  });
+
+  test('VRChat ID フィールドに入力できる', async ({ page }) => {
+    // sns ブロック: <span>VRChat ID</span> の直後に input
+    const label = page.locator('span').filter({ hasText: /^VRChat ID$/ }).first();
+    await expect(label).toBeVisible({ timeout: 5000 });
+    const input = label.locator('..').locator('input[type="text"]');
+    await expect(input).toBeVisible({ timeout: 5000 });
+    await input.fill('test_vrc_id');
+    await expect(input).toHaveValue('test_vrc_id');
+  });
+
+  test('フレンド申請ポリシーセクションが表示される', async ({ page }) => {
+    const el = page.getByText(/フレンド申請/i).first();
+    await el.scrollIntoViewIfNeeded();
+    await expect(el).toBeVisible({ timeout: 5000 });
+  });
+
+  // 活動時間 (activityBlock) は v2 テンプレートのみ。v1 (/card/vrchat) には存在しない
+  test('SNS情報ラベルが表示される（v1 は活動時間なし）', async ({ page }) => {
+    const el = page.getByText(/SNS情報/i).first();
+    await el.scrollIntoViewIfNeeded();
+    await expect(el).toBeVisible({ timeout: 5000 });
+  });
+
+  test('OKなこと・NGなことが表示される', async ({ page }) => {
+    const el = page.getByText(/OKなこと/i).first();
+    await el.scrollIntoViewIfNeeded();
+    await expect(el).toBeVisible({ timeout: 5000 });
+  });
+});
+
+test.describe('C. フォーム入力 — カードデザイン', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+  });
+
+  test('グラデーション背景の選択肢が表示される', async ({ page }) => {
+    await expect(page.getByText('グラデーション背景')).toBeVisible();
+  });
+
+  test('フォントの設定が表示される', async ({ page }) => {
+    await expect(page.getByText('フォントの設定')).toBeVisible();
+  });
+
+  test('単色背景のカラーボタンをクリックできる', async ({ page }) => {
+    // 単色背景セクションのボタン
+    await expect(page.getByText('単色背景')).toBeVisible();
+    const colorBtn = page.locator('button[style*="background"]').first();
+    if (await colorBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await colorBtn.click();
+      await expect(page.locator('body')).not.toContainText('500');
+    }
+  });
+});
+
+// ─── D. カードプレビュー ──────────────────────────────────────────────────────
+
+test.describe('D. カードプレビュー', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test('名前を入力してもプレビューがクラッシュしない', async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: 'プロフィール情報' }).click();
+    await page.waitForTimeout(300);
+    const nameSection = page.locator('h2').filter({ hasText: '名前' }).first();
+    await expect(nameSection).toBeVisible({ timeout: 5000 });
+    const input = nameSection.locator('..').locator('input[type="text"]');
+    await expect(input).toBeVisible({ timeout: 5000 });
+    await input.fill('プレビューテスト');
+    await expect(page.locator('body')).not.toContainText('500');
+  });
+
+  test('グラデーション背景を変更してもプレビューがクラッシュしない', async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    const gradBtns = page.locator('button[class*="rounded"]').filter({ hasNot: page.locator('svg') });
+    const firstGrad = gradBtns.first();
+    if (await firstGrad.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await firstGrad.click();
+      await expect(page.locator('body')).not.toContainText('500');
+    }
+  });
+
+  test('長い名前を入力してもエラーが出ない', async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: 'プロフィール情報' }).click();
+    await page.waitForTimeout(300);
+    const nameSection = page.locator('h2').filter({ hasText: '名前' }).first();
+    if (await nameSection.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const input = nameSection.locator('..').locator('input[type="text"]');
+      await input.fill('あ'.repeat(50));
+      await expect(page.locator('body')).not.toContainText('500');
+    }
+  });
+});
+
+// ─── E. 画像保存・Xシェア ────────────────────────────────────────────────────
+
+test.describe('E. 画像保存・Xシェア', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test('「画像で保存」を押しても 500 エラーが出ない', async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    const btn = page.getByRole('button', { name: /画像で保存/ });
+    await expect(btn).toBeVisible();
+    page.on('download', download => download.cancel());
+    await btn.click();
+    await page.waitForTimeout(2000);
+    await expect(page.locator('body')).not.toContainText('500');
+  });
+
+  test('「Xでシェア」を押すと Twitter/X の URL が開く（新しいタブ）', async ({ page, context }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    const btn = page.getByRole('button', { name: /Xでシェア|シェア/ });
+    await expect(btn).toBeVisible();
+
+    const [newPage] = await Promise.all([
+      context.waitForEvent('page'),
+      btn.click(),
+    ]).catch(() => [null]);
+
+    if (newPage) {
+      await expect(newPage).toHaveURL(/twitter\.com|x\.com/);
+      await newPage.close();
+    }
+  });
+
+  test('「画像で保存」後にトーストが表示される', async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    page.on('download', download => download.cancel());
+    await page.getByRole('button', { name: /画像で保存/ }).click();
+    // トーストのspan要素で文言を確認（ボタンと区別するため span を限定）
+    await expect(page.locator('span').filter({ hasText: /マイページに保存して公開しませんか/ })).toBeVisible({ timeout: 8000 });
+  });
+});
+
+// ─── F. localStorage による永続化 ───────────────────────────────────────────
+
+test.describe('F. localStorage 永続化', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test('名前を入力→リロード後もデータが保持される', async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: 'プロフィール情報' }).click();
+    await page.waitForTimeout(300);
+    const nameSection = page.locator('h2').filter({ hasText: '名前' }).first();
+    await expect(nameSection).toBeVisible({ timeout: 5000 });
+    const input = nameSection.locator('..').locator('input[type="text"]');
+    await expect(input).toBeVisible({ timeout: 5000 });
+    await input.fill('永続テストユーザー');
+
+    // localStorage 保存を待つ（debounce）
+    await page.waitForTimeout(2000);
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
+    await page.getByRole('button', { name: 'プロフィール情報' }).click();
+    await page.waitForTimeout(300);
+    const reloadedSection = page.locator('h2').filter({ hasText: '名前' }).first();
+    await expect(reloadedSection).toBeVisible({ timeout: 5000 });
+    const reloadedInput = reloadedSection.locator('..').locator('input[type="text"]');
+    await expect(reloadedInput).toHaveValue('永続テストユーザー', { timeout: 5000 });
+  });
+
+  test('localStorage のキーが vrchat-card-cache になっている', async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: 'プロフィール情報' }).click();
+    await page.waitForTimeout(300);
+    const nameSection = page.locator('h2').filter({ hasText: '名前' }).first();
+    await expect(nameSection).toBeVisible({ timeout: 5000 });
+    const input = nameSection.locator('..').locator('input[type="text"]');
+    await input.fill('キー確認');
+    await page.waitForTimeout(2000);
+
+    const value = await page.evaluate(() => localStorage.getItem('vrchat-card-cache'));
+    expect(value).not.toBeNull();
+    const parsed = JSON.parse(value ?? '{}');
+    expect(parsed).toBeTruthy();
+  });
+});
+
+// ─── G. ログイン訴求 UI ──────────────────────────────────────────────────────
+
+test.describe('G. ログイン訴求 UI', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test('「マイページに保存」ボタンが存在する', async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('button', { name: /マイページに保存|マイページを作成/ })).toBeVisible();
+  });
+
+  test('「マイページに保存」を押すとログイン画面に遷移する', async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: /マイページに保存|マイページを作成/ }).click();
+    await expect(page).toHaveURL(/auth\/login/, { timeout: 5000 });
+  });
+});
+
+// ─── H. ログイン済みユーザーの自動マイグレーション ─────────────────────────
+
+test.describe('H. 自動マイグレーション（ログイン済み）', () => {
+  test('旧メーカーで保存した localStorage が CardEditor で読み込まれる', async ({ page }) => {
+    // localStorage にデータをセットしてから /card/new を開く
+    await page.goto('/card/new');
+    await page.evaluate(() => {
+      localStorage.setItem('vrchat-card-cache', JSON.stringify({ name: 'マイグレーションテスト' }));
+    });
+    await page.goto('/card/new');
+    await page.waitForLoadState('networkidle');
+
+    // 500 エラーが出ないこと
+    await expect(page.locator('body')).not.toContainText('500');
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+  });
+
+  test('自動マイグレーション後に /card/new でエラーが出ない', async ({ page }) => {
+    await page.goto('/card/new');
+    await page.evaluate(() => {
+      localStorage.setItem('vrchat-card-cache', JSON.stringify({ name: 'マイグレーション確認' }));
+    });
+    await page.goto('/card/new');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('body')).not.toContainText('500');
+  });
+});

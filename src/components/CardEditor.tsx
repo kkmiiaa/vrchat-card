@@ -348,19 +348,19 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         <div className="flex items-center gap-3">
           {/* PC のみヘッダーにボタン表示 */}
           <div className="hidden sm:flex items-center gap-2">
-            <button onClick={handlePostToX}
-              className="flex items-center gap-1.5 text-xs font-medium text-white bg-black rounded-lg px-3 py-1.5 hover:bg-gray-800 transition-colors">
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-              {t.share}
-            </button>
             <button onClick={handleDownload}
               className="flex items-center gap-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               {t.save}
+            </button>
+            <button onClick={handlePostToX}
+              className="flex items-center gap-1.5 text-xs font-medium text-white bg-black rounded-lg px-3 py-1.5 hover:bg-gray-800 transition-colors">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              {t.share}
             </button>
             <button onClick={handleShareByUrl}
               className="flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] rounded-full px-4 py-1.5 hover:opacity-90 transition-opacity shadow-sm shadow-sky-200">
@@ -487,7 +487,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       {showSaveNudge && (
         <div className="fixed bottom-6 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-max z-50 bg-white border border-sky-100 rounded-2xl shadow-xl px-5 py-4">
           <div className="flex items-center justify-between gap-3 mb-3">
-            <span className="text-sm text-gray-700 font-medium">マイページに保存して公開しませんか？</span>
+            <span className="text-sm text-gray-700 font-medium">マイページに保存して、URLで共有できるようにしませんか？</span>
             <button onClick={() => setShowSaveNudge(false)} className="shrink-0 text-gray-300 hover:text-gray-500 transition-colors text-xs">
               閉じる
             </button>

@@ -52,13 +52,17 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
       </head>
       <body className={`${nunito.variable} ${notoSansJP.variable}`} style={{ fontFamily: "var(--font-nunito), var(--font-noto-sans-jp), sans-serif" }}>
-        <Script src="https://www.googletagmanager.com/gtag/js?id=G-XMHKGYVDJW" strategy="afterInteractive" />
-        <Script id="gtag-init" strategy="afterInteractive">{`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-XMHKGYVDJW');
-        `}</Script>
+        {process.env.NODE_ENV === 'production' && (
+          <>
+            <Script src="https://www.googletagmanager.com/gtag/js?id=G-XMHKGYVDJW" strategy="afterInteractive" />
+            <Script id="gtag-init" strategy="afterInteractive">{`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-XMHKGYVDJW');
+            `}</Script>
+          </>
+        )}
         <AnalyticsProvider>
           {children}
         </AnalyticsProvider>

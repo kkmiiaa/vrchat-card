@@ -38,7 +38,13 @@ async function ensureTestUser(email: string, password: string) {
     console.log(`[global-setup] テストユーザー作成: ${email}`)
   } else {
     userId = existing.id
-    console.log(`[global-setup] テストユーザー確認済み: ${email}`)
+    // パスワードを確実に同期する
+    await fetch(`${supabaseUrl}/auth/v1/admin/users/${userId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ password, email_confirm: true }),
+    })
+    console.log(`[global-setup] テストユーザー確認済み（パスワード同期）: ${email}`)
   }
 
   // テストユーザーをProプランに設定（ローカル環境）

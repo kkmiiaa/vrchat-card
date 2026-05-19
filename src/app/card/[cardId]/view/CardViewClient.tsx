@@ -418,14 +418,6 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
                 編集
               </Link>
               <button
-                onClick={handleXShare}
-                disabled={sharing}
-                className="flex items-center gap-1.5 text-xs font-semibold text-white bg-black rounded-full px-4 py-1.5 hover:opacity-80 transition-opacity shadow-sm disabled:opacity-50"
-              >
-                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                {sharing ? '...' : 'Xで共有'}
-              </button>
-              <button
                 onClick={handleDownload}
                 disabled={downloading}
                 className="flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] rounded-full px-4 py-1.5 hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm shadow-sky-200"
@@ -434,6 +426,14 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 {downloading ? '...' : '画像で保存'}
+              </button>
+              <button
+                onClick={handleXShare}
+                disabled={sharing}
+                className="flex items-center gap-1.5 text-xs font-semibold text-white bg-black rounded-full px-4 py-1.5 hover:opacity-80 transition-opacity shadow-sm disabled:opacity-50"
+              >
+                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                {sharing ? '...' : 'Xで共有'}
               </button>
             </div>
           )}
@@ -652,14 +652,6 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
             編集
           </Link>
           <button
-            onClick={handleXShare}
-            disabled={sharing}
-            className="flex items-center gap-2 bg-black text-white rounded-full px-4 py-3 shadow-lg text-sm font-semibold disabled:opacity-50"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            {sharing ? '...' : 'Xで共有'}
-          </button>
-          <button
             onClick={handleDownload}
             disabled={downloading}
             className="flex items-center gap-2 bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white rounded-full px-4 py-3 shadow-lg shadow-sky-200 text-sm font-semibold disabled:opacity-50"
@@ -668,6 +660,14 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             {downloading ? '保存中...' : '画像で保存'}
+          </button>
+          <button
+            onClick={handleXShare}
+            disabled={sharing}
+            className="flex items-center gap-2 bg-black text-white rounded-full px-4 py-3 shadow-lg text-sm font-semibold disabled:opacity-50"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            {sharing ? '...' : 'Xで共有'}
           </button>
         </div>
       )}

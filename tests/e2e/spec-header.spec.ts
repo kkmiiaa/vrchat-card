@@ -41,7 +41,7 @@ test.describe('LP ヘッダー — ログイン済み', () => {
   });
 });
 
-// ─── カード編集（/card/[cardId]/edit） ───────────────────────────────────────
+// ─── カード編集（/card/[cardId]） ───────────────────────────────────────
 
 test.describe('カード編集ヘッダー — 未ログイン', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
@@ -56,7 +56,7 @@ test.describe('カード編集ヘッダー — ログイン済み・新規（car
   test.beforeEach(async ({ page }) => {
     await page.goto('/card/new');
     await page.getByText('Standard').click();
-    await page.waitForURL(/\/card\/[a-z0-9]+\/edit$/, { timeout: 15000 });
+    await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
   });
 
   test('vaacard ロゴが表示される', async ({ page }) => {
@@ -122,9 +122,9 @@ test.describe('カード閲覧ヘッダー — ログイン済み・オーナー
   test.beforeEach(async ({ page }) => {
     await page.goto('/card/new');
     await page.getByText('Standard').click();
-    await page.waitForURL(/\/card\/[a-z0-9]+\/edit$/, { timeout: 15000 });
+    await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
     const editUrl = page.url();
-    const cardId = editUrl.match(/\/card\/([a-z0-9]+)\/edit/)?.[1];
+    const cardId = editUrl.match(/\/card\/([a-zA-Z0-9]+)/)?.[1];
     await page.goto(`/card/${cardId}`);
     await page.waitForLoadState('networkidle');
   });

@@ -11,8 +11,8 @@ import { test, expect, Page } from '@playwright/test';
 async function createCard(page: Page, templateName = 'Standard'): Promise<string> {
   await page.goto('/card/new');
   await page.getByText(templateName).click();
-  await page.waitForURL(/\/card\/[a-z0-9]+\/edit$/, { timeout: 15000 });
-  const match = page.url().match(/\/card\/([a-z0-9]+)\/edit/);
+  await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
+  const match = page.url().match(/\/card\/([a-zA-Z0-9]+)\/edit/);
   return match?.[1] ?? '';
 }
 
@@ -28,15 +28,15 @@ test.describe('テンプレート選択（/card/new）', () => {
   test('Standard を選択するとエディタへ遷移する', async ({ page }) => {
     await page.goto('/card/new');
     await page.getByText('Standard').click();
-    await page.waitForURL(/\/card\/[a-z0-9]+\/edit$/, { timeout: 15000 });
-    await expect(page).toHaveURL(/\/card\/[a-z0-9]+\/edit$/);
+    await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
+    await expect(page).toHaveURL(/\/card\/[a-zA-Z0-9]+/);
   });
 
   test('Glass を選択するとエディタへ遷移する', async ({ page }) => {
     await page.goto('/card/new');
     await page.getByText('Glass').click();
-    await page.waitForURL(/\/card\/[a-z0-9]+\/edit$/, { timeout: 15000 });
-    await expect(page).toHaveURL(/\/card\/[a-z0-9]+\/edit$/);
+    await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
+    await expect(page).toHaveURL(/\/card\/[a-zA-Z0-9]+/);
   });
 });
 

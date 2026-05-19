@@ -16,8 +16,8 @@ import { test, expect, Page } from '@playwright/test'
 async function createCard(page: Page, templateName = 'Standard'): Promise<string> {
   await page.goto('/card/new')
   await page.getByText(templateName).click()
-  await page.waitForURL(/\/card\/[a-zA-Z0-9]+/, { timeout: 15000 })
-  const match = page.url().match(/\/card\/([a-zA-Z0-9]+)/)
+  await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 })
+  const match = page.url().match(/\/card\/([a-zA-Z0-9]+)\/edit/)
   return match?.[1] ?? ''
 }
 

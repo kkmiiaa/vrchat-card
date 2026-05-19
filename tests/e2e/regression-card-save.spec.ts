@@ -139,7 +139,7 @@ test.describe('カード共有ページへの遷移', () => {
     const cardId = page.url().split('/card/')[1];
 
     // 直接 view ページにアクセス
-    await page.goto(`/card/${cardId}/view`);
+    await page.goto(`/card/${cardId}`);
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('body')).not.toContainText('500');

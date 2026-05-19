@@ -76,7 +76,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   useEffect(() => {
     if (searchParams.get('created') === '1') {
       setShowCreatedModal(true)
-      router.replace(`/card/${cardId}/view`)
+      router.replace(`/card/${cardId}`)
     }
   }, [])
   const [cardData, setCardData] = useState<Record<string, unknown> | null>(null)
@@ -337,7 +337,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const shadowBlur = 60 + Math.abs(tilt.x) * 3 + Math.abs(tilt.y) * 3
   const cardShadow = `${shadowX}px ${shadowY + 16}px ${shadowBlur}px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.12)`
 
-  const shareUrl = typeof window !== 'undefined' ? window.location.origin + `/card/${cardId}/view` : ''
+  const shareUrl = typeof window !== 'undefined' ? window.location.origin + `/card/${cardId}` : ''
 
   return (
     <div className="min-h-screen flex flex-col overflow-hidden" style={{ background: pageBg }}>
@@ -412,7 +412,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
           {isOwner && (
             <div className="hidden sm:flex items-center gap-2">
               <Link
-                href={`/card/${cardId}`}
+                href={`/card/${cardId}/edit`}
                 className="text-xs font-medium text-gray-500 border border-white/80 bg-white/60 rounded-full px-3 py-1.5 hover:border-sky-300 hover:text-[#00AADB] hover:bg-white/90 transition-colors backdrop-blur-sm"
               >
                 編集
@@ -643,7 +643,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
       {isOwner && (
         <div className="sm:hidden fixed bottom-6 right-4 flex flex-col gap-2 z-50">
           <Link
-            href={`/card/${cardId}`}
+            href={`/card/${cardId}/edit`}
             className="flex items-center gap-2 bg-white/80 backdrop-blur-sm text-gray-600 border border-white/80 rounded-full px-4 py-3 shadow-lg text-sm font-semibold"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

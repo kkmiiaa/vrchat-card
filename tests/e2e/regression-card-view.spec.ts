@@ -16,7 +16,7 @@ async function createAndViewCard(page: Page, templateName: string) {
   await page.waitForURL(/\/card\/[a-z0-9-]+$/, { timeout: 15000 });
 
   const cardId = page.url().split('/card/')[1];
-  await page.goto(`/card/${cardId}/view`);
+  await page.goto(`/card/${cardId}`);
   await page.waitForLoadState('networkidle');
   return cardId;
 }

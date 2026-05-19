@@ -312,7 +312,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   }, [isLoggedIn, initialized])
 
   const handlePostToX = async () => {
-    const shareUrl = isLoggedIn && cardId ? `${window.location.origin}/card/${cardId}/view` : ''
+    const shareUrl = isLoggedIn && cardId ? `${window.location.origin}/card/${cardId}` : ''
     const tweetText = shareUrl ? `${t.tweetText}\n${shareUrl}` : t.tweetText
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`
     const dataUrl = await getCardDataUrl()

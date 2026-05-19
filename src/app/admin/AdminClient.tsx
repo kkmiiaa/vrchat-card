@@ -14,19 +14,17 @@ type Card = {
 }
 
 type Props = {
-  baseComponents: ResolvedComponent[]
-  communityComponents: ResolvedComponent[]
+  templateComponents: ResolvedComponent[]
   componentKeyMap: Record<string, string>
   sampleCards: Card[]
 }
 
-type Tab = 'components' | 'community' | 'template' | 'cards'
+type Tab = 'components' | 'template-components' | 'cards'
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'components', label: 'コンポーネント' },
-  { key: 'community',  label: '界隈コンポーネント' },
-  { key: 'template',   label: 'テンプレート' },
-  { key: 'cards',      label: 'カードデータ' },
+const TABS: { key: Tab; label: string; sub: string }[] = [
+  { key: 'components',          label: 'コンポーネント',         sub: 'パーツのクラス（input_type）' },
+  { key: 'template-components', label: 'テンプレートコンポーネント', sub: 'パーツのインスタンス（フィールド定義）' },
+  { key: 'cards',               label: 'カード',                sub: '完成品のインスタンス' },
 ]
 
 const INPUT_TYPE_COLORS: Record<string, string> = {
@@ -40,7 +38,7 @@ const INPUT_TYPE_COLORS: Record<string, string> = {
   'gallery':           'bg-yellow-100 text-yellow-700',
 }
 
-export default function AdminClient({ baseComponents, communityComponents, componentKeyMap, sampleCards }: Props) {
+export default function AdminClient({ templateComponents, componentKeyMap, sampleCards }: Props) {
   const [tab, setTab] = useState<Tab>('components')
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
 
@@ -54,39 +52,49 @@ export default function AdminClient({ baseComponents, communityComponents, compo
 
       <main className="max-w-5xl mx-auto px-6 py-8">
         {/* タブ */}
-        <div className="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
+        <div className="flex gap-1 mb-8 bg-gray-100 rounded-xl p-1 w-fit">
           {TABS.map(t => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                 tab === t.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              {t.label}
+              <span>{t.label}</span>
             </button>
           ))}
         </div>
 
-        {/* コンポーネント：抽象的なフィールド定義 */}
-        {tab === 'components' && (
+        {/* 現在のタブの説明 */}
+        <p className="text-xs text-gray-400 mb-6 -mt-4">
+          {TABS.find(t => t.key === tab)?.sub}
+        </p>
+
+        {/* コンポーネント：input_typeのインタラクティブプレビュー */}
+        {tab === 'components' && <ComponentPreview />}
+
+        {/* テンプレートコンポーネント：VRChat V1のフィールドインスタンス定義 */}
+        {tab === 'template-components' && (
           <div className="space-y-4">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">コンポーネント</h2>
-              <p className="text-sm text-gray-400 mt-0.5">界隈・テンプレートに依存しない汎用フィールド定義</p>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold text-gray-900">VRChat テンプレートコンポーネント</h2>
+              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">v1</span>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500 w-32">key</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500 w-28">input_type</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500 w-20">検索</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">base_options</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">key</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">コンポーネント</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">card_data key</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">label</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500 w-16">検索</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">options</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {baseComponents.map(c => (
+                  {templateComponents.map(c => (
                     <tr key={c.key} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-mono text-xs text-gray-700">{c.key}</td>
                       <td className="px-4 py-3">
@@ -94,45 +102,9 @@ export default function AdminClient({ baseComponents, communityComponents, compo
                           {c.input_type}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center text-gray-400">{c.is_searchable ? '✓' : '—'}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-gray-400">{c.options?.join(', ') ?? '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* 界隈コンポーネント：VRChat界隈による上書き */}
-        {tab === 'community' && (
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">界隈コンポーネント</h2>
-              <p className="text-sm text-gray-400 mt-0.5">VRChat界隈がコンポーネントをどう上書きするか（ラベル・card_dataキー・選択肢）</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500 w-32">component_key</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500 w-32">card_data key</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500 w-24">label</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500 w-28">input_type</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">options（上書き後）</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {communityComponents.map(c => (
-                    <tr key={c.key} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-mono text-xs text-gray-700">{c.key}</td>
                       <td className="px-4 py-3 font-mono text-xs text-[#00AADB]">{componentKeyMap[c.key] ?? c.key}</td>
-                      <td className="px-4 py-3 text-gray-900 text-xs">{c.label}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${INPUT_TYPE_COLORS[c.input_type] ?? 'bg-gray-100 text-gray-600'}`}>
-                          {c.input_type}
-                        </span>
-                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-700">{c.label}</td>
+                      <td className="px-4 py-3 text-center text-gray-400 text-xs">{c.is_searchable ? '✓' : '—'}</td>
                       <td className="px-4 py-3 font-mono text-xs text-gray-400">{c.options?.join(', ') ?? '—'}</td>
                     </tr>
                   ))}
@@ -142,16 +114,10 @@ export default function AdminClient({ baseComponents, communityComponents, compo
           </div>
         )}
 
-        {/* テンプレート：FormItemのデザインプレビュー */}
-        {tab === 'template' && <ComponentPreview />}
-
-        {/* カードデータ */}
+        {/* カード：完成品のインスタンス */}
         {tab === 'cards' && (
           <div className="space-y-4">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">カードデータ</h2>
-              <p className="text-sm text-gray-400 mt-0.5">最新10件のcard_dataを確認</p>
-            </div>
+            <h2 className="text-base font-bold text-gray-900">最新カード（10件）</h2>
             <div className="grid grid-cols-1 gap-3">
               {sampleCards.map(card => (
                 <div

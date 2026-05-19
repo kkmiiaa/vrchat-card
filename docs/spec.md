@@ -310,26 +310,37 @@ POST /api/stripe/checkout
 
 ## 13. コンポーネント設計
 
-カードのフィールド定義を「コンポーネント」として抽象化し、テンプレート・界隈ごとに組み合わせる3層構造。
+カードを構成する要素を4つの概念で整理する。
 
-### 層の定義
+### 4層の定義
 
 ```
-コンポーネント（Component）
-  └── 汎用フィールド定義（input_type / 検索可否 / 選択肢）
+コンポーネント（Component）    = パーツのクラス
+  └── UIの原子単位。input_type そのもの。
+      例: expressive-select, multi-select, text, ...
 
-テンプレート（Template）
-  └── どのコンポーネントをどの順番で使うか
+テンプレートコンポーネント     = パーツのインスタンス
+（TemplateComponent）
+  └── コンポーネントを特定のフィールドとして具体化したもの。
+      例: gender（expressive-selectを使用）, platform（multi-selectを使用）
+      テンプレートに属し、card_dataキー・ラベル・選択肢を持つ。
 
-界隈（Community）
-  └── テンプレートに対してラベル・選択肢・表示順を上書き
+テンプレート（Template）       = 完成品のクラス
+  └── テンプレートコンポーネントをセクションに配置したレイアウト定義。
+      例: VRChat V1, VRChat V2
+
+カード（Card）                 = 完成品のインスタンス
+  └── ユーザーがテンプレートに値を入力して作成した実体。
 ```
 
-### input_type 一覧
+> 界隈（Community）はテンプレートが属する文脈であり、独立したレイヤーは持たない。
+> テンプレートコンポーネントが界隈固有の設定（カードデータキー・選択肢）を内包する。
+
+### コンポーネント（input_type）一覧
 
 | input_type | 検索 | card_data の値形式 | 用途例 |
 |---|---|---|---|
-| `select` | ◎ タグで完全一致 | `string` | フレンドポリシー |
+| `select` | ◎ 完全一致 | `string` | フレンドポリシー |
 | `expressive-select` | ◎ tag で完全一致 | `{ tag: string, display?: string }` | 性別 |
 | `multi-select` | ◎ 配列内包含 | `string[]` | プレイ環境、言語 |
 | `text` | △ 全文検索のみ | `string` | 自己紹介、一言コメント |
@@ -338,46 +349,30 @@ POST /api/stripe/checkout
 | `sns` | ✕ | `{ twitterId?: string, ... }` | SNSリンク |
 | `gallery` | ✕ | `{ images: string[] }` | 画像ギャラリー |
 
-### expressive-select 型の二層構造
+### expressive-select の二層構造
 
-選択肢による検索可能性と、自由テキストによる自己表現を両立するための型。
-**自己表現が意味を持つコンポーネントにのみ使う**（性別など）。
+選択肢による検索可能性と、自由テキストによる自己表現を両立する型。
 
 ```json
 "genderTag": { "tag": "male", "display": "男の娘" }
 ```
 
-- **tag**：検索フィルターに使う機械可読な値（必須）。本人が明示的に選択する。
-- **display**：カードに表示する自由テキスト（任意）。未設定の場合はタグのラベルを表示する。
-
-> 例：`tag=male` かつ `display=男の娘` のとき、カードには「男の娘」と表示され、「男性」フィルターでヒットする。
+- **tag**：検索に使う機械可読な値（必須・本人が明示的に選択）
+- **display**：カードに表示する自由テキスト（任意・未設定ならタグのラベルを使用）
 
 ### DB スキーマ
 
 ```sql
--- コンポーネント定義
-components
-  key           text PK        -- 'gender', 'platform'
-  input_type    text           -- 'select', 'multi-select', ...
-  base_options  jsonb          -- ["male","female","nonbinary","none"]
-  is_searchable boolean
-  sort_order    int
-
--- テンプレートとコンポーネントの紐付け
+-- テンプレートコンポーネント（フィールドのインスタンス定義）
 template_components
   template_id   text
-  component_key text
+  key           text        -- 'gender', 'platform'
+  input_type    text        -- 'expressive-select', 'multi-select', ...
+  card_data_key text        -- card_data上の実際のキー名（例: 'genderTag'）
+  label         text
+  options       jsonb
+  is_searchable boolean
   sort_order    int
-
--- 界隈によるコンポーネント上書き
-community_components
-  community_slug    text
-  component_key     text
-  card_data_key     text       -- card_data上の実際のキー名（例: 'genderTag'）
-  label_override    text
-  options_override  jsonb
-  is_searchable_override boolean
-  sort_order        int
 ```
 
 ### 検索クエリの変換ルール
@@ -389,10 +384,9 @@ community_components
 | `multi-select` | `card_data->'fieldKey' @> '["value"]'` |
 | `text` | `card_data->>'fieldKey' ilike '%q%'` |
 
-### 現状との差分・移行方針
+### 移行方針
 
-現在の `genderTag` は文字列（`'male'`）で保存されているが、新設計では `{ tag: 'male' }` オブジェクト形式に移行する。
-移行はマイグレーションSQL（016番以降）で対応する。
+`genderTag` のオブジェクト形式への移行はマイグレーション016で完了済み。
 
 ---
 

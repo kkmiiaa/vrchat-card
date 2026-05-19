@@ -37,9 +37,10 @@ export type ResolvedComponent = {
 }
 
 /**
- * 界隈に依存しない汎用コンポーネント定義（ベース定義）
+ * コンポーネント（input_type）の基本的なフィールドインスタンス定義
+ * テンプレートコンポーネントの元になる汎用定義
  */
-export const BASE_COMPONENTS: ResolvedComponent[] = [
+export const BASE_FIELDS: ResolvedComponent[] = [
   { key: 'gender',        label: '性別',           input_type: 'expressive-select', is_searchable: true,  is_required: false, options: ['male', 'female', 'nonbinary', 'none'], sort_order: 10 },
   { key: 'platform',      label: 'プレイ環境',      input_type: 'multi-select',      is_searchable: true,  is_required: false, options: null, sort_order: 20 },
   { key: 'language',      label: '使用言語',        input_type: 'multi-select',      is_searchable: true,  is_required: false, options: null, sort_order: 30 },

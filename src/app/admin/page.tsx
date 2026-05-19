@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminClient from './AdminClient'
-import { BASE_COMPONENTS, VRCHAT_SEARCHABLE_COMPONENTS, VRCHAT_COMPONENT_KEY_MAP } from '@/lib/components'
+import { BASE_FIELDS, VRCHAT_SEARCHABLE_COMPONENTS, VRCHAT_COMPONENT_KEY_MAP } from '@/lib/components'
 
 export const metadata = { title: 'Admin | vaacard' }
 
@@ -26,8 +26,7 @@ export default async function AdminPage() {
 
   return (
     <AdminClient
-      baseComponents={BASE_COMPONENTS}
-      communityComponents={VRCHAT_SEARCHABLE_COMPONENTS}
+      templateComponents={VRCHAT_SEARCHABLE_COMPONENTS}
       componentKeyMap={VRCHAT_COMPONENT_KEY_MAP}
       sampleCards={cards ?? []}
     />

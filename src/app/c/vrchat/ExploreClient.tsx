@@ -24,9 +24,9 @@ type Filters = {
 }
 
 const GENDER_OPTIONS = [
-  { value: '男性',       label: '男性' },
-  { value: '女性',       label: '女性' },
-  { value: 'ノンバイナリ', label: 'ノンバイナリ' },
+  { value: 'male',      label: '男性' },
+  { value: 'female',    label: '女性' },
+  { value: 'nonbinary', label: 'ノンバイナリ' },
 ]
 const ENV_OPTIONS = ['PCVR', 'Quest', 'Desktop']
 const LANG_OPTIONS = ['日本語', 'English', 'Korean']

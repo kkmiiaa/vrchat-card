@@ -425,6 +425,8 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
           {/* モバイルでfixedカードプレビューの下にフォームが来るためのスペーサー */}
           <div className="lg:hidden" style={{ height: 'calc(100vw * 9 / 16 + 16px)' }} />
 
+          <OnboardingBanner t={t} />
+
           <AnnouncementBanner announcements={announcements} />
 
           {/* テンプレートの順番通りにセクションを描画 */}
@@ -511,7 +513,6 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       )}
 
     </main>
-    <OnboardingBanner t={t} />
     </>
   )
 }

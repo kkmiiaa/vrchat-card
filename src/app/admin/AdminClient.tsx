@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import type { ResolvedComponent } from '@/lib/components'
-import TemplateComponentList, { ComponentBlockList } from './BlockPreviewList'
+import TemplateComponentList from './BlockPreviewList'
+import AbstractComponentPreview from './AbstractComponentPreview'
 
 type Card = {
   id: string
@@ -86,7 +87,7 @@ export default function AdminClient({ templateComponents, componentKeyMap, sampl
           {TABS.find(t => t.key === tab)?.sub}
         </p>
 
-        {/* コンポーネント：input_type定義テーブル ＋ variantプレビュー */}
+        {/* コンポーネント：input_type定義テーブル ＋ 抽象プレビュー */}
         {tab === 'components' && (
           <div className="space-y-6">
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -115,7 +116,7 @@ export default function AdminClient({ templateComponents, componentKeyMap, sampl
                 </tbody>
               </table>
             </div>
-            <ComponentBlockList />
+            <AbstractComponentPreview />
           </div>
         )}
 

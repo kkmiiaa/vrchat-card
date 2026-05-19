@@ -308,6 +308,91 @@ POST /api/stripe/checkout
 
 ---
 
+## 13. コンポーネント設計
+
+カードのフィールド定義を「コンポーネント」として抽象化し、テンプレート・界隈ごとに組み合わせる3層構造。
+
+### 層の定義
+
+```
+コンポーネント（Component）
+  └── 汎用フィールド定義（input_type / 検索可否 / 選択肢）
+
+テンプレート（Template）
+  └── どのコンポーネントをどの順番で使うか
+
+界隈（Community）
+  └── テンプレートに対してラベル・選択肢・表示順を上書き
+```
+
+### input_type 一覧
+
+| input_type | 検索 | card_data の値形式 | 用途例 |
+|---|---|---|---|
+| `select` | ◎ タグで完全一致 | `{ tag: string, display?: string }` | 性別、フレンドポリシー |
+| `multi-select` | ◎ 配列内包含 | `string[]` | プレイ環境、言語 |
+| `text` | △ 全文検索のみ | `string` | 自己紹介、一言コメント |
+| `number` | ○ 範囲検索 | `number` | 年齢 |
+| `boolean` | ◎ | `boolean` | マイクON率 |
+| `sns` | ✕ | `{ twitterId?: string, ... }` | SNSリンク |
+| `gallery` | ✕ | `{ images: string[] }` | 画像ギャラリー |
+
+### select 型の二層構造
+
+`select` 型は検索可能性と自己表現を両立するため、`tag`（構造化値）と `display`（表示テキスト）を持つ。
+
+```json
+"genderTag": { "tag": "male", "display": "男の娘" }
+```
+
+- **tag**：検索フィルターに使う機械可読な値（必須）。本人が明示的に選択する。
+- **display**：カードに表示する自由テキスト（任意）。未設定の場合はタグのラベルを表示する。
+
+> 例：`tag=male` かつ `display=男の娘` のとき、カードには「男の娘」と表示され、「男性」フィルターでヒットする。
+
+### DB スキーマ
+
+```sql
+-- コンポーネント定義
+components
+  key           text PK        -- 'gender', 'platform'
+  input_type    text           -- 'select', 'multi-select', ...
+  base_options  jsonb          -- ["male","female","nonbinary","none"]
+  is_searchable boolean
+  sort_order    int
+
+-- テンプレートとコンポーネントの紐付け
+template_components
+  template_id   text
+  component_key text
+  sort_order    int
+
+-- 界隈によるコンポーネント上書き
+community_components
+  community_slug    text
+  component_key     text
+  card_data_key     text       -- card_data上の実際のキー名（例: 'genderTag'）
+  label_override    text
+  options_override  jsonb
+  is_searchable_override boolean
+  sort_order        int
+```
+
+### 検索クエリの変換ルール
+
+| input_type | PostgREST クエリ |
+|---|---|
+| `select` | `card_data->'fieldKey'->>'tag' = 'value'` |
+| `multi-select` | `card_data->'fieldKey' @> '["value"]'` |
+| `text` | `card_data->>'fieldKey' ilike '%q%'` |
+
+### 現状との差分・移行方針
+
+現在の `genderTag` は文字列（`'male'`）で保存されているが、新設計では `{ tag: 'male' }` オブジェクト形式に移行する。
+移行はマイグレーションSQL（016番以降）で対応する。
+
+---
+
 ## 12. 未対応・要検討事項
 
 | # | 内容 | 方針 |
@@ -315,7 +400,7 @@ POST /api/stripe/checkout
 | 1 | ~~`/settings` ページの削除~~ | ✅ 完了（マイページにリダイレクト） |
 | 2 | ~~下書き状態カードの `visibility`~~ | ✅ 完了（`visibility='private'` で非公開化済み） |
 | 3 | カード削除時の OGP 用画像（`{cardId}.png`） | 削除しない方向で許容 |
-| 4 | `genderTag` / `gender` キー名の混在 | 検索コンポーネント整理と合わせて対応 |
+| 4 | `genderTag` / `gender` キー名の混在 | セクション13のコンポーネント設計に基づいて対応（select型のオブジェクト化） |
 | 5 | 探索ページへの自然な導線強化（特にモバイル） | 対応する |
 | 6 | Stripe 本番アカウントの有効化 | ユーザーテスト後 |
 | 7 | 脆弱性警告（GitHub Dependabot: 56件） | 現改善完了後にまとめて対応 |

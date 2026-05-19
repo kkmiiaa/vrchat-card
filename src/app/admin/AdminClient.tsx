@@ -35,8 +35,8 @@ const COMPONENT_TYPES = [
   { inputType: 'number',            search: '○ 範囲検索',       format: 'number',                            example: 'マイクON率' },
   { inputType: 'boolean',           search: '◎',               format: 'boolean',                           example: 'フラグ系' },
   { inputType: 'sns',               search: '✕',               format: '{ vrchatId?, twitterId?, ... }',    example: 'SNSリンク' },
-  { inputType: 'activity',          search: '✕',               format: '{ days, weekdayStart, ... }',       example: '活動時間' },
-  { inputType: 'interactions',      search: '✕',               format: '{ label, mark }[]',                 example: 'OK/NG' },
+  { inputType: 'weekly-activity',   search: '✕',               format: '{ days, weekdayStart, ... }',       example: '活動時間' },
+  { inputType: 'mark-list',        search: '✕',               format: '{ label, mark }[]',                 example: 'OK/NG' },
   { inputType: 'gallery',           search: '✕',               format: '{ images: string[] }',              example: '画像ギャラリー' },
 ]
 
@@ -48,8 +48,8 @@ const INPUT_TYPE_COLORS: Record<string, string> = {
   'number':            'bg-orange-100 text-orange-700',
   'boolean':           'bg-green-100 text-green-700',
   'sns':               'bg-pink-100 text-pink-700',
-  'activity':          'bg-teal-100 text-teal-700',
-  'interactions':      'bg-rose-100 text-rose-700',
+  'weekly-activity':   'bg-teal-100 text-teal-700',
+  'mark-list':         'bg-rose-100 text-rose-700',
   'gallery':           'bg-yellow-100 text-yellow-700',
 }
 

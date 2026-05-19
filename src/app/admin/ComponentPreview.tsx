@@ -30,8 +30,8 @@ const PREVIEW_BLOCKS: { block: Block<unknown>; inputType: string; description: s
   { block: trustRankBlock as Block<unknown>,        inputType: 'select',            description: 'Trust Rank。ランク色でバッジ表示' },
   { block: statusBlock as Block<unknown>,           inputType: 'text',              description: '青緑黄赤4色のステータス説明文' },
   { block: snsBlock as Block<unknown>,              inputType: 'sns',               description: 'VRChat/X/Discord IDをまとめて管理' },
-  { block: activityBlock as Block<unknown>,         inputType: 'activity',          description: '曜日＋時間帯。平日/休日を別設定' },
-  { block: interactionsBlock as Block<unknown>,     inputType: 'interactions',      description: 'OK/NG項目。◎◯△✗でマーク' },
+  { block: activityBlock as Block<unknown>,         inputType: 'weekly-activity',   description: '曜日＋時間帯。平日/休日を別設定' },
+  { block: interactionsBlock as Block<unknown>,     inputType: 'mark-list',         description: 'ラベル＋記号（◎◯△✗）の汎用リスト。順序性なし' },
 ]
 
 const INPUT_TYPE_COLORS: Record<string, string> = {
@@ -41,8 +41,8 @@ const INPUT_TYPE_COLORS: Record<string, string> = {
   'text':              'bg-gray-100 text-gray-600 border-gray-200',
   'number':            'bg-orange-100 text-orange-700 border-orange-200',
   'sns':               'bg-pink-100 text-pink-700 border-pink-200',
-  'activity':          'bg-teal-100 text-teal-700 border-teal-200',
-  'interactions':      'bg-rose-100 text-rose-700 border-rose-200',
+  'weekly-activity':   'bg-teal-100 text-teal-700 border-teal-200',
+  'mark-list':         'bg-rose-100 text-rose-700 border-rose-200',
   'gallery':           'bg-yellow-100 text-yellow-700 border-yellow-200',
 }
 

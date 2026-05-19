@@ -1,4 +1,4 @@
-export type InputType = 'select' | 'expressive-select' | 'multi-select' | 'text' | 'number' | 'boolean' | 'sns' | 'gallery' | 'activity' | 'interactions'
+export type InputType = 'select' | 'expressive-select' | 'multi-select' | 'text' | 'number' | 'boolean' | 'sns' | 'gallery' | 'weekly-activity' | 'mark-list'
 
 export type Component = {
   key: string
@@ -51,8 +51,8 @@ export const BASE_FIELDS: ResolvedComponent[] = [
   { key: 'trust_rank',    label: 'Trust Rank',     input_type: 'select',            is_searchable: true,  is_required: false, options: ['Visitor', 'New User', 'User', 'Known User', 'Trusted User'], sort_order: 80 },
   { key: 'status',        label: 'ステータス説明',   input_type: 'text',              is_searchable: false, is_required: false, options: null, sort_order: 90 },
   { key: 'sns',           label: 'SNS',            input_type: 'sns',               is_searchable: false, is_required: false, options: null, sort_order: 100 },
-  { key: 'activity',      label: '活動時間',         input_type: 'activity',          is_searchable: false, is_required: false, options: null, sort_order: 110 },
-  { key: 'interactions',  label: 'OK/NG',           input_type: 'interactions',      is_searchable: false, is_required: false, options: null, sort_order: 120 },
+  { key: 'activity',      label: '活動時間',         input_type: 'weekly-activity',   is_searchable: false, is_required: false, options: null, sort_order: 110 },
+  { key: 'interactions',  label: 'OK/NG',           input_type: 'mark-list',         is_searchable: false, is_required: false, options: null, sort_order: 120 },
   { key: 'image_gallery', label: '画像ギャラリー',   input_type: 'gallery',           is_searchable: false, is_required: false, options: null, sort_order: 130 },
 ]
 

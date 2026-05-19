@@ -2,28 +2,19 @@
 
 import { useState } from 'react'
 import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
+import { genderTagBlock, GENDER_TAG_OPTIONS } from '@/blocks/gender'
+import { playEnvBlock } from '@/blocks/playEnv'
+import { trustRankBlock } from '@/blocks/trustRank'
+import { selfIntroBlock } from '@/blocks/selfIntro'
+import { micOnRateBlock } from '@/blocks/micOnRate'
+import { snsBlock } from '@/blocks/sns'
+import { activityBlock } from '@/blocks/activity'
+import { interactionsBlock } from '@/blocks/interactions'
+import type { GenderValue } from '@/blocks/gender'
+import type { SnsValue, ActivityValue } from '@/blocks/types'
+import type { InteractionItem } from '@/blocks/interactions'
 
 const ctx = DEFAULT_CARD_RENDER_CONTEXT
-
-// ─────────────────────────────────────────
-// 共通スタイルヘルパー
-// ─────────────────────────────────────────
-const BADGE = (color: string): React.CSSProperties => ({
-  fontSize: ctx.cardWidth * 0.012,
-  color,
-  background: color + '18',
-  padding: '2px 10px',
-  borderRadius: 999,
-  border: `1px solid ${color}40`,
-  fontFamily: ctx.fontFamily,
-  display: 'inline-block',
-})
-
-const TEXT_STYLE: React.CSSProperties = {
-  fontSize: ctx.cardWidth * 0.013,
-  color: ctx.theme.text,
-  fontFamily: ctx.fontFamily,
-}
 
 const SUB_STYLE: React.CSSProperties = {
   fontSize: ctx.cardWidth * 0.011,
@@ -42,54 +33,46 @@ type AbstractComponent = {
 }
 
 // ─────────────────────────────────────────
-// expressive-select
+// expressive-select → genderTagBlock.CardItem
 // ─────────────────────────────────────────
 function ExpressiveSelectDemo({ variant }: { variant: string }) {
-  const OPTIONS = [
-    { tag: 'option-a', label: '選択肢A' },
-    { tag: 'option-b', label: '選択肢B' },
-    { tag: 'option-c', label: '選択肢C' },
-  ]
-  const [tag, setTag] = useState('option-a')
-  const [display, setDisplay] = useState('')
-  const label = OPTIONS.find(o => o.tag === tag)?.label ?? ''
-  const shown = display || label
+  const [value, setValue] = useState<GenderValue>({ tag: 'none', display: '' })
 
   return (
     <div className="grid grid-cols-2 divide-x divide-gray-100">
       <div className="px-5 py-5 space-y-3">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         <div className="flex flex-wrap gap-2">
-          {OPTIONS.map(o => (
-            <button key={o.tag} type="button" onClick={() => setTag(o.tag)}
-              className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${tag === o.tag ? 'bg-sky-500 border-sky-500 text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-sky-300'}`}>
-              {o.label}
+          {GENDER_TAG_OPTIONS.map(o => (
+            <button key={o.value} type="button"
+              onClick={() => setValue(v => ({ ...v, tag: o.value }))}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${value.tag === o.value ? 'bg-sky-500 border-sky-500 text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-sky-300'}`}>
+              {o.icon}{o.label}
             </button>
           ))}
         </div>
-        <input type="text" value={display} onChange={e => setDisplay(e.target.value)}
-          placeholder="表示テキスト（任意）"
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200" />
+        {value.tag !== 'none' && (
+          <input type="text" value={value.display}
+            onChange={e => setValue(v => ({ ...v, display: e.target.value }))}
+            placeholder="表示テキスト（任意）"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200" />
+        )}
       </div>
       <div className="px-5 py-5">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
-        {variant === 'icon'
-          ? <span style={{ ...TEXT_STYLE, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ width: 10, height: 10, borderRadius: '50%', background: ctx.theme.accent, display: 'inline-block' }} />
-              {shown}
-            </span>
-          : <span style={BADGE(ctx.theme.accent)}>{shown}</span>
-        }
-        <pre className="mt-4 pt-3 border-t border-gray-50 text-[10px] text-gray-400 bg-gray-50 rounded px-2 py-1">
-          {JSON.stringify({ tag, display }, null, 2)}
-        </pre>
+        <div className="min-h-[40px]">
+          {genderTagBlock.CardItem
+            ? <genderTagBlock.CardItem value={value} ctx={ctx} variant={variant} />
+            : <span style={SUB_STYLE}>—</span>
+          }
+        </div>
       </div>
     </div>
   )
 }
 
 // ─────────────────────────────────────────
-// multi-select
+// multi-select → playEnvBlock.CardItem
 // ─────────────────────────────────────────
 function MultiSelectDemo({ variant }: { variant: string }) {
   const OPTIONS = ['選択肢A', '選択肢B', '選択肢C', '選択肢D']
@@ -111,27 +94,23 @@ function MultiSelectDemo({ variant }: { variant: string }) {
       </div>
       <div className="px-5 py-5">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
-        {selected.length > 0
-          ? variant === 'slash'
-            ? <span style={TEXT_STYLE}>{selected.join(' / ')}</span>
-            : <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {selected.map(s => <span key={s} style={BADGE(ctx.theme.accent)}>{s}</span>)}
-              </div>
-          : <span style={SUB_STYLE}>—</span>
-        }
-        <pre className="mt-4 pt-3 border-t border-gray-50 text-[10px] text-gray-400 bg-gray-50 rounded px-2 py-1">
-          {JSON.stringify(selected, null, 2)}
-        </pre>
+        <div className="min-h-[40px]">
+          {playEnvBlock.CardItem
+            ? <playEnvBlock.CardItem value={selected} ctx={ctx} variant={variant} />
+            : <span style={SUB_STYLE}>—</span>
+          }
+        </div>
       </div>
     </div>
   )
 }
 
 // ─────────────────────────────────────────
-// select
+// select → trustRankBlock.CardItem
 // ─────────────────────────────────────────
+const RANK_OPTIONS = ['Visitor', 'New User', 'User', 'Known User', 'Trusted User']
+
 function SelectDemo({ variant }: { variant: string }) {
-  const OPTIONS = ['選択肢A', '選択肢B', '選択肢C']
   const [selected, setSelected] = useState('')
 
   return (
@@ -139,7 +118,7 @@ function SelectDemo({ variant }: { variant: string }) {
       <div className="px-5 py-5 space-y-3">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         <div className="flex flex-col gap-1.5">
-          {OPTIONS.map(o => (
+          {RANK_OPTIONS.map(o => (
             <button key={o} type="button" onClick={() => setSelected(s => s === o ? '' : o)}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm border font-medium transition-all ${selected === o ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'}`}>
               {o}
@@ -149,22 +128,19 @@ function SelectDemo({ variant }: { variant: string }) {
       </div>
       <div className="px-5 py-5">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
-        {selected
-          ? variant === 'badge'
-            ? <span style={BADGE(ctx.theme.accent)}>{selected}</span>
-            : <span style={TEXT_STYLE}>{selected}</span>
-          : <span style={SUB_STYLE}>—</span>
-        }
-        <pre className="mt-4 pt-3 border-t border-gray-50 text-[10px] text-gray-400 bg-gray-50 rounded px-2 py-1">
-          {JSON.stringify(selected)}
-        </pre>
+        <div className="min-h-[40px]">
+          {trustRankBlock.CardItem
+            ? <trustRankBlock.CardItem value={selected} ctx={ctx} variant={variant} />
+            : <span style={SUB_STYLE}>—</span>
+          }
+        </div>
       </div>
     </div>
   )
 }
 
 // ─────────────────────────────────────────
-// text
+// text → selfIntroBlock.CardItem
 // ─────────────────────────────────────────
 function TextDemo() {
   const [value, setValue] = useState('')
@@ -178,22 +154,22 @@ function TextDemo() {
       </div>
       <div className="px-5 py-5">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
-        <p style={{ ...TEXT_STYLE, lineHeight: 1.75, whiteSpace: 'pre-wrap', wordBreak: 'break-all', margin: 0 }}>{value || '—'}</p>
+        <div className="min-h-[40px]">
+          {selfIntroBlock.CardItem
+            ? <selfIntroBlock.CardItem value={value} ctx={ctx} />
+            : <span style={SUB_STYLE}>—</span>
+          }
+        </div>
       </div>
     </div>
   )
 }
 
 // ─────────────────────────────────────────
-// number
+// number → micOnRateBlock.CardItem
 // ─────────────────────────────────────────
 function NumberDemo({ variant }: { variant: string }) {
   const [value, setValue] = useState(50)
-  const barW = ctx.cardWidth * 0.18
-  const gradient = variant === 'gradient'
-    ? 'linear-gradient(to right, #60a5fa, #a78bfa)'
-    : ctx.theme.accent
-
   return (
     <div className="grid grid-cols-2 divide-x divide-gray-100">
       <div className="px-5 py-5 space-y-3">
@@ -206,11 +182,11 @@ function NumberDemo({ variant }: { variant: string }) {
       </div>
       <div className="px-5 py-5">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: barW, height: 6, borderRadius: 999, background: `${ctx.theme.subText}30`, overflow: 'hidden' }}>
-            <div style={{ width: `${value}%`, height: '100%', borderRadius: 999, background: gradient }} />
-          </div>
-          <span style={{ ...TEXT_STYLE, fontWeight: 600 }}>{value}%</span>
+        <div className="min-h-[40px]">
+          {micOnRateBlock.CardItem
+            ? <micOnRateBlock.CardItem value={value} ctx={ctx} variant={variant} />
+            : <span style={SUB_STYLE}>—</span>
+          }
         </div>
       </div>
     </div>
@@ -218,10 +194,11 @@ function NumberDemo({ variant }: { variant: string }) {
 }
 
 // ─────────────────────────────────────────
-// boolean
+// boolean（該当ブロックなし・仮実装）
 // ─────────────────────────────────────────
 function BooleanDemo() {
   const [value, setValue] = useState(false)
+  const fs = ctx.cardWidth * 0.012
   return (
     <div className="grid grid-cols-2 divide-x divide-gray-100">
       <div className="px-5 py-5 space-y-3">
@@ -236,28 +213,25 @@ function BooleanDemo() {
       </div>
       <div className="px-5 py-5">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
-        <span style={BADGE(value ? '#22c55e' : ctx.theme.subText)}>{value ? 'ON' : 'OFF'}</span>
+        <span style={{ fontSize: fs, color: value ? '#22c55e' : ctx.theme.subText, background: (value ? '#22c55e' : ctx.theme.subText) + '18', padding: '2px 10px', borderRadius: 999, border: `1px solid ${(value ? '#22c55e' : ctx.theme.subText)}40`, fontFamily: ctx.fontFamily }}>
+          {value ? 'ON' : 'OFF'}
+        </span>
       </div>
     </div>
   )
 }
 
 // ─────────────────────────────────────────
-// sns
+// sns → snsBlock.CardItem
 // ─────────────────────────────────────────
-const SNS_PLATFORMS = [
-  { key: 'vrchat',   label: 'VRChat',   abbr: 'VRC',  color: '#00AADB' },
-  { key: 'x',        label: 'X',        abbr: 'X',    color: '#1a1a1a' },
-  { key: 'discord',  label: 'Discord',  abbr: 'DC',   color: '#5865f2' },
-  { key: 'bluesky',  label: 'Bluesky',  abbr: 'BSky', color: '#0085ff' },
-  { key: 'instagram',label: 'Instagram',abbr: 'IG',   color: '#e1306c' },
-] as const
+const SNS_PLATFORMS: { key: keyof SnsValue; label: string; placeholder: string; color: string }[] = [
+  { key: 'vrchatId',  label: 'VRChat',  placeholder: 'ID',       color: '#00AADB' },
+  { key: 'twitterId', label: 'X',       placeholder: '@handle',  color: '#1a1a1a' },
+  { key: 'discordId', label: 'Discord', placeholder: 'username', color: '#5865f2' },
+]
 
 function SnsDemo({ variant }: { variant: string }) {
-  const [values, setValues] = useState<Record<string, string>>(
-    Object.fromEntries(SNS_PLATFORMS.map(p => [p.key, '']))
-  )
-  const filled = SNS_PLATFORMS.filter(p => values[p.key])
+  const [value, setValue] = useState<SnsValue>({ vrchatId: '', twitterId: '', discordId: '' })
 
   return (
     <div className="grid grid-cols-2 divide-x divide-gray-100">
@@ -266,45 +240,36 @@ function SnsDemo({ variant }: { variant: string }) {
         {SNS_PLATFORMS.map(p => (
           <div key={p.key} className="flex items-center gap-2">
             <span className="text-xs font-semibold w-16 shrink-0" style={{ color: p.color }}>{p.label}</span>
-            <input
-              type="text"
-              value={values[p.key]}
-              onChange={e => setValues(v => ({ ...v, [p.key]: e.target.value }))}
-              placeholder={p.key === 'x' ? '@handle' : p.key === 'discord' ? 'username' : 'ID'}
-              className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
-            />
+            <input type="text" value={value[p.key] ?? ''}
+              onChange={e => setValue(v => ({ ...v, [p.key]: e.target.value }))}
+              placeholder={p.placeholder}
+              className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200" />
           </div>
         ))}
       </div>
       <div className="px-5 py-5">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
-        {filled.length > 0
-          ? <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {filled.map(p => (
-                <div key={p.key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {variant === 'icon'
-                    ? <span style={{ width: 14, height: 14, borderRadius: 3, background: p.color + '25', border: `1px solid ${p.color}40`, display: 'inline-block', flexShrink: 0 }} />
-                    : <span style={{ ...SUB_STYLE, fontWeight: 600, minWidth: '2.5em', color: p.color }}>{p.abbr}</span>
-                  }
-                  <span style={TEXT_STYLE}>{values[p.key]}</span>
-                </div>
-              ))}
-            </div>
-          : <span style={SUB_STYLE}>—</span>
-        }
+        <div className="min-h-[40px]">
+          {snsBlock.CardItem
+            ? <snsBlock.CardItem value={value} ctx={ctx} variant={variant} />
+            : <span style={SUB_STYLE}>—</span>
+          }
+        </div>
       </div>
     </div>
   )
 }
 
 // ─────────────────────────────────────────
-// weekly-activity
+// weekly-activity → activityBlock.CardItem
 // ─────────────────────────────────────────
 function WeeklyActivityDemo() {
   const DAYS = ['月', '火', '水', '木', '金', '土', '日']
-  const [days, setDays] = useState([true, true, true, true, true, false, false])
-  const [start, setStart] = useState('22:00')
-  const [end, setEnd] = useState('02:00')
+  const [value, setValue] = useState<ActivityValue>({
+    days: [true, true, true, true, true, false, false],
+    weekdayStart: '22:00', weekdayEnd: '02:00',
+    holidayStart: '', holidayEnd: '',
+  })
 
   return (
     <div className="grid grid-cols-2 divide-x divide-gray-100">
@@ -312,28 +277,32 @@ function WeeklyActivityDemo() {
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         <div className="flex gap-1.5">
           {DAYS.map((d, i) => (
-            <button key={i} type="button" onClick={() => setDays(ds => ds.map((v, j) => j === i ? !v : v))}
+            <button key={i} type="button"
+              onClick={() => setValue(v => ({ ...v, days: v.days.map((x, j) => j === i ? !x : x) }))}
               className="w-8 h-8 rounded-full text-xs font-bold transition-colors"
-              style={{ background: days[i] ? (i >= 5 ? 'rgba(251,191,36,0.85)' : 'rgba(96,165,250,0.85)') : '#f3f4f6', color: days[i] ? '#fff' : '#9ca3af' }}>
+              style={{ background: value.days[i] ? (i >= 5 ? 'rgba(251,191,36,0.85)' : 'rgba(96,165,250,0.85)') : '#f3f4f6', color: value.days[i] ? '#fff' : '#9ca3af' }}>
               {d}
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
-          <input type="text" value={start} onChange={e => setStart(e.target.value)} className="w-20 px-2 py-1 border border-gray-200 rounded text-sm" />
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-gray-500 text-xs">平日</span>
+          <input type="text" value={value.weekdayStart}
+            onChange={e => setValue(v => ({ ...v, weekdayStart: e.target.value }))}
+            className="w-20 px-2 py-1 border border-gray-200 rounded text-sm" />
           <span className="text-gray-400">〜</span>
-          <input type="text" value={end} onChange={e => setEnd(e.target.value)} className="w-20 px-2 py-1 border border-gray-200 rounded text-sm" />
+          <input type="text" value={value.weekdayEnd}
+            onChange={e => setValue(v => ({ ...v, weekdayEnd: e.target.value }))}
+            className="w-20 px-2 py-1 border border-gray-200 rounded text-sm" />
         </div>
       </div>
       <div className="px-5 py-5">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <div style={{ display: 'flex', gap: 3 }}>
-            {DAYS.map((d, i) => (
-              <span key={i} style={{ ...SUB_STYLE, fontWeight: 700, color: days[i] ? (i >= 5 ? '#f59e0b' : ctx.theme.accent) : ctx.theme.subText, opacity: days[i] ? 1 : 0.4 }}>{d}</span>
-            ))}
-          </div>
-          {start && <span style={TEXT_STYLE}>{start}〜{end}</span>}
+        <div className="min-h-[40px]">
+          {activityBlock.CardItem
+            ? <activityBlock.CardItem value={value} ctx={ctx} />
+            : <span style={SUB_STYLE}>—</span>
+          }
         </div>
       </div>
     </div>
@@ -341,10 +310,17 @@ function WeeklyActivityDemo() {
 }
 
 // ─────────────────────────────────────────
-// mark-list
+// mark-list → interactionsBlock.CardItem
 // ─────────────────────────────────────────
 const MARKS = ['—', '◎', '◯', '△', '✗'] as const
-type Mark = typeof MARKS[number]
+const DEFAULT_ITEMS: InteractionItem[] = [
+  { label: '項目A', mark: '◎' },
+  { label: '項目B', mark: '◯' },
+  { label: '項目C', mark: '△' },
+  { label: '項目D', mark: '✗' },
+  { label: '項目E', mark: '—' },
+  { label: '項目F', mark: '—' },
+]
 
 function markStyle(m: string): { bg: string; border: string; text: string } {
   if (m === '◎' || m === '◯') return { bg: 'rgba(220,252,231,0.6)', border: '#86efac', text: '#15803d' }
@@ -354,57 +330,44 @@ function markStyle(m: string): { bg: string; border: string; text: string } {
 }
 
 function MarkListDemo({ variant }: { variant: string }) {
-  const ITEMS = ['項目A', '項目B', '項目C', '項目D', '項目E', '項目F']
-  const [marks, setMarks] = useState<Record<string, string>>(Object.fromEntries(ITEMS.map(k => [k, '—'])))
-  const visible = ITEMS.filter(k => marks[k] !== '—')
+  const [items, setItems] = useState<InteractionItem[]>(DEFAULT_ITEMS)
+  const update = (i: number, mark: string) =>
+    setItems(list => list.map((item, j) => j === i ? { ...item, mark } : item))
 
   return (
     <div className="grid grid-cols-2 divide-x divide-gray-100">
       <div className="px-5 py-5 space-y-2">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
-        {ITEMS.map(item => {
-          const s = markStyle(marks[item])
+        {items.map((item, i) => {
+          const s = markStyle(item.mark)
           return (
-            <div key={item} className="flex items-center gap-2 px-2 py-1.5 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-              <select value={marks[item]} onChange={e => setMarks(m => ({ ...m, [item]: e.target.value }))}
-                className="w-14 py-1 rounded text-sm font-semibold focus:outline-none bg-transparent border-0" style={{ color: s.text }}>
+            <div key={i} className="flex items-center gap-2 px-2 py-1.5 rounded-lg"
+              style={{ background: s.bg, border: `1px solid ${s.border}` }}>
+              <select value={item.mark} onChange={e => update(i, e.target.value)}
+                className="w-14 py-1 rounded text-sm font-semibold focus:outline-none bg-transparent border-0"
+                style={{ color: s.text }}>
                 {MARKS.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
-              <span className="text-sm text-gray-600">{item}</span>
+              <span className="text-sm text-gray-600">{item.label}</span>
             </div>
           )
         })}
       </div>
       <div className="px-5 py-5">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
-        {visible.length > 0
-          ? variant === 'grid'
-            ? <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
-                {visible.map(item => {
-                  const s = markStyle(marks[item])
-                  return (
-                    <div key={item} style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: 6, padding: '4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                      <span style={{ fontSize: 10, color: '#6b7280', textAlign: 'center' }}>{item}</span>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: s.text }}>{marks[item]}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            : <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {visible.map(item => {
-                  const s = markStyle(marks[item])
-                  return <span key={item} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 999, background: s.bg, border: `1px solid ${s.border}`, color: s.text }}>{marks[item]} {item}</span>
-                })}
-              </div>
-          : <span style={SUB_STYLE}>—</span>
-        }
+        <div className="min-h-[40px]">
+          {interactionsBlock.CardItem
+            ? <interactionsBlock.CardItem value={items} ctx={ctx} variant={variant} />
+            : <span style={SUB_STYLE}>—</span>
+          }
+        </div>
       </div>
     </div>
   )
 }
 
 // ─────────────────────────────────────────
-// gallery
+// gallery（該当ブロックなし・仮実装）
 // ─────────────────────────────────────────
 function GalleryDemo() {
   return (
@@ -423,9 +386,7 @@ function GalleryDemo() {
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
         <div style={{ display: 'flex', gap: 4 }}>
           {[0, 1, 2].map(i => (
-            <div key={i} style={{ flex: 1, aspectRatio: '1', borderRadius: 6, background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={SUB_STYLE}>{i + 1}</span>
-            </div>
+            <div key={i} style={{ flex: 1, aspectRatio: '1', borderRadius: 6, background: '#e5e7eb' }} />
           ))}
         </div>
       </div>
@@ -437,66 +398,16 @@ function GalleryDemo() {
 // 抽象コンポーネント一覧
 // ─────────────────────────────────────────
 const ABSTRACT_COMPONENTS: AbstractComponent[] = [
-  {
-    inputType: 'expressive-select',
-    description: 'タグ（検索用）＋自由テキスト（表示用）の二層構造',
-    variants: ['default', 'icon'],
-    Demo: ExpressiveSelectDemo,
-  },
-  {
-    inputType: 'multi-select',
-    description: '複数選択。配列で保存。バッジ or スラッシュ区切り',
-    variants: ['default', 'slash'],
-    Demo: MultiSelectDemo,
-  },
-  {
-    inputType: 'select',
-    description: '単一選択。文字列で保存。',
-    variants: ['default', 'badge'],
-    Demo: SelectDemo,
-  },
-  {
-    inputType: 'text',
-    description: '自由テキスト。全文検索のみ対応。',
-    variants: ['default'],
-    Demo: ({ variant: _ }) => <TextDemo />,
-  },
-  {
-    inputType: 'number',
-    description: '数値（0〜100）。プログレスバーで表示。',
-    variants: ['default', 'gradient'],
-    Demo: NumberDemo,
-  },
-  {
-    inputType: 'boolean',
-    description: 'ON/OFF の二値。',
-    variants: ['default'],
-    Demo: ({ variant: _ }) => <BooleanDemo />,
-  },
-  {
-    inputType: 'sns',
-    description: 'SNS情報のセット。ラベル or アイコン付きで表示。',
-    variants: ['default', 'icon'],
-    Demo: SnsDemo,
-  },
-  {
-    inputType: 'weekly-activity',
-    description: '曜日＋時間帯。平日/休日を個別設定可能。',
-    variants: ['default'],
-    Demo: ({ variant: _ }) => <WeeklyActivityDemo />,
-  },
-  {
-    inputType: 'mark-list',
-    description: 'ラベル＋記号（◎◯△✗）の汎用リスト。順序性なし。',
-    variants: ['default', 'grid'],
-    Demo: MarkListDemo,
-  },
-  {
-    inputType: 'gallery',
-    description: '画像ギャラリー（最大3枚）。',
-    variants: ['default'],
-    Demo: ({ variant: _ }) => <GalleryDemo />,
-  },
+  { inputType: 'expressive-select', description: 'タグ（検索用）＋自由テキスト（表示用）の二層構造',   variants: ['default', 'icon'],     Demo: ExpressiveSelectDemo },
+  { inputType: 'multi-select',      description: '複数選択。配列で保存。バッジ or スラッシュ区切り',  variants: ['default', 'slash'],    Demo: MultiSelectDemo },
+  { inputType: 'select',            description: '単一選択。文字列で保存。',                          variants: ['default', 'badge'],    Demo: SelectDemo },
+  { inputType: 'text',              description: '自由テキスト。全文検索のみ対応。',                   variants: ['default'],             Demo: ({ variant: _ }) => <TextDemo /> },
+  { inputType: 'number',            description: '数値（0〜100）。プログレスバーで表示。',             variants: ['default', 'gradient'], Demo: NumberDemo },
+  { inputType: 'boolean',           description: 'ON/OFF の二値。',                                  variants: ['default'],             Demo: ({ variant: _ }) => <BooleanDemo /> },
+  { inputType: 'sns',               description: 'SNS情報のセット。ラベル or アイコン付きで表示。',    variants: ['default', 'icon'],     Demo: SnsDemo },
+  { inputType: 'weekly-activity',   description: '曜日＋時間帯。平日/休日を個別設定可能。',            variants: ['default'],             Demo: ({ variant: _ }) => <WeeklyActivityDemo /> },
+  { inputType: 'mark-list',         description: 'ラベル＋記号（◎◯△✗）の汎用リスト。順序性なし。',  variants: ['default', 'grid'],     Demo: MarkListDemo },
+  { inputType: 'gallery',           description: '画像ギャラリー（最大3枚）。',                       variants: ['default'],             Demo: ({ variant: _ }) => <GalleryDemo /> },
 ]
 
 const INPUT_TYPE_COLORS: Record<string, string> = {
@@ -540,7 +451,7 @@ function AbstractComponentCard({ inputType, description, variants, Demo }: Abstr
 export default function AbstractComponentPreview() {
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-400">input_type ごとの抽象的な FormItem / CardItem パターン。variant を切り替えて表示スタイルを確認できます。</p>
+      <p className="text-sm text-gray-400">input_type ごとの抽象的な FormItem / CardItem パターン。CardItemは実ブロックの実装を使用しています。</p>
       {ABSTRACT_COMPONENTS.map(c => (
         <AbstractComponentCard key={c.inputType} {...c} />
       ))}

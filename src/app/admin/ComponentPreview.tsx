@@ -39,6 +39,11 @@ const INPUT_TYPE_COLORS: Record<string, string> = {
   'multi-select':      'bg-blue-100 text-blue-700 border-blue-200',
   'select':            'bg-sky-100 text-sky-700 border-sky-200',
   'text':              'bg-gray-100 text-gray-600 border-gray-200',
+  'number':            'bg-orange-100 text-orange-700 border-orange-200',
+  'sns':               'bg-pink-100 text-pink-700 border-pink-200',
+  'activity':          'bg-teal-100 text-teal-700 border-teal-200',
+  'interactions':      'bg-rose-100 text-rose-700 border-rose-200',
+  'gallery':           'bg-yellow-100 text-yellow-700 border-yellow-200',
 }
 
 function BlockPreview({ block, inputType, description }: typeof PREVIEW_BLOCKS[number]) {

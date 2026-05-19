@@ -1,4 +1,4 @@
-export type InputType = 'select' | 'expressive-select' | 'multi-select' | 'text' | 'number' | 'boolean' | 'sns' | 'gallery'
+export type InputType = 'select' | 'expressive-select' | 'multi-select' | 'text' | 'number' | 'boolean' | 'sns' | 'gallery' | 'activity' | 'interactions'
 
 export type Component = {
   key: string
@@ -42,12 +42,18 @@ export type ResolvedComponent = {
  */
 export const BASE_FIELDS: ResolvedComponent[] = [
   { key: 'gender',        label: '性別',           input_type: 'expressive-select', is_searchable: true,  is_required: false, options: ['male', 'female', 'nonbinary', 'none'], sort_order: 10 },
-  { key: 'platform',      label: 'プレイ環境',      input_type: 'multi-select',      is_searchable: true,  is_required: false, options: null, sort_order: 20 },
+  { key: 'platform',      label: 'プレイ環境',      input_type: 'multi-select',      is_searchable: true,  is_required: false, options: ['PCVR', 'Quest', 'Desktop'], sort_order: 20 },
   { key: 'language',      label: '使用言語',        input_type: 'multi-select',      is_searchable: true,  is_required: false, options: null, sort_order: 30 },
-  { key: 'friend_policy', label: 'フレンドポリシー', input_type: 'select',            is_searchable: true,  is_required: false, options: null, sort_order: 40 },
+  { key: 'friend_policy', label: 'フレンドポリシー', input_type: 'multi-select',      is_searchable: true,  is_required: false, options: ['frPolicyAnyone', 'frPolicyAfterGettingToKnow', 'frPolicyIfInterested', 'frPolicyMutualsOnX', 'frPolicyNo'], sort_order: 40 },
   { key: 'self_intro',    label: '自己紹介',        input_type: 'text',              is_searchable: true,  is_required: false, options: null, sort_order: 50 },
-  { key: 'sns',           label: 'SNS',            input_type: 'sns',               is_searchable: false, is_required: false, options: null, sort_order: 60 },
-  { key: 'image_gallery', label: '画像ギャラリー',  input_type: 'gallery',           is_searchable: false, is_required: false, options: null, sort_order: 70 },
+  { key: 'mic_on_rate',   label: 'マイクON率',      input_type: 'number',            is_searchable: false, is_required: false, options: null, sort_order: 60 },
+  { key: 'age',           label: '年齢',            input_type: 'expressive-select', is_searchable: true,  is_required: false, options: ['18歳未満', '18+', '非公開', '自由入力'], sort_order: 70 },
+  { key: 'trust_rank',    label: 'Trust Rank',     input_type: 'select',            is_searchable: true,  is_required: false, options: ['Visitor', 'New User', 'User', 'Known User', 'Trusted User'], sort_order: 80 },
+  { key: 'status',        label: 'ステータス説明',   input_type: 'text',              is_searchable: false, is_required: false, options: null, sort_order: 90 },
+  { key: 'sns',           label: 'SNS',            input_type: 'sns',               is_searchable: false, is_required: false, options: null, sort_order: 100 },
+  { key: 'activity',      label: '活動時間',         input_type: 'activity',          is_searchable: false, is_required: false, options: null, sort_order: 110 },
+  { key: 'interactions',  label: 'OK/NG',           input_type: 'interactions',      is_searchable: false, is_required: false, options: null, sort_order: 120 },
+  { key: 'image_gallery', label: '画像ギャラリー',   input_type: 'gallery',           is_searchable: false, is_required: false, options: null, sort_order: 130 },
 ]
 
 /**

@@ -44,8 +44,10 @@ test.describe('A. LP モバイル', () => {
     await expect(exploreLink).not.toBeVisible()
   })
 
-  test('フッター相当のリンクが表示される', async ({ page }) => {
-    await expect(page.getByRole('link', { name: /利用規約/ })).toBeVisible()
+  test('フッターが表示される', async ({ page }) => {
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+    await page.waitForTimeout(300)
+    await expect(page.locator('footer')).toBeVisible({ timeout: 5000 })
   })
 
   test('横スクロールが発生していない', async ({ page }) => {

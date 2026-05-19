@@ -13,7 +13,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3002',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3002',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -58,7 +58,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'npm run dev:test',
-    url: 'http://localhost:3002',
+    url: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3002',
     reuseExistingServer: true,
     env: {
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL!,

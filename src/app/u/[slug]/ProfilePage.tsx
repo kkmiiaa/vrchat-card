@@ -284,7 +284,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
   const initials = (displayName || currentSlug).slice(0, 2).toUpperCase()
 
   return (
-    <div className="min-h-screen flex flex-col overflow-hidden" style={{ background: '#f8fafc' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#f8fafc' }}>
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-10 -right-10 w-64 h-64 rounded-full border-2 border-sky-100 opacity-50" />
         <div className="absolute bottom-20 -left-10 w-56 h-56 rounded-full border border-cyan-100 opacity-40" />
@@ -293,7 +293,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
         <div className="absolute top-0 right-0 w-96 h-60 bg-sky-50 rounded-full blur-[80px] opacity-50" />
       </div>
 
-      <header className="relative z-10 border-b border-sky-100 h-14 px-6 flex items-center justify-between bg-white/80 backdrop-blur-md">
+      <header className="fixed top-0 left-0 right-0 z-20 border-b border-sky-100 h-14 px-6 flex items-center justify-between bg-white/80 backdrop-blur-md">
         <Link href="/" className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</Link>
         <div className="flex items-center gap-4">
           <Link href="/c/vrchat" className="text-xs font-semibold text-gray-500 hover:text-[#00AADB] transition-colors hidden sm:inline">ユーザーを探す</Link>
@@ -302,7 +302,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
       </header>
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
 
-      <main className="relative z-10 flex-1 w-full py-12">
+      <main className="relative z-10 flex-1 w-full pt-[calc(3.5rem+3rem)] pb-12">
         <div className="max-w-xl mx-auto px-2 sm:px-4">
           <AnnouncementBanner announcements={announcements} />
         </div>

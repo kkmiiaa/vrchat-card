@@ -71,11 +71,18 @@ export type TemplateComponentDef = {
   grow?: boolean
 }
 
-/** テンプレートレイアウトのセクション */
+/** カラム: 横並びの単位。複数コンポーネントを縦に積む */
+export type TemplateColumnDef = {
+  /** flex比率による相対幅（例: 1, 2, 3） */
+  width: number
+  components: TemplateComponentDef[]
+}
+
+/** セクション: カラムを横に並べる単位 */
 export type TemplateSectionDef = {
   /** セクション見出し（データとして保持。翻訳対象外） */
   label: string
-  components: TemplateComponentDef[]
+  columns: TemplateColumnDef[]
 }
 
 /** テンプレート全体の定義（汎用レンダラーが参照するJSON構造） */
@@ -89,7 +96,7 @@ export type TemplateDefinition = {
   theme: CardRenderContext['theme']
   /** デフォルトフォント */
   fontFamily: string
-  /** セクションとコンポーネントの配置定義 */
+  /** セクション一覧（上から順に並ぶ） */
   sections: TemplateSectionDef[]
 }
 

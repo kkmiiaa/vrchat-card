@@ -27,6 +27,17 @@ const TABS: { key: Tab; label: string; sub: string }[] = [
   { key: 'cards',               label: 'カード',                sub: '完成品のインスタンス' },
 ]
 
+const COMPONENT_TYPES = [
+  { inputType: 'expressive-select', search: '◎ tag で完全一致', format: '{ tag: string, display?: string }', example: '性別' },
+  { inputType: 'select',            search: '◎ 完全一致',       format: 'string',                            example: 'フレンドポリシー' },
+  { inputType: 'multi-select',      search: '◎ 配列内包含',     format: 'string[]',                          example: 'プレイ環境、言語' },
+  { inputType: 'text',              search: '△ 全文検索のみ',   format: 'string',                            example: '自己紹介' },
+  { inputType: 'number',            search: '○ 範囲検索',       format: 'number',                            example: '年齢' },
+  { inputType: 'boolean',           search: '◎',               format: 'boolean',                           example: 'マイクON率' },
+  { inputType: 'sns',               search: '✕',               format: '{ twitterId?, ... }',               example: 'SNSリンク' },
+  { inputType: 'gallery',           search: '✕',               format: '{ images: string[] }',              example: '画像ギャラリー' },
+]
+
 const INPUT_TYPE_COLORS: Record<string, string> = {
   'expressive-select': 'bg-purple-100 text-purple-700',
   'multi-select':      'bg-blue-100 text-blue-700',
@@ -71,41 +82,30 @@ export default function AdminClient({ templateComponents, componentKeyMap, sampl
           {TABS.find(t => t.key === tab)?.sub}
         </p>
 
-        {/* コンポーネント：input_typeのインタラクティブプレビュー */}
-        {tab === 'components' && <ComponentPreview />}
-
-        {/* テンプレートコンポーネント：VRChat V1のフィールドインスタンス定義 */}
-        {tab === 'template-components' && (
+        {/* コンポーネント：input_typeの型定義一覧 */}
+        {tab === 'components' && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-gray-900">VRChat テンプレートコンポーネント</h2>
-              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">v1</span>
-            </div>
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">key</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">コンポーネント</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">card_data key</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">label</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500 w-16">検索</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">options</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">input_type</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">検索</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">card_data 値形式</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">用途例</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {templateComponents.map(c => (
-                    <tr key={c.key} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-mono text-xs text-gray-700">{c.key}</td>
+                  {COMPONENT_TYPES.map(c => (
+                    <tr key={c.inputType} className="hover:bg-gray-50">
                       <td className="px-4 py-3">
-                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${INPUT_TYPE_COLORS[c.input_type] ?? 'bg-gray-100 text-gray-600'}`}>
-                          {c.input_type}
+                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${INPUT_TYPE_COLORS[c.inputType] ?? 'bg-gray-100 text-gray-600'}`}>
+                          {c.inputType}
                         </span>
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-[#00AADB]">{componentKeyMap[c.key] ?? c.key}</td>
-                      <td className="px-4 py-3 text-xs text-gray-700">{c.label}</td>
-                      <td className="px-4 py-3 text-center text-gray-400 text-xs">{c.is_searchable ? '✓' : '—'}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-gray-400">{c.options?.join(', ') ?? '—'}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500">{c.search}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-gray-500">{c.format}</td>
+                      <td className="px-4 py-3 text-xs text-gray-400">{c.example}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -113,6 +113,9 @@ export default function AdminClient({ templateComponents, componentKeyMap, sampl
             </div>
           </div>
         )}
+
+        {/* テンプレートコンポーネント：フィールドインスタンスのFormItemプレビュー */}
+        {tab === 'template-components' && <ComponentPreview />}
 
         {/* カード：完成品のインスタンス */}
         {tab === 'cards' && (

@@ -245,34 +245,48 @@ function BooleanDemo() {
 // ─────────────────────────────────────────
 // sns
 // ─────────────────────────────────────────
+const SNS_PLATFORMS = [
+  { key: 'vrchat',   label: 'VRChat',   abbr: 'VRC',  color: '#00AADB' },
+  { key: 'x',        label: 'X',        abbr: 'X',    color: '#1a1a1a' },
+  { key: 'discord',  label: 'Discord',  abbr: 'DC',   color: '#5865f2' },
+  { key: 'bluesky',  label: 'Bluesky',  abbr: 'BSky', color: '#0085ff' },
+  { key: 'instagram',label: 'Instagram',abbr: 'IG',   color: '#e1306c' },
+] as const
+
 function SnsDemo({ variant }: { variant: string }) {
-  const [fields, setFields] = useState({ platform: '', handle: '', id: '' })
-  const entries = Object.entries(fields).filter(([, v]) => v)
-  const LABELS = ['Platform', 'Handle', 'ID']
+  const [values, setValues] = useState<Record<string, string>>(
+    Object.fromEntries(SNS_PLATFORMS.map(p => [p.key, '']))
+  )
+  const filled = SNS_PLATFORMS.filter(p => values[p.key])
 
   return (
     <div className="grid grid-cols-2 divide-x divide-gray-100">
-      <div className="px-5 py-5 space-y-3">
+      <div className="px-5 py-5 space-y-2">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
-        {(['platform', 'handle', 'id'] as const).map((k, i) => (
-          <label key={k} className="flex flex-col gap-1">
-            <span className="text-sm font-semibold text-gray-700">{LABELS[i]}</span>
-            <input type="text" value={fields[k]} onChange={e => setFields(f => ({ ...f, [k]: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200" />
-          </label>
+        {SNS_PLATFORMS.map(p => (
+          <div key={p.key} className="flex items-center gap-2">
+            <span className="text-xs font-semibold w-16 shrink-0" style={{ color: p.color }}>{p.label}</span>
+            <input
+              type="text"
+              value={values[p.key]}
+              onChange={e => setValues(v => ({ ...v, [p.key]: e.target.value }))}
+              placeholder={p.key === 'x' ? '@handle' : p.key === 'discord' ? 'username' : 'ID'}
+              className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+            />
+          </div>
         ))}
       </div>
       <div className="px-5 py-5">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
-        {entries.length > 0
+        {filled.length > 0
           ? <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {entries.map(([key, val]) => (
-                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {filled.map(p => (
+                <div key={p.key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   {variant === 'icon'
-                    ? <span style={{ width: 14, height: 14, borderRadius: 3, background: ctx.theme.accent + '30', display: 'inline-block', flexShrink: 0 }} />
-                    : <span style={{ ...SUB_STYLE, fontWeight: 600, minWidth: '3em' }}>{key.toUpperCase()}</span>
+                    ? <span style={{ width: 14, height: 14, borderRadius: 3, background: p.color + '25', border: `1px solid ${p.color}40`, display: 'inline-block', flexShrink: 0 }} />
+                    : <span style={{ ...SUB_STYLE, fontWeight: 600, minWidth: '2.5em', color: p.color }}>{p.abbr}</span>
                   }
-                  <span style={TEXT_STYLE}>{val}</span>
+                  <span style={TEXT_STYLE}>{values[p.key]}</span>
                 </div>
               ))}
             </div>

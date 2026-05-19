@@ -498,7 +498,7 @@ community_components
 | コード | 方針 |
 |---|---|
 | `src/components/CardV1.tsx`, `CardV2.tsx` | 未リリースのため最初から汎用レンダラーで実装してよい |
-| `src/app/card/vrchat/`（旧メーカー） | **変更禁止**。既存ユーザーの挙動を維持する |
+| `src/app/card/vrchat/`（旧メーカー） | 既存ユーザーが気づくUX変更はNG。リファクタ・内部変更はOK |
 | `html-to-image` による画像生成 | 汎用レンダラーと同一コンポーネントを使い互換を保つ |
 
 ---

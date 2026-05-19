@@ -302,7 +302,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
       </header>
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
 
-      <main className="relative z-10 flex-1 w-full pt-14 py-12">
+      <main className="relative z-10 flex-1 w-full pt-[calc(3.5rem+3rem)] pb-12">
         <div className="max-w-xl mx-auto px-2 sm:px-4">
           <AnnouncementBanner announcements={announcements} />
         </div>

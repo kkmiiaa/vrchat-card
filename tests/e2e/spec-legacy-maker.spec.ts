@@ -35,13 +35,18 @@ test.describe('A. アクセス・リダイレクト', () => {
     await ctx.close();
   });
 
-  test('/card/new とは別のページが表示される（テンプレ選択画面ではない）', async ({ browser }) => {
+  test('未ログイン時はテンプレート選択画面ではなく旧メーカーのエディタが表示される', async ({ browser }) => {
     const ctx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
     const page = await ctx.newPage();
     await page.goto('/card/vrchat');
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('テンプレートを選ぶ')).not.toBeVisible();
     await ctx.close();
+  });
+
+  test('ログイン済みの場合は /card/new にリダイレクトされる', async ({ page }) => {
+    await page.goto('/card/vrchat');
+    await expect(page).toHaveURL('/card/new');
   });
 });
 

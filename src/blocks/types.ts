@@ -59,30 +59,30 @@ export type Block<T = unknown> = {
 
 // --- テンプレート定義型 ---
 
-/** テンプレートコンポーネント: ブロックをテンプレートに配置する際のインスタンス */
+/** テンプレートコンポーネント: グリッド上に配置されたブロックのインスタンス */
 export type TemplateComponentDef = {
   /** 対応するブロックの key */
   blockKey: string
   /** 選択されたデザインバリアント（運営者が定義したパターンから選択） */
   variant: BlockVariant
-  /** レイアウト上の横幅（1〜12グリッド。省略時は12=全幅） */
-  span?: number
-  /** 縦方向に残りスペースを埋める（自己紹介など可変高さ要素に使用） */
-  grow?: boolean
+  /** グリッド上の開始列（0始まり） */
+  x: number
+  /** グリッド上の開始行（0始まり） */
+  y: number
+  /** 横幅（グリッド数） */
+  w: number
+  /** 高さ（グリッド数） */
+  h: number
 }
 
-/** カラム: 横並びの単位。複数コンポーネントを縦に積む */
-export type TemplateColumnDef = {
-  /** flex比率による相対幅（例: 1, 2, 3） */
-  width: number
-  components: TemplateComponentDef[]
-}
-
-/** セクション: カラムを横に並べる単位 */
-export type TemplateSectionDef = {
-  /** セクション見出し（データとして保持。翻訳対象外） */
-  label: string
-  columns: TemplateColumnDef[]
+/** グリッド設定 */
+export type TemplateGridDef = {
+  /** 列数 */
+  cols: number
+  /** 行数 */
+  rows: number
+  /** セル間のギャップ（px） */
+  gap: number
 }
 
 /** テンプレート全体の定義（汎用レンダラーが参照するJSON構造） */
@@ -96,8 +96,10 @@ export type TemplateDefinition = {
   theme: CardRenderContext['theme']
   /** デフォルトフォント */
   fontFamily: string
-  /** セクション一覧（上から順に並ぶ） */
-  sections: TemplateSectionDef[]
+  /** グリッド設定 */
+  grid: TemplateGridDef
+  /** 配置されたコンポーネント一覧（重複なし。ビルダー側で保証） */
+  components: TemplateComponentDef[]
 }
 
 /** ブロック値の集合 */

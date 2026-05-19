@@ -585,12 +585,33 @@ CSS の細かい操作をユーザーに開放すると UX が破綻するため
 
 ### TemplateComponentDef の確定設計
 
+グリッド座標ベース。Miro的なドラッグ＆リサイズUIに対応できる設計。重複防止はビルダー側の責務。
+
 ```ts
 type TemplateComponentDef = {
-  blockKey: string       // 使用するブロック
-  variant: string        // 運営者が定義したデザインパターン
-  span?: number          // 横幅（1〜12グリッド）
-  grow?: boolean         // 縦方向に残りスペースを埋める
+  blockKey: string   // 使用するブロック
+  variant: string    // 運営者が定義したデザインパターン
+  x: number          // グリッド開始列（0始まり）
+  y: number          // グリッド開始行（0始まり）
+  w: number          // 横幅（グリッド数）
+  h: number          // 高さ（グリッド数）
+}
+
+type TemplateGridDef = {
+  cols: number   // 列数
+  rows: number   // 行数
+  gap: number    // セル間ギャップ（px）
+}
+
+type TemplateDefinition = {
+  id: string
+  label: string
+  cardWidth: number
+  cardHeight: number
+  theme: { accent, text, subText, bg }
+  fontFamily: string
+  grid: TemplateGridDef
+  components: TemplateComponentDef[]   // 階層なし・フラット
 }
 ```
 

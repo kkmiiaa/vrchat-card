@@ -2,17 +2,16 @@ import type { TemplateDefinition } from '@/blocks/types'
 import { CARD_V1_WIDTH, CARD_V1_HEIGHT } from '@/components/CardV1'
 
 /**
- * CardV1 landscape を TemplateDefinition で表現したもの。
- * 汎用レンダラーへの移行基準として使用する。
+ * CardV1 landscape を TemplateDefinition（グリッド座標ベース）で表現したもの。
  *
- * レイアウト構造:
+ * 12列 × 10行グリッド:
  * ┌──────────┬──────────────┬──────────────┐
- * │ 左(1)    │  中央(1.5)   │  右(1.5)     │
- * │ 画像     │  名前        │  自己紹介    │
- * │ 言語     │  性別/環境   │  ギャラリー  │
- * │ マイクON率│  SNS        │              │
- * │ ステータス│  フレンド申請│              │
- * │          │  OK/NG      │              │
+ * │ 左 col0-2│  中央 col3-7 │  右 col8-11  │
+ * │ 画像(0-3)│  名前(0)     │  自己紹介    │
+ * │ 言語(4)  │  性別/環境(1)│  (0-8)       │
+ * │ マイク(5)│  SNS(2-4)    │              │
+ * │ ステータス│  フレンド(5-6)│  ギャラリー │
+ * │ (6-9)   │  OKNG(7-9)   │  (9)         │
  * └──────────┴──────────────┴──────────────┘
  */
 export const cardV1Definition: TemplateDefinition = {
@@ -27,41 +26,24 @@ export const cardV1Definition: TemplateDefinition = {
     bg:      'rgba(255,255,255,0.85)',
   },
   fontFamily: 'sans-serif',
-  sections: [
-    {
-      label: 'main',
-      columns: [
-        // ── 左カラム ──
-        {
-          width: 1,
-          components: [
-            { blockKey: 'profileImage', variant: 'default' },
-            { blockKey: 'language',     variant: 'slash' },
-            { blockKey: 'micOnRate',    variant: 'gradient' },
-            { blockKey: 'status',       variant: 'default', grow: true },
-          ],
-        },
-        // ── 中央カラム ──
-        {
-          width: 1.5,
-          components: [
-            { blockKey: 'name',         variant: 'default' },
-            { blockKey: 'genderTag',    variant: 'default' },
-            { blockKey: 'playEnv',      variant: 'slash' },
-            { blockKey: 'sns',          variant: 'icon' },
-            { blockKey: 'friendPolicy', variant: 'default', grow: true },
-            { blockKey: 'interactions', variant: 'grid' },
-          ],
-        },
-        // ── 右カラム ──
-        {
-          width: 1.5,
-          components: [
-            { blockKey: 'selfIntro',    variant: 'default', grow: true },
-            { blockKey: 'gallery',      variant: 'default' },
-          ],
-        },
-      ],
-    },
+  grid: { cols: 12, rows: 10, gap: 8 },
+  components: [
+    // ── 左カラム（col 0-2） ──
+    { blockKey: 'profileImage', variant: 'default', x: 0, y: 0, w: 3, h: 3 },
+    { blockKey: 'language',     variant: 'slash',   x: 0, y: 3, w: 3, h: 1 },
+    { blockKey: 'micOnRate',    variant: 'gradient',x: 0, y: 4, w: 3, h: 1 },
+    { blockKey: 'status',       variant: 'default', x: 0, y: 5, w: 3, h: 5 },
+
+    // ── 中央カラム（col 3-7） ──
+    { blockKey: 'name',         variant: 'default', x: 3, y: 0, w: 5, h: 1 },
+    { blockKey: 'genderTag',    variant: 'default', x: 3, y: 1, w: 2, h: 1 },
+    { blockKey: 'playEnv',      variant: 'slash',   x: 5, y: 1, w: 3, h: 1 },
+    { blockKey: 'sns',          variant: 'icon',    x: 3, y: 2, w: 5, h: 3 },
+    { blockKey: 'friendPolicy', variant: 'default', x: 3, y: 5, w: 5, h: 2 },
+    { blockKey: 'interactions', variant: 'grid',    x: 3, y: 7, w: 5, h: 3 },
+
+    // ── 右カラム（col 8-11） ──
+    { blockKey: 'selfIntro',    variant: 'default', x: 8, y: 0, w: 4, h: 9 },
+    { blockKey: 'gallery',      variant: 'default', x: 8, y: 9, w: 4, h: 1 },
   ],
 }

@@ -37,6 +37,19 @@ export type ResolvedComponent = {
 }
 
 /**
+ * 界隈に依存しない汎用コンポーネント定義（ベース定義）
+ */
+export const BASE_COMPONENTS: ResolvedComponent[] = [
+  { key: 'gender',        label: '性別',           input_type: 'expressive-select', is_searchable: true,  is_required: false, options: ['male', 'female', 'nonbinary', 'none'], sort_order: 10 },
+  { key: 'platform',      label: 'プレイ環境',      input_type: 'multi-select',      is_searchable: true,  is_required: false, options: null, sort_order: 20 },
+  { key: 'language',      label: '使用言語',        input_type: 'multi-select',      is_searchable: true,  is_required: false, options: null, sort_order: 30 },
+  { key: 'friend_policy', label: 'フレンドポリシー', input_type: 'select',            is_searchable: true,  is_required: false, options: null, sort_order: 40 },
+  { key: 'self_intro',    label: '自己紹介',        input_type: 'text',              is_searchable: true,  is_required: false, options: null, sort_order: 50 },
+  { key: 'sns',           label: 'SNS',            input_type: 'sns',               is_searchable: false, is_required: false, options: null, sort_order: 60 },
+  { key: 'image_gallery', label: '画像ギャラリー',  input_type: 'gallery',           is_searchable: false, is_required: false, options: null, sort_order: 70 },
+]
+
+/**
  * VRChat界隈における component_key → card_data のキーのマッピング
  * 既存のcard_dataスキーマとの橋渡し
  */

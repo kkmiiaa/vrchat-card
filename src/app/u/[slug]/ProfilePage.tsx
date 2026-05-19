@@ -161,7 +161,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
   }, [])
 
   function handleCopyUrl(cardId: string) {
-    const url = `${window.location.origin}/card/${cardId}/view`
+    const url = `${window.location.origin}/card/${cardId}`
     navigator.clipboard.writeText(url)
     setCopiedId(cardId)
     setTimeout(() => setCopiedId(null), 2000)
@@ -532,7 +532,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
                             }} />
                           </>)
                         })()}
-                        <Link href={`/card/${card.id}/view`} className="profile-card-hover block cursor-pointer relative" style={{ zIndex: 1 }}>
+                        <Link href={`/card/${card.id}`} className="profile-card-hover block cursor-pointer relative" style={{ zIndex: 1 }}>
                           <div style={{ borderRadius: 16, overflow: 'hidden', isolation: 'isolate' }}>
                             <LiveCardPreview
                               templateId={card.template_id}
@@ -585,7 +585,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
                           <button
                             title="共有ページを確認"
                             className="w-8 h-8 flex items-center justify-center rounded-full border border-sky-200 text-sky-400 hover:text-[#00AADB] hover:border-sky-400 transition-all bg-white shadow-md"
-                            onClick={e => { e.stopPropagation(); e.preventDefault(); window.open(`/card/${card.id}/view`, '_blank') }}>
+                            onClick={e => { e.stopPropagation(); e.preventDefault(); window.open(`/card/${card.id}`, '_blank') }}>
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -594,7 +594,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
                           <button
                             title="編集"
                             className="w-8 h-8 flex items-center justify-center rounded-full border border-sky-200 text-sky-400 hover:text-[#00AADB] hover:border-sky-400 transition-all bg-white shadow-md"
-                            onClick={e => { e.stopPropagation(); e.preventDefault(); router.push(`/card/${card.id}`) }}>
+                            onClick={e => { e.stopPropagation(); e.preventDefault(); router.push(`/card/${card.id}/edit`) }}>
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>

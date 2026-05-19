@@ -264,7 +264,7 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn }: Props
               {cards.map(card => (
                 <Link
                   key={card.id}
-                  href={`/card/${card.id}/view`}
+                  href={`/card/${card.id}`}
                   className="group block bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-sky-200 hover:shadow-md transition-all"
                 >
                   {card.image_url ? (

@@ -1,51 +1,78 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
-import { v1Template } from '@/templates/v1'
-import { v2Template } from '@/templates/v2'
-import CardEditorClient from './CardEditorClient'
+import { type Metadata } from 'next'
+import CardViewWrapper from './CardViewWrapper'
+// CardViewWrapper が内部で動的インポートするため、ここでは直接 import
 
-const templateMap = {
-  v1: v1Template,
-  v2: v2Template,
+const validTemplates = ['v1', 'v2']
+
+export async function generateMetadata({ params }: { params: Promise<{ cardId: string }> }): Promise<Metadata> {
+  const { cardId } = await params
+  const supabase = await createClient()
+
+  const { data: card } = await supabase
+    .from('cards')
+    .select('title, image_url, user_id, visibility')
+    .eq('id', cardId)
+    .single()
+  if (!card || card.visibility === 'private') return {}
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('user_id', card.user_id)
+    .single()
+
+  const ownerName = profile?.display_name || 'vaacard ユーザー'
+  const title = card.title ? `${card.title} — ${ownerName}` : `${ownerName} の自己紹介カード`
+  const description = `${ownerName} が vaacard で作った自己紹介カードです。`
+
+  const ogImage = card.image_url
+    ? { url: card.image_url, width: 900, height: 506 }
+    : { url: '/og-default.png', width: 1200, height: 630 }
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [ogImage],
+    },
+    twitter: {
+      card: card.image_url ? 'summary_large_image' : 'summary_large_image',
+      title,
+      description,
+      images: [ogImage.url],
+    },
+  }
 }
 
-export default async function CardPage({ params }: { params: Promise<{ cardId: string }> }) {
+export default async function CardViewPage({ params }: { params: Promise<{ cardId: string }> }) {
   const { cardId } = await params
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: card, error: cardError } = await supabase
+  // card_data (base64画像等) は含めず軽量なメタデータのみ取得
+  const { data: card } = await supabase
     .from('cards')
-    .select('*')
+    .select('id, user_id, template_id, title, image_url, visibility, view_count, like_count, created_at, updated_at')
     .eq('id', cardId)
     .single()
 
-  if (cardError) console.error('[CardPage] card fetch error:', cardError)
   if (!card) notFound()
 
-  // 非公開カードは本人のみ
   if (card.visibility === 'private' && card.user_id !== user?.id) {
     redirect('/auth/login')
   }
 
-  const template = templateMap[card.template_id as keyof typeof templateMap]
-  if (!template) notFound()
+  if (!validTemplates.includes(card.template_id)) notFound()
 
   const isOwner = user?.id === card.user_id
 
-  const { data: announcements } = await supabase
-    .from('announcements')
-    .select('id, title, body, published_at')
-    .eq('is_active', true)
-    .order('published_at', { ascending: false })
+  const { data: userRow } = await supabase.from('users').select('username_slug').eq('id', card.user_id).single()
+  const { data: profile } = await supabase.from('profiles').select('display_name, avatar_url').eq('user_id', card.user_id).single()
 
-  return (
-    <CardEditorClient
-      card={card}
-      template={template}
-      isOwner={isOwner}
-      announcements={announcements ?? []}
-    />
-  )
+  return <CardViewWrapper cardId={cardId} templateId={card.template_id} isOwner={isOwner} likeCount={card.like_count ?? 0} viewCount={card.view_count ?? 0} ownerSlug={userRow?.username_slug ?? null} ownerName={profile?.display_name ?? null} ownerAvatar={profile?.avatar_url ?? null} createdAt={card.created_at ?? null} imageUrl={card.image_url ?? null} />
 }

@@ -78,8 +78,8 @@ test.describe('OGP — カード閲覧ページ', () => {
     // 作成直後のカードでテスト
     await page.goto('/card/new');
     await page.getByText('Standard').click();
-    await page.waitForURL(/\/card\/[a-zA-Z0-9]+/, { timeout: 15000 });
-    const cardId = page.url().match(/\/card\/([a-zA-Z0-9]+)/)?.[1];
+    await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
+    const cardId = page.url().match(/\/card\/([a-zA-Z0-9]+)\/edit/)?.[1];
 
     await page.goto(`/card/${cardId}`);
     await page.waitForLoadState('networkidle');

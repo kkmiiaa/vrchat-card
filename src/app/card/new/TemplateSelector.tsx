@@ -58,7 +58,7 @@ export default function TemplateSelector() {
       setLoading(null)
       return
     }
-    router.push(`/card/${result.cardId}`)
+    router.push(`/card/${result.cardId}/edit`)
   }
 
   return (

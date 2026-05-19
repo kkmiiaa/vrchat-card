@@ -4,6 +4,8 @@ import { useState } from 'react'
 import type { ResolvedComponent } from '@/lib/components'
 import TemplateComponentList from './BlockPreviewList'
 import AbstractComponentPreview from './AbstractComponentPreview'
+import GenericCardRenderer from '@/components/GenericCardRenderer'
+import { cardV1Definition } from '@/templates/v1Definition'
 
 type Card = {
   id: string
@@ -20,12 +22,13 @@ type Props = {
   sampleCards: Card[]
 }
 
-type Tab = 'components' | 'template-components' | 'cards'
+type Tab = 'components' | 'template-components' | 'templates' | 'cards'
 
 const TABS: { key: Tab; label: string; sub: string }[] = [
-  { key: 'components',          label: 'コンポーネント',         sub: 'パーツのクラス（input_type）' },
+  { key: 'components',          label: 'コンポーネント',          sub: 'パーツのクラス（input_type）' },
   { key: 'template-components', label: 'テンプレートコンポーネント', sub: 'パーツのインスタンス（フィールド定義）' },
-  { key: 'cards',               label: 'カード',                sub: '完成品のインスタンス' },
+  { key: 'templates',           label: 'テンプレート',            sub: '完成品のクラス（汎用レンダラープレビュー）' },
+  { key: 'cards',               label: 'カード',                 sub: '完成品のインスタンス' },
 ]
 
 const COMPONENT_TYPES = [
@@ -122,6 +125,37 @@ export default function AdminClient({ templateComponents, componentKeyMap, sampl
 
         {/* テンプレートコンポーネント：variantが固定されたフィールドインスタンス */}
         {tab === 'template-components' && <TemplateComponentList />}
+
+        {/* テンプレート：汎用レンダラーでCardV1定義をプレビュー */}
+        {tab === 'templates' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <p className="text-xs font-medium text-gray-500 mb-1">{cardV1Definition.label}</p>
+              <p className="text-[11px] text-gray-400 font-mono mb-4">
+                {cardV1Definition.grid.cols}列 × {cardV1Definition.grid.rows}行 / {cardV1Definition.components.length}コンポーネント
+              </p>
+              <div className="overflow-x-auto">
+                <div style={{ transform: 'scale(0.6)', transformOrigin: 'top left', width: cardV1Definition.cardWidth, height: cardV1Definition.cardHeight }}>
+                  <GenericCardRenderer
+                    definition={cardV1Definition}
+                    values={{
+                      name: 'サンプル ユーザー',
+                      genderTag: { tag: 'female', display: '女性' },
+                      playEnv: ['PCVR', 'Quest'],
+                      language: ['日本語', 'English'],
+                      micOnRate: 60,
+                      selfIntro: 'はじめまして！\nVRChatでよく遊んでいます。\nお気軽に話しかけてください。',
+                      friendPolicy: ['frPolicyAfterGettingToKnow'],
+                      sns: { vrchatId: 'sample_user', twitterId: '@sample', discordId: 'sample#0000' },
+                      status: { blue: 'フレンド歓迎', green: '通話OK', yellow: 'AFK', red: 'DND' },
+                      trustRank: 'Known User',
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* カード：完成品のインスタンス */}
         {tab === 'cards' && (

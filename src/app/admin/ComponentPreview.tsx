@@ -6,6 +6,13 @@ import { playEnvBlock } from '@/blocks/playEnv'
 import { languageBlock } from '@/blocks/language'
 import { friendPolicyMultiBlock } from '@/blocks/friendPolicyMulti'
 import { selfIntroBlock } from '@/blocks/selfIntro'
+import { micOnRateBlock } from '@/blocks/micOnRate'
+import { ageBlock } from '@/blocks/age'
+import { trustRankBlock } from '@/blocks/trustRank'
+import { statusBlock } from '@/blocks/status'
+import { snsBlock } from '@/blocks/sns'
+import { activityBlock } from '@/blocks/activity'
+import { interactionsBlock } from '@/blocks/interactions'
 import { translations } from '@/utils/translations'
 import type { Block } from '@/blocks/types'
 import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
@@ -14,10 +21,17 @@ const t = translations.ja
 
 const PREVIEW_BLOCKS: { block: Block<unknown>; inputType: string; description: string }[] = [
   { block: genderTagBlock as Block<unknown>,        inputType: 'expressive-select', description: 'タグ（検索用）＋自由テキスト（表示用）の二層構造' },
-  { block: playEnvBlock as Block<unknown>,          inputType: 'multi-select',      description: '複数選択。配列で保存。' },
-  { block: languageBlock as Block<unknown>,         inputType: 'multi-select',      description: '複数選択。配列で保存。' },
-  { block: friendPolicyMultiBlock as Block<unknown>,inputType: 'select',            description: '単一選択。文字列で保存。' },
-  { block: selfIntroBlock as Block<unknown>,        inputType: 'text',              description: '自由テキスト。全文検索のみ対応。' },
+  { block: playEnvBlock as Block<unknown>,          inputType: 'multi-select',      description: '複数選択。PCVR/Quest/Desktop' },
+  { block: languageBlock as Block<unknown>,         inputType: 'multi-select',      description: '複数選択。プリセット＋自由入力' },
+  { block: friendPolicyMultiBlock as Block<unknown>,inputType: 'multi-select',      description: 'フレンドポリシー。複数選択可' },
+  { block: selfIntroBlock as Block<unknown>,        inputType: 'text',              description: '自由テキスト。pre-wrap で改行反映' },
+  { block: micOnRateBlock as Block<unknown>,        inputType: 'number',            description: '0〜100のスライダー。プログレスバー表示' },
+  { block: ageBlock as Block<unknown>,              inputType: 'expressive-select', description: 'モード選択＋自由入力。非公開はCardItemで非表示' },
+  { block: trustRankBlock as Block<unknown>,        inputType: 'select',            description: 'Trust Rank。ランク色でバッジ表示' },
+  { block: statusBlock as Block<unknown>,           inputType: 'text',              description: '青緑黄赤4色のステータス説明文' },
+  { block: snsBlock as Block<unknown>,              inputType: 'sns',               description: 'VRChat/X/Discord IDをまとめて管理' },
+  { block: activityBlock as Block<unknown>,         inputType: 'activity',          description: '曜日＋時間帯。平日/休日を別設定' },
+  { block: interactionsBlock as Block<unknown>,     inputType: 'interactions',      description: 'OK/NG項目。◎◯△✗でマーク' },
 ]
 
 const INPUT_TYPE_COLORS: Record<string, string> = {

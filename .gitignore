@@ -51,4 +51,5 @@ node_modules/
 # Playwright
 tests/.auth/
 .env.test
-.claude/
+.claude/worktrees/
+.claude/projects/

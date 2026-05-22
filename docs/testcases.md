@@ -692,24 +692,6 @@
 
 ---
 
-### `snsBundle`
-
-| # | テスト内容 | 意味 | 期待値 |
-|---|---|---|---|
-| 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `{}`（空オブジェクト） |
-| 2 | `blockConfig.platforms` にプリセット一覧から選択（`simpleSns` と同じプリセット） | プラットフォームを選択式で設定したとき | 選択したプラットフォームの入力欄とアイコンが描画される |
-| 3 | `blockConfig.platforms` に複数プラットフォームを設定 | 複数SNSを定義したとき | 各プラットフォームの入力欄が独立して描画される |
-| 4 | X の入力欄に値を入力 | 1つのIDを入力したとき | `{ x: '入力値' }` が `onChange` に渡される |
-| 5 | X と Discord それぞれ入力 | 複数のIDを入力したとき | 両方のキーを持つオブジェクトが渡される |
-| 6 | `formLabel='SNS'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `Record<string, string>`（`{ [platform.key]: 入力値 }`） |
-| 8 | `card_data = { [dataKey]: { x: '@foo', discord: 'foo#1234' } }` | 複数SNS入力時の card_data 全体 | `{ [dataKey]: { x: '@foo', discord: 'foo#1234' } }` が保存される |
-| 9 | `card_data = { [dataKey]: {} }` | 未入力時の card_data 全体 | `{ [dataKey]: {} }` が保存される |
-| 10 | `cardItem.value = { x: '@foo', discord: 'foo#1234' }` | 入力済み値をカードに表示したとき | 各プラットフォームのアイコンと ID が描画される |
-| 11 | `cardItem.value = {}` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
-
----
-
 ### `snsWithFriendPolicy`
 
 > SNS ID に加え、フレンド申請ポリシーも同一ブロックで設定できるコンポーネント。

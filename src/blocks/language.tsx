@@ -1,49 +1,108 @@
 'use client'
 import { useState } from 'react'
-import type { Block } from './types'
+import type { ComponentDef, ComponentCardProps } from './types'
+import { BG_VARIANT_STYLE } from './types'
 
-export const languageBlock: Block<string[]> = {
-  key: 'language',
-  defaultValue: [],
-  variants: ['default', 'slash'],  // default=バッジ, slash=スラッシュ区切りテキスト
-  CardItem({ value, ctx }) {
-    const items = Array.isArray(value) ? value : []
-    if (!items.length) return null
-    const fs = ctx.cardWidth * 0.012
+export type LanguageValue = {
+  preset: string[]
+  custom: string[]
+}
+
+const PRESET_LANGUAGES = [
+  '日本語', 'English', '한국어', '中文',
+]
+
+function LanguageCard({ value, ctx, variant, bgVariant }: ComponentCardProps<LanguageValue>) {
+  const preset = Array.isArray(value?.preset) ? value.preset : []
+  const custom = Array.isArray(value?.custom) ? value.custom : []
+  const all = [...preset, ...custom]
+  const fs = ctx.fontSize.sm
+
+  if (variant === 'slash') {
+    const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
     return (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-        {items.map(v => (
-          <span key={v} style={{ fontSize: fs, color: ctx.theme.accent, background: `${ctx.theme.accent}18`, padding: '2px 8px', borderRadius: 999, fontFamily: ctx.fontFamily }}>{v}</span>
-        ))}
+      <div style={{
+        width: '100%',
+        background: bgStyle.background,
+        border: bgStyle.border,
+        borderRadius: ctx.cardWidth * 0.006,
+        padding: `0 ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
+        fontSize: fs,
+        color: ctx.theme.text,
+        fontFamily: ctx.fontFamily,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        display: 'flex',
+        alignItems: 'center',
+      }}>
+        {all.join(' / ') || '—'}
       </div>
     )
-  },
+  }
+
+  if (!all.length) return (
+    <span style={{ fontSize: fs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>—</span>
+  )
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+      {preset.map(v => (
+        <span key={v} style={{
+          fontSize: fs,
+          color: ctx.theme.accent,
+          background: `${ctx.theme.accent}18`,
+          padding: '2px 8px',
+          borderRadius: 999,
+          fontFamily: ctx.fontFamily,
+        }}>{v}</span>
+      ))}
+      {custom.map(v => (
+        <span key={v} style={{
+          fontSize: fs,
+          color: ctx.theme.subText,
+          background: 'rgba(0,0,0,0.06)',
+          padding: '2px 8px',
+          borderRadius: 999,
+          fontFamily: ctx.fontFamily,
+        }}>{v}</span>
+      ))}
+    </div>
+  )
+}
+
+export const languageComponent: ComponentDef<LanguageValue> = {
+  key: 'language',
+  global: true,
+  defaultValue: { preset: [], custom: [] },
+  variants: ['default', 'slash'],
+  CardItem: LanguageCard,
   FormItem({ value, onChange, t }) {
-    const presets = [t.japanese, t.english, t.korean]
-    const customLangs = value.filter(l => !presets.includes(l))
-    const [customInput, setCustomInput] = useState(customLangs.join(', '))
+    const preset = Array.isArray(value?.preset) ? value.preset : []
+    const custom = Array.isArray(value?.custom) ? value.custom : []
+    const [customInput, setCustomInput] = useState(custom.join(', '))
+
+    const togglePreset = (lang: string) => {
+      if (preset.includes(lang)) onChange({ ...value, preset: preset.filter(l => l !== lang) })
+      else onChange({ ...value, preset: [...preset, lang] })
+    }
 
     const handleCustomInput = (input: string) => {
       setCustomInput(input)
       const parsed = input.split(',').map(l => l.trim()).filter(Boolean)
-      onChange([...new Set([...value.filter(l => presets.includes(l)), ...parsed])])
+      onChange({ ...value, custom: parsed })
     }
 
     return (
-      <div className="flex flex-col gap-2">
-        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.languages}</h2>
+      <div className="flex flex-col gap-3">
         <div className="flex flex-wrap gap-2">
-          {presets.map(lang => {
-            const selected = value.includes(lang)
+          {PRESET_LANGUAGES.map(lang => {
+            const selected = preset.includes(lang)
             return (
               <button
                 key={lang}
                 type="button"
-                onClick={() => {
-                  if (selected) onChange(value.filter(l => l !== lang))
-                  else onChange([...value, lang])
-                }}
-                className={`px-4 py-1.5 rounded-lg text-sm border font-medium transition-all ${
+                onClick={() => togglePreset(lang)}
+                className={`px-3 py-1 rounded-lg text-sm border font-medium transition-all ${
                   selected
                     ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
                     : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
@@ -54,13 +113,16 @@ export const languageBlock: Block<string[]> = {
             )
           })}
         </div>
-        <input
-          type="text"
-          placeholder={t.otherLanguages}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
-          value={customInput}
-          onChange={e => handleCustomInput(e.target.value)}
-        />
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-gray-400">{t.otherLanguages}（検索対象外）</span>
+          <input
+            type="text"
+            placeholder="例: Tagalog, Català"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+            value={customInput}
+            onChange={e => handleCustomInput(e.target.value)}
+          />
+        </div>
       </div>
     )
   },

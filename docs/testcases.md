@@ -346,3 +346,253 @@
 | 7-H-3 | タップターゲットが 44px 以上（Apple HIG 基準） | height ≥ 44px |
 | 7-H-4 | メールフォームがタップ・入力できる | 入力値が反映される |
 | 7-H-5 | 横スクロールが発生していない | scrollWidth ≦ innerWidth + 1px |
+
+---
+
+## コンポーネントテスト
+
+> 対象: `src/blocks/` 以下の各コンポーネント定義（`ComponentDef<T>`）  
+> ユニットテストまたは Admin UI の BlockPreviewList でのスモークテストとして実施する。
+
+---
+
+### `text`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が空文字 | `''` |
+| 2 | `blockConfig.multiline=true` のとき FormItem が textarea を表示する | textarea 要素が描画される |
+| 3 | `blockConfig.multiline=false` のとき FormItem が input[type=text] を表示する | input 要素が描画される |
+| 4 | `blockConfig.maxLength=10` のとき FormItem で 10 文字を超えた入力が制限される | `maxLength` 属性または文字数バリデーションが適用される |
+| 5 | `blockConfig.rows=5` のとき textarea の rows が 5 になる | `rows=5` が設定される |
+| 6 | `blockConfig.placeholder='ここに入力'` のとき FormItem の placeholder に反映される | placeholder 文字列が表示される |
+| 7 | `formLabel='自己紹介'` を設定するとフォームタイトルに反映される | 「自己紹介」が表示される |
+
+---
+
+### `select`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が空文字 | `''` |
+| 2 | `blockConfig.options` に選択肢を設定すると FormItem に表示される | 選択肢ボタンが描画される |
+| 3 | 選択肢をクリックすると `onChange` が呼ばれる | 選択した value が渡される |
+| 4 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `multiSelect`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が空配列 | `[]` |
+| 2 | `blockConfig.options` に選択肢を設定すると FormItem に表示される | 選択肢が描画される |
+| 3 | 選択肢を複数クリックすると配列に追加される | 選択した values の配列が渡される |
+| 4 | 選択済みの選択肢を再クリックすると配列から除去される | 値が除去された配列が渡される |
+| 5 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `gauge`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が `0` | `0` |
+| 2 | `blockConfig.maxValue=100` のとき FormItem のスライダー最大値が 100 になる | max=100 が設定される |
+| 3 | `blockConfig.unit='%'` のとき FormItem に単位ラベルが表示される | `%` が表示される |
+| 4 | スライダー操作で `onChange` に数値が渡される | 0〜maxValue の数値が渡される |
+| 5 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `expressiveSelect`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が `{ tag: '', display: '' }` | `{ tag: '', display: '' }` |
+| 2 | `blockConfig.options` に選択肢を設定すると FormItem に選択肢ボタンが表示される | ボタン一覧が描画される |
+| 3 | 選択肢をクリックすると `tag` が設定される | `onChange({ tag: value, display: '' })` が呼ばれる |
+| 4 | `display` テキスト入力フィールドが存在する | input 要素が描画される |
+| 5 | `display` を入力すると `onChange` に反映される | `{ tag, display: '入力値' }` が渡される |
+| 6 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `badge`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が `{ label: '', color: '' }` | `{ label: '', color: '' }` |
+| 2 | label 入力フィールドがある | input 要素が描画される |
+| 3 | color ピッカーがある | color input が描画される |
+| 4 | label を入力すると `onChange` に反映される | `{ label: '入力値', color: '' }` が渡される |
+| 5 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `booleanFlag`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が `false` | `false` |
+| 2 | FormItem にトグル/チェックボックスが表示される | トグル要素が描画される |
+| 3 | クリックで true/false が切り替わる | `onChange(true)` または `onChange(false)` が呼ばれる |
+| 4 | `blockConfig.trueLabel='ON'` のとき ON ラベルが表示される | `'ON'` が表示される |
+| 5 | `blockConfig.falseLabel='OFF'` のとき OFF ラベルが表示される | `'OFF'` が表示される |
+| 6 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `rating`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が `0` | `0` |
+| 2 | `blockConfig.max=5` のとき星が 5 個表示される | 星 5 個が描画される |
+| 3 | 星をクリックすると `onChange` に数値が渡される | 1〜max の整数が渡される |
+| 4 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `linkItem`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が `{ label: '', url: '' }` | `{ label: '', url: '' }` |
+| 2 | label 入力フィールドがある | input 要素が描画される |
+| 3 | url 入力フィールドがある | input[type=url] または input 要素が描画される |
+| 4 | label を入力すると `onChange` に反映される | `{ label: '入力値', url: '' }` が渡される |
+| 5 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `dateItem`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が `{ display: '', iso: '' }` | `{ display: '', iso: '' }` |
+| 2 | 日付ピッカーまたは入力フィールドがある | input[type=date] または input 要素が描画される |
+| 3 | 日付を選択すると `onChange` に反映される | `{ display: '表示文字列', iso: 'YYYY-MM-DD' }` が渡される |
+| 4 | `blockConfig.showAge=true` のとき年齢が計算・表示される | 年齢テキストが表示される |
+| 5 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `colorPalette`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が 4 色の配列 | `['#60a5fa', '#4ade80', '#fbbf24', '#f87171']` |
+| 2 | 色ピッカーが `defaultValue` の色数分表示される | 4 個のカラーピッカーが描画される |
+| 3 | 色を変更すると `onChange` に配列が渡される | 変更後の色を含む配列が渡される |
+| 4 | `blockConfig.maxColors=3` のとき追加ボタンが 3 色で無効になる | 4 色目以降の追加ができない |
+| 5 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `tagList`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が空配列 | `[]` |
+| 2 | テキスト入力フィールドがある | input 要素が描画される |
+| 3 | タグを入力して追加すると配列に追加される | `['入力値']` が渡される |
+| 4 | タグ削除ボタンをクリックすると配列から除去される | 除去後の配列が渡される |
+| 5 | `blockConfig.maxTags=5` のとき 5 個超の追加が制限される | 6 個目が追加できない |
+| 6 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `markList`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` にデフォルト項目が含まれる | 空配列ではない |
+| 2 | `blockConfig.marks` に定義した項目が FormItem に表示される | 各マーク項目が描画される |
+| 3 | 項目の OK/NG を切り替えると `onChange` に反映される | 切り替え後の配列が渡される |
+| 4 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `colorStatus`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が空オブジェクト | `{}` |
+| 2 | `blockConfig.items` に定義した項目が FormItem に表示される | 各ステータス項目が描画される |
+| 3 | 項目をクリックして選択すると `onChange` に反映される | `{ [key]: true }` が渡される |
+| 4 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `activity`（weeklyActivity）
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` に曜日・時間帯のオブジェクトが含まれる | 空オブジェクトではない |
+| 2 | FormItem に曜日×時間帯のグリッドが表示される | グリッド UI が描画される |
+| 3 | セルをクリックすると active/inactive が切り替わる | `onChange` に更新後のオブジェクトが渡される |
+| 4 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `simpleSns`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が空文字 | `''` |
+| 2 | テキスト入力フィールドがある | input 要素が描画される |
+| 3 | `blockConfig.platform='X'` のとき FormItem に X のアイコンまたはラベルが表示される | `'X'` が表示される |
+| 4 | `blockConfig.placeholder='@username'` のとき placeholder に反映される | placeholder が設定される |
+| 5 | 入力値が `onChange` に渡される | 入力文字列が渡される |
+| 6 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `snsBundle`
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が空オブジェクト | `{}` |
+| 2 | `blockConfig.platforms` に定義したプラットフォームの入力欄が表示される | 各プラットフォームの input が描画される |
+| 3 | 各プラットフォームの値を入力すると `onChange` に反映される | `{ platform: '入力値', ... }` が渡される |
+| 4 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `gender`（global: true）
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が `{ tag: '', display: '' }` | `{ tag: '', display: '' }` |
+| 2 | `global: true` であること | `componentDef.global === true` |
+| 3 | 選択肢が固定されており `blockConfig.options` で上書きできない | GENDER_OPTIONS の固定選択肢のみが表示される |
+| 4 | 選択肢をクリックすると `tag` が設定される | `onChange({ tag: 'male' | 'female' | ..., display: '' })` が呼ばれる |
+| 5 | `display` テキスト入力フィールドが存在する | input 要素が描画される |
+| 6 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `language`（global: true）
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が `{ preset: [], custom: [] }` | `{ preset: [], custom: [] }` |
+| 2 | `global: true` であること | `componentDef.global === true` |
+| 3 | 言語プリセット選択肢が固定されており `blockConfig` で上書きできない | 固定の言語リストが表示される |
+| 4 | プリセット言語を選択すると `preset` 配列に追加される | `{ preset: ['ja'], custom: [] }` が渡される |
+| 5 | カスタム言語を入力すると `custom` 配列に追加される | `{ preset: [...], custom: ['入力値'] }` が渡される |
+| 6 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |
+
+---
+
+### `age`（global: true）
+
+| # | テスト内容 | 期待値 |
+|---|---|---|
+| 1 | `defaultValue` が `{ searchTag: '', display: '' }` | `{ searchTag: '', display: '' }` |
+| 2 | `global: true` であること | `componentDef.global === true` |
+| 3 | 年齢帯選択肢（`searchTag`）が固定されており `blockConfig` で上書きできない | 固定の年齢帯選択肢が表示される |
+| 4 | 年齢帯を選択すると `searchTag` が設定される | `onChange({ searchTag: '20s', display: '' })` 等が呼ばれる |
+| 5 | `display` テキスト入力フィールドが存在する | input 要素が描画される |
+| 6 | `formLabel` を設定するとフォームタイトルに反映される | 指定文字列が表示される |

@@ -76,10 +76,17 @@ export const languageComponent: ComponentDef<LanguageValue> = {
   defaultValue: { preset: [], custom: [] },
   variants: ['default', 'slash'],
   CardItem: LanguageCard,
-  FormItem({ value, onChange, t }) {
+  FormItem({ value, onChange, t, blockConfig }) {
     const preset = Array.isArray(value?.preset) ? value.preset : []
     const custom = Array.isArray(value?.custom) ? value.custom : []
     const [customInput, setCustomInput] = useState(custom.join(', '))
+
+    const allowedPresets: string[] | undefined = Array.isArray(blockConfig?.allowedPresets)
+      ? blockConfig!.allowedPresets as string[]
+      : undefined
+    const visibleLanguages = allowedPresets
+      ? PRESET_LANGUAGES.filter(l => allowedPresets.includes(l))
+      : PRESET_LANGUAGES
 
     const togglePreset = (lang: string) => {
       if (preset.includes(lang)) onChange({ ...value, preset: preset.filter(l => l !== lang) })
@@ -95,7 +102,7 @@ export const languageComponent: ComponentDef<LanguageValue> = {
     return (
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap gap-2">
-          {PRESET_LANGUAGES.map(lang => {
+          {visibleLanguages.map(lang => {
             const selected = preset.includes(lang)
             return (
               <button

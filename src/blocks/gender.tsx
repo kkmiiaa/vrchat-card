@@ -58,15 +58,22 @@ export const genderComponent: ComponentDef<GenderValue> = {
       </div>
     )
   },
-  FormItem({ value, onChange }) {
+  FormItem({ value, onChange, blockConfig }) {
     const safe: GenderValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as GenderValue
       : DEFAULT_GENDER_VALUE
 
+    const allowedTags: string[] | undefined = Array.isArray(blockConfig?.allowedTags)
+      ? blockConfig!.allowedTags as string[]
+      : undefined
+    const visibleOptions = allowedTags
+      ? GENDER_OPTIONS.filter(o => allowedTags.includes(o.value))
+      : GENDER_OPTIONS
+
     return (
       <div className="flex flex-col gap-3">
         <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
-          {GENDER_OPTIONS.map(opt => (
+          {visibleOptions.map(opt => (
             <button
               key={opt.value}
               type="button"

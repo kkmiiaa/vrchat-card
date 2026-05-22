@@ -8,11 +8,12 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
   key: 'linkItem',
   defaultValue: { label: '', url: '' },
   variants: ['default', 'compact'],
-  CardItem({ value, ctx, variant = 'default', bgVariant }) {
+  CardItem({ value, ctx, variant = 'default', bgVariant, blockConfig }) {
     const safe: LinkItemValue = (value && typeof value === 'object' && 'label' in value)
       ? value as LinkItemValue
       : { label: '', url: '' }
     const label = safe.label || safe.url || '—'
+    const icon = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '🔗'
 
     if (variant === 'compact') {
       const fs = ctx.fontSize.xs
@@ -27,7 +28,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
           fontFamily: ctx.fontFamily,
           overflow: 'hidden',
         }}>
-          <span style={{ fontSize: fs, flexShrink: 0 }}>🔗</span>
+          <span style={{ fontSize: fs, flexShrink: 0 }}>{icon}</span>
         </div>
       )
     }
@@ -49,7 +50,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
         fontFamily: ctx.fontFamily,
         overflow: 'hidden',
       }}>
-        <span style={{ fontSize: fs, flexShrink: 0 }}>🔗</span>
+        <span style={{ fontSize: fs, flexShrink: 0 }}>{icon}</span>
         <span style={{
           fontSize: fs,
           color: safe.url ? ctx.theme.accent : ctx.theme.text,
@@ -63,13 +64,15 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
       </div>
     )
   },
-  FormItem({ value, onChange }) {
+  FormItem({ value, onChange, blockConfig }) {
     const safe: LinkItemValue = (value && typeof value === 'object' && 'label' in value)
       ? value as LinkItemValue
       : { label: '', url: '' }
+    const icon = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '🔗'
 
     return (
       <div className="flex flex-col gap-2">
+        <span className="text-sm text-gray-500">{icon}</span>
         <input
           type="text"
           value={safe.label}

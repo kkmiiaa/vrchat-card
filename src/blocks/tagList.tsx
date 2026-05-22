@@ -41,13 +41,14 @@ export const tagListComponent: ComponentDef<string[]> = {
       </div>
     )
   },
-  FormItem({ value, onChange }) {
+  FormItem({ value, onChange, blockConfig }) {
     const tags = Array.isArray(value) ? value : []
     const [input, setInput] = useState('')
+    const maxTags = typeof blockConfig?.maxTags === 'number' ? blockConfig.maxTags : undefined
 
     const addTag = () => {
       const trimmed = input.trim()
-      if (trimmed && !tags.includes(trimmed)) {
+      if (trimmed && !tags.includes(trimmed) && (maxTags === undefined || tags.length < maxTags)) {
         onChange([...tags, trimmed])
       }
       setInput('')

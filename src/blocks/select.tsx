@@ -5,9 +5,14 @@ export const selectComponent: ComponentDef<string> = {
   key: 'select',
   defaultValue: '',
   variants: ['default', 'badge', 'compact'],
-  CardItem({ value, ctx, variant = 'default' }) {
+  CardItem({ value, ctx, variant = 'default', blockConfig }) {
     if (!value) return null
-    const color = ctx.theme.subText
+    type OptionRow = { value: string; label: string; color?: string }
+    const options: OptionRow[] = Array.isArray(blockConfig?.options) ? blockConfig!.options as OptionRow[] : []
+    const matchedOption = options.find(o => o.value === value)
+    const displayValue = matchedOption?.label || value
+    const optionColor = matchedOption?.color
+    const color = optionColor ?? ctx.theme.subText
 
     if (variant === 'badge') {
       const fs = ctx.fontSize.sm
@@ -53,7 +58,7 @@ export const selectComponent: ComponentDef<string> = {
     const fs = ctx.fontSize.sm
     return (
       <span style={{ fontSize: fs, color, fontWeight: 700, background: color + '20', padding: '2px 10px', borderRadius: 999, border: `1px solid ${color}60`, fontFamily: ctx.fontFamily }}>
-        {value}
+        {displayValue}
       </span>
     )
   },

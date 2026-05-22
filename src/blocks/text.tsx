@@ -23,13 +23,18 @@ export const textComponent: ComponentDef<string> = {
       </div>
     )
   },
-  FormItem({ value, onChange, t }) {
+  FormItem({ value, onChange, t, blockConfig }) {
+    const rows = typeof blockConfig?.rows === 'number' ? blockConfig.rows : 5
+    const placeholder = typeof blockConfig?.placeholder === 'string' ? blockConfig.placeholder : undefined
+    const maxLength = typeof blockConfig?.maxLength === 'number' ? blockConfig.maxLength : undefined
     return (
       <div className="flex flex-col gap-2">
         <textarea
           value={value}
           onChange={e => onChange(e.target.value)}
-          rows={5}
+          rows={rows}
+          placeholder={placeholder}
+          maxLength={maxLength}
           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200 resize-none"
         />
       </div>

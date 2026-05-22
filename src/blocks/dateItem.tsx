@@ -99,19 +99,36 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
       </div>
     )
   },
-  FormItem({ value, onChange }) {
+  FormItem({ value, onChange, blockConfig }) {
     const safe: DateItemValue = (value && typeof value === 'object' && 'display' in value)
       ? value as DateItemValue
       : { display: '', iso: '' }
+
+    const minDate = typeof blockConfig?.minDate === 'string' ? blockConfig.minDate : undefined
+    const maxDate = typeof blockConfig?.maxDate === 'string' ? blockConfig.maxDate : undefined
+
+    const iso = safe.iso ?? ''
+    const isInvalidFormat = iso && !/^\d{4}-\d{2}-\d{2}$/.test(iso)
+    const isOutOfRange = iso && !isInvalidFormat && (
+      (minDate && iso < minDate) || (maxDate && iso > maxDate)
+    )
 
     return (
       <div className="flex flex-col gap-2">
         <input
           type="date"
-          value={safe.iso ?? ''}
+          value={iso}
+          min={minDate}
+          max={maxDate}
           onChange={e => onChange({ ...safe, iso: e.target.value })}
           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
         />
+        {isInvalidFormat && (
+          <p className="text-xs text-red-500" role="alert">日付の形式が正しくありません（YYYY-MM-DD）</p>
+        )}
+        {isOutOfRange && !isInvalidFormat && (
+          <p className="text-xs text-red-500" role="alert">入力可能な日付の範囲外です</p>
+        )}
         <input
           type="text"
           value={safe.display}

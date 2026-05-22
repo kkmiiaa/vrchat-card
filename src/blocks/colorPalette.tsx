@@ -37,8 +37,9 @@ export const colorPaletteComponent: ComponentDef<string[]> = {
       </div>
     )
   },
-  FormItem({ value, onChange }) {
+  FormItem({ value, onChange, blockConfig }) {
     const colors = Array.isArray(value) ? value : []
+    const freeInput = blockConfig?.freeInput !== false
 
     const updateColor = (index: number, color: string) => {
       onChange(colors.map((c, i) => i === index ? color : c))
@@ -57,12 +58,16 @@ export const colorPaletteComponent: ComponentDef<string[]> = {
         <div className="flex flex-wrap gap-3">
           {colors.map((color, i) => (
             <div key={i} className="flex items-center gap-1">
-              <input
-                type="color"
-                value={color}
-                onChange={e => updateColor(i, e.target.value)}
-                className="w-8 h-8 rounded-full border border-gray-200 cursor-pointer p-0.5"
-              />
+              {freeInput ? (
+                <input
+                  type="color"
+                  value={color}
+                  onChange={e => updateColor(i, e.target.value)}
+                  className="w-8 h-8 rounded-full border border-gray-200 cursor-pointer p-0.5"
+                />
+              ) : (
+                <span className="w-8 h-8 rounded-full border border-gray-200" style={{ background: color }} />
+              )}
               <button
                 type="button"
                 onClick={() => removeColor(i)}

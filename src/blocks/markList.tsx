@@ -145,7 +145,7 @@ export const markListComponent: ComponentDef<MarkListItem[]> = {
             </div>
           )
         })}
-        {value.filter(i => i.isCustom).length < 3 && (
+        {value.filter(i => i.isCustom).length < (typeof blockConfig?.maxCustomItems === 'number' ? blockConfig.maxCustomItems : 3) && (
           <button
             onClick={() => onChange([...value, { label: '', mark: '-', isCustom: true }])}
             className="mt-1 text-sm text-sky-500 hover:text-sky-700 font-medium text-left transition-colors"

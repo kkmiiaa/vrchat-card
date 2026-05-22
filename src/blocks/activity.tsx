@@ -102,7 +102,8 @@ export const activityComponent: ComponentDef<ActivityValue> = {
     holidayStart: '',
     holidayEnd: '',
   },
-  FormItem({ value, onChange, t }) {
+  FormItem({ value, onChange, t, blockConfig }) {
+    const allowMixedSchedule = blockConfig?.allowMixedSchedule === true
     const update = (patch: Partial<ActivityValue>) => onChange({ ...value, ...patch })
     const toggleDay = (i: number) =>
       update({ days: value.days.map((v, j) => j === i ? !v : v) })
@@ -141,6 +142,11 @@ export const activityComponent: ComponentDef<ActivityValue> = {
               </button>
             ))}
           </div>
+          {allowMixedSchedule && (
+            <span className="text-xs text-sky-500 font-semibold" data-testid="mixed-schedule-hint">
+              曜日ごとに個別設定が可能です
+            </span>
+          )}
           <div className="flex gap-2">
             {(['irregular'] as const).map(mode => {
               const selected = value.daysMode === mode

@@ -1,9 +1,33 @@
 'use client'
 import type { Block, StatusValue } from './types'
 
+const STATUS_COLORS: Record<keyof StatusValue, string> = {
+  blue: '#60a5fa',
+  green: '#4ade80',
+  yellow: '#fbbf24',
+  red: '#f87171',
+}
+
 export const statusBlock: Block<StatusValue> = {
   key: 'status',
   defaultValue: { blue: '', green: '', yellow: '', red: '' },
+  variants: ['default'],  // default=カラードット+テキスト
+  CardItem({ value, ctx }) {
+    const safe: StatusValue = (value && typeof value === 'object') ? value as StatusValue : { blue: '', green: '', yellow: '', red: '' }
+    const entries = (Object.entries(safe) as [keyof StatusValue, string][]).filter(([, v]) => v)
+    if (!entries.length) return null
+    const fs = ctx.cardWidth * 0.012
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {entries.map(([key, text]) => (
+          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLORS[key], flexShrink: 0 }} />
+            <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily }}>{text}</span>
+          </div>
+        ))}
+      </div>
+    )
+  },
   FormItem({ value, onChange, t }) {
     const fields: { key: keyof StatusValue; label: string; dot: string }[] = [
       { key: 'blue',   label: t.statusBlue,   dot: 'bg-blue-400' },

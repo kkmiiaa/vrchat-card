@@ -12,6 +12,28 @@ const POLICY_KEYS = [
 export const friendPolicyMultiBlock: Block<string[]> = {
   key: 'friendPolicy',
   defaultValue: [],
+  variants: ['default', 'icon'],  // default=テキストバッジ, icon=アイコン付き
+  CardItem({ value, ctx }) {
+    const selected = Array.isArray(value) ? value : [value].filter(Boolean)
+    const LABELS: Record<string, string> = {
+      frPolicyAnyone: 'だれでもOK',
+      frPolicyAfterGettingToKnow: '仲良くなってから',
+      frPolicyIfInterested: '気になったら',
+      frPolicyMutualsOnX: 'Twitter相互',
+      frPolicyNo: '送らないで',
+    }
+    if (!selected.length) return null
+    const fs = ctx.cardWidth * 0.013
+    return (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+        {selected.map(k => (
+          <span key={k} style={{ fontSize: fs, color: ctx.theme.text, background: ctx.theme.bg, padding: '2px 8px', borderRadius: 999, fontFamily: ctx.fontFamily, border: `1px solid ${ctx.theme.subText}40` }}>
+            {LABELS[k] ?? k}
+          </span>
+        ))}
+      </div>
+    )
+  },
   FormItem({ value, onChange, t }) {
     const selected = Array.isArray(value) ? value : [value].filter(Boolean)
     function toggle(key: string) {

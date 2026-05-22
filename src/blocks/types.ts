@@ -3,25 +3,276 @@ import type { translations } from '@/utils/translations'
 
 export type Translations = typeof translations.ja
 
-export type BlockFormProps<T> = {
+export type ComponentFormProps<T> = {
   value: T
   onChange: (v: T) => void
   t: Translations
+  /** ブロック作成時にテンプレート作成者が設定した値（FormItem・CardItem 共通） */
+  blockConfig?: Record<string, unknown>
+  /** テンプレート作成者が設定したフォームラベル。FormItem のタイトル表示に使用 */
+  formLabel?: string
 }
 
-export type BlockCardProps<T> = {
+export type BlockConfigFormProps = {
+  blockConfig: Record<string, unknown>
+  onChange: (config: Record<string, unknown>) => void
+}
+
+/** カードレンダリング時のスタイルコンテキスト */
+/** cardWidth に対する比率で表したフォントスケール設定 */
+export type FontScale = {
+  xs: number   // 補助テキスト・バッジ内ラベル
+  sm: number   // コンパクト本文・ラベル
+  md: number   // 標準本文
+  lg: number   // やや大きめ本文
+  xl: number   // 名前など大見出し
+}
+
+/** ctx.fontSize に格納される実 px 値 */
+export type FontSizeTokens = FontScale
+
+export const DEFAULT_FONT_SCALE: FontScale = {
+  xs: 0.009,
+  sm: 0.010,
+  md: 0.012,
+  lg: 0.014,
+  xl: 0.024,
+}
+
+export function makeFontSizeTokens(cardWidth: number, scale?: Partial<FontScale>): FontSizeTokens {
+  const s = { ...DEFAULT_FONT_SCALE, ...scale }
+  return {
+    xs: cardWidth * s.xs,
+    sm: cardWidth * s.sm,
+    md: cardWidth * s.md,
+    lg: cardWidth * s.lg,
+    xl: cardWidth * s.xl,
+  }
+}
+
+export type CardRenderContext = {
+  /** フォントファミリー */
+  fontFamily: string
+  /** カード幅（px）。フォントサイズ等のスケール基準 */
+  cardWidth: number
+  /** テーマカラー */
+  theme: {
+    accent: string       // アクセントカラー（ボーダー・ハイライト等）
+    text: string         // 本文テキスト色
+    subText: string      // サブテキスト・ラベル色
+    bg: string           // セル背景色
+  }
+  /** フォントサイズトークン */
+  fontSize: FontSizeTokens
+  /** ラベルのフォントサイズ倍率デフォルト値 */
+  defaultLabelFontScale?: number
+  /** コンテンツのフォントサイズ倍率デフォルト値 */
+  defaultContentFontScale?: number
+  /** パディング倍率（デフォルト 1） */
+  paddingScale: number
+}
+
+export const DEFAULT_CARD_RENDER_CONTEXT: CardRenderContext = {
+  fontFamily: 'sans-serif',
+  cardWidth: 900,
+  theme: {
+    accent:  '#00AADB',
+    text:    '#1f2937',
+    subText: '#9ca3af',
+    bg:      'rgba(255,255,255,0.6)',
+  },
+  fontSize: makeFontSizeTokens(900),
+  paddingScale: 1,
+}
+
+/** ブロックのデザインバリアント識別子 */
+export type BlockVariant = string
+
+/**
+ * 背景・コンテナの見た目バリアント
+ * - default:     白背景ボックス（rgba(255,255,255,0.85)）
+ * - glass:       すりガラス（rgba(255,255,255,0.55) + border）
+ * - transparent: 背景なし
+ * - outline:     枠線のみ
+ */
+export type BgVariant = 'default' | 'glass' | 'transparent' | 'outline'
+
+export const BG_VARIANT_STYLE = {
+  default:     { background: 'rgba(255,255,255,0.85)', border: 'none' },
+  glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)' },
+  transparent: { background: 'transparent',            border: 'none' },
+  outline:     { background: 'transparent',            border: '1px solid rgba(255,255,255,0.6)' },
+} satisfies Record<BgVariant, { background: string; border: string }>
+
+export type ComponentCardProps<T> = {
   value: T
-  fontFamily?: string
+  ctx: CardRenderContext
+  /** コンテンツの表示方法バリアント。未指定時は 'default' */
+  variant?: BlockVariant
+  /** 背景・コンテナの見た目バリアント。未指定時は 'default' */
+  bgVariant?: BgVariant
+  /** ブロック作成時にテンプレート作成者が設定した値（FormItem・CardItem 共通） */
+  blockConfig?: Record<string, unknown>
 }
 
-/** ブロック定義: フォームUIとカードUIをセットで持つ単位 */
-export type Block<T = unknown> = {
+/** コンポーネント定義: フォームUIとカードUIをセットで持つ単位 */
+export type ComponentDef<T = unknown> = {
   key: string
   defaultValue: T
+  /** このコンポーネントが対応するデザインバリアント一覧。未定義は ['default'] 扱い */
+  variants?: BlockVariant[]
+  /** true のとき選択肢・スキーマが全界隈共通で固定（界隈横断検索が可能） */
+  global?: boolean
   /** フォームエリアに描画されるUI */
-  FormItem: (props: BlockFormProps<T>) => ReactNode
+  FormItem: (props: ComponentFormProps<T>) => ReactNode
   /** カードエリアに描画されるUI（テンプレートが参照可能） */
-  CardItem?: (props: BlockCardProps<T>) => ReactNode
+  CardItem?: (props: ComponentCardProps<T>) => ReactNode
+  /** テンプレート作成者向けのブロック設定UI */
+  blockConfigForm?: (props: BlockConfigFormProps) => ReactNode
+}
+
+// --- テンプレート定義型 ---
+
+/** グリッド設定（cellSize 単位で minW/minH を指定するために使用） */
+export type TemplateGridDef = {
+  /** 1セルの一辺（px）。常に正方形 */
+  cellSize: number
+  /** セル間のギャップ（px） */
+  gap: number
+}
+
+/** セル数をピクセルに変換するユーティリティ */
+export function cellsToPixels(cells: number, cellSize: number, gap: number): number {
+  return cells * cellSize + (cells - 1) * gap
+}
+
+/**
+ * レイアウトノード: flex ベースの再帰ツリー構造
+ *
+ * - block: ブロックを描画するリーフノード
+ * - row:   子を横並び（flex-direction: row）にするコンテナ
+ * - col:   子を縦並び（flex-direction: column）にするコンテナ
+ *
+ * サイズ指定はグリッドセル単位（cellSize/gap から px に変換）。
+ * flex を指定すると残余スペースを分配する。
+ */
+export type Block = {
+  type: 'block'
+  /** 使用するコンポーネントのキー */
+  componentKey: string
+  /** card_data に保存・参照するキー */
+  dataKey: string
+  /** コンテンツの表示方法バリアント */
+  variant: BlockVariant
+  /** 背景・コンテナの見た目バリアント */
+  bgVariant?: BgVariant
+  /** 最小幅（セル数）。親が row のとき有効 */
+  minW?: number
+  /** 最小高（セル数）。親が col のとき有効 */
+  minH?: number
+  /** flex 伸長係数。指定時は minW/minH を超えて伸長する */
+  flex?: number
+  /** ブロック上部に表示するラベル */
+  label?: string
+  /** ラベルの右に表示するサブテキスト（英語説明など） */
+  subLabel?: string
+  /** ラベルのテキスト色（省略時はテーマの text 色） */
+  labelColor?: string
+  /** true のときラベルをコンテンツ枠の内側に描画する */
+  labelInset?: boolean
+  /** labelInset 時のラベルとコンテンツの並び方向。'col'=上下（デフォルト）, 'row'=左右 */
+  labelInsetDir?: 'col' | 'row'
+  /** コンテンツ（CardItem）のフォントサイズ倍率。1.0がデフォルト。ラベルには影響しない */
+  contentFontScale?: number
+  /** ラベル・サブラベルのフォントサイズ倍率。1.0がデフォルト */
+  labelFontScale?: number
+  /** テンプレート定義時にブロックへ渡す設定（mark-list の marks など） */
+  blockConfig?: Record<string, unknown>
+  /** flex コンテナ内での自身の揃え（例: 'flex-start' でコンテンツ高さに縮む） */
+  alignSelf?: string
+  /** true のとき白枠ガラススタイルでラップ */
+  glass?: boolean
+  /** glass ラッパーの角丸（px）。省略時は cardWidth * 0.008 */
+  glassRadius?: number
+}
+
+export type LayoutNodeRow = {
+  type: 'row'
+  children: LayoutNode[]
+  /** 最小高（セル数）。親が col のとき有効 */
+  minH?: number
+  /** flex 伸長係数 */
+  flex?: number
+  /** 子要素間のギャップ（px）。省略時は grid.gap を使用 */
+  gap?: number
+  /** justify-content 値（例: 'space-between'） */
+  justify?: string
+  /** コンテナ上部に表示するセクションラベル */
+  label?: string
+  /** ラベルの右に表示するサブテキスト */
+  subLabel?: string
+  /** ラベルのテキスト色（省略時はテーマの text 色） */
+  labelColor?: string
+}
+
+export type LayoutNodeCol = {
+  type: 'col'
+  children: LayoutNode[]
+  /** 最小幅（セル数）。親が row のとき有効 */
+  minW?: number
+  /** flex 伸長係数 */
+  flex?: number
+  /** 子要素間のギャップ（px）。省略時は grid.gap を使用 */
+  gap?: number
+  /** justify-content 値（例: 'space-between'） */
+  justify?: string
+  /** コンテナ上部に表示するセクションラベル */
+  label?: string
+  /** ラベルの右に表示するサブテキスト */
+  subLabel?: string
+  /** ラベルのテキスト色（省略時はテーマの text 色） */
+  labelColor?: string
+}
+
+export type LayoutNode = Block | LayoutNodeRow | LayoutNodeCol
+
+/** 向き別レイアウト定義（landscape / portrait それぞれ持つ） */
+export type TemplateOrientationDef = {
+  cardWidth: number
+  cardHeight: number
+  grid: TemplateGridDef
+  /** ルートレイアウトノード（通常 row か col） */
+  layout: LayoutNode
+  /** ラベルのフォントサイズ倍率デフォルト値（個別 labelFontScale で上書き可） */
+  defaultLabelFontScale?: number
+  /** コンテンツのフォントサイズ倍率デフォルト値（個別 contentFontScale で上書き可） */
+  defaultContentFontScale?: number
+  /** パディング倍率デフォルト値（デフォルト 1） */
+  defaultPaddingScale?: number
+}
+
+/** テンプレート全体の定義（汎用レンダラーが参照するJSON構造） */
+export type TemplateDefinition = {
+  id: string
+  label: string
+  /** デフォルトテーマ */
+  theme: CardRenderContext['theme']
+  /** デフォルトフォント */
+  fontFamily: string
+  /** カード外周の角丸（px）。省略時は 20 */
+  borderRadius?: number
+  /** 背景ブロックのキー（省略時は背景なし） */
+  backgroundKey?: string
+  /** オーバーレイブロックのキー（背景の上・グリッドの下に描画） */
+  overlayKey?: string
+  /** テンプレート固定のオーバーレイ値。設定時はユーザー値を無視してこちらを使用 */
+  overlayFixed?: import('./overlay').OverlayValue
+  /** フォントサイズ比率のオーバーライド（省略時はデフォルト比率を使用） */
+  fontScale?: Partial<FontScale>
+  /** 横向きレイアウト */
+  landscape: TemplateOrientationDef
+  /** 縦向きレイアウト */
+  portrait: TemplateOrientationDef
 }
 
 /** ブロック値の集合 */
@@ -46,9 +297,9 @@ export type CardTemplate = {
   cardWidth: number
   cardHeight: number
   PreviewCard: () => ReactNode
-  /** このテンプレートで使用するブロック一覧 */
+  /** このテンプレートで使用するコンポーネント一覧 */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  blocks: Block<any>[]
+  blocks: ComponentDef<any>[]
   /** フォームのセクション構成 */
   sections: TemplateSection[]
   /** カード全体のレンダラー。全ブロック値を受け取り描画する */
@@ -86,7 +337,9 @@ export type StatusValue = {
 }
 
 export type AgeValue = {
-  mode: '' | '18歳未満' | '18+' | '非公開' | '自由入力'
+  /** 検索用タグ（自動セット） */
+  searchTag: '' | '18歳未満' | '18+' | '非公開'
+  /** カード表示用テキスト（自由入力） */
   display: string
 }
 

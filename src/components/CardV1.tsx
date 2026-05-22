@@ -3,6 +3,11 @@
 import React, { forwardRef } from 'react'
 import { PiGenderMaleBold, PiGenderFemaleBold, PiGenderIntersexBold } from 'react-icons/pi'
 import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
+const GENDER_TAG_LABELS: Record<string, string> = {
+  male: '男性',
+  female: '女性',
+  nonbinary: 'ノンバイナリ',
+}
 
 function GenderIcon({ tag, size = 13 }: { tag?: string; size?: number }) {
   if (tag === 'male')      return <PiGenderMaleBold size={size} />
@@ -21,7 +26,7 @@ type Props = {
   name: string
   profileImageBase64: string | null
   profileImageUrl?: string | null
-  genderTag?: string
+  genderTag?: { tag: string; display: string } | string
   gender?: string
   language?: string[]
   playEnv?: string[]
@@ -137,9 +142,15 @@ function LabelRow({ title, sub, fontFamily, large }: { title: string; sub: strin
 
 const STATUS_COLORS = ['#3b82f6', '#22c55e', '#f97316', '#ef4444']
 
+function resolveGenderTag(g: { tag: string; display: string } | string | undefined): { tag: string; display: string } {
+  if (!g) return { tag: 'none', display: '' }
+  if (typeof g === 'string') return { tag: g, display: '' }
+  return g
+}
+
 const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
   {
-    name, profileImageBase64, profileImageUrl, genderTag, gender, language, playEnv, micOnRate = 0,
+    name, profileImageBase64, profileImageUrl, genderTag: genderTagRaw, gender, language, playEnv, micOnRate = 0,
     selfIntro, vrchatId, twitterId, discordId,
     statusBlue, statusGreen, statusYellow, statusRed,
     friendPolicy, interactions,
@@ -151,6 +162,8 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
   ref
 ) {
   const L = lang === 'en' ? EN : JA
+  const genderTag = resolveGenderTag(genderTagRaw)
+  const genderDisplay = genderTag.display || (genderTag.tag !== 'none' ? GENDER_TAG_LABELS[genderTag.tag] ?? '' : '—')
 
   const frLabels: Record<string, string> = friendPolicyLabels ?? {
     frPolicyAnyone: L.frPolicyAnyone,
@@ -241,8 +254,8 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
                     <LabelRow title={L.gender} sub={L.sub_gender} fontFamily={fontFamily} large />
                     <div style={pBox()}>
                       <div style={{ fontSize: pFs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <GenderIcon tag={genderTag} size={pFs} />
-                        {gender || (genderTag && genderTag !== 'none' ? '' : '—')}
+                        <GenderIcon tag={genderTag.tag} size={pFs} />
+                        {gender || genderDisplay}
                       </div>
                     </div>
                   </div>
@@ -490,8 +503,8 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
               <LabelRow title={L.gender} sub={L.sub_gender} fontFamily={fontFamily} />
               <div style={box()}>
                 <div style={{ fontSize: fs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <GenderIcon tag={genderTag} size={fs} />
-                  {gender || (genderTag && genderTag !== 'none' ? '' : '—')}
+                  <GenderIcon tag={genderTag.tag} size={fs} />
+                  {gender || genderDisplay}
                 </div>
               </div>
             </div>

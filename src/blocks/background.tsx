@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import type { Block, BackgroundValue } from './types'
+import type { ComponentDef, BackgroundValue } from './types'
 
 // 上段: 薄色、下段: 同色相の濃色 (10列ペア)
 const PALETTE = [
@@ -41,7 +41,7 @@ function ColorSwatch({ color, selected, onClick }: { color: string; selected: bo
   )
 }
 
-export const backgroundBlock: Block<BackgroundValue> = {
+export const backgroundComponent: ComponentDef<BackgroundValue> = {
   key: 'background',
   defaultValue: { type: 'gradient', value: ['#fcd5ce', '#e0f7fa'], base64: null },
   FormItem({ value, onChange, t }) {

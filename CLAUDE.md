@@ -17,7 +17,14 @@ E2EはCIでは実行しない（時間がかかりすぎるため）。ローカ
 
 ## ドキュメント管理
 
-`docs/spec.md` と `docs/testcases.md` は常に最新の状態に保つこと。
-- 機能追加・変更時は spec.md を更新する
-- テスト追加・変更時は testcases.md を更新する
-- コミット前にこれらのファイルが実装と整合しているか確認すること
+`/docs` 配下の Markdown ファイルを常に最新の状態に保つこと。
+
+| ファイル | 内容 |
+|---|---|
+| `docs/spec.md` | サービス仕様・URL設計・テンプレート仕様 |
+| `docs/components.md` | コンポーネント・ブロック・テンプレートの概念設計 |
+| `docs/testcases.md` | テストケース一覧（E2E・ユニット） |
+
+- 機能追加・変更時は関連する docs ファイルを更新する
+- コンポーネント追加時は `docs/components.md` と `docs/testcases.md` を更新する
+- ルートに spec 系の md を作成しない（`/docs` に集約）

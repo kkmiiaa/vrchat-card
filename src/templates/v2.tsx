@@ -1,27 +1,27 @@
 'use client'
 import type { CardTemplate } from '@/blocks/types'
-import { nameBlock }         from '@/blocks/name'
-import { genderBlock }       from '@/blocks/gender'
-import { playEnvBlock }      from '@/blocks/playEnv'
-import { languageBlock }     from '@/blocks/language'
-import { micOnRateBlock }    from '@/blocks/micOnRate'
-import { snsWithFriendPolicyBlock } from '@/blocks/snsWithFriendPolicy'
-import { statusBlock }       from '@/blocks/status'
-import { selfIntroBlock }    from '@/blocks/selfIntro'
-import { interactionsBlock } from '@/blocks/interactions'
-import { backgroundBlock }   from '@/blocks/background'
+import { languageComponent }     from '@/blocks/language'
+import { colorStatusComponent }  from '@/blocks/colorStatus'
+import { textComponent }         from '@/blocks/text'
+import { selectComponent }       from '@/blocks/select'
+import { multiSelectComponent }  from '@/blocks/multiSelect'
+import { gaugeComponent }        from '@/blocks/gauge'
+import { markListComponent }     from '@/blocks/markList'
+import type { MarkListItem }     from '@/blocks/markList'
+import { backgroundComponent }   from '@/blocks/background'
 import { fontBlock }         from '@/blocks/font'
-import { ageBlock }          from '@/blocks/age'
-import { trustRankBlock }    from '@/blocks/trustRank'
-import { activityBlock }     from '@/blocks/activity'
-import { galleryBlock }      from '@/blocks/gallery'
+import { ageComponent }          from '@/blocks/age'
+import { activityComponent }     from '@/blocks/activity'
+import { galleryComponent }      from '@/blocks/gallery'
+import { snsBundleComponent }    from '@/blocks/snsBundle'
 import CardV2 from '@/components/CardV2'
 import { fontMap } from '@/lib/fontMap'
-import type { SnsValue, StatusValue, AgeValue, ActivityValue, GalleryValue, BackgroundValue } from '@/blocks/types'
-import type { InteractionItem } from '@/blocks/interactions'
+import type { AgeValue, ActivityValue, GalleryValue, BackgroundValue } from '@/blocks/types'
 import { translations } from '@/utils/translations'
 
 const jaDefaults = translations.ja.okNgDefaults
+
+type StatusValue = Record<string, string>
 
 export const v2Template: CardTemplate = {
   id: 'v2',
@@ -42,30 +42,27 @@ export const v2Template: CardTemplate = {
     { titleKey: '自己紹介・画像',   blockKeys: ['selfIntro', 'gallery'] },
   ],
   blocks: [
-    backgroundBlock,
+    backgroundComponent,
     fontBlock,
-    nameBlock,
-    genderBlock,
-    ageBlock,
-    trustRankBlock,
-    playEnvBlock,
-    languageBlock,
-    micOnRateBlock,
-    snsWithFriendPolicyBlock,
-
-    statusBlock,
-    activityBlock,
-    selfIntroBlock,
-    galleryBlock,
-    interactionsBlock,
+    textComponent,
+    ageComponent,
+    selectComponent,
+    multiSelectComponent,
+    languageComponent,
+    gaugeComponent,
+    snsBundleComponent,
+    colorStatusComponent,
+    activityComponent,
+    galleryComponent,
+    markListComponent,
   ],
   CardRenderer({ values, fontFamily, t, isInteractive, noBackground, orientation }) {
-    const sns        = (values.sns        as SnsValue)        ?? { vrchatId: '', twitterId: '', discordId: '' }
-    const status     = (values.status     as StatusValue)     ?? { blue: '', green: '', yellow: '', red: '' }
+    const sns        = (values.sns as Record<string, string>) ?? {}
+    const status     = (values.status as StatusValue) ?? {}
     const age        = (values.age        as AgeValue)        ?? { mode: '', display: '' }
     const activity   = (values.activity   as ActivityValue)   ?? { days: [true,true,true,true,true,false,false], weekdayStart:'', weekdayEnd:'', holidayStart:'', holidayEnd:'' }
     const bg         = (values.background as BackgroundValue) ?? { type: 'image', value: '/backgrounds/bg_1.webp' }
-    const interactions = (values.interactions as InteractionItem[]) ?? []
+    const interactions = (values.interactions as MarkListItem[]) ?? []
     const gallery    = (values.gallery as GalleryValue) ?? { enabled: false, images: [], base64: [] }
 
     const bgValue = bg.imageFile instanceof File
@@ -82,13 +79,13 @@ export const v2Template: CardTemplate = {
         playEnv={values.playEnv as string[]}
         micOnRate={values.micOnRate as number}
         selfIntro={values.selfIntro as string}
-        vrchatId={sns.vrchatId}
-        twitterId={sns.twitterId}
-        discordId={sns.discordId}
-        statusBlue={status.blue}
-        statusGreen={status.green}
-        statusYellow={status.yellow}
-        statusRed={status.red}
+        vrchatId={sns.vrchatId ?? ''}
+        twitterId={sns.twitterId ?? ''}
+        discordId={sns.discordId ?? ''}
+        statusBlue={status.a ?? status.blue ?? ''}
+        statusGreen={status.b ?? status.green ?? ''}
+        statusYellow={status.c ?? status.yellow ?? ''}
+        statusRed={status.d ?? status.red ?? ''}
         interactions={interactions}
         backgroundType={bg.type}
         backgroundValue={bgValue as string | [string, string]}
@@ -96,7 +93,7 @@ export const v2Template: CardTemplate = {
         fontFamily={fontFamily}
         okNgLabels={jaDefaults}
         trustRank={values.trustRank as string}
-        ageDisplay={age.display || age.mode}
+        ageDisplay={age.display || age.searchTag}
         activeDays={activity.days}
         daysMode={activity.daysMode}
         weekdayTimesMode={activity.weekdayTimesMode}
@@ -105,7 +102,7 @@ export const v2Template: CardTemplate = {
         weekdayEnd={activity.weekdayEnd}
         holidayStart={activity.holidayStart}
         holidayEnd={activity.holidayEnd}
-        friendPolicy={sns.friendPolicy ? [sns.friendPolicy] : []}
+        friendPolicy={[]}
         friendPolicyLabels={{
           frPolicyAnyone: t.frPolicyAnyone,
           frPolicyAfterGettingToKnow: t.frPolicyAfterGettingToKnow,
@@ -154,7 +151,7 @@ export const v2Template: CardTemplate = {
         weekdayEnd="24:00"
         holidayStart="14:00"
         holidayEnd="24:00"
-        friendPolicy={['frPolicyAfterGettingToKnow']}
+        friendPolicy={[]}
       />
     )
   },

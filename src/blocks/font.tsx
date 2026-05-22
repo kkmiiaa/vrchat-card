@@ -1,8 +1,8 @@
 'use client'
 import FontSelector, { type FontKey } from '@/components/FontSelector'
-import type { Block } from './types'
+import type { ComponentDef } from './types'
 
-export const fontBlock: Block<FontKey> = {
+export const fontBlock: ComponentDef<FontKey> = {
   key: 'font',
   defaultValue: 'rounded',
   FormItem({ value, onChange, t }) {

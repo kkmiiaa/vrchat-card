@@ -1,10 +1,34 @@
 'use client'
-import { useEffect } from 'react'
-import type { Block, GalleryValue } from './types'
+import type { ComponentDef, GalleryValue } from './types'
 
-export const galleryBlock: Block<GalleryValue> = {
+export const galleryComponent: ComponentDef<GalleryValue> = {
   key: 'gallery',
   defaultValue: { enabled: false, images: [null, null, null], base64: [null, null, null] },
+  variants: ['default', 'glass'],
+  CardItem({ value, ctx, variant }) {
+    if (!value.enabled) return null
+    const slots = [0, 1, 2]
+    const isGlass = variant === 'glass'
+    const thumbStyle = isGlass
+      ? { flex: 1, height: '100%', borderRadius: ctx.cardWidth * 0.008, overflow: 'hidden' as const, background: '#e5e7eb', border: '1px solid rgba(255,255,255,0.8)' }
+      : { flex: 1, height: '100%', borderRadius: 6, overflow: 'hidden' as const, background: '#e5e7eb' }
+    return (
+      <div style={{ display: 'flex', gap: 4, width: '100%', height: '100%' }}>
+        {slots.map(i => {
+          const src = value.base64[i]
+          return (
+            <div key={i} style={thumbStyle}>
+              {src
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                : null
+              }
+            </div>
+          )
+        })}
+      </div>
+    )
+  },
   FormItem({ value, onChange, t }) {
     const update = (patch: Partial<GalleryValue>) => onChange({ ...value, ...patch })
 

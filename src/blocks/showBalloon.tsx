@@ -1,8 +1,8 @@
 'use client'
 import BalloonToggle from '@/components/BaloonToggle'
-import type { Block } from './types'
+import type { ComponentDef } from './types'
 
-export const showBalloonBlock: Block<boolean> = {
+export const showBalloonBlock: ComponentDef<boolean> = {
   key: 'showBalloon',
   defaultValue: true,
   FormItem({ value, onChange, t }) {

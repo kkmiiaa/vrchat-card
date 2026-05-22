@@ -24,6 +24,25 @@ function markStyle(mark: string): { bg: string; border: string; text: string } {
 export const interactionsBlock: Block<InteractionItem[]> = {
   key: 'interactions',
   defaultValue: defaultItems(),
+  variants: ['default', 'grid'],  // default=横長タグ(マーク|ラベル), grid=グリッド(ラベル上/マーク下)
+  CardItem({ value, ctx }) {
+    const items = Array.isArray(value) ? value : []
+    const visible = items.filter(item => item.mark !== '-' && item.mark !== '―')
+    if (!visible.length) return null
+    const fs = ctx.cardWidth * 0.011
+    return (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+        {visible.map((item, i) => {
+          const style = markStyle(item.mark)
+          return (
+            <span key={i} style={{ fontSize: fs, padding: '2px 8px', borderRadius: 999, background: style.bg, border: `1px solid ${style.border}`, color: style.text, fontFamily: ctx.fontFamily }}>
+              {item.mark} {item.label}
+            </span>
+          )
+        })}
+      </div>
+    )
+  },
   FormItem({ value, onChange, t }) {
     const update = (index: number, patch: Partial<InteractionItem>) => {
       const updated = value.map((item, i) => i === index ? { ...item, ...patch } : item)

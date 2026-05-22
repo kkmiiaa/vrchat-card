@@ -354,6 +354,15 @@
 > 対象: `src/blocks/` 以下の各コンポーネント定義（`ComponentDef<T>`）  
 > ユニットテストまたは Admin UI の BlockPreviewList でのスモークテストとして実施する。
 
+### 共通バリデーション（`dataKey` / 文字列入力）
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | `dataKey` に英数字・アンダースコア以外を入力 | dataKey のフォーマットバリデーション | エラーが表示され保存できない |
+| 2 | 同一テンプレート内で `dataKey` を重複登録 | dataKey の重複チェック | エラーが表示され保存できない |
+| 3 | 文字列入力コンポーネントで空文字を送信 | 空文字の禁止（最小長バリデーション） | エラーが表示され保存できない（許容設定がない場合） |
+| 4 | 文字列入力コンポーネントで最大文字数を超える入力 | 最大文字数バリデーション | 最大文字数超の入力が制限またはエラー表示される |
+
 ---
 
 ### `text`
@@ -409,6 +418,7 @@
 | 9 | `card_data = { [dataKey]: [] }` | 未選択時の card_data 全体 | `{ [dataKey]: [] }` が保存される |
 | 10 | `cardItem.value = ['pcvr', 'quest']` | 複数選択済み値をカードに表示したとき | 対応する label が両方描画される |
 | 11 | `cardItem.value = []` | 未選択値をカードに表示したとき | エラーなく描画される（空表示） |
+| 12 | `blockConfig.options` に同じ `value` を持つ選択肢を2件登録 | 選択肢の value 重複バリデーション | エラーが表示され保存できない |
 
 ---
 
@@ -419,13 +429,14 @@
 | 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `0` |
 | 2 | `blockConfig.maxValue=100` | 最大値を 100 に設定したとき | スライダーの最大値が 100 になる |
 | 3 | `blockConfig.unit='%'` | 単位を設定したとき | 単位ラベル `%` が表示される |
-| 4 | スライダーを操作 | ユーザーが値を変更したとき | 0〜maxValue の数値が `onChange` に渡される |
-| 5 | `formLabel='マイクON率'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 6 | `card_data[dataKey]` の型 | 保存される値の型 | `number` |
-| 7 | `card_data = { [dataKey]: 75 }` | 入力時の card_data 全体 | `{ [dataKey]: 75 }` が保存される |
-| 8 | `card_data = { [dataKey]: 0 }` | 未入力時の card_data 全体 | `{ [dataKey]: 0 }` が保存される |
-| 9 | `cardItem.value = 75` | 入力済み値をカードに表示したとき | 75 がゲージとして描画される |
-| 10 | `cardItem.value = 0` | 未入力値をカードに表示したとき | エラーなく描画される |
+| 4 | `blockConfig.step=10` | ステップ数を 10 に設定したとき | スライダーの刻みが 10 になる |
+| 5 | スライダーを操作 | ユーザーが値を変更したとき | 0〜maxValue の数値が `onChange` に渡される |
+| 6 | `formLabel='マイクON率'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `number` |
+| 8 | `card_data = { [dataKey]: 75 }` | 入力時の card_data 全体 | `{ [dataKey]: 75 }` が保存される |
+| 9 | `card_data = { [dataKey]: 0 }` | 未入力時の card_data 全体 | `{ [dataKey]: 0 }` が保存される |
+| 10 | `cardItem.value = 75` | 入力済み値をカードに表示したとき | 75 がゲージとして描画される |
+| 11 | `cardItem.value = 0` | 未入力値をカードに表示したとき | エラーなく描画される |
 
 ---
 
@@ -438,12 +449,14 @@
 | 3 | 選択肢をクリック | 選択肢を選んだとき | `{ tag: value, display: '' }` が `onChange` に渡される |
 | 4 | display 入力欄 | 自由入力欄が存在するか | input 要素が描画される |
 | 5 | display に入力 | 自由テキストを入力したとき | `{ tag, display: '入力値' }` が渡される |
-| 6 | `formLabel='性別'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `{ tag: string, display: string }` |
-| 8 | `card_data = { [dataKey]: { tag: 'A', display: 'カスタム' } }` | 選択+自由入力時の card_data 全体 | `{ [dataKey]: { tag: 'A', display: 'カスタム' } }` が保存される |
-| 9 | `card_data = { [dataKey]: { tag: '', display: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { tag: '', display: '' } }` が保存される |
-| 10 | `cardItem.value = { tag: 'A', display: 'カスタム' }` | 入力済み値をカードに表示したとき | tag と display が描画される |
-| 11 | `cardItem.value = { tag: '', display: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 6 | `blockConfig.allowNone=true` | 回答なしを許容する設定にしたとき | 「回答なし」選択肢が表示される |
+| 7 | `blockConfig.allowNone=true` で「回答なし」を選択 | 回答なしを選んだとき | `{ tag: '', display: '' }` が渡され、回答なしとして扱われる |
+| 8 | `formLabel='性別'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 9 | `card_data[dataKey]` の型 | 保存される値の型 | `{ tag: string, display: string }` |
+| 10 | `card_data = { [dataKey]: { tag: 'A', display: 'カスタム' } }` | 選択+自由入力時の card_data 全体 | `{ [dataKey]: { tag: 'A', display: 'カスタム' } }` が保存される |
+| 11 | `card_data = { [dataKey]: { tag: '', display: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { tag: '', display: '' } }` が保存される |
+| 12 | `cardItem.value = { tag: 'A', display: 'カスタム' }` | 入力済み値をカードに表示したとき | tag と display が描画される |
+| 13 | `cardItem.value = { tag: '', display: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
 
 ---
 
@@ -453,14 +466,36 @@
 |---|---|---|---|
 | 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `{ label: '', color: '' }` |
 | 2 | label 入力欄 | テキスト入力欄が存在するか | input 要素が描画される |
-| 3 | color ピッカー | 色選択UIが存在するか | color input が描画される |
-| 4 | label に入力 | テキストを入力したとき | `{ label: '入力値', color: '' }` が渡される |
-| 5 | `formLabel='バッジ'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 6 | `card_data[dataKey]` の型 | 保存される値の型 | `{ label: string, color: string }` |
-| 7 | `card_data = { [dataKey]: { label: 'VR廃人', color: '#6366f1' } }` | 入力時の card_data 全体 | `{ [dataKey]: { label: 'VR廃人', color: '#6366f1' } }` が保存される |
-| 8 | `card_data = { [dataKey]: { label: '', color: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { label: '', color: '' } }` が保存される |
-| 9 | `cardItem.value = { label: 'VR廃人', color: '#6366f1' }` | 入力済み値をカードに表示したとき | ラベルと色が反映されたバッジが描画される |
-| 10 | `cardItem.value = { label: '', color: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 3 | `blockConfig.allowColorPicker=true` | ユーザーがカラーを自由に設定できる設定にしたとき | color ピッカーが FormItem に表示される |
+| 4 | `blockConfig.allowColorPicker=false` | ユーザーがカラーを設定できない設定にしたとき | color ピッカーが表示されない |
+| 5 | `blockConfig.defaultColor='#6366f1'` | デフォルトカラーを設定したとき | ピッカー非表示時も CardItem がそのカラーで描画される |
+| 6 | label に入力 | テキストを入力したとき | `{ label: '入力値', color: '' }` が渡される |
+| 7 | `formLabel='バッジ'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 8 | `card_data[dataKey]` の型 | 保存される値の型 | `{ label: string, color: string }` |
+| 9 | `card_data = { [dataKey]: { label: 'VR廃人', color: '#6366f1' } }` | 入力時の card_data 全体 | `{ [dataKey]: { label: 'VR廃人', color: '#6366f1' } }` が保存される |
+| 10 | `card_data = { [dataKey]: { label: '', color: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { label: '', color: '' } }` が保存される |
+| 11 | `cardItem.value = { label: 'VR廃人', color: '#6366f1' }` | 入力済み値をカードに表示したとき | ラベルと色が反映されたバッジが描画される |
+| 12 | `cardItem.value = { label: '', color: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+
+---
+
+### `badgeList`
+
+> `badge` コンポーネントを複数並べたリスト型コンポーネント。
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `[]`（空配列） |
+| 2 | バッジを追加 | 新しいバッジを追加したとき | `{ label: '', color: '' }` が配列に追加される |
+| 3 | バッジを削除 | 削除ボタンをクリックしたとき | 削除後の配列が `onChange` に渡される |
+| 4 | `blockConfig.allowColorPicker=true` | カラー自由設定を有効にしたとき | 各バッジに color ピッカーが表示される |
+| 5 | `blockConfig.defaultColor='#6366f1'` | デフォルトカラーを設定したとき | 追加したバッジがそのカラーで描画される |
+| 6 | `formLabel='役職バッジ'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `{ label: string, color: string }[]` |
+| 8 | `card_data = { [dataKey]: [{ label: 'VR廃人', color: '#6366f1' }, { label: 'モデラー', color: '#f59e0b' }] }` | 複数バッジ入力時の card_data 全体 | `{ [dataKey]: [...] }` が保存される |
+| 9 | `card_data = { [dataKey]: [] }` | 未入力時の card_data 全体 | `{ [dataKey]: [] }` が保存される |
+| 10 | `cardItem.value = [{ label: 'VR廃人', color: '#6366f1' }]` | 入力済み値をカードに表示したとき | バッジが並んで描画される |
+| 11 | `cardItem.value = []` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
 
 ---
 
@@ -473,12 +508,14 @@
 | 3 | トグルをクリック | ON/OFF を切り替えたとき | `true` / `false` が `onChange` に渡される |
 | 4 | `blockConfig.trueLabel='ON'` | ON 時のラベルを設定したとき | `'ON'` が表示される |
 | 5 | `blockConfig.falseLabel='OFF'` | OFF 時のラベルを設定したとき | `'OFF'` が表示される |
-| 6 | `formLabel='バルーン表示'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `boolean` |
-| 8 | `card_data = { [dataKey]: true }` | ON 時の card_data 全体 | `{ [dataKey]: true }` が保存される |
-| 9 | `card_data = { [dataKey]: false }` | OFF 時の card_data 全体 | `{ [dataKey]: false }` が保存される |
-| 10 | `cardItem.value = true` | ON 値をカードに表示したとき | ON 状態が描画される |
-| 11 | `cardItem.value = false` | OFF 値をカードに表示したとき | エラーなく描画される |
+| 6 | `blockConfig.trueIcon='heart'` | ON 時のアイコンをプリセットから設定したとき | 指定アイコンが ON 状態で表示される |
+| 7 | `blockConfig.falseIcon='heartOff'` | OFF 時のアイコンをプリセットから設定したとき | 指定アイコンが OFF 状態で表示される |
+| 8 | `formLabel='バルーン表示'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 9 | `card_data[dataKey]` の型 | 保存される値の型 | `boolean` |
+| 10 | `card_data = { [dataKey]: true }` | ON 時の card_data 全体 | `{ [dataKey]: true }` が保存される |
+| 11 | `card_data = { [dataKey]: false }` | OFF 時の card_data 全体 | `{ [dataKey]: false }` が保存される |
+| 12 | `cardItem.value = true` | ON 値をカードに表示したとき | ON 状態が描画される |
+| 13 | `cardItem.value = false` | OFF 値をカードに表示したとき | エラーなく描画される |
 
 ---
 
@@ -488,13 +525,15 @@
 |---|---|---|---|
 | 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `0` |
 | 2 | `blockConfig.max=5` | 最大評価数を 5 に設定したとき | 星が 5 個描画される |
-| 3 | 星をクリック | 評価を選択したとき | 1〜max の整数が `onChange` に渡される |
-| 4 | `formLabel='おすすめ度'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 5 | `card_data[dataKey]` の型 | 保存される値の型 | `number` |
-| 6 | `card_data = { [dataKey]: 4 }` | 評価時の card_data 全体 | `{ [dataKey]: 4 }` が保存される |
-| 7 | `card_data = { [dataKey]: 0 }` | 未評価時の card_data 全体 | `{ [dataKey]: 0 }` が保存される |
-| 8 | `cardItem.value = 4` | 評価済み値をカードに表示したとき | 4 つ分が選択状態で描画される |
-| 9 | `cardItem.value = 0` | 未評価値をカードに表示したとき | エラーなく描画される（0個選択） |
+| 3 | `blockConfig.icon='star'` | アイコンをプリセットから設定したとき（例：star / heart / diamond） | 指定したアイコンで描画される |
+| 4 | `blockConfig.color='#f59e0b'` | 色を設定したとき | FormItem と CardItem の両方に指定カラーが反映される |
+| 5 | 星をクリック | 評価を選択したとき | 1〜max の整数が `onChange` に渡される |
+| 6 | `formLabel='おすすめ度'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `number` |
+| 8 | `card_data = { [dataKey]: 4 }` | 評価時の card_data 全体 | `{ [dataKey]: 4 }` が保存される |
+| 9 | `card_data = { [dataKey]: 0 }` | 未評価時の card_data 全体 | `{ [dataKey]: 0 }` が保存される |
+| 10 | `cardItem.value = 4` | 評価済み値をカードに表示したとき | 4 つ分が選択状態で描画される |
+| 11 | `cardItem.value = 0` | 未評価値をカードに表示したとき | エラーなく描画される（0個選択） |
 
 ---
 
@@ -506,12 +545,13 @@
 | 2 | label 入力欄 | テキスト入力欄が存在するか | input 要素が描画される |
 | 3 | url 入力欄 | URL 入力欄が存在するか | input 要素が描画される |
 | 4 | label に入力 | ラベルを入力したとき | `{ label: '入力値', url: '' }` が渡される |
-| 5 | `formLabel='リンク'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 6 | `card_data[dataKey]` の型 | 保存される値の型 | `{ label: string, url: string }` |
-| 7 | `card_data = { [dataKey]: { label: 'Portfolio', url: 'https://...' } }` | 入力時の card_data 全体 | `{ [dataKey]: { label: 'Portfolio', url: 'https://...' } }` が保存される |
-| 8 | `card_data = { [dataKey]: { label: '', url: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { label: '', url: '' } }` が保存される |
-| 9 | `cardItem.value = { label: 'Portfolio', url: 'https://...' }` | 入力済み値をカードに表示したとき | ラベルと URL が描画される |
-| 10 | `cardItem.value = { label: '', url: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 5 | `blockConfig.icon='link'` | リンクアイコンをプリセットから設定したとき | 指定したアイコンが FormItem と CardItem に表示される |
+| 6 | `formLabel='リンク'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `{ label: string, url: string }` |
+| 8 | `card_data = { [dataKey]: { label: 'Portfolio', url: 'https://...' } }` | 入力時の card_data 全体 | `{ [dataKey]: { label: 'Portfolio', url: 'https://...' } }` が保存される |
+| 9 | `card_data = { [dataKey]: { label: '', url: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { label: '', url: '' } }` が保存される |
+| 10 | `cardItem.value = { label: 'Portfolio', url: 'https://...' }` | 入力済み値をカードに表示したとき | ラベルと URL が描画される |
+| 11 | `cardItem.value = { label: '', url: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
 
 ---
 
@@ -523,12 +563,14 @@
 | 2 | 日付入力欄 | 日付入力UIが存在するか | input[type=date] または相当の要素が描画される |
 | 3 | 日付を選択 | 日付を入力したとき | `{ display: '表示文字列', iso: 'YYYY-MM-DD' }` が渡される |
 | 4 | `blockConfig.showAge=true` | 年齢計算を有効にしたとき | 現在年齢が計算・表示される |
-| 5 | `formLabel='誕生日'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 6 | `card_data[dataKey]` の型 | 保存される値の型 | `{ display: string, iso: string }` |
-| 7 | `card_data = { [dataKey]: { display: '1月1日', iso: '1990-01-01' } }` | 入力時の card_data 全体 | `{ [dataKey]: { display: '1月1日', iso: '1990-01-01' } }` が保存される |
-| 8 | `card_data = { [dataKey]: { display: '', iso: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { display: '', iso: '' } }` が保存される |
-| 9 | `cardItem.value = { display: '1月1日', iso: '1990-01-01' }` | 入力済み値をカードに表示したとき | `'1月1日'` が描画される |
-| 10 | `cardItem.value = { display: '', iso: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 5 | `iso` に `'not-a-date'` を渡す | 不正フォーマットのバリデーション | エラーが表示され保存できない |
+| 6 | `blockConfig.minDate='2000-01-01'` / `blockConfig.maxDate='2010-12-31'` | 入力可能な日付範囲を設定したとき | 範囲外の日付を入力するとエラーが表示される |
+| 7 | `formLabel='誕生日'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 8 | `card_data[dataKey]` の型 | 保存される値の型 | `{ display: string, iso: string }` |
+| 9 | `card_data = { [dataKey]: { display: '1月1日', iso: '1990-01-01' } }` | 入力時の card_data 全体 | `{ [dataKey]: { display: '1月1日', iso: '1990-01-01' } }` が保存される |
+| 10 | `card_data = { [dataKey]: { display: '', iso: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { display: '', iso: '' } }` が保存される |
+| 11 | `cardItem.value = { display: '1月1日', iso: '1990-01-01' }` | 入力済み値をカードに表示したとき | `'1月1日'` が描画される |
+| 12 | `cardItem.value = { display: '', iso: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
 
 ---
 
@@ -540,12 +582,14 @@
 | 2 | 色ピッカーの数 | 初期値の色数分 UI が存在するか | カラーピッカーが 4 個描画される |
 | 3 | 色を変更 | 色を選択したとき | 変更後の色を含む配列が渡される |
 | 4 | `blockConfig.maxColors=3` | 最大色数を 3 に設定したとき | 3 色以降の追加ができない |
-| 5 | `formLabel='テーマカラー'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 6 | `card_data[dataKey]` の型 | 保存される値の型 | `string[]`（カラーコードの配列） |
-| 7 | `card_data = { [dataKey]: ['#ff0000', '#00ff00'] }` | 入力時の card_data 全体 | `{ [dataKey]: ['#ff0000', '#00ff00'] }` が保存される |
-| 8 | `card_data = { [dataKey]: [] }` | 未入力時の card_data 全体 | `{ [dataKey]: [] }` が保存される |
-| 9 | `cardItem.value = ['#ff0000', '#00ff00']` | 入力済み値をカードに表示したとき | 各色のスウォッチが描画される |
-| 10 | `cardItem.value = []` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 5 | `blockConfig.freeInput=true` | ユーザーが自由にカラーコードを入力できる設定にしたとき | フリー入力の color ピッカーが表示される |
+| 6 | `blockConfig.freeInput=false`（プリセット選択式） | 選択肢から選ばせる設定にしたとき | テンプレート側で定義したカラースウォッチのみ選択できる |
+| 7 | `formLabel='テーマカラー'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 8 | `card_data[dataKey]` の型 | 保存される値の型 | `string[]`（カラーコードの配列） |
+| 9 | `card_data = { [dataKey]: ['#ff0000', '#00ff00'] }` | 入力時の card_data 全体 | `{ [dataKey]: ['#ff0000', '#00ff00'] }` が保存される |
+| 10 | `card_data = { [dataKey]: [] }` | 未入力時の card_data 全体 | `{ [dataKey]: [] }` が保存される |
+| 11 | `cardItem.value = ['#ff0000', '#00ff00']` | 入力済み値をカードに表示したとき | 各色のスウォッチが描画される |
+| 12 | `cardItem.value = []` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
 
 ---
 
@@ -558,16 +602,19 @@
 | 3 | タグを追加 | テキストを入力して追加したとき | 追加した値を含む配列が渡される |
 | 4 | タグを削除 | 削除ボタンをクリックしたとき | 削除後の配列が渡される |
 | 5 | `blockConfig.maxTags=5` | 最大タグ数を 5 に設定したとき | 5 個超の追加ができない |
-| 6 | `formLabel='趣味タグ'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `string[]` |
-| 8 | `card_data = { [dataKey]: ['VRC', 'ゲーム', '音楽'] }` | 入力時の card_data 全体 | `{ [dataKey]: ['VRC', 'ゲーム', '音楽'] }` が保存される |
-| 9 | `card_data = { [dataKey]: [] }` | 未入力時の card_data 全体 | `{ [dataKey]: [] }` が保存される |
-| 10 | `cardItem.value = ['VRC', 'ゲーム', '音楽']` | 入力済み値をカードに表示したとき | 各タグが描画される |
-| 11 | `cardItem.value = []` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 6 | `blockConfig.prefix='#'` | プレフィックスを `#` に設定したとき | タグに `#` が自動付与されて表示される |
+| 7 | `formLabel='趣味タグ'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 8 | `card_data[dataKey]` の型 | 保存される値の型 | `string[]` |
+| 9 | `card_data = { [dataKey]: ['VRC', 'ゲーム', '音楽'] }` | 入力時の card_data 全体 | `{ [dataKey]: ['VRC', 'ゲーム', '音楽'] }` が保存される |
+| 10 | `card_data = { [dataKey]: [] }` | 未入力時の card_data 全体 | `{ [dataKey]: [] }` が保存される |
+| 11 | `cardItem.value = ['VRC', 'ゲーム', '音楽']` | 入力済み値をカードに表示したとき | 各タグが描画される |
+| 12 | `cardItem.value = []` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
 
 ---
 
-### `markList`
+### `markList` / `markGrid`
+
+> **NOTE**: `mark-list`（タグ表示）と `mark-grid`（グリッド表示）は別コンポーネントとして分割予定。現在は variant で切り替えている。
 
 | # | テスト内容 | 意味 | 期待値 |
 |---|---|---|---|
@@ -575,15 +622,16 @@
 | 2 | `blockConfig.marks=[{ symbol:'◎', color:'green', bg:'...' }]` | マーク記号の選択肢を設定したとき | そのマーク記号が選択肢として表示される |
 | 3 | `blockConfig.items=[{ label:'ハグOK' }, { label:'なでなでOK' }]` | 行項目（何を評価するか）を設定したとき | 各ラベルが行として描画される |
 | 4 | `blockConfig.items` に `required: true` の項目を含む | 必須項目を設定したとき | 必須マークが表示される |
-| 5 | 項目のマーク記号をドロップダウンで変更 | 1行のマークを変更したとき | その行だけ mark が更新された配列が `onChange` に渡される |
-| 6 | 別の行のマークを変更 | 別の行を変更したとき | 先に変更した行の値が維持される |
-| 7 | カスタム項目を追加 | 自由入力の行を追加したとき | `isCustom: true` の項目が配列に追加される |
-| 8 | `formLabel='インタラクション'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 9 | `card_data[dataKey]` の型 | 保存される値の型 | `{ label: string, mark: string, isCustom?: boolean }[]` |
-| 10 | `card_data = { [dataKey]: [{ label: 'ハグOK', mark: '◎' }, ...] }` | マーク入力時の card_data 全体 | `{ [dataKey]: [...] }` が保存される |
-| 11 | `card_data = { [dataKey]: [{ label: 'ハグOK', mark: '-' }, ...] }` | 未選択時の card_data 全体 | `{ [dataKey]: [...] }` が保存される |
-| 12 | `cardItem.value = [{ label: 'ハグOK', mark: '◎' }, ...]` | マーク済み値をカードに表示したとき | マーク付き項目がタグとして描画される |
-| 13 | `cardItem.value = [{ label: 'ハグOK', mark: '-' }, ...]` | 全項目未選択値をカードに表示したとき | エラーなく描画される（空表示） |
+| 5 | `blockConfig.maxCustomItems=3` | カスタム項目の最大入力数を設定したとき | 3件超のカスタム項目が追加できない |
+| 6 | 項目のマーク記号をドロップダウンで変更 | 1行のマークを変更したとき | その行だけ mark が更新された配列が `onChange` に渡される |
+| 7 | 別の行のマークを変更 | 別の行を変更したとき | 先に変更した行の値が維持される |
+| 8 | カスタム項目を追加 | 自由入力の行を追加したとき | `isCustom: true` の項目が配列に追加される |
+| 9 | `formLabel='インタラクション'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 10 | `card_data[dataKey]` の型 | 保存される値の型 | `{ label: string, mark: string, isCustom?: boolean }[]` |
+| 11 | `card_data = { [dataKey]: [{ label: 'ハグOK', mark: '◎' }, ...] }` | マーク入力時の card_data 全体 | `{ [dataKey]: [...] }` が保存される |
+| 12 | `card_data = { [dataKey]: [{ label: 'ハグOK', mark: '-' }, ...] }` | 未選択時の card_data 全体 | `{ [dataKey]: [...] }` が保存される |
+| 13 | `cardItem.value = [{ label: 'ハグOK', mark: '◎' }, ...]` | マーク済み値をカードに表示したとき | マーク付き項目がタグとして描画される |
+| 14 | `cardItem.value = [{ label: 'ハグOK', mark: '-' }, ...]` | 全項目未選択値をカードに表示したとき | エラーなく描画される（空表示） |
 
 ---
 
@@ -612,12 +660,14 @@
 | 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | 曜日・時間帯を含むオブジェクト |
 | 2 | 曜日×時間グリッド | グリッドUIが存在するか | グリッド UI が描画される |
 | 3 | セルをクリック | 活動時間を切り替えたとき | 更新後のオブジェクトが `onChange` に渡される |
-| 4 | `formLabel='活動時間'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 5 | `card_data[dataKey]` の型 | 保存される値の型 | `{ days: boolean[], weekdayStart: string, weekdayEnd: string, holidayStart: string, holidayEnd: string, ... }` |
-| 6 | `card_data = { [dataKey]: { days: [...], weekdayStart: '20:00', ... } }` | 入力時の card_data 全体 | `{ [dataKey]: { days: [...], ... } }` が保存される |
-| 7 | `card_data = { [dataKey]: componentDef.defaultValue }` | 未入力時の card_data 全体 | `{ [dataKey]: defaultValue }` が保存される |
-| 8 | `cardItem.value = { days: [...], weekdayStart: '20:00', ... }` | 入力済み値をカードに表示したとき | 曜日と時間帯が描画される |
-| 9 | `cardItem.value = componentDef.defaultValue` | 未入力値をカードに表示したとき | エラーなく描画される |
+| 4 | `blockConfig.allowMixedSchedule=true` | 週ごとに時間帯をバラバラに設定できる設定にしたとき | 平日・休日に加え曜日ごとの個別設定が可能になる |
+| 5 | `blockConfig.allowMixedSchedule=false` | 一括設定のみ許容する設定にしたとき | 平日・休日の時間帯のみ設定できる |
+| 6 | `formLabel='活動時間'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `{ days: boolean[], weekdayStart: string, weekdayEnd: string, holidayStart: string, holidayEnd: string, ... }` |
+| 8 | `card_data = { [dataKey]: { days: [...], weekdayStart: '20:00', ... } }` | 入力時の card_data 全体 | `{ [dataKey]: { days: [...], ... } }` が保存される |
+| 9 | `card_data = { [dataKey]: componentDef.defaultValue }` | 未入力時の card_data 全体 | `{ [dataKey]: defaultValue }` が保存される |
+| 10 | `cardItem.value = { days: [...], weekdayStart: '20:00', ... }` | 入力済み値をカードに表示したとき | 曜日と時間帯が描画される |
+| 11 | `cardItem.value = componentDef.defaultValue` | 未入力値をカードに表示したとき | エラーなく描画される |
 
 ---
 
@@ -627,15 +677,18 @@
 |---|---|---|---|
 | 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `''`（空文字） |
 | 2 | 入力欄 | テキスト入力欄が存在するか | input 要素が描画される |
-| 3 | `blockConfig.platform='X'` | プラットフォームを設定したとき | X のアイコンまたはラベルが表示される |
-| 4 | `blockConfig.placeholder='@username'` | placeholder を設定したとき | placeholder に設定文字列が表示される |
-| 5 | テキストを入力 | ユーザーが入力したとき | 入力文字列が `onChange` に渡される |
-| 6 | `formLabel='X(Twitter)'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `string` |
-| 8 | `card_data = { [dataKey]: '@example' }` | 入力時の card_data 全体 | `{ [dataKey]: '@example' }` が保存される |
-| 9 | `card_data = { [dataKey]: '' }` | 未入力時の card_data 全体 | `{ [dataKey]: '' }` が保存される |
-| 10 | `cardItem.value = '@example'` | 入力済み値をカードに表示したとき | ID 文字列が描画される |
-| 11 | `cardItem.value = ''` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 3 | `blockConfig.platform` にプリセット一覧から選択（例：`'X'` / `'Discord'` / `'Instagram'`） | プラットフォームを選択式で設定したとき | 選択したプラットフォームのアイコンとラベルが表示される |
+| 4 | `blockConfig.actionType='navigate'` | プロフィールページへ遷移する設定にしたとき | CardItem のID文字列がリンクとして描画される |
+| 5 | `blockConfig.actionType='copy'` | ID をコピーする設定にしたとき | CardItem のID文字列にコピーボタンが表示される |
+| 6 | `blockConfig.allowSecret=true` で「秘密」を選択 | 秘密として設定できる設定にしたとき | 「秘密」選択肢が表示され、選択すると非公開として保存される |
+| 7 | `blockConfig.placeholder='@username'` | placeholder を設定したとき | placeholder に設定文字列が表示される |
+| 8 | テキストを入力 | ユーザーが入力したとき | 入力文字列が `onChange` に渡される |
+| 9 | `formLabel='X(Twitter)'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 10 | `card_data[dataKey]` の型 | 保存される値の型 | `string` |
+| 11 | `card_data = { [dataKey]: '@example' }` | 入力時の card_data 全体 | `{ [dataKey]: '@example' }` が保存される |
+| 12 | `card_data = { [dataKey]: '' }` | 未入力時の card_data 全体 | `{ [dataKey]: '' }` が保存される |
+| 13 | `cardItem.value = '@example'` | 入力済み値をカードに表示したとき | ID 文字列が描画される |
+| 14 | `cardItem.value = ''` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
 
 ---
 
@@ -644,7 +697,7 @@
 | # | テスト内容 | 意味 | 期待値 |
 |---|---|---|---|
 | 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `{}`（空オブジェクト） |
-| 2 | `blockConfig.platforms=[{ key:'x', label:'X', platform:'X' }]` | プラットフォーム（key+label+platform）を設定したとき | label が表示された入力欄が描画される |
+| 2 | `blockConfig.platforms` にプリセット一覧から選択（`simpleSns` と同じプリセット） | プラットフォームを選択式で設定したとき | 選択したプラットフォームの入力欄とアイコンが描画される |
 | 3 | `blockConfig.platforms` に複数プラットフォームを設定 | 複数SNSを定義したとき | 各プラットフォームの入力欄が独立して描画される |
 | 4 | X の入力欄に値を入力 | 1つのIDを入力したとき | `{ x: '入力値' }` が `onChange` に渡される |
 | 5 | X と Discord それぞれ入力 | 複数のIDを入力したとき | 両方のキーを持つオブジェクトが渡される |
@@ -652,8 +705,28 @@
 | 7 | `card_data[dataKey]` の型 | 保存される値の型 | `Record<string, string>`（`{ [platform.key]: 入力値 }`） |
 | 8 | `card_data = { [dataKey]: { x: '@foo', discord: 'foo#1234' } }` | 複数SNS入力時の card_data 全体 | `{ [dataKey]: { x: '@foo', discord: 'foo#1234' } }` が保存される |
 | 9 | `card_data = { [dataKey]: {} }` | 未入力時の card_data 全体 | `{ [dataKey]: {} }` が保存される |
-| 10 | `cardItem.value = { x: '@foo', discord: 'foo#1234' }` | 入力済み値をカードに表示したとき | 各プラットフォームの ID が描画される |
+| 10 | `cardItem.value = { x: '@foo', discord: 'foo#1234' }` | 入力済み値をカードに表示したとき | 各プラットフォームのアイコンと ID が描画される |
 | 11 | `cardItem.value = {}` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+
+---
+
+### `snsWithFriendPolicy`
+
+> SNS ID に加え、フレンド申請ポリシーも同一ブロックで設定できるコンポーネント。
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `{ platforms: {}, friendPolicy: '' }` |
+| 2 | `blockConfig.platforms` にプリセット一覧から選択 | プラットフォームを設定したとき | 入力欄が描画される |
+| 3 | `blockConfig.allowedPolicies=['anyone', 'mutual', 'no']` | 許容するフレンドポリシー選択肢を絞ったとき | 指定した選択肢のみ表示される |
+| 4 | フレンドポリシーを選択 | ポリシーを選択したとき | `{ platforms: {...}, friendPolicy: '選択値' }` が渡される |
+| 5 | SNS ID を入力 | ID を入力したとき | `{ platforms: { x: '入力値' }, friendPolicy: '' }` が渡される |
+| 6 | `formLabel='SNS & フレンド申請'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `{ platforms: Record<string, string>, friendPolicy: string }` |
+| 8 | `card_data = { [dataKey]: { platforms: { x: '@foo' }, friendPolicy: 'mutual' } }` | 入力時の card_data 全体 | `{ [dataKey]: { platforms: { x: '@foo' }, friendPolicy: 'mutual' } }` が保存される |
+| 9 | `card_data = { [dataKey]: { platforms: {}, friendPolicy: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { platforms: {}, friendPolicy: '' } }` が保存される |
+| 10 | `cardItem.value = { platforms: { x: '@foo' }, friendPolicy: 'mutual' }` | 入力済み値をカードに表示したとき | プラットフォームIDとフレンドポリシーが描画される |
+| 11 | `cardItem.value = { platforms: {}, friendPolicy: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
 
 ---
 
@@ -664,14 +737,15 @@
 | 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `{ tag: '', display: '' }` |
 | 2 | `global: true` | グローバルコンポーネントであるか | `componentDef.global === true` |
 | 3 | 選択肢が固定 | blockConfig で選択肢を変更できないか | 固定の性別選択肢のみ表示される |
-| 4 | 選択肢をクリック | 性別を選択したとき | `{ tag: 'male' / 'female' / ..., display: '' }` が渡される |
-| 5 | display 入力欄 | 自由入力欄が存在するか | input 要素が描画される |
-| 6 | `formLabel='性別'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 4 | `blockConfig.allowedTags=['male','female']` | テンプレート側で許容する選択肢を絞ったとき | 指定した tag の選択肢のみ表示される |
+| 5 | 選択肢をクリック | 性別を選択したとき | `{ tag: 'male' / 'female' / ..., display: '' }` が渡される |
+| 6 | display 入力欄 | 自由入力欄が存在するか | input 要素が描画される |
+| 7 | `formLabel='性別'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
 | 7 | `card_data[dataKey]` の型 | 保存される値の型 | `{ tag: string, display: string }` |
-| 8 | `card_data = { [dataKey]: { tag: 'female', display: 'ふわふわ系' } }` | 入力時の card_data 全体 | `{ [dataKey]: { tag: 'female', display: 'ふわふわ系' } }` が保存される |
-| 9 | `card_data = { [dataKey]: { tag: '', display: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { tag: '', display: '' } }` が保存される |
-| 10 | `cardItem.value = { tag: 'female', display: 'ふわふわ系' }` | 入力済み値をカードに表示したとき | tag と display が描画される |
-| 11 | `cardItem.value = { tag: '', display: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 9 | `card_data = { [dataKey]: { tag: 'female', display: 'ふわふわ系' } }` | 入力時の card_data 全体 | `{ [dataKey]: { tag: 'female', display: 'ふわふわ系' } }` が保存される |
+| 10 | `card_data = { [dataKey]: { tag: '', display: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { tag: '', display: '' } }` が保存される |
+| 11 | `cardItem.value = { tag: 'female', display: 'ふわふわ系' }` | 入力済み値をカードに表示したとき | tag と display が描画される |
+| 12 | `cardItem.value = { tag: '', display: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
 
 ---
 
@@ -682,14 +756,15 @@
 | 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `{ preset: [], custom: [] }` |
 | 2 | `global: true` | グローバルコンポーネントであるか | `componentDef.global === true` |
 | 3 | 選択肢が固定 | blockConfig で言語リストを変更できないか | 固定の言語リストが表示される |
-| 4 | プリセット言語を選択 | 日本語などを選んだとき | `{ preset: ['ja'], custom: [] }` が渡される |
-| 5 | カスタム言語を入力 | 任意の言語を追加したとき | `{ preset: [...], custom: ['入力値'] }` が渡される |
-| 6 | `formLabel='使用言語'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 4 | `blockConfig.allowedPresets=['ja','en','zh']` | テンプレート側で許容するプリセット言語を絞ったとき | 指定した言語のみ選択できる |
+| 5 | プリセット言語を選択 | 日本語などを選んだとき | `{ preset: ['ja'], custom: [] }` が渡される |
+| 6 | カスタム言語を入力 | 任意の言語を追加したとき | `{ preset: [...], custom: ['入力値'] }` が渡される |
+| 7 | `formLabel='使用言語'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
 | 7 | `card_data[dataKey]` の型 | 保存される値の型 | `{ preset: string[], custom: string[] }` |
-| 8 | `card_data = { [dataKey]: { preset: ['ja', 'en'], custom: ['手話'] } }` | 入力時の card_data 全体 | `{ [dataKey]: { preset: ['ja', 'en'], custom: ['手話'] } }` が保存される |
-| 9 | `card_data = { [dataKey]: { preset: [], custom: [] } }` | 未入力時の card_data 全体 | `{ [dataKey]: { preset: [], custom: [] } }` が保存される |
-| 10 | `cardItem.value = { preset: ['ja', 'en'], custom: ['手話'] }` | 入力済み値をカードに表示したとき | 各言語が描画される |
-| 11 | `cardItem.value = { preset: [], custom: [] }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 9 | `card_data = { [dataKey]: { preset: ['ja', 'en'], custom: ['手話'] } }` | 入力時の card_data 全体 | `{ [dataKey]: { preset: ['ja', 'en'], custom: ['手話'] } }` が保存される |
+| 10 | `card_data = { [dataKey]: { preset: [], custom: [] } }` | 未入力時の card_data 全体 | `{ [dataKey]: { preset: [], custom: [] } }` が保存される |
+| 11 | `cardItem.value = { preset: ['ja', 'en'], custom: ['手話'] }` | 入力済み値をカードに表示したとき | 各言語が描画される |
+| 12 | `cardItem.value = { preset: [], custom: [] }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
 
 ---
 
@@ -708,3 +783,5 @@
 | 9 | `card_data = { [dataKey]: { searchTag: '', display: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { searchTag: '', display: '' } }` が保存される |
 | 10 | `cardItem.value = { searchTag: '18+', display: '20代前半' }` | 入力済み値をカードに表示したとき | searchTag と display が描画される |
 | 11 | `cardItem.value = { searchTag: '', display: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+
+> **将来課題**: 現在の `searchTag` は `'18歳未満' | '18+' | '非公開'` の粗い粒度。将来的に「20代」「30代」「40代」など細かい年代での検索ニーズが発生した場合、`searchTag` の選択肢拡張と検索インデックスの見直しが必要になる可能性がある。

@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     if (cursor) query = query.lt('created_at', cursor)
   }
 
-  // gender → card_data->'genderTag'->>'tag'（expressive-select形式）
+  // gender → card_data->'gender'->>'tag'（gender形式）
   if (gender) {
     const cardDataKey = VRCHAT_COMPONENT_KEY_MAP['gender']
     query = query.eq(`card_data->'${cardDataKey}'->>'tag'`, gender)

@@ -3,7 +3,11 @@
 import React, { forwardRef } from 'react'
 import { PiGenderMaleBold, PiGenderFemaleBold, PiGenderIntersexBold } from 'react-icons/pi'
 import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
-import { GENDER_TAG_OPTIONS } from '@/blocks/gender'
+const GENDER_TAG_LABELS: Record<string, string> = {
+  male: '男性',
+  female: '女性',
+  nonbinary: 'ノンバイナリ',
+}
 
 function GenderIcon({ tag, size = 13 }: { tag?: string; size?: number }) {
   if (tag === 'male')      return <PiGenderMaleBold size={size} />
@@ -159,7 +163,7 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
 ) {
   const L = lang === 'en' ? EN : JA
   const genderTag = resolveGenderTag(genderTagRaw)
-  const genderDisplay = genderTag.display || (genderTag.tag !== 'none' ? GENDER_TAG_OPTIONS.find(o => o.value === genderTag.tag)?.label ?? '' : '—')
+  const genderDisplay = genderTag.display || (genderTag.tag !== 'none' ? GENDER_TAG_LABELS[genderTag.tag] ?? '' : '—')
 
   const frLabels: Record<string, string> = friendPolicyLabels ?? {
     frPolicyAnyone: L.frPolicyAnyone,

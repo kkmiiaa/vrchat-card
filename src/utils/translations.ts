@@ -30,6 +30,8 @@ export const translations = {
     kawaiiFont: 'kawaii手書き文字',
     maruminyaFont: 'マルミーニャM',
 
+    // Overlay Settings
+    overlaySettings: 'オーバーレイの設定',
     // Background Settings
     backgroundSettings: '背景の設定',
     solidColorBg: '単色背景',
@@ -187,6 +189,8 @@ export const translations = {
     kawaiiFont: 'Kawaii Handwriting',
     maruminyaFont: 'Maruminya M',
 
+    // Overlay Settings
+    overlaySettings: 'Overlay Settings',
     // Background Settings
     backgroundSettings: 'Background Settings',
     solidColorBg: 'Solid Color Background',

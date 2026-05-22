@@ -2,17 +2,17 @@
 
 import { useState } from 'react'
 import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
-import { genderTagBlock, GENDER_TAG_OPTIONS } from '@/blocks/gender'
-import { playEnvBlock } from '@/blocks/playEnv'
-import { trustRankBlock } from '@/blocks/trustRank'
-import { selfIntroBlock } from '@/blocks/selfIntro'
-import { micOnRateBlock } from '@/blocks/micOnRate'
-import { snsBlock } from '@/blocks/sns'
-import { activityBlock } from '@/blocks/activity'
-import { interactionsBlock } from '@/blocks/interactions'
-import type { GenderValue } from '@/blocks/gender'
-import type { SnsValue, ActivityValue } from '@/blocks/types'
-import type { InteractionItem } from '@/blocks/interactions'
+import { expressiveSelectComponent } from '@/blocks/expressiveSelect'
+import { multiSelectComponent } from '@/blocks/multiSelect'
+import { selectComponent } from '@/blocks/select'
+import { textComponent } from '@/blocks/text'
+import { gaugeComponent } from '@/blocks/gauge'
+import { snsBundleComponent } from '@/blocks/snsBundle'
+import { activityComponent } from '@/blocks/activity'
+import { markListComponent } from '@/blocks/markList'
+import type { MarkListItem } from '@/blocks/markList'
+import { profileImageComponent } from '@/blocks/profileImage'
+import type { ActivityValue } from '@/blocks/types'
 
 const ctx = DEFAULT_CARD_RENDER_CONTEXT
 
@@ -33,36 +33,38 @@ type AbstractComponent = {
 }
 
 // ─────────────────────────────────────────
-// expressive-select → genderTagBlock.CardItem
+// expressive-select → expressiveSelectComponent.CardItem
 // ─────────────────────────────────────────
+const EXPRESSIVE_SELECT_OPTIONS = ['選択肢A', '選択肢B', '選択肢C', '選択肢D']
+
 function ExpressiveSelectDemo({ variant }: { variant: string }) {
-  const [value, setValue] = useState<GenderValue>({ tag: 'none', display: '' })
+  const [value, setValue] = useState({ tag: '', display: '' })
 
   return (
-    <div className="grid grid-cols-2 divide-x divide-gray-100">
-      <div className="px-5 py-5 space-y-3">
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
+      <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         <div className="flex flex-wrap gap-2">
-          {GENDER_TAG_OPTIONS.map(o => (
-            <button key={o.value} type="button"
-              onClick={() => setValue(v => ({ ...v, tag: o.value }))}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${value.tag === o.value ? 'bg-sky-500 border-sky-500 text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-sky-300'}`}>
-              {o.icon}{o.label}
+          {EXPRESSIVE_SELECT_OPTIONS.map(o => (
+            <button key={o} type="button"
+              onClick={() => setValue(v => ({ ...v, tag: v.tag === o ? '' : o }))}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${value.tag === o ? 'bg-sky-500 border-sky-500 text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-sky-300'}`}>
+              {o}
             </button>
           ))}
         </div>
-        {value.tag !== 'none' && (
+        {value.tag !== '' && (
           <input type="text" value={value.display}
             onChange={e => setValue(v => ({ ...v, display: e.target.value }))}
             placeholder="表示テキスト（任意）"
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200" />
         )}
       </div>
-      <div className="px-5 py-5">
+      <div className="px-5 py-5 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
         <div className="min-h-[40px]">
-          {genderTagBlock.CardItem
-            ? <genderTagBlock.CardItem value={value} ctx={ctx} variant={variant} />
+          {expressiveSelectComponent.CardItem
+            ? <expressiveSelectComponent.CardItem value={value} ctx={ctx} variant={variant} />
             : <span style={SUB_STYLE}>—</span>
           }
         </div>
@@ -72,7 +74,7 @@ function ExpressiveSelectDemo({ variant }: { variant: string }) {
 }
 
 // ─────────────────────────────────────────
-// multi-select → playEnvBlock.CardItem
+// multi-select → multiSelectComponent.CardItem
 // ─────────────────────────────────────────
 function MultiSelectDemo({ variant }: { variant: string }) {
   const OPTIONS = ['選択肢A', '選択肢B', '選択肢C', '選択肢D']
@@ -80,8 +82,8 @@ function MultiSelectDemo({ variant }: { variant: string }) {
   const toggle = (o: string) => setSelected(s => s.includes(o) ? s.filter(x => x !== o) : [...s, o])
 
   return (
-    <div className="grid grid-cols-2 divide-x divide-gray-100">
-      <div className="px-5 py-5 space-y-3">
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
+      <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         <div className="flex flex-wrap gap-2">
           {OPTIONS.map(o => (
@@ -92,11 +94,11 @@ function MultiSelectDemo({ variant }: { variant: string }) {
           ))}
         </div>
       </div>
-      <div className="px-5 py-5">
+      <div className="px-5 py-5 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
         <div className="min-h-[40px]">
-          {playEnvBlock.CardItem
-            ? <playEnvBlock.CardItem value={selected} ctx={ctx} variant={variant} />
+          {multiSelectComponent.CardItem
+            ? <multiSelectComponent.CardItem value={selected} ctx={ctx} variant={variant} />
             : <span style={SUB_STYLE}>—</span>
           }
         </div>
@@ -106,7 +108,7 @@ function MultiSelectDemo({ variant }: { variant: string }) {
 }
 
 // ─────────────────────────────────────────
-// select → trustRankBlock.CardItem
+// select → selectComponent.CardItem
 // ─────────────────────────────────────────
 const RANK_OPTIONS = ['Visitor', 'New User', 'User', 'Known User', 'Trusted User']
 
@@ -114,8 +116,8 @@ function SelectDemo({ variant }: { variant: string }) {
   const [selected, setSelected] = useState('')
 
   return (
-    <div className="grid grid-cols-2 divide-x divide-gray-100">
-      <div className="px-5 py-5 space-y-3">
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
+      <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         <div className="flex flex-col gap-1.5">
           {RANK_OPTIONS.map(o => (
@@ -126,11 +128,11 @@ function SelectDemo({ variant }: { variant: string }) {
           ))}
         </div>
       </div>
-      <div className="px-5 py-5">
+      <div className="px-5 py-5 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
         <div className="min-h-[40px]">
-          {trustRankBlock.CardItem
-            ? <trustRankBlock.CardItem value={selected} ctx={ctx} variant={variant} />
+          {selectComponent.CardItem
+            ? <selectComponent.CardItem value={selected} ctx={ctx} variant={variant} />
             : <span style={SUB_STYLE}>—</span>
           }
         </div>
@@ -140,23 +142,23 @@ function SelectDemo({ variant }: { variant: string }) {
 }
 
 // ─────────────────────────────────────────
-// text → selfIntroBlock.CardItem
+// text → textComponent.CardItem
 // ─────────────────────────────────────────
 function TextDemo() {
   const [value, setValue] = useState('')
   return (
-    <div className="grid grid-cols-2 divide-x divide-gray-100">
-      <div className="px-5 py-5 space-y-3">
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
+      <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         <textarea value={value} onChange={e => setValue(e.target.value)} rows={4}
           placeholder="テキストを入力..."
           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200 resize-none" />
       </div>
-      <div className="px-5 py-5">
+      <div className="px-5 py-5 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
         <div className="min-h-[40px]">
-          {selfIntroBlock.CardItem
-            ? <selfIntroBlock.CardItem value={value} ctx={ctx} />
+          {textComponent.CardItem
+            ? <textComponent.CardItem value={value} ctx={ctx} />
             : <span style={SUB_STYLE}>—</span>
           }
         </div>
@@ -166,13 +168,13 @@ function TextDemo() {
 }
 
 // ─────────────────────────────────────────
-// number → micOnRateBlock.CardItem
+// number → gaugeComponent.CardItem
 // ─────────────────────────────────────────
 function NumberDemo({ variant }: { variant: string }) {
   const [value, setValue] = useState(50)
   return (
-    <div className="grid grid-cols-2 divide-x divide-gray-100">
-      <div className="px-5 py-5 space-y-3">
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
+      <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         <div className="flex items-center gap-3">
           <input type="range" min={0} max={100} value={value} onChange={e => setValue(Number(e.target.value))}
@@ -180,11 +182,11 @@ function NumberDemo({ variant }: { variant: string }) {
           <span className="text-sm font-semibold text-gray-700 w-10 text-right">{value}%</span>
         </div>
       </div>
-      <div className="px-5 py-5">
+      <div className="px-5 py-5 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
         <div className="min-h-[40px]">
-          {micOnRateBlock.CardItem
-            ? <micOnRateBlock.CardItem value={value} ctx={ctx} variant={variant} />
+          {gaugeComponent.CardItem
+            ? <gaugeComponent.CardItem value={value} ctx={ctx} variant={variant} />
             : <span style={SUB_STYLE}>—</span>
           }
         </div>
@@ -200,8 +202,8 @@ function BooleanDemo() {
   const [value, setValue] = useState(false)
   const fs = ctx.cardWidth * 0.012
   return (
-    <div className="grid grid-cols-2 divide-x divide-gray-100">
-      <div className="px-5 py-5 space-y-3">
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
+      <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         <button type="button" onClick={() => setValue(v => !v)}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${value ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]' : 'border-gray-200 bg-white text-gray-500'}`}>
@@ -211,7 +213,7 @@ function BooleanDemo() {
           {value ? 'ON' : 'OFF'}
         </button>
       </div>
-      <div className="px-5 py-5">
+      <div className="px-5 py-5 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
         <span style={{ fontSize: fs, color: value ? '#22c55e' : ctx.theme.subText, background: (value ? '#22c55e' : ctx.theme.subText) + '18', padding: '2px 10px', borderRadius: 999, border: `1px solid ${(value ? '#22c55e' : ctx.theme.subText)}40`, fontFamily: ctx.fontFamily }}>
           {value ? 'ON' : 'OFF'}
@@ -222,19 +224,19 @@ function BooleanDemo() {
 }
 
 // ─────────────────────────────────────────
-// sns → snsBlock.CardItem
+// sns → snsComponent.CardItem
 // ─────────────────────────────────────────
-const SNS_PLATFORMS: { key: keyof SnsValue; label: string; placeholder: string; color: string }[] = [
+const SNS_PLATFORMS: { key: string; label: string; placeholder: string; color: string }[] = [
   { key: 'vrchatId',  label: 'VRChat',  placeholder: 'ID',       color: '#00AADB' },
   { key: 'twitterId', label: 'X',       placeholder: '@handle',  color: '#1a1a1a' },
   { key: 'discordId', label: 'Discord', placeholder: 'username', color: '#5865f2' },
 ]
 
 function SnsDemo({ variant }: { variant: string }) {
-  const [value, setValue] = useState<SnsValue>({ vrchatId: '', twitterId: '', discordId: '' })
+  const [value, setValue] = useState<Record<string, string>>({ vrchatId: '', twitterId: '', discordId: '' })
 
   return (
-    <div className="grid grid-cols-2 divide-x divide-gray-100">
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
       <div className="px-5 py-5 space-y-2">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         {SNS_PLATFORMS.map(p => (
@@ -247,11 +249,11 @@ function SnsDemo({ variant }: { variant: string }) {
           </div>
         ))}
       </div>
-      <div className="px-5 py-5">
+      <div className="px-5 py-5 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
         <div className="min-h-[40px]">
-          {snsBlock.CardItem
-            ? <snsBlock.CardItem value={value} ctx={ctx} variant={variant} />
+          {snsBundleComponent.CardItem
+            ? <snsBundleComponent.CardItem value={value} ctx={ctx} variant={variant} />
             : <span style={SUB_STYLE}>—</span>
           }
         </div>
@@ -261,7 +263,7 @@ function SnsDemo({ variant }: { variant: string }) {
 }
 
 // ─────────────────────────────────────────
-// weekly-activity → activityBlock.CardItem
+// weekly-activity → activityComponent.CardItem
 // ─────────────────────────────────────────
 function WeeklyActivityDemo() {
   const DAYS = ['月', '火', '水', '木', '金', '土', '日']
@@ -272,8 +274,8 @@ function WeeklyActivityDemo() {
   })
 
   return (
-    <div className="grid grid-cols-2 divide-x divide-gray-100">
-      <div className="px-5 py-5 space-y-3">
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
+      <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         <div className="flex gap-1.5">
           {DAYS.map((d, i) => (
@@ -296,11 +298,11 @@ function WeeklyActivityDemo() {
             className="w-20 px-2 py-1 border border-gray-200 rounded text-sm" />
         </div>
       </div>
-      <div className="px-5 py-5">
+      <div className="px-5 py-5 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
         <div className="min-h-[40px]">
-          {activityBlock.CardItem
-            ? <activityBlock.CardItem value={value} ctx={ctx} />
+          {activityComponent.CardItem
+            ? <activityComponent.CardItem value={value} ctx={ctx} />
             : <span style={SUB_STYLE}>—</span>
           }
         </div>
@@ -310,10 +312,10 @@ function WeeklyActivityDemo() {
 }
 
 // ─────────────────────────────────────────
-// mark-list → interactionsBlock.CardItem
+// mark-list → interactionsComponent.CardItem
 // ─────────────────────────────────────────
 const MARKS = ['—', '◎', '◯', '△', '✗'] as const
-const DEFAULT_ITEMS: InteractionItem[] = [
+const DEFAULT_ITEMS: MarkListItem[] = [
   { label: '項目A', mark: '◎' },
   { label: '項目B', mark: '◯' },
   { label: '項目C', mark: '△' },
@@ -330,12 +332,12 @@ function markStyle(m: string): { bg: string; border: string; text: string } {
 }
 
 function MarkListDemo({ variant }: { variant: string }) {
-  const [items, setItems] = useState<InteractionItem[]>(DEFAULT_ITEMS)
+  const [items, setItems] = useState<MarkListItem[]>(DEFAULT_ITEMS)
   const update = (i: number, mark: string) =>
     setItems(list => list.map((item, j) => j === i ? { ...item, mark } : item))
 
   return (
-    <div className="grid grid-cols-2 divide-x divide-gray-100">
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
       <div className="px-5 py-5 space-y-2">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         {items.map((item, i) => {
@@ -353,11 +355,11 @@ function MarkListDemo({ variant }: { variant: string }) {
           )
         })}
       </div>
-      <div className="px-5 py-5">
+      <div className="px-5 py-5 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
         <div className="min-h-[40px]">
-          {interactionsBlock.CardItem
-            ? <interactionsBlock.CardItem value={items} ctx={ctx} variant={variant} />
+          {markListComponent.CardItem
+            ? <markListComponent.CardItem value={items} ctx={ctx} variant={variant} />
             : <span style={SUB_STYLE}>—</span>
           }
         </div>
@@ -371,8 +373,8 @@ function MarkListDemo({ variant }: { variant: string }) {
 // ─────────────────────────────────────────
 function GalleryDemo() {
   return (
-    <div className="grid grid-cols-2 divide-x divide-gray-100">
-      <div className="px-5 py-5 space-y-3">
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
+      <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
         <div className="flex gap-2">
           {[0, 1, 2].map(i => (
@@ -382,12 +384,34 @@ function GalleryDemo() {
           ))}
         </div>
       </div>
-      <div className="px-5 py-5">
+      <div className="px-5 py-5 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
         <div style={{ display: 'flex', gap: 4 }}>
           {[0, 1, 2].map(i => (
             <div key={i} style={{ flex: 1, aspectRatio: '1', borderRadius: 6, background: '#e5e7eb' }} />
           ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────
+// profile-image
+// ─────────────────────────────────────────
+function ProfileImageDemo({ variant }: { variant: string }) {
+  const [value, setValue] = useState<{ base64: string | null; url: string | null }>({ base64: null, url: null })
+
+  return (
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
+      <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">
+        <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
+        <profileImageComponent.FormItem value={value} onChange={setValue} t={{} as never} />
+      </div>
+      <div className="px-5 py-5 space-y-2">
+        <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">CardItem</p>
+        <div style={{ width: 120 }}>
+          {profileImageComponent.CardItem && <profileImageComponent.CardItem value={value} ctx={ctx} variant={variant} />}
         </div>
       </div>
     </div>
@@ -408,6 +432,7 @@ const ABSTRACT_COMPONENTS: AbstractComponent[] = [
   { inputType: 'weekly-activity',   description: '曜日＋時間帯。平日/休日を個別設定可能。',            variants: ['default'],             Demo: ({ variant: _ }) => <WeeklyActivityDemo /> },
   { inputType: 'mark-list',         description: 'ラベル＋記号（◎◯△✗）の汎用リスト。順序性なし。',  variants: ['default', 'grid'],     Demo: MarkListDemo },
   { inputType: 'gallery',           description: '画像ギャラリー（最大3枚）。',                       variants: ['default'],             Demo: ({ variant: _ }) => <GalleryDemo /> },
+  { inputType: 'profile-image',     description: 'プロフィール画像。正方形トリミング。variant で形状変更。', variants: ['default', 'circle'],  Demo: ProfileImageDemo },
 ]
 
 const INPUT_TYPE_COLORS: Record<string, string> = {
@@ -421,6 +446,7 @@ const INPUT_TYPE_COLORS: Record<string, string> = {
   'weekly-activity':   'bg-teal-100 text-teal-700 border-teal-200',
   'mark-list':         'bg-rose-100 text-rose-700 border-rose-200',
   'gallery':           'bg-yellow-100 text-yellow-700 border-yellow-200',
+  'profile-image':     'bg-indigo-100 text-indigo-700 border-indigo-200',
 }
 
 function AbstractComponentCard({ inputType, description, variants, Demo }: AbstractComponent) {

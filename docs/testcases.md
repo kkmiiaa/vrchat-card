@@ -381,15 +381,16 @@
 |---|---|---|---|
 | 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `''`（空文字） |
 | 2 | `blockConfig.options=[{ value:'A', label:'Aさん' }]` | 選択肢（value+label）を設定したとき | label が表示された選択肢ボタンが描画される |
-| 3 | `blockConfig.options` の各選択肢に `color` を設定 | 選択肢に色を設定したとき | 対応する色で選択肢が表示される |
+| 3 | `blockConfig.options` の各選択肢に `color` を設定（FormItem） | 選択肢ボタンに色を設定したとき | 対応する色で選択肢ボタンが描画される |
 | 4 | 選択肢をクリック | ユーザーが選択したとき | `value`（label ではなく）が `onChange` に渡される |
 | 5 | 選択済みの選択肢を再クリック | 選択を解除したとき | `''` が `onChange` に渡される |
 | 6 | `formLabel='信頼度'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
 | 7 | `card_data[dataKey]` の型 | 保存される値の型 | `string`（選択肢の `value` フィールド） |
 | 8 | `card_data = { [dataKey]: 'trusted' }` | 選択時の card_data 全体 | `{ [dataKey]: 'trusted' }` が保存される |
 | 9 | `card_data = { [dataKey]: '' }` | 未選択時の card_data 全体 | `{ [dataKey]: '' }` が保存される |
-| 10 | `cardItem.value = 'trusted'` | 選択済み値をカードに表示したとき | 対応する label が描画される |
-| 11 | `cardItem.value = ''` | 未選択値をカードに表示したとき | エラーなく描画される（空表示） |
+| 10 | `cardItem.value = 'trusted'`（color あり） | 選択済み値をカードに表示したとき | 対応する label が描画される |
+| 11 | `cardItem.value = 'trusted'` のとき `blockConfig.options` の `color` | 選択した値の色が CardItem にも反映されるか | 選択肢に設定した color でカード上も表示される |
+| 12 | `cardItem.value = ''` | 未選択値をカードに表示したとき | エラーなく描画される（空表示） |
 
 ---
 

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentDef } from './types'
+import type { ComponentDef, BlockConfigFormProps } from './types'
 import { BG_VARIANT_STYLE } from './types'
 
 export type BadgeValue = {
@@ -15,13 +15,14 @@ export const badgeComponent: ComponentDef<BadgeValue> = {
   defaultValue: DEFAULT_BADGE_VALUE,
   variants: ['default', 'outline', 'subtle'],
 
-  CardItem({ value, ctx, variant, bgVariant }) {
+  CardItem({ value, ctx, variant, bgVariant, blockConfig }) {
     const safe: BadgeValue = (value && typeof value === 'object' && 'label' in value)
       ? value as BadgeValue
       : DEFAULT_BADGE_VALUE
 
     const label = safe.label || '—'
-    const color = safe.color || ctx.theme.accent
+    const defaultColor = typeof blockConfig?.defaultColor === 'string' ? blockConfig.defaultColor : ctx.theme.accent
+    const color = safe.color || defaultColor
     const fs = ctx.fontSize.sm
     const radius = ctx.cardWidth * 0.025
     const px = `${ctx.cardWidth * 0.01 * ctx.paddingScale}px ${ctx.cardWidth * 0.018 * ctx.paddingScale}px`
@@ -72,10 +73,13 @@ export const badgeComponent: ComponentDef<BadgeValue> = {
     )
   },
 
-  FormItem({ value, onChange }) {
+  FormItem({ value, onChange, blockConfig }) {
     const safe: BadgeValue = (value && typeof value === 'object' && 'label' in value)
       ? value as BadgeValue
       : DEFAULT_BADGE_VALUE
+
+    // allowColorPicker が明示的に false でない限り表示（デフォルト true）
+    const allowColorPicker = blockConfig?.allowColorPicker !== false
 
     return (
       <div className="flex flex-col gap-3">
@@ -89,6 +93,7 @@ export const badgeComponent: ComponentDef<BadgeValue> = {
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
           />
         </div>
+        {allowColorPicker && (
         <div className="flex items-center gap-3">
           <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">カラー</label>
           <input
@@ -102,6 +107,33 @@ export const badgeComponent: ComponentDef<BadgeValue> = {
               className="text-[10px] text-gray-300 hover:text-gray-500">reset</button>
           )}
         </div>
+        )}
+      </div>
+    )
+  },
+  blockConfigForm({ blockConfig, onChange }: BlockConfigFormProps) {
+    const allowColorPicker = blockConfig.allowColorPicker !== false
+    const defaultColor = typeof blockConfig.defaultColor === 'string' ? blockConfig.defaultColor : ''
+    return (
+      <div className="flex flex-col gap-2 text-sm">
+        <div className="flex items-center gap-2">
+          <input type="checkbox" checked={allowColorPicker} id="badge-allowColorPicker"
+            onChange={e => onChange({ ...blockConfig, allowColorPicker: e.target.checked })}
+            className="rounded" />
+          <label htmlFor="badge-allowColorPicker" className="text-[10px] text-gray-500">ユーザーがカラーを自由に設定できる（allowColorPicker）</label>
+        </div>
+        {!allowColorPicker && (
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-gray-500 w-28 shrink-0">デフォルトカラー</span>
+            <input type="color" value={defaultColor || '#00AADB'}
+              onChange={e => onChange({ ...blockConfig, defaultColor: e.target.value })}
+              className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0.5" />
+            {defaultColor && (
+              <button type="button" onClick={() => onChange({ ...blockConfig, defaultColor: undefined })}
+                className="text-xs text-gray-300 hover:text-gray-500">reset</button>
+            )}
+          </div>
+        )}
       </div>
     )
   },

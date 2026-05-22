@@ -71,14 +71,17 @@ export const gaugeComponent: ComponentDef<number> = {
     )
   },
 
-  FormItem({ value, onChange }) {
+  FormItem({ value, onChange, blockConfig }) {
+    const maxValue = typeof blockConfig?.maxValue === 'number' ? blockConfig.maxValue : 100
+    const step = typeof blockConfig?.step === 'number' ? blockConfig.step : 1
     return (
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-3">
           <input
             type="range"
             min={0}
-            max={100}
+            max={maxValue}
+            step={step}
             value={value}
             onChange={e => onChange(Number(e.target.value))}
             className="flex-1 accent-[#00AADB] h-1.5"

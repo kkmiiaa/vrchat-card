@@ -6,11 +6,13 @@ export const ratingComponent: ComponentDef<number> = {
   key: 'rating',
   defaultValue: 0,
   variants: ['default', 'compact'],
-  CardItem({ value, ctx, variant, bgVariant }) {
+  CardItem({ value, ctx, variant, bgVariant, blockConfig }) {
     const rating = typeof value === 'number' ? Math.min(5, Math.max(0, value)) : 0
     const isCompact = variant === 'compact'
     const starSize = isCompact ? ctx.fontSize.sm * 1.2 : ctx.fontSize.lg * 1.2
     const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+    const icon = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '★'
+    const activeColor = typeof blockConfig?.color === 'string' ? blockConfig.color : ctx.theme.accent
 
     return (
       <div style={{
@@ -30,18 +32,20 @@ export const ratingComponent: ComponentDef<number> = {
             key={i}
             style={{
               fontSize: starSize,
-              color: i < rating ? ctx.theme.accent : '#d1d5db',
+              color: i < rating ? activeColor : '#d1d5db',
               lineHeight: 1,
             }}
           >
-            ★
+            {icon}
           </span>
         ))}
       </div>
     )
   },
-  FormItem({ value, onChange }) {
+  FormItem({ value, onChange, blockConfig }) {
     const rating = typeof value === 'number' ? value : 0
+    const icon = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '★'
+    const activeColor = typeof blockConfig?.color === 'string' ? blockConfig.color : '#f59e0b'
     return (
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-1">
@@ -51,9 +55,9 @@ export const ratingComponent: ComponentDef<number> = {
               type="button"
               onClick={() => onChange(i + 1 === rating ? 0 : i + 1)}
               className="text-2xl leading-none transition-colors focus:outline-none"
-              style={{ color: i < rating ? '#f59e0b' : '#d1d5db' }}
+              style={{ color: i < rating ? activeColor : '#d1d5db' }}
             >
-              ★
+              {icon}
             </button>
           ))}
           <span className="ml-2 text-sm text-gray-500">{rating} / 5</span>

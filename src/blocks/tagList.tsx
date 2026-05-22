@@ -6,10 +6,11 @@ export const tagListComponent: ComponentDef<string[]> = {
   key: 'tagList',
   defaultValue: [],
   variants: ['default', 'compact'],
-  CardItem({ value, ctx, variant, bgVariant: _bgVariant }) {
+  CardItem({ value, ctx, variant, bgVariant: _bgVariant, blockConfig }) {
     const tags = Array.isArray(value) ? value : []
     const isCompact = variant === 'compact'
     const fs = isCompact ? ctx.fontSize.xs : ctx.fontSize.sm
+    const prefix = typeof blockConfig?.prefix === 'string' ? blockConfig.prefix : ''
 
     return (
       <div style={{
@@ -34,7 +35,7 @@ export const tagListComponent: ComponentDef<string[]> = {
               whiteSpace: 'nowrap',
             }}
           >
-            {tag}
+            {prefix}{tag}
           </span>
         ))}
       </div>
@@ -97,8 +98,15 @@ export const tagListComponent: ComponentDef<string[]> = {
   blockConfigForm({ blockConfig, onChange }: BlockConfigFormProps) {
     const color = typeof blockConfig.color === 'string' ? blockConfig.color : ''
     const maxCount = typeof blockConfig.maxCount === 'number' ? blockConfig.maxCount : ''
+    const prefix = typeof blockConfig.prefix === 'string' ? blockConfig.prefix : ''
     return (
       <div className="flex flex-col gap-2 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 w-20 shrink-0">プレフィックス</span>
+          <input type="text" value={prefix} placeholder="例: #"
+            onChange={e => onChange({ ...blockConfig, prefix: e.target.value || undefined })}
+            className="w-16 text-xs border border-gray-200 rounded px-2 py-1 bg-white" />
+        </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-gray-500 w-20 shrink-0">色</span>
           <input type="color" value={color || '#00AADB'}

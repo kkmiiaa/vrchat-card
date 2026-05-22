@@ -51,6 +51,7 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
 
     type OptionRow = { value: string; label: string }
     const options: OptionRow[] = Array.isArray(blockConfig?.options) ? blockConfig.options as OptionRow[] : []
+    const allowNone = blockConfig?.allowNone === true
 
     return (
       <div className="flex flex-col gap-3">
@@ -69,6 +70,19 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
               {opt.label}
             </button>
           ))}
+          {allowNone && (
+            <button
+              type="button"
+              onClick={() => onChange({ tag: '', display: '' })}
+              className={`flex-1 py-2 flex items-center justify-center gap-1 transition-colors ${
+                safe.tag === ''
+                  ? 'bg-gray-900 text-white font-semibold'
+                  : 'bg-white text-gray-400 hover:bg-gray-50'
+              }`}
+            >
+              回答なし
+            </button>
+          )}
         </div>
         {safe.tag && (
           <input
@@ -108,6 +122,12 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
           </div>
         ))}
         <button type="button" onClick={addOption} className="text-sm text-sky-500 hover:text-sky-700 font-medium text-left transition-colors">+ 選択肢を追加</button>
+        <div className="flex items-center gap-2 mt-1">
+          <input type="checkbox" checked={blockConfig.allowNone === true} id="expressive-allowNone"
+            onChange={e => onChange({ ...blockConfig, allowNone: e.target.checked || undefined })}
+            className="rounded" />
+          <label htmlFor="expressive-allowNone" className="text-[10px] text-gray-500">「回答なし」選択肢を表示する（allowNone）</label>
+        </div>
       </div>
     )
   },

@@ -67,4 +67,37 @@ describe('colorStatus', () => {
       )
     ).not.toThrow()
   })
+
+  it('12. cards variant でコンテンツが描画される', () => {
+    render(
+      colorStatusComponent.CardItem!({
+        value: { blue: '募集中テキスト' },
+        ctx: DEFAULT_CARD_RENDER_CONTEXT,
+        variant: 'cards',
+        blockConfig: { fields: FIELDS },
+      })
+    )
+    expect(screen.getByText('募集中テキスト')).toBeInTheDocument()
+  })
+
+  it('13. cards variant の各アイテムに hardcoded な rgba 背景色が設定されていない', () => {
+    const { container } = render(
+      colorStatusComponent.CardItem!({
+        value: { blue: '募集中' },
+        ctx: DEFAULT_CARD_RENDER_CONTEXT,
+        variant: 'cards',
+        blockConfig: { fields: FIELDS },
+      })
+    )
+    // cards variant のアイテム div に rgba(255,255,255, ...) の background がないこと
+    const itemDivs = container.querySelectorAll('div > div')
+    itemDivs.forEach(div => {
+      const bg = (div as HTMLElement).style.background
+      expect(bg).not.toMatch(/rgba\(255,\s*255,\s*255/)
+    })
+  })
+
+  it('14. cards variant は variants 配列に含まれる', () => {
+    expect(colorStatusComponent.variants).toContain('cards')
+  })
 })

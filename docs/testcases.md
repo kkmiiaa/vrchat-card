@@ -434,6 +434,8 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 | 10 | `cardItem.value = ['pcvr', 'quest']` | 複数選択済み値をカードに表示したとき | 対応する label が両方描画される |
 | 11 | `cardItem.value = []` | 未選択値をカードに表示したとき | エラーなく描画される（空表示） |
 | 12 | `blockConfig.options` に同じ `value` を持つ選択肢を2件登録 | 選択肢の value 重複バリデーション | エラーが表示され保存できない |
+| 13 | `variant='icon-slash'` でアイコン付き選択肢を描画 | icon-slash variant の描画 | アイコン+ラベルが「/」区切りで並ぶ |
+| 14 | `icon-slash` が `variants` 配列に含まれる | variant 定義の確認 | `variants` に `'icon-slash'` が含まれる |
 
 ---
 
@@ -647,6 +649,8 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 | 12 | `card_data = { [dataKey]: [{ label: 'ハグOK', mark: '-' }, ...] }` | 未選択時の card_data 全体 | `{ [dataKey]: [...] }` が保存される |
 | 13 | `cardItem.value = [{ label: 'ハグOK', mark: '◎' }, ...]` | マーク済み値をカードに表示したとき | マーク付き項目がタグとして描画される |
 | 14 | `cardItem.value = [{ label: 'ハグOK', mark: '-' }, ...]` | 全項目未選択値をカードに表示したとき | エラーなく描画される（空表示） |
+| 15 | `CardItem` のルート要素に `alignSelf: flex-start` が設定される | 縦方向への引き伸ばし防止 | 親の flex stretch に引き伸ばされない |
+| 16 | `CardItem` のルート要素に `alignContent: flex-start` が設定される | チップの縦方向整列 | チップが上詰めで並ぶ |
 
 ---
 
@@ -665,6 +669,9 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 | 9 | `card_data = { [dataKey]: {} }` | 未選択時の card_data 全体 | `{ [dataKey]: {} }` が保存される |
 | 10 | `cardItem.value = { blue: '募集中' }` | 選択済み値をカードに表示したとき | 対応する色とラベルが描画される |
 | 11 | `cardItem.value = {}` | 未選択値をカードに表示したとき | エラーなく描画される（空表示） |
+| 12 | `variant='cards'` でコンテンツが描画される | cards variant の描画 | 入力値がコンテンツとして表示される |
+| 13 | `variant='cards'` の各アイテムに hardcoded な rgba 背景がない | cards variant の背景二重防止 | アイテム div に `rgba(255,255,255,...)` の background が設定されていない |
+| 14 | `cards` が `variants` 配列に含まれる | variant 定義の確認 | `variants` に `'cards'` が含まれる |
 
 ---
 
@@ -743,6 +750,9 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 | 10 | `card_data = { [dataKey]: { tag: '', display: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { tag: '', display: '' } }` が保存される |
 | 11 | `cardItem.value = { tag: 'female', display: 'ふわふわ系' }` | 入力済み値をカードに表示したとき | tag と display が描画される |
 | 12 | `cardItem.value = { tag: '', display: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 13 | `cardItem.value = { tag: 'female', display: '女性' }` | アイコン+テキストの並び方向 | 内側コンテナが flex（row 方向、縦並びではない） |
+| 14 | `cardItem.value = { tag: 'none', display: '' }` | 非公開の表示 | 「ー」テキストが描画される |
+| 15 | `cardItem.value = { tag: 'none', display: '' }` | 非公開時に null を返さない | `CardItem` が null でないことを確認 |
 
 ---
 
@@ -780,5 +790,9 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 | 9 | `card_data = { [dataKey]: { searchTag: '', display: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { searchTag: '', display: '' } }` が保存される |
 | 10 | `cardItem.value = { searchTag: '18+', display: '20代前半' }` | 入力済み値をカードに表示したとき | searchTag と display が描画される |
 | 11 | `cardItem.value = { searchTag: '', display: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 12 | `cardItem.value = { searchTag: '非公開', display: '' }` | 非公開の表示 | 「ー」テキストが描画される |
+| 13 | `cardItem.value = { searchTag: '非公開', display: '' }` | 非公開時に null を返さない | `CardItem` が null でないことを確認 |
+| 14 | `cardItem.value = { searchTag: '', display: '' }` | 空値の表示 | 「ー」テキストが描画される（null を返さない） |
+| 15 | `cardItem.value = { searchTag: '', display: '' }` | 空値時に null を返さない | `CardItem` が null でないことを確認 |
 
 > **将来課題**: 現在の `searchTag` は `'18歳未満' | '18+' | '非公開'` の粗い粒度。将来的に「20代」「30代」「40代」など細かい年代での検索ニーズが発生した場合、`searchTag` の選択肢拡張と検索インデックスの見直しが必要になる可能性がある。

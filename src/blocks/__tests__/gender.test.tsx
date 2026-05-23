@@ -84,4 +84,36 @@ describe('gender', () => {
       )
     ).not.toThrow()
   })
+
+  it('13. CardItem: アイコンとテキストが同一行（flex row）に描画される', () => {
+    const { container } = render(
+      genderComponent.CardItem!({
+        value: { tag: 'female', display: '女性' },
+        ctx: DEFAULT_CARD_RENDER_CONTEXT,
+      })
+    )
+    // アイコン+テキストを包む内側 div は flex（row がデフォルト）
+    const innerRow = container.querySelector('div > div > div') as HTMLElement
+    expect(innerRow.style.display).toBe('flex')
+    // flexDirection は 'row' か未設定（row がデフォルト）
+    expect(innerRow.style.flexDirection).not.toBe('column')
+  })
+
+  it('14. CardItem: 非公開の場合は「ー」が表示される', () => {
+    render(
+      genderComponent.CardItem!({
+        value: { tag: 'none', display: '' },
+        ctx: DEFAULT_CARD_RENDER_CONTEXT,
+      })
+    )
+    expect(screen.getByText('ー')).toBeInTheDocument()
+  })
+
+  it('15. CardItem: 非公開の場合は null を返さない', () => {
+    const result = genderComponent.CardItem!({
+      value: { tag: 'none', display: '' },
+      ctx: DEFAULT_CARD_RENDER_CONTEXT,
+    })
+    expect(result).not.toBeNull()
+  })
 })

@@ -81,8 +81,8 @@ describe('multiSelect', () => {
         blockConfig: { options: OPTIONS },
       })
     )
-    expect(screen.getByText('pcvr')).toBeInTheDocument()
-    expect(screen.getByText('quest')).toBeInTheDocument()
+    expect(screen.getByText('PCVR')).toBeInTheDocument()
+    expect(screen.getByText('Quest')).toBeInTheDocument()
   })
 
   it('11. CardItem: 空配列はエラーなく描画される', () => {
@@ -94,5 +94,28 @@ describe('multiSelect', () => {
         })
       )
     ).not.toThrow()
+  })
+
+  it('12. CardItem: icon-slash variant でアイコン付きラベルが「/」区切りで描画される', () => {
+    const options = [
+      { value: 'pcvr', label: 'PCVR', icon: 'TbBadgeVr' },
+      { value: 'quest', label: 'Quest', icon: 'TbDeviceGamepad2' },
+    ]
+    const { container } = render(
+      multiSelectComponent.CardItem!({
+        value: ['pcvr', 'quest'],
+        ctx: DEFAULT_CARD_RENDER_CONTEXT,
+        variant: 'icon-slash',
+        blockConfig: { options },
+      })
+    )
+    expect(screen.getByText('PCVR')).toBeInTheDocument()
+    expect(screen.getByText('Quest')).toBeInTheDocument()
+    // 2番目以降の選択肢の前に「/」区切りが入る
+    expect(screen.getByText('/')).toBeInTheDocument()
+  })
+
+  it('13. icon-slash variant は variants 配列に含まれる', () => {
+    expect(multiSelectComponent.variants).toContain('icon-slash')
   })
 })

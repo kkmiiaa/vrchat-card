@@ -102,7 +102,7 @@ type ComponentDef<T = unknown> = {
 |-----|----------|--------|-----------------|-------------------|------|
 | `text` | `text.tsx` | ❌ | ✅ | `string` (`''`) | テキスト入力 |
 | `select` | `select.tsx` | ❌ | ✅ | `string` (`''`) | 単一選択 |
-| `multiSelect` | `multiSelect.tsx` | ❌ | ✅ | `string[]` (`[]`) | 複数選択 |
+| `multiSelect` | `multiSelect.tsx` | ❌ | ✅ | `string[]` (`[]`) | 複数選択（variant: default/slash/icon/icon-slash） |
 | `gauge` | `gauge.tsx` | ❌ | ✅ | `number` (`0`) | ゲージ（0〜maxValue） |
 | `expressiveSelect` | `expressiveSelect.tsx` | ❌ | ✅ | `{ tag: '', display: '' }` | アイコン付き選択 |
 | `badge` | `badge.tsx` | ❌ | ❌ | `{ label: '', color: '' }` | バッジ（ラベル＋色） |
@@ -113,7 +113,7 @@ type ComponentDef<T = unknown> = {
 | `colorPalette` | `colorPalette.tsx` | ❌ | ✅ | `string[]`（初期4色） | カラーパレット |
 | `tagList` | `tagList.tsx` | ❌ | ✅ | `string[]` (`[]`) | タグリスト |
 | `markList` | `markList.tsx` | ❌ | ✅ | `MarkItem[]`（デフォルト項目あり） | マーク付きリスト（OK/NG等） |
-| `colorStatus` | `colorStatus.tsx` | ❌ | ✅ | `Record<string, boolean>` (`{}`) | 色付きステータス一覧 |
+| `colorStatus` | `colorStatus.tsx` | ❌ | ✅ | `Record<string, string>` (`{}`) | 色付きステータス一覧（variant: default/compact/cards） |
 | `activity` | `activity.tsx` | ❌ | ❌ | 週次活動時間帯オブジェクト | 週間活動時間帯 |
 | `simpleSns` | `simpleSns.tsx` | ❌ | ✅ | `string` (`''`) | 単一 SNS ID |
 | `snsBundle` | `snsBundle.tsx` | ❌ | ✅ | `Record<string, string>` (`{}`) | 複数 SNS まとめ |
@@ -126,6 +126,34 @@ type ComponentDef<T = unknown> = {
 | `gallery` | `gallery.tsx` | ❌ | ❌ | `string[]` (`[]`) | ギャラリー画像 |
 | `background` | `background.tsx` | ❌ | ❌ | — | カード背景 |
 | `overlay` | `overlay.tsx` | ❌ | ❌ | — | オーバーレイ |
+
+#### コンポーネント別 CardItem の表示挙動
+
+| コンポーネント | 条件 | CardItem の動作 |
+|---|---|---|
+| `gender` | `tag === 'none'`（非公開） | TbMinus アイコン + 「ー」テキストを横並びで表示（null 返却しない） |
+| `gender` | 空値 (`tag === ''`) | 何も表示しない（null 返却） |
+| `gender` | 有効な tag | アイコン+テキストを常に横並び（flex row）で表示 |
+| `age` | `searchTag === '非公開'` | 「ー」テキストを表示（null 返却しない） |
+| `age` | `searchTag === ''` かつ `display === ''` | 「ー」テキストを表示（null 返却しない） |
+| `markList` | マーク済み項目あり | ルート要素に `alignSelf: flex-start`, `alignContent: flex-start` を付与し縦方向の引き伸ばしを防ぐ |
+
+#### multiSelect バリアント一覧
+
+| variant | 説明 |
+|---|---|
+| `default` | テキストボタン並び |
+| `slash` | 「/」区切りのテキスト並び |
+| `icon` | アイコンのみ |
+| `icon-slash` | アイコン+テキストを「/」区切りで並べる（v2 landscape の環境表示で使用） |
+
+#### colorStatus バリアント一覧
+
+| variant | 説明 |
+|---|---|
+| `default` | ドット+テキストの縦並びリスト |
+| `compact` | ドットのみの横並び（ホバーでテキスト表示） |
+| `cards` | 左ボーダー付きカード形式（v2 landscape の STATUS で使用） |
 
 ---
 
@@ -178,11 +206,13 @@ type LabelDef = {
   color?: string        // 省略時はテーマの text 色
   fontScale?: number    // 省略時は 1
   dir?: 'row' | 'col'  // 並び方向（省略時は 'col' 相当）
+  icon?: string         // アイコンキー（Tabler Icons: 例 'TbMicrophone'）
 }
 ```
 
 - `dir === 'col'`（デフォルト）: ラベルが上、コンテンツが下に縦並び
 - `dir === 'row'`: ラベルが左、コンテンツが右に横並び。単行コンポーネントでは縦方向センタリング（`alignItems: center`）が適用される
+- `icon`: Tabler Icons のキー文字列を指定すると、ラベルテキストの左にアイコンが表示される（`gauge` コンポーネント対応済み）
 
 コンポーネントがラベルをサポートするかは variant に依存する場合がある（例: `language`, `multiSelect` は `slash` variant のみ label 対応）。
 

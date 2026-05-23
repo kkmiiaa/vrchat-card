@@ -5,110 +5,141 @@ import { DEFAULT_CARD_RENDER_CONTEXT } from '../types'
 import { translations } from '@/utils/translations'
 
 const t = translations.ja
+const defaultValue = { marks: {}, custom: [] }
 
 describe('markList', () => {
-  it('1. defaultValue はデフォルト項目を含む配列（空配列ではない）', () => {
-    expect(Array.isArray(markListComponent.defaultValue)).toBe(true)
-    expect(markListComponent.defaultValue.length).toBeGreaterThan(0)
+  it('1. defaultValue は { marks: {}, custom: [] }', () => {
+    expect(markListComponent.defaultValue).toEqual({ marks: {}, custom: [] })
   })
 
-  it('2. blockConfig.marks でマーク記号が表示される', () => {
+  it('2. blockConfig.marks でマーク記号が select に表示される', () => {
     const marks = [{ symbol: '★', color: '#f59e0b', bg: 'rgba(254,243,199,0.6)' }]
     render(
       markListComponent.FormItem!({
-        value: [{ label: 'ハグOK', mark: '-' }],
-        onChange: () => {},
-        t,
-        blockConfig: { marks },
+        value: defaultValue,
+        onChange: () => {}, t,
+        blockConfig: { marks, items: [{ label: 'ハグOK' }] },
       })
     )
-    // select に ★ の option が表示される
     expect(screen.getByText('★')).toBeInTheDocument()
   })
 
-  it('3. blockConfig.items でカスタム項目が描画される', () => {
+  it('3. blockConfig.items で固定項目が描画される', () => {
     render(
       markListComponent.FormItem!({
-        value: [{ label: 'ハグOK', mark: '-' }, { label: 'なでなでOK', mark: '-' }],
-        onChange: () => {},
-        t,
+        value: defaultValue,
+        onChange: () => {}, t,
+        blockConfig: { items: [{ label: 'ハグOK' }, { label: 'なでなでOK' }] },
       })
     )
-    // ラベルが翻訳されるため exists チェック
-    expect(screen.getAllByRole('option').length).toBeGreaterThan(0)
+    expect(screen.getByText('ハグOK')).toBeInTheDocument()
+    expect(screen.getByText('なでなでOK')).toBeInTheDocument()
   })
 
-  it('5. blockConfig.maxCustomItems=1 のとき 1件超のカスタム項目が追加できない', () => {
+  it('4. blockConfig.maxCustomItems=1 のとき上限に達すると追加ボタンが非表示', () => {
     render(
       markListComponent.FormItem!({
-        value: [{ label: 'カスタム1', mark: '-', isCustom: true }],
-        onChange: () => {},
-        t,
-        blockConfig: { maxCustomItems: 1 },
+        value: { marks: {}, custom: [{ label: 'カスタム1', mark: '-' }] },
+        onChange: () => {}, t,
+        blockConfig: { maxCustomItems: 1, items: [{ label: 'ハグOK' }] },
       })
     )
-    // 追加ボタンが非表示
-    expect(screen.queryByText(t.addCustomItem)).toBeNull()
+    expect(screen.queryByText('+ カスタム項目を追加')).toBeNull()
   })
 
-  it('5b. カスタム数 < maxCustomItems のとき追加ボタンが表示される', () => {
+  it('5. maxCustomItems > custom.length のとき追加ボタンが表示される', () => {
     render(
       markListComponent.FormItem!({
-        value: [],
-        onChange: () => {},
-        t,
-        blockConfig: { maxCustomItems: 3 },
+        value: defaultValue,
+        onChange: () => {}, t,
+        blockConfig: { maxCustomItems: 3, items: [{ label: 'ハグOK' }] },
       })
     )
-    expect(screen.getByText(t.addCustomItem)).toBeInTheDocument()
+    expect(screen.getByText('+ カスタム項目を追加')).toBeInTheDocument()
   })
 
-  it('6. マーク記号を変更すると該当行が更新された配列が onChange に渡される', () => {
+  it('6. マーク記号を変更すると marks が更新された value が onChange に渡される', () => {
     const onChange = vi.fn()
     render(
       markListComponent.FormItem!({
-        value: [{ label: 'ハグOK', mark: '-' }],
-        onChange,
-        t,
+        value: defaultValue,
+        onChange, t,
+        blockConfig: {
+          marks: [{ symbol: '◎', color: '#22c55e', bg: '#f0fdf4' }],
+          items: [{ label: 'ハグOK' }],
+        },
       })
     )
     const select = screen.getAllByRole('combobox')[0]
     fireEvent.change(select, { target: { value: '◎' } })
-    expect(onChange).toHaveBeenCalledWith([{ label: 'ハグOK', mark: '◎' }])
+    expect(onChange).toHaveBeenCalledWith({ marks: { 0: '◎' }, custom: [] })
   })
 
-  it('8. カスタム項目追加ボタンをクリックすると isCustom: true が追加される', () => {
+  it('7. カスタム項目追加ボタンをクリックすると custom に空要素が追加される', () => {
     const onChange = vi.fn()
     render(
       markListComponent.FormItem!({
-        value: [],
-        onChange,
-        t,
+        value: defaultValue,
+        onChange, t,
+        blockConfig: { maxCustomItems: 3, items: [{ label: 'ハグOK' }] },
       })
     )
-    fireEvent.click(screen.getByText(t.addCustomItem))
-    const called = onChange.mock.calls[0][0]
-    expect(called.some((item: { isCustom?: boolean }) => item.isCustom === true)).toBe(true)
+    fireEvent.click(screen.getByText('+ カスタム項目を追加'))
+    expect(onChange).toHaveBeenCalledWith({ marks: {}, custom: [{ label: '', mark: '-' }] })
   })
 
-  it('13. CardItem: マーク済み項目が描画される', () => {
+  it('8. CardItem: マーク済み固定項目が描画される', () => {
     render(
       markListComponent.CardItem!({
-        value: [{ label: 'ハグOK', mark: '◎' }],
+        value: { marks: { 0: '◎' }, custom: [] },
         ctx: DEFAULT_CARD_RENDER_CONTEXT,
+        blockConfig: {
+          marks: [{ symbol: '◎', color: '#22c55e', bg: '#f0fdf4' }],
+          items: [{ label: 'ハグOK' }],
+        },
       })
     )
     expect(screen.getByText(/◎/)).toBeInTheDocument()
   })
 
-  it('14. CardItem: 全項目未選択はエラーなく描画される', () => {
-    expect(() =>
-      render(
-        markListComponent.CardItem!({
-          value: [{ label: 'ハグOK', mark: '-' }],
-          ctx: DEFAULT_CARD_RENDER_CONTEXT,
-        })
-      )
-    ).not.toThrow()
+  it('9. CardItem: 全項目未選択（-）は表示されない', () => {
+    const { container } = render(
+      markListComponent.CardItem!({
+        value: defaultValue,
+        ctx: DEFAULT_CARD_RENDER_CONTEXT,
+        blockConfig: { items: [{ label: 'ハグOK' }] },
+      })
+    )
+    expect(container.firstChild).toBeNull()
+  })
+
+  it('10. CardItem: ルート要素に alignSelf: flex-start が設定される（縦方向への引き伸ばし防止）', () => {
+    const { container } = render(
+      markListComponent.CardItem!({
+        value: { marks: { 0: '◎' }, custom: [] },
+        ctx: DEFAULT_CARD_RENDER_CONTEXT,
+        blockConfig: {
+          marks: [{ symbol: '◎', color: '#22c55e', bg: '#f0fdf4' }],
+          items: [{ label: 'ハグOK' }],
+        },
+      })
+    )
+    const root = container.firstChild as HTMLElement
+    expect(root.style.alignSelf).toBe('flex-start')
+  })
+
+  it('11. CardItem: ルート要素に alignContent: flex-start が設定される', () => {
+    const { container } = render(
+      markListComponent.CardItem!({
+        value: { marks: { 0: '◎' }, custom: [] },
+        ctx: DEFAULT_CARD_RENDER_CONTEXT,
+        blockConfig: {
+          marks: [{ symbol: '◎', color: '#22c55e', bg: '#f0fdf4' }],
+          items: [{ label: 'ハグOK' }],
+        },
+      })
+    )
+    const root = container.firstChild as HTMLElement
+    expect(root.style.alignContent).toBe('flex-start')
   })
 })

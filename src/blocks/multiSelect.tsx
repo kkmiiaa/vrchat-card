@@ -7,7 +7,7 @@ import { ColorPicker } from './colorPicker'
 export const multiSelectComponent: ComponentDef<string[]> = {
   key: 'multi-select',
   defaultValue: [],
-  variants: ['default', 'slash', 'icon'],
+  variants: ['default', 'slash', 'icon', 'icon-slash'],
   supportsBgVariant: true,
   bgVariantFor: ['slash'],
   CardItem({ value, ctx, variant, bgVariant, blockConfig, label }) {
@@ -44,6 +44,45 @@ export const multiSelectComponent: ComponentDef<string[]> = {
             </div>
           )}
           {items.map(v => getOption(v)?.label || v).join(' / ') || '—'}
+        </div>
+      )
+    }
+
+    // icon-slash: [icon] text / [icon] text 形式でスラッシュ区切り
+    if (variant === 'icon-slash') {
+      const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+      const selectedOpts = items.map(v => getOption(v) ?? { value: v, label: v, icon: undefined, color: undefined })
+      return (
+        <div style={{
+          width: '100%',
+          background: bgStyle.background,
+          border: bgStyle.border,
+          borderRadius: ctx.cardWidth * 0.006,
+          padding: `${label ? `${ctx.cardWidth * 0.006 * ctx.paddingScale}px` : '0'} ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
+          display: 'flex',
+          flexDirection: (label?.dir === 'row') ? 'row' : 'column',
+          alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
+          gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
+          overflow: 'hidden',
+        }}>
+          {label && (
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+              <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
+              {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
+            </div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 1, minWidth: 0, overflow: 'hidden', flexWrap: 'nowrap' }}>
+            {selectedOpts.length === 0
+              ? <span style={{ fontSize: fs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>—</span>
+              : selectedOpts.map((opt, i) => (
+                <span key={opt.value} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, flexShrink: 0 }}>
+                  {i > 0 && <span style={{ color: ctx.theme.subText, opacity: 0.5 }}>/</span>}
+                  {opt.icon && <span style={{ display: 'inline-flex', alignItems: 'center', color: opt.color ?? ctx.theme.subText }}>{renderIcon(opt.icon, fs)}</span>}
+                  <span style={{ whiteSpace: 'nowrap' }}>{opt.label}</span>
+                </span>
+              ))
+            }
+          </div>
         </div>
       )
     }

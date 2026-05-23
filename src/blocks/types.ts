@@ -107,6 +107,8 @@ export type LabelDef = {
   fontScale?: number
   /** ラベルとコンテンツの並び方向。'row'=横並び / 'col'=縦並び（デフォルト） */
   dir?: 'row' | 'col'
+  /** ラベル左に表示するアイコンキー（iconRegistry の key） */
+  icon?: string
 }
 
 export const BG_VARIANT_STYLE = {

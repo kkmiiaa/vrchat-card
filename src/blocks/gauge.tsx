@@ -2,6 +2,7 @@
 import type { ComponentDef, BlockConfigFormProps } from './types'
 import { BG_VARIANT_STYLE } from './types'
 import { ColorPicker } from './colorPicker'
+import { renderIcon } from './iconRegistry'
 
 type GaugeConfig = {
   barColor?: string
@@ -46,7 +47,8 @@ export const gaugeComponent: ComponentDef<number> = {
         fontFamily: ctx.fontFamily,
       }}>
         {label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+            {label.icon && <span style={{ display: 'inline-flex', alignItems: 'center', color: label.color ?? ctx.theme.subText, fontSize: ctx.fontSize.sm * (label.fontScale ?? 1) }}>{renderIcon(label.icon, ctx.fontSize.sm * (label.fontScale ?? 1))}</span>}
             <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
             {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
           </div>

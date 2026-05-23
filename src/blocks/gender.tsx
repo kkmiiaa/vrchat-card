@@ -1,7 +1,7 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
 import { BG_VARIANT_STYLE } from './types'
-import { TbGenderMale, TbGenderFemale, TbGenderBigender, TbEyeOff } from 'react-icons/tb'
+import { TbGenderMale, TbGenderFemale, TbGenderBigender, TbEyeOff, TbMinus } from 'react-icons/tb'
 
 export type GenderValue = {
   tag: string
@@ -32,8 +32,9 @@ export const genderComponent: ComponentDef<GenderValue> = {
 
     const option = GENDER_OPTIONS.find(o => o.value === safe.tag)
     const isNone = safe.tag === 'none'
-    const display = isNone ? '—' : (safe.display || option?.label || safe.tag)
-    const Icon = isNone ? null : option?.Icon
+    const display = isNone ? 'ー' : (safe.display || option?.label || safe.tag)
+    // 非公開: フラットなマイナスアイコン、それ以外: 性別アイコン
+    const Icon = isNone ? TbMinus : option?.Icon
     const fs = ctx.fontSize.md
     const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
 
@@ -57,12 +58,13 @@ export const genderComponent: ComponentDef<GenderValue> = {
             {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
           </div>
         )}
-        {Icon && (
-          <Icon style={{ fontSize: fs, color: ctx.theme.subText, flexShrink: 0 }} />
-        )}
-        <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1 }}>
-          {display}
-        </span>
+        {/* アイコンとテキストは常に横並び */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 1, minWidth: 0, overflow: 'hidden' }}>
+          {Icon && <Icon style={{ fontSize: fs, color: ctx.theme.subText, flexShrink: 0 }} />}
+          <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1 }}>
+            {display}
+          </span>
+        </div>
       </div>
     )
   },

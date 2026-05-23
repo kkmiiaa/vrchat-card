@@ -108,7 +108,7 @@ export const cardV2Definition: TemplateDefinition = {
                     { type: 'block', componentKey: 'gender',       dataKey: 'gender',   variant: 'default', bgVariant: 'glass', minH: 2.3 },
                     { type: 'block', componentKey: 'age',          dataKey: 'age',      variant: 'default', bgVariant: 'glass', minH: 2.3, label: '年齢',  labelInset: true, labelInsetDir: 'row', contentFontScale: 0.9, labelColor: '#9ca3af' },
                     {
-                      type: 'block', componentKey: 'multi-select', dataKey: 'playEnv', variant: 'slash',   bgVariant: 'glass', minH: 2.3, label: '環境',  labelInset: true, labelInsetDir: 'row', contentFontScale: 0.9, labelColor: '#9ca3af',
+                      type: 'block', componentKey: 'multi-select', dataKey: 'playEnv', variant: 'icon-slash', bgVariant: 'glass', minH: 2.3, label: '環境',  labelInset: true, labelInsetDir: 'row', contentFontScale: 0.9, labelColor: '#9ca3af',
                       blockConfig: {
                         options: [
                           { value: 'pcvr',    label: 'PCVR',    color: '#6b7280', icon: 'TbBadgeVr' },
@@ -135,7 +135,7 @@ export const cardV2Definition: TemplateDefinition = {
               minH: 11,
               children: [
                 {
-                  type: 'block', componentKey: 'color-status', dataKey: 'status', variant: 'v2', flex: 1, label: 'STATUS', contentFontScale: 0.9, glass: true, minH: 8, bgVariant: 'transparent',
+                  type: 'block', componentKey: 'color-status', dataKey: 'status', variant: 'cards', flex: 1, label: 'STATUS', contentFontScale: 0.9, glass: true, minH: 8, bgVariant: 'transparent',
                   blockConfig: {
                     fields: [
                       { key: 'blue',   label: '青', color: '#60a5fa' },

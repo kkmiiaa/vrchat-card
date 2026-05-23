@@ -19,9 +19,9 @@ export const ageComponent: ComponentDef<AgeValue> = {
     const safe: AgeValue = (value && typeof value === 'object' && 'searchTag' in value)
       ? value as AgeValue
       : { searchTag: '', display: '' }
-    if (!safe.searchTag && !safe.display) return null
-    if (safe.searchTag === '非公開') return null
-    const text = safe.display || safe.searchTag
+    const isPrivate = safe.searchTag === '非公開'
+    const isEmpty = !safe.searchTag && !safe.display
+    const text = (isPrivate || isEmpty) ? 'ー' : (safe.display || safe.searchTag)
     const fs = ctx.fontSize.md
     const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
     return (

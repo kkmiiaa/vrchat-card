@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import type { TemplateDefinition, BlockValues, LayoutNode, Block, LayoutNodeRow, LayoutNodeCol, TemplateGridDef } from '@/blocks/types'
 import { cellsToPixels } from '@/blocks/types'
 import { getAllComponents, getComponent } from '@/blocks/registry'
@@ -64,6 +64,48 @@ function addChild(root: LayoutNode, path: NodePath, child: LayoutNode): LayoutNo
   return setNode(root, path, (n) => {
     if (n.type === 'block') return n
     return { ...n, children: [...n.children, child] }
+  })
+}
+
+// ノードを別の親に移動（DnD 用）
+function reparentNode(root: LayoutNode, fromPath: NodePath, toParentPath: NodePath, toIdx: number): LayoutNode {
+  if (fromPath.length === 0) return root
+  const node = getNode(root, fromPath)
+  if (!node) return root
+  // 自分自身の子孫への移動を禁止
+  if (
+    toParentPath.length >= fromPath.length &&
+    JSON.stringify(toParentPath.slice(0, fromPath.length)) === JSON.stringify(fromPath)
+  ) return root
+
+  const newRoot = deleteNode(root, fromPath)
+  const fromParentPath = fromPath.slice(0, -1)
+  const fromIdx = fromPath[fromPath.length - 1]
+
+  // 削除後のパス補正
+  let adjParent = toParentPath
+  let adjIdx = toIdx
+  outer: for (let i = 0; i <= fromParentPath.length; i++) {
+    if (i === fromParentPath.length && i === toParentPath.length) {
+      // 同一親
+      if (toIdx > fromIdx) adjIdx = toIdx - 1
+      break
+    }
+    if (i === fromParentPath.length) {
+      // fromParentPath が toParentPath の prefix
+      const next = toParentPath[i]
+      if (next > fromIdx) adjParent = [...toParentPath.slice(0, i), next - 1, ...toParentPath.slice(i + 1)]
+      break
+    }
+    if (i === toParentPath.length) break outer
+    if (fromParentPath[i] !== toParentPath[i]) break outer
+  }
+
+  return setNode(newRoot, adjParent, n => {
+    if (n.type === 'block') return n
+    const children = [...n.children]
+    children.splice(adjIdx, 0, node)
+    return { ...n, children }
   })
 }
 
@@ -231,6 +273,18 @@ export default function TemplateBuilder({ definitions, values }: Props) {
     setLayout((prev: LayoutNode) => moveNode(prev, path, dir))
   }, [setLayout])
 
+  const dragPathRef = useRef<NodePath | null>(null)
+  const [isDraggingActive, setIsDraggingActive] = useState(false)
+  const [dropTarget, setDropTarget] = useState<{ parentPath: NodePath; insertIdx: number } | null>(null)
+
+  const handleReparent = useCallback((fromPath: NodePath, toParentPath: NodePath, toIdx: number) => {
+    setSelectedPath(null)
+    setLayout((prev: LayoutNode) => reparentNode(prev, fromPath, toParentPath, toIdx))
+    dragPathRef.current = null
+    setIsDraggingActive(false)
+    setDropTarget(null)
+  }, [setLayout])
+
   const grid = o.grid
 
   // ページ背景（カードと同じ背景をコンテナ全体に適用）
@@ -248,22 +302,73 @@ export default function TemplateBuilder({ definitions, values }: Props) {
     return `${cells}セル / ${cellsToPixels(cells, grid.cellSize)}px`
   }
 
+  // ドロップゾーン（兄弟間の挿入ターゲット）
+  function renderDropZone(parentPath: NodePath, insertIdx: number): React.ReactNode {
+    if (!isDraggingActive || !dragPathRef.current) return null
+    const dp = dragPathRef.current
+    // 自分自身の子孫へのドロップは無効
+    if (parentPath.length >= dp.length &&
+        JSON.stringify(parentPath.slice(0, dp.length)) === JSON.stringify(dp)) return null
+    // 元の位置と同じなら不要
+    const fromParent = dp.slice(0, -1)
+    const fromIdx = dp[dp.length - 1]
+    if (JSON.stringify(fromParent) === JSON.stringify(parentPath) &&
+        (insertIdx === fromIdx || insertIdx === fromIdx + 1)) return null
+
+    const isActive = !!dropTarget &&
+      JSON.stringify(dropTarget.parentPath) === JSON.stringify(parentPath) &&
+      dropTarget.insertIdx === insertIdx
+
+    return (
+      <div
+        className={`mx-2 rounded transition-colors ${isActive ? 'bg-sky-400' : 'bg-transparent'}`}
+        style={{ height: 3, marginTop: 1, marginBottom: 1 }}
+        onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDropTarget({ parentPath, insertIdx }) }}
+        onDrop={e => {
+          e.preventDefault(); e.stopPropagation()
+          if (dragPathRef.current) handleReparent(dragPathRef.current, parentPath, insertIdx)
+        }}
+      />
+    )
+  }
+
   // ツリーノードを再帰描画
   function renderTree(node: LayoutNode, path: NodePath, depth: number): React.ReactNode {
     const isSelected = selectedPath && JSON.stringify(selectedPath) === JSON.stringify(path)
+    const isDraggingThis = isDraggingActive && dragPathRef.current &&
+      JSON.stringify(dragPathRef.current) === JSON.stringify(path)
     const indent = depth * 12
+    const isMovable = path.length > 0
+
+    const startDrag = (e: React.DragEvent) => {
+      if (!isMovable) { e.preventDefault(); return }
+      e.dataTransfer.effectAllowed = 'move'
+      e.dataTransfer.setData('text/plain', path.join(','))
+      dragPathRef.current = path
+      setIsDraggingActive(true)
+      setDropTarget(null)
+    }
+    const endDrag = () => {
+      dragPathRef.current = null
+      setIsDraggingActive(false)
+      setDropTarget(null)
+    }
 
     if (node.type === 'block') {
       const color = blockColor(node.componentKey)
       return (
         <div
           key={path.join('-')}
+          draggable={isMovable}
+          onDragStart={startDrag}
+          onDragEnd={endDrag}
           onClick={() => setSelectedPath(path)}
           className={`flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer text-xs transition-colors ${
             isSelected ? 'bg-sky-100 text-sky-800' : 'hover:bg-gray-100 text-gray-700'
-          }`}
+          } ${isDraggingThis ? 'opacity-30' : ''}`}
           style={{ paddingLeft: indent + 8 }}
         >
+          {isMovable && <span className="text-gray-300 hover:text-gray-500 cursor-grab mr-0.5 flex-shrink-0 select-none">⠿</span>}
           <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
           <span className="font-mono font-medium">{node.componentKey}</span>
           <span className="text-gray-400 text-[10px]">:{node.variant}</span>
@@ -281,12 +386,16 @@ export default function TemplateBuilder({ definitions, values }: Props) {
     return (
       <div key={path.join('-')}>
         <div
+          draggable={isMovable}
+          onDragStart={startDrag}
+          onDragEnd={endDrag}
           onClick={() => setSelectedPath(path)}
           className={`flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer text-xs transition-colors ${
             isSelected ? 'bg-sky-100 text-sky-800' : 'hover:bg-gray-100'
-          }`}
+          } ${isDraggingThis ? 'opacity-30' : ''}`}
           style={{ paddingLeft: indent + 8 }}
         >
+          {isMovable && <span className="text-gray-300 hover:text-gray-500 cursor-grab mr-0.5 flex-shrink-0 select-none">⠿</span>}
           <span className={`font-bold font-mono ${typeColor}`}>{typeLabel}</span>
           <span className="ml-1 text-[10px] text-gray-400 flex gap-1">
             {node.flex !== undefined && <span>flex:{node.flex}</span>}
@@ -300,7 +409,13 @@ export default function TemplateBuilder({ definitions, values }: Props) {
           <span className="ml-auto text-gray-300 text-[10px]">{node.children.length}子</span>
         </div>
         <div>
-          {node.children.map((child, i) => renderTree(child, [...path, i], depth + 1))}
+          {renderDropZone(path, 0)}
+          {node.children.map((child, i) => (
+            <React.Fragment key={i}>
+              {renderTree(child, [...path, i], depth + 1)}
+              {renderDropZone(path, i + 1)}
+            </React.Fragment>
+          ))}
         </div>
       </div>
     )

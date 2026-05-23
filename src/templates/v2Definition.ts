@@ -80,7 +80,7 @@ export const cardV2Definition: TemplateDefinition = {
               justify: 'space-between',
               minH: 3,
               children: [
-                { type: 'block', componentKey: 'text',   dataKey: 'name',      variant: 'default', flex: 1, alignSelf: 'center', contentFontScale: 1.5 },
+                { type: 'block', componentKey: 'text',   dataKey: 'name',      variant: 'default', flex: 1, alignSelf: 'center', contentFontScale: 1.5, blockConfig: { multiline: false, noPadding: true } },
                 {
                   type: 'block', componentKey: 'select', dataKey: 'trustRank', variant: 'default', alignSelf: 'center', minH: 2.2,
                   blockConfig: {

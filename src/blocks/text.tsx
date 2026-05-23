@@ -15,6 +15,7 @@ export const textComponent: ComponentDef<string> = {
       : (bgVariant ?? 'transparent')
     const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
     const multiline = blockConfig?.multiline !== false
+    const noPadding = blockConfig?.noPadding === true
     return (
       <div style={{
         width: '100%',
@@ -22,7 +23,7 @@ export const textComponent: ComponentDef<string> = {
         background: bgStyle.background,
         border: bgStyle.border,
         borderRadius: ctx.cardWidth * 0.006,
-        padding: `${ctx.cardWidth * 0.007 * ctx.paddingScale}px ${ctx.cardWidth * 0.009 * ctx.paddingScale}px`,
+        padding: noPadding ? 0 : `${ctx.cardWidth * 0.007 * ctx.paddingScale}px ${ctx.cardWidth * 0.009 * ctx.paddingScale}px`,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: (label?.dir === 'row') ? 'row' : 'column',

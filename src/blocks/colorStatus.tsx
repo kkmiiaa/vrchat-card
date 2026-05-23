@@ -31,6 +31,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
     if (variant === 'cards') {
       const fs = ctx.fontSize.sm
       const dotSize = ctx.cardWidth * 0.006
+      const cardBgStyle = BG_VARIANT_STYLE[bgVariant ?? 'glass']
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', height: '100%' }}>
           {fields.map((f, i) => (
@@ -39,7 +40,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
               border: `1px solid ${f.color}40`,
               borderLeft: `3px solid ${f.color}`,
               borderRadius: ctx.cardWidth * 0.006,
-              background: 'rgba(255,255,255,0.55)',
+              background: cardBgStyle.background,
               padding: `${ctx.cardWidth * 0.002 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px ${ctx.cardWidth * 0.002 * ctx.paddingScale}px ${ctx.cardWidth * 0.005 * ctx.paddingScale}px`,
               flex: 1, minHeight: 0, overflow: 'hidden',
             }}>

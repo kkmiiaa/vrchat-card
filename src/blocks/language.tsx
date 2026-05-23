@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import type { ComponentDef, ComponentCardProps } from './types'
+import type { ComponentDef, ComponentCardProps, BlockConfigFormProps } from './types'
 import { BG_VARIANT_STYLE } from './types'
 
 export type LanguageValue = {
@@ -12,7 +12,7 @@ const PRESET_LANGUAGES = [
   '日本語', 'English', '한국어', '中文',
 ]
 
-function LanguageCard({ value, ctx, variant, bgVariant }: ComponentCardProps<LanguageValue>) {
+function LanguageCard({ value, ctx, variant, bgVariant, label }: ComponentCardProps<LanguageValue>) {
   const preset = Array.isArray(value?.preset) ? value.preset : []
   const custom = Array.isArray(value?.custom) ? value.custom : []
   const all = [...preset, ...custom]
@@ -26,7 +26,7 @@ function LanguageCard({ value, ctx, variant, bgVariant }: ComponentCardProps<Lan
         background: bgStyle.background,
         border: bgStyle.border,
         borderRadius: ctx.cardWidth * 0.006,
-        padding: `0 ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
+        padding: `${label ? `${ctx.cardWidth * 0.006 * ctx.paddingScale}px` : '0'} ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         fontSize: fs,
         color: ctx.theme.text,
         fontFamily: ctx.fontFamily,
@@ -34,8 +34,16 @@ function LanguageCard({ value, ctx, variant, bgVariant }: ComponentCardProps<Lan
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: label ? 'column' : 'row',
+        alignItems: label ? 'stretch' : 'center',
+        gap: label ? ctx.cardWidth * 0.003 : 0,
       }}>
+        {label && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
+            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
+          </div>
+        )}
         {all.join(' / ') || '—'}
       </div>
     )
@@ -75,6 +83,7 @@ export const languageComponent: ComponentDef<LanguageValue> = {
   global: true,
   defaultValue: { preset: [], custom: [] },
   variants: ['default', 'slash'],
+  supportsBgVariant: true,
   CardItem: LanguageCard,
   FormItem({ value, onChange, t, blockConfig }) {
     const preset = Array.isArray(value?.preset) ? value.preset : []
@@ -129,6 +138,32 @@ export const languageComponent: ComponentDef<LanguageValue> = {
             value={customInput}
             onChange={e => handleCustomInput(e.target.value)}
           />
+        </div>
+      </div>
+    )
+  },
+  blockConfigForm({ blockConfig, onChange }: BlockConfigFormProps) {
+    const allowedPresets: string[] = Array.isArray(blockConfig.allowedPresets) ? blockConfig.allowedPresets as string[] : []
+    const togglePreset = (lang: string) => {
+      const next = allowedPresets.includes(lang)
+        ? allowedPresets.filter(l => l !== lang)
+        : [...allowedPresets, lang]
+      onChange({ ...blockConfig, allowedPresets: next.length ? next : undefined })
+    }
+    return (
+      <div className="flex flex-col gap-2 text-sm">
+        <p className="text-[10px] text-gray-400">表示するプリセット（allowedPresets）— 未選択の場合は全て表示</p>
+        <div className="flex flex-wrap gap-1">
+          {PRESET_LANGUAGES.map(lang => (
+            <button key={lang} type="button"
+              onClick={() => togglePreset(lang)}
+              className={`px-2 py-1 rounded text-xs border transition-colors ${
+                allowedPresets.length === 0 || allowedPresets.includes(lang)
+                  ? 'border-sky-300 bg-sky-50 text-sky-700'
+                  : 'border-gray-200 bg-white text-gray-400'
+              }`}
+            >{lang}</button>
+          ))}
         </div>
       </div>
     )

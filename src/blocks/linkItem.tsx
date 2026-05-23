@@ -1,6 +1,7 @@
 'use client'
-import type { ComponentDef } from './types'
+import type { ComponentDef, BlockConfigFormProps } from './types'
 import { BG_VARIANT_STYLE } from './types'
+import { renderIcon, IconPicker } from './iconRegistry'
 
 export type LinkItemValue = { label: string; url: string }
 
@@ -8,12 +9,13 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
   key: 'linkItem',
   defaultValue: { label: '', url: '' },
   variants: ['default', 'compact'],
-  CardItem({ value, ctx, variant = 'default', bgVariant, blockConfig }) {
+  supportsBgVariant: true,
+  CardItem({ value, ctx, variant = 'default', bgVariant, blockConfig, label }) {
     const safe: LinkItemValue = (value && typeof value === 'object' && 'label' in value)
       ? value as LinkItemValue
       : { label: '', url: '' }
-    const label = safe.label || safe.url || '—'
-    const icon = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '🔗'
+    const displayText = safe.label || safe.url || '—'
+    const iconKey = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '🔗'
 
     if (variant === 'compact') {
       const fs = ctx.fontSize.xs
@@ -28,12 +30,13 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
           fontFamily: ctx.fontFamily,
           overflow: 'hidden',
         }}>
-          <span style={{ fontSize: fs, flexShrink: 0 }}>{icon}</span>
+          <span style={{ fontSize: fs, flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
+            {renderIcon(iconKey, fs)}
+          </span>
         </div>
       )
     }
 
-    // default
     const fs = ctx.fontSize.md
     const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
     return (
@@ -45,12 +48,21 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',
-        alignItems: 'center',
-        gap: 6,
+        flexDirection: label ? 'column' : 'row',
+        alignItems: label ? 'stretch' : 'center',
+        gap: label ? ctx.cardWidth * 0.003 : 6,
         fontFamily: ctx.fontFamily,
         overflow: 'hidden',
       }}>
-        <span style={{ fontSize: fs, flexShrink: 0 }}>{icon}</span>
+        {label && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
+            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
+          </div>
+        )}
+        <span style={{ fontSize: fs, flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
+          {renderIcon(iconKey, fs)}
+        </span>
         <span style={{
           fontSize: fs,
           color: safe.url ? ctx.theme.accent : ctx.theme.text,
@@ -59,7 +71,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
           textOverflow: 'ellipsis',
           textDecoration: safe.url ? 'underline' : 'none',
         }}>
-          {label}
+          {displayText}
         </span>
       </div>
     )
@@ -68,11 +80,13 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
     const safe: LinkItemValue = (value && typeof value === 'object' && 'label' in value)
       ? value as LinkItemValue
       : { label: '', url: '' }
-    const icon = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '🔗'
+    const iconKey = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '🔗'
 
     return (
       <div className="flex flex-col gap-2">
-        <span className="text-sm text-gray-500">{icon}</span>
+        <span className="text-sm text-gray-500 flex items-center gap-1">
+          {renderIcon(iconKey, 16)}
+        </span>
         <input
           type="text"
           value={safe.label}
@@ -87,6 +101,15 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
           placeholder="URL（例: https://example.com）"
           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
         />
+      </div>
+    )
+  },
+  blockConfigForm({ blockConfig, onChange }: BlockConfigFormProps) {
+    const icon = typeof blockConfig.icon === 'string' ? blockConfig.icon : ''
+    return (
+      <div className="flex flex-col gap-2 text-sm">
+        <span className="text-[10px] text-gray-500">アイコン</span>
+        <IconPicker value={icon} onChange={v => onChange({ ...blockConfig, icon: v || undefined })} />
       </div>
     )
   },

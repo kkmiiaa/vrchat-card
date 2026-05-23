@@ -6,7 +6,7 @@ import { cardV1Definition } from '@/templates/v1Definition'
 import { cardV2Definition } from '@/templates/v2Definition'
 import TemplateBuilder from './TemplateBuilder'
 import type { TemplateDefinition } from '@/blocks/types'
-import ComponentBlockList, { COMPONENTS, COMPONENT_CATEGORIES, COMPONENT_SUPPORTS_BG_VARIANT } from './BlockPreviewList'
+import ComponentBlockList, { COMPONENTS, COMPONENT_CATEGORIES } from './BlockPreviewList'
 
 const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
   cardV1Definition,
@@ -41,7 +41,7 @@ const SAMPLE_VALUES = {
   name: 'サンプル ユーザー',
   gender: { tag: 'female', display: '女性' },
   age: { searchTag: '18+', display: '20代' },
-  playEnv: ['PCVR', 'Quest'],
+  playEnv: ['pcvr', 'quest'],
   language: ['日本語', 'English'],
   micOnRate: 60,
   selfIntro: 'はじめまして！\nVRChatでよく遊んでいます。\nお気軽に話しかけてください。',

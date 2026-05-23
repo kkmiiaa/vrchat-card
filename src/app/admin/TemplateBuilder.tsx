@@ -10,7 +10,8 @@ import { translations } from '@/utils/translations'
 import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
 import type { BackgroundValue } from '@/blocks/types'
 import GenericCardRenderer from '@/components/GenericCardRenderer'
-import { COMPONENT_SUPPORTS_BG_VARIANT } from './BlockPreviewList'
+import { BlockPropertyEditor, isBgVariantApplicable, type BlockDisplaySettings } from './BlockPropertyEditor'
+import { ColorPicker, LABEL_PRESET_COLORS } from '@/blocks/colorPicker'
 
 type Orientation = 'landscape' | 'portrait'
 type NodePath = number[]
@@ -81,10 +82,24 @@ function moveNode(root: LayoutNode, path: NodePath, dir: -1 | 1): LayoutNode {
   })
 }
 
+// レイアウトツリーから全 dataKey を収集
+function collectAllDataKeys(node: LayoutNode, result = new Set<string>()): Set<string> {
+  if (node.type === 'block') { result.add(node.dataKey) }
+  else { node.children.forEach(c => collectAllDataKeys(c, result)) }
+  return result
+}
+
+// componentKey に対してユニークな dataKey を生成（例: text1, text2, ...）
+function generateDataKey(componentKey: string, usedKeys: Set<string>): string {
+  let i = 1
+  while (usedKeys.has(`${componentKey}${i}`)) i++
+  return `${componentKey}${i}`
+}
+
 // レイアウトツリーから使用中のブロック情報を順序付きで収集
-function collectBlockEntries(node: LayoutNode, seen = new Set<string>(), result: { componentKey: string; dataKey: string }[] = []): { componentKey: string; dataKey: string }[] {
+function collectBlockEntries(node: LayoutNode, seen = new Set<string>(), result: { componentKey: string; dataKey: string; blockConfig?: Record<string, unknown> }[] = []): { componentKey: string; dataKey: string; blockConfig?: Record<string, unknown> }[] {
   if (node.type === 'block') {
-    if (!seen.has(node.dataKey)) { seen.add(node.dataKey); result.push({ componentKey: node.componentKey, dataKey: node.dataKey }) }
+    if (!seen.has(node.dataKey)) { seen.add(node.dataKey); result.push({ componentKey: node.componentKey, dataKey: node.dataKey, blockConfig: node.blockConfig }) }
   } else {
     node.children.forEach(c => collectBlockEntries(c, seen, result))
   }
@@ -135,6 +150,40 @@ export default function TemplateBuilder({ definitions, values }: Props) {
       [definition.id]: { ...prev[definition.id], [orientation]: { ...prev[definition.id]?.[orientation], ...patch } },
     }))
   }, [definition.id, orientation])
+
+  const [leftWidth, setLeftWidth] = useState(208)
+  const [rightWidth, setRightWidth] = useState(288)
+  const [propHeight, setPropHeight] = useState(288)
+
+  const startDragLeft = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    const startX = e.clientX
+    const startW = leftWidth
+    const onMove = (ev: MouseEvent) => setLeftWidth(Math.max(120, Math.min(400, startW + ev.clientX - startX)))
+    const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp) }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }, [leftWidth])
+
+  const startDragRight = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    const startX = e.clientX
+    const startW = rightWidth
+    const onMove = (ev: MouseEvent) => setRightWidth(Math.max(180, Math.min(500, startW - ev.clientX + startX)))
+    const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp) }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }, [rightWidth])
+
+  const startDragProp = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    const startY = e.clientY
+    const startH = propHeight
+    const onMove = (ev: MouseEvent) => setPropHeight(Math.max(100, Math.min(600, startH - ev.clientY + startY)))
+    const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp) }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }, [propHeight])
 
   const [rightTab, setRightTab] = useState<'layout' | 'form'>('layout')
   const [localValues, setLocalValues] = useState<BlockValues>(() => ({ ...values }))
@@ -193,10 +242,10 @@ export default function TemplateBuilder({ definitions, values }: Props) {
     : CARD_BG_FALLBACK
 
   function fmtW(cells: number) {
-    return `${cells}セル / ${cellsToPixels(cells, grid.cellSize, grid.gap)}px`
+    return `${cells}セル / ${cellsToPixels(cells, grid.cellSize)}px`
   }
   function fmtH(cells: number) {
-    return `${cells}セル / ${cellsToPixels(cells, grid.cellSize, grid.gap)}px`
+    return `${cells}セル / ${cellsToPixels(cells, grid.cellSize)}px`
   }
 
   // ツリーノードを再帰描画
@@ -273,17 +322,21 @@ export default function TemplateBuilder({ definitions, values }: Props) {
 
     return (
       <div className="flex flex-col gap-3 px-3 py-3">
-        {/* 移動・削除 */}
-        {!isRoot && (
-          <div className="flex items-center gap-2">
+        {/* 移動・削除・コピー・貼り付け */}
+        <div className="flex items-center gap-1 flex-wrap">
+          {!isRoot && <>
             <button onClick={() => handleMove(path, -1)} disabled={idx === 0}
               className="px-2 py-1 text-xs border rounded disabled:opacity-30 hover:bg-gray-50">↑</button>
             <button onClick={() => handleMove(path, 1)} disabled={idx >= siblingCount - 1}
               className="px-2 py-1 text-xs border rounded disabled:opacity-30 hover:bg-gray-50">↓</button>
+          </>}
+          <NodeCopyButton node={node} />
+          <NodePasteButton onApply={n => handleUpdate(path, () => n)} />
+          {!isRoot && (
             <button onClick={() => handleDelete(path)}
               className="ml-auto px-2 py-1 text-xs border border-red-200 text-red-600 rounded hover:bg-red-50">削除</button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* flex / minW / minH */}
         <div className="flex flex-col gap-2">
@@ -307,6 +360,15 @@ export default function TemplateBuilder({ definitions, values }: Props) {
             />
           )}
         </div>
+
+        {/* row / col: gap */}
+        {(node.type === 'col' || node.type === 'row') && (
+          <SizeProp
+            label="gap (単位)"
+            value={(node as LayoutNodeCol | LayoutNodeRow).gap}
+            onChange={v => handleUpdate(path, n => ({ ...n, gap: v }))}
+          />
+        )}
 
         {/* row / col: justify */}
         {(node.type === 'col' || node.type === 'row') && (
@@ -347,120 +409,32 @@ export default function TemplateBuilder({ definitions, values }: Props) {
             />
             <div className="flex items-center gap-2 mt-1">
               <label className="text-[10px] text-gray-500 flex-shrink-0">ラベル色</label>
-              <input
-                type="color"
-                value={(node as LayoutNodeCol).labelColor ?? '#1f2937'}
-                onChange={e => handleUpdate(path, n => ({ ...n, labelColor: e.target.value }))}
-                className="w-7 h-6 rounded border cursor-pointer"
+              <ColorPicker
+                value={(node as LayoutNodeCol).labelColor ?? ''}
+                onChange={v => handleUpdate(path, n => v ? { ...n, labelColor: v } : (() => { const { labelColor: _, ...rest } = n as LayoutNodeCol; return rest })())}
+                defaultColor="#1f2937"
+                presetColors={LABEL_PRESET_COLORS}
               />
-              <button
-                type="button"
-                onClick={() => handleUpdate(path, n => { const { labelColor: _, ...rest } = n as LayoutNodeCol; return rest })}
-                className="text-[10px] text-gray-400 hover:text-gray-600"
-              >リセット</button>
             </div>
           </div>
         )}
 
-        {/* block のみ: labelInset / labelInsetDir / labelColor */}
-        {node.type === 'block' && (node as Block).label !== undefined && (
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] text-gray-500 w-28 flex-shrink-0">枠内ラベル</label>
-              <input
-                type="checkbox"
-                checked={(node as Block).labelInset ?? false}
-                onChange={e => handleUpdate(path, n => ({ ...n, labelInset: e.target.checked || undefined }))}
-              />
-            </div>
-            {(node as Block).labelInset && (
-              <div className="flex items-center gap-2">
-                <label className="text-[10px] text-gray-500 w-28 flex-shrink-0">並び方向</label>
-                <select
-                  value={(node as Block).labelInsetDir ?? 'col'}
-                  onChange={e => handleUpdate(path, n => ({ ...n, labelInsetDir: e.target.value as 'col' | 'row' }))}
-                  className="text-xs border rounded px-2 py-1 flex-1"
-                >
-                  <option value="col">縦（上下）</option>
-                  <option value="row">横（左右）</option>
-                </select>
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] text-gray-500 w-28 flex-shrink-0">ラベル色</label>
-              <input
-                type="color"
-                value={(node as Block).labelColor ?? '#1f2937'}
-                onChange={e => handleUpdate(path, n => ({ ...n, labelColor: e.target.value }))}
-                className="w-7 h-6 rounded border cursor-pointer"
-              />
-              <button
-                type="button"
-                onClick={() => handleUpdate(path, n => { const { labelColor: _, ...rest } = n as Block; return rest })}
-                className="text-[10px] text-gray-400 hover:text-gray-600"
-              >リセット</button>
-            </div>
-          </div>
-        )}
-
-        {/* block のみ: labelFontScale / contentFontScale */}
-        {node.type === 'block' && (node as Block).label !== undefined && (
-          <div className="flex items-center gap-2">
-            <label className="text-[10px] text-gray-500 w-28 flex-shrink-0">ヘッダー文字倍率</label>
-            <input
-              type="number"
-              step="0.05"
-              min="0.3"
-              max="3"
-              placeholder="1.0"
-              value={(node as Block).labelFontScale ?? ''}
-              onChange={e => handleUpdate(path, n => ({
-                ...n,
-                labelFontScale: e.target.value === '' ? undefined : Number(e.target.value),
-              }))}
-              className="flex-1 px-2 py-1 border rounded text-xs font-mono"
-            />
-            {(node as Block).labelFontScale !== undefined && (
-              <button
-                onClick={() => handleUpdate(path, n => ({ ...n, labelFontScale: undefined }))}
-                className="text-gray-300 hover:text-gray-500 text-xs"
-              >↺</button>
-            )}
-          </div>
-        )}
-        {node.type === 'block' && (
-          <div className="flex items-center gap-2">
-            <label className="text-[10px] text-gray-500 w-28 flex-shrink-0">コンテンツ文字倍率</label>
-            <input
-              type="number"
-              step="0.05"
-              min="0.3"
-              max="3"
-              placeholder="1.0"
-              value={(node as Block).contentFontScale ?? ''}
-              onChange={e => handleUpdate(path, n => ({
-                ...n,
-                contentFontScale: e.target.value === '' ? undefined : Number(e.target.value),
-              }))}
-              className="flex-1 px-2 py-1 border rounded text-xs font-mono"
-            />
-            {(node as Block).contentFontScale !== undefined && (
-              <button
-                onClick={() => handleUpdate(path, n => ({ ...n, contentFontScale: undefined }))}
-                className="text-gray-300 hover:text-gray-500 text-xs"
-              >↺</button>
-            )}
-          </div>
-        )}
-
-        {/* block のみ: componentKey / dataKey / variant */}
+        {/* block のみ: componentKey / dataKey */}
         {node.type === 'block' && (
           <div className="flex flex-col gap-2">
             <div className="flex flex-col gap-1">
               <label className="text-[10px] text-gray-500">コンポーネント</label>
               <select
                 value={node.componentKey}
-                onChange={e => handleUpdate(path, n => ({ ...n, componentKey: e.target.value, variant: 'default' }))}
+                onChange={e => {
+                  const newComponentKey = e.target.value
+                  handleUpdate(path, n => {
+                    const usedKeys = collectAllDataKeys(layout)
+                    usedKeys.delete((n as Block).dataKey)
+                    const newDataKey = generateDataKey(newComponentKey, usedKeys)
+                    return { ...n, componentKey: newComponentKey, dataKey: newDataKey, variant: 'default' }
+                  })
+                }}
                 className="text-xs border rounded px-2 py-1"
               >
                 {allBlocks.map(b => (
@@ -477,107 +451,96 @@ export default function TemplateBuilder({ definitions, values }: Props) {
                 className="text-xs border rounded px-2 py-1 font-mono"
               />
             </div>
-            {COMPONENT_SUPPORTS_BG_VARIANT[node.componentKey] !== false && (
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] text-gray-500">bgVariant（背景）</label>
-              <select
-                value={(node as Block).bgVariant ?? 'transparent'}
-                onChange={e => handleUpdate(path, n => ({ ...n, bgVariant: e.target.value as import('@/blocks/types').BgVariant || undefined }))}
-                className="text-xs border rounded px-2 py-1"
-              >
-                <option value="default">default（白ボックス）</option>
-                <option value="glass">glass（すりガラス）</option>
-                <option value="transparent">transparent（背景なし）</option>
-                <option value="outline">outline（枠線のみ）</option>
-              </select>
-            </div>
-            )}
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] text-gray-500">variant（コンテンツ）</label>
-              <select
-                value={node.variant}
-                onChange={e => handleUpdate(path, n => ({ ...n, variant: e.target.value }))}
-                className="text-xs border rounded px-2 py-1"
-              >
-                {(allBlocks.find(b => b.key === node.componentKey)?.variants ?? ['default']).map(v => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] text-gray-500">alignSelf</label>
-              <select
-                value={(node as Block).alignSelf ?? ''}
-                onChange={e => handleUpdate(path, n => ({ ...n, alignSelf: e.target.value || undefined }))}
-                className="text-xs border rounded px-2 py-1"
-              >
-                <option value="">stretch（デフォルト）</option>
-                <option value="flex-start">flex-start（コンテンツ高さ）</option>
-                <option value="flex-end">flex-end</option>
-                <option value="center">center</option>
-              </select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] text-gray-500">ラベル</label>
-              <input
-                type="text"
-                value={node.label ?? ''}
-                onChange={e => handleUpdate(path, n => ({ ...n, label: e.target.value || undefined }))}
-                placeholder="—"
-                className="text-xs border rounded px-2 py-1"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] text-gray-500">サブラベル</label>
-              <input
-                type="text"
-                value={node.subLabel ?? ''}
-                onChange={e => handleUpdate(path, n => ({ ...n, subLabel: e.target.value || undefined }))}
-                placeholder="—"
-                className="text-xs border rounded px-2 py-1"
-              />
-            </div>
           </div>
         )}
 
-        {/* divider のみ: blockConfig 編集 */}
-        {node.type === 'block' && (node as Block).componentKey === 'divider' && (
-          <div className="flex flex-col gap-2">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider">Divider 設定</p>
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] text-gray-500 w-16 flex-shrink-0">色</label>
-              <input
-                type="color"
-                value={((node as Block).blockConfig?.color as string | undefined) ?? '#000000'}
-                onChange={e => handleUpdate(path, n => ({ ...n, blockConfig: { ...(n as Block).blockConfig, color: e.target.value } }))}
-                className="w-7 h-7 rounded cursor-pointer border-0 p-0 bg-transparent"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] text-gray-500 w-16 flex-shrink-0">不透明度</label>
-              <input
-                type="range"
-                min={0} max={1} step={0.05}
-                value={((node as Block).blockConfig?.opacity as number | undefined) ?? 0.1}
-                onChange={e => handleUpdate(path, n => ({ ...n, blockConfig: { ...(n as Block).blockConfig, opacity: Number(e.target.value) } }))}
-                className="flex-1"
-              />
-              <span className="text-[10px] text-gray-400 w-7 text-right">
-                {Math.round((((node as Block).blockConfig?.opacity as number | undefined) ?? 0.1) * 100)}%
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] text-gray-500 w-16 flex-shrink-0">太さ</label>
-              <input
-                type="number"
-                min={1} max={20}
-                value={((node as Block).blockConfig?.thickness as number | undefined) ?? 1}
-                onChange={e => handleUpdate(path, n => ({ ...n, blockConfig: { ...(n as Block).blockConfig, thickness: Number(e.target.value) } }))}
-                className="w-16 px-2 py-1 border rounded text-xs font-mono"
-              />
-            </div>
-          </div>
-        )}
+        {/* block のみ: 表示設定（BlockPropertyEditor） */}
+        {node.type === 'block' && (() => {
+          const comp = getComponent((node as Block).componentKey)
+          if (!comp) return null
+          const displaySettings: BlockDisplaySettings = {
+            variant:        node.variant ?? 'default',
+            bgVariant:      (node as Block).bgVariant ?? 'transparent',
+            label:          node.label ?? '',
+            subLabel:       node.subLabel ?? '',
+            labelColor:     (node as Block).labelColor ?? '',
+            labelInset:     (node as Block).labelInset ?? false,
+            labelInsetDir:  (node as Block).labelInsetDir ?? 'col',
+          }
+          const handleDisplayChange = (patch: Partial<BlockDisplaySettings>) => {
+            handleUpdate(path, n => {
+              const next = { ...n, ...patch }
+              // 空文字は undefined に正規化
+              if (patch.label !== undefined)    next.label    = patch.label    || undefined
+              if (patch.subLabel !== undefined) next.subLabel = patch.subLabel || undefined
+              if (patch.bgVariant !== undefined && !isBgVariantApplicable(comp, next.variant ?? 'default')) {
+                delete (next as Block).bgVariant
+              }
+              return next
+            })
+          }
+          return (
+            <BlockPropertyEditor
+              component={comp}
+              settings={displaySettings}
+              onChange={handleDisplayChange}
+              extras={
+                <div className="flex flex-col gap-2 border-t border-gray-100 pt-3">
+                  {/* alignSelf */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] text-gray-500">alignSelf</label>
+                    <select
+                      value={(node as Block).alignSelf ?? ''}
+                      onChange={e => handleUpdate(path, n => ({ ...n, alignSelf: e.target.value || undefined }))}
+                      className="text-xs border rounded px-2 py-1"
+                    >
+                      <option value="">stretch（デフォルト）</option>
+                      <option value="flex-start">flex-start（コンテンツ高さ）</option>
+                      <option value="flex-end">flex-end</option>
+                      <option value="center">center</option>
+                    </select>
+                  </div>
+                  {/* labelFontScale */}
+                  {(node as Block).label !== undefined && (
+                    <div className="flex items-center gap-2">
+                      <label className="text-[10px] text-gray-500 w-28 flex-shrink-0">ヘッダー文字倍率</label>
+                      <input type="number" step="0.05" min="0.3" max="3" placeholder="1.0"
+                        value={(node as Block).labelFontScale ?? ''}
+                        onChange={e => handleUpdate(path, n => ({ ...n, labelFontScale: e.target.value === '' ? undefined : Number(e.target.value) }))}
+                        className="flex-1 px-2 py-1 border rounded text-xs font-mono"
+                      />
+                      {(node as Block).labelFontScale !== undefined && (
+                        <button onClick={() => handleUpdate(path, n => ({ ...n, labelFontScale: undefined }))} className="text-gray-300 hover:text-gray-500 text-xs">↺</button>
+                      )}
+                    </div>
+                  )}
+                  {/* contentFontScale */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px] text-gray-500 w-28 flex-shrink-0">コンテンツ文字倍率</label>
+                    <input type="number" step="0.05" min="0.3" max="3" placeholder="1.0"
+                      value={(node as Block).contentFontScale ?? ''}
+                      onChange={e => handleUpdate(path, n => ({ ...n, contentFontScale: e.target.value === '' ? undefined : Number(e.target.value) }))}
+                      className="flex-1 px-2 py-1 border rounded text-xs font-mono"
+                    />
+                    {(node as Block).contentFontScale !== undefined && (
+                      <button onClick={() => handleUpdate(path, n => ({ ...n, contentFontScale: undefined }))} className="text-gray-300 hover:text-gray-500 text-xs">↺</button>
+                    )}
+                  </div>
+                  {/* blockConfigForm */}
+                  {comp.blockConfigForm && (
+                    <div className="flex flex-col gap-2 border-t border-gray-100 pt-2">
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wider">ブロック設定</p>
+                      <comp.blockConfigForm
+                        blockConfig={(node as Block).blockConfig ?? {}}
+                        onChange={cfg => handleUpdate(path, n => ({ ...n, blockConfig: cfg }))}
+                      />
+                    </div>
+                  )}
+                </div>
+              }
+            />
+          )
+        })()}
 
         {/* row/col のみ: 子追加 */}
         {node.type !== 'block' && (
@@ -593,7 +556,11 @@ export default function TemplateBuilder({ definitions, values }: Props) {
                 className="px-2 py-1 text-xs border rounded hover:bg-purple-50 text-purple-700 border-purple-200"
               >+ col</button>
               <button
-                onClick={() => handleAdd(path, { type: 'block', componentKey: allBlocks[0]?.key ?? 'name', dataKey: allBlocks[0]?.key ?? 'name', variant: 'default', flex: 1 })}
+                onClick={() => {
+                  const componentKey = allBlocks[0]?.key ?? 'name'
+                  const dataKey = generateDataKey(componentKey, collectAllDataKeys(layout))
+                  handleAdd(path, { type: 'block', componentKey, dataKey, variant: 'default', flex: 1 })
+                }}
                 className="px-2 py-1 text-xs border rounded hover:bg-blue-50 text-blue-700 border-blue-200"
               >+ block</button>
             </div>
@@ -620,7 +587,7 @@ export default function TemplateBuilder({ definitions, values }: Props) {
   return (
     <div className="flex h-full w-full overflow-hidden">
       {/* 左 aside: テンプレート一覧 */}
-      <div className="w-52 border-r bg-white flex flex-col overflow-hidden flex-shrink-0">
+      <div className="bg-white flex flex-col overflow-hidden flex-shrink-0" style={{ width: leftWidth }}>
         <div className="px-3 py-2 border-b">
           <p className="text-xs font-medium text-gray-700">テンプレート</p>
         </div>
@@ -642,6 +609,9 @@ export default function TemplateBuilder({ definitions, values }: Props) {
         </div>
       </div>
 
+      {/* 左リサイズハンドル */}
+      <div onMouseDown={startDragLeft} className="w-1 flex-shrink-0 cursor-col-resize hover:bg-sky-300 active:bg-sky-400 transition-colors border-r border-gray-200" />
+
       {/* 中央: カードプレビュー */}
       <div className="flex flex-col flex-1 min-w-0">
         {/* ツールバー */}
@@ -660,6 +630,8 @@ export default function TemplateBuilder({ definitions, values }: Props) {
             ))}
           </div>
           <span className="ml-auto text-gray-400 font-mono text-xs">{Math.round(scale * 100)}%</span>
+          <CopyLayoutButton layout={layout} />
+          <PasteLayoutButton onApply={setLayout} orientation={orientation} />
         </div>
 
         {/* プレビュー（ページ全体に背景を適用） */}
@@ -690,8 +662,11 @@ export default function TemplateBuilder({ definitions, values }: Props) {
         </div>
       </div>
 
+      {/* 右リサイズハンドル */}
+      <div onMouseDown={startDragRight} className="w-1 flex-shrink-0 cursor-col-resize hover:bg-sky-300 active:bg-sky-400 transition-colors border-l border-gray-200" />
+
       {/* 右: ツリーエディタ */}
-      <div className="w-72 border-l bg-white flex flex-col overflow-hidden flex-shrink-0">
+      <div className="bg-white flex flex-col overflow-hidden flex-shrink-0" style={{ width: rightWidth }}>
         {/* タブ */}
         <div className="flex border-b flex-shrink-0">
           {(['layout', 'form'] as const).map(tab => (
@@ -717,8 +692,13 @@ export default function TemplateBuilder({ definitions, values }: Props) {
         <div className="border-t flex flex-col">
         </div>
 
-        <div className="border-t flex flex-col overflow-y-auto max-h-72">
-          <div className="px-3 py-2 border-b">
+        {/* プロパティリサイズハンドル */}
+        <div
+          onMouseDown={startDragProp}
+          className="h-1 flex-shrink-0 cursor-row-resize hover:bg-sky-300 active:bg-sky-400 transition-colors border-t border-gray-200"
+        />
+        <div className="flex flex-col overflow-y-auto flex-shrink-0" style={{ height: propHeight }}>
+          <div className="px-3 py-2 border-b flex-shrink-0">
             <p className="text-xs font-medium text-gray-700">プロパティ</p>
           </div>
           {renderProperties()}
@@ -764,7 +744,7 @@ export default function TemplateBuilder({ definitions, values }: Props) {
               </div>
             )}
 
-            {collectBlockEntries(layout).map(({ componentKey, dataKey }) => {
+            {collectBlockEntries(layout).map(({ componentKey, dataKey, blockConfig }) => {
               const block = getComponent(componentKey)
               if (!block?.FormItem) return null
               const val = localValues[dataKey] ?? block.defaultValue
@@ -775,6 +755,7 @@ export default function TemplateBuilder({ definitions, values }: Props) {
                     value={val}
                     onChange={v => updateLocalValue(dataKey, v)}
                     t={t}
+                    blockConfig={blockConfig}
                   />
                 </div>
               )
@@ -807,5 +788,153 @@ function SizeProp({ label, value, onChange }: {
         <button onClick={() => onChange(undefined)} className="text-gray-300 hover:text-gray-500 text-xs">✕</button>
       )}
     </div>
+  )
+}
+
+function NodeCopyButton({ node }: { node: LayoutNode }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(JSON.stringify(node, null, 2))
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1500)
+      }}
+      className={`px-2 py-1 text-xs rounded border transition-colors ${copied ? 'border-green-300 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'}`}
+    >
+      {copied ? '✓ コピー済み' : 'ノードコピー'}
+    </button>
+  )
+}
+
+function NodePasteButton({ onApply }: { onApply: (node: LayoutNode) => void }) {
+  const [open, setOpen] = useState(false)
+  const [text, setText] = useState('')
+  const [error, setError] = useState('')
+
+  const handleApply = () => {
+    try {
+      const node = JSON.parse(text) as LayoutNode
+      onApply(node)
+      setOpen(false)
+      setText('')
+      setError('')
+    } catch {
+      setError('JSON のパースに失敗しました')
+    }
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => { setOpen(true); setError('') }}
+        className="px-2 py-1 text-xs rounded border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 transition-colors"
+      >
+        ノード貼り付け
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setOpen(false)}>
+          <div className="bg-white rounded-xl shadow-xl p-4 w-[480px] flex flex-col gap-3" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-gray-700">ノード貼り付け</span>
+              <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
+            </div>
+            <p className="text-[11px] text-gray-400">選択中のノードを JSON で置き換えます。</p>
+            <textarea
+              className="w-full h-48 text-xs font-mono border border-gray-200 rounded-lg p-2 resize-none focus:outline-none focus:ring-2 focus:ring-sky-200"
+              placeholder='{ "type": "col", ... }'
+              value={text}
+              onChange={e => { setText(e.target.value); setError('') }}
+            />
+            {error && <p className="text-xs text-red-500">{error}</p>}
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-xs rounded border border-gray-200 text-gray-500 hover:bg-gray-50">キャンセル</button>
+              <button onClick={handleApply} disabled={!text.trim()} className="px-3 py-1.5 text-xs rounded bg-sky-500 text-white font-semibold hover:bg-sky-600 disabled:opacity-40">適用</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+function PasteLayoutButton({ onApply, orientation }: { onApply: (node: LayoutNode) => void; orientation: string }) {
+  const [open, setOpen] = useState(false)
+  const [text, setText] = useState('')
+  const [error, setError] = useState('')
+
+  const handleApply = () => {
+    try {
+      const parsed = JSON.parse(text)
+      // landscape / portrait キーを持つオブジェクトなら該当 orientation を取り出す
+      const node: LayoutNode = (parsed.landscape || parsed.portrait)
+        ? (parsed[orientation] ?? parsed)
+        : parsed
+      onApply(node)
+      setOpen(false)
+      setText('')
+      setError('')
+    } catch {
+      setError('JSON のパースに失敗しました')
+    }
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => { setOpen(true); setError('') }}
+        className="px-2 py-1 text-xs rounded border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 transition-colors"
+      >
+        JSON 貼り付け
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setOpen(false)}>
+          <div className="bg-white rounded-xl shadow-xl p-4 w-[480px] flex flex-col gap-3" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-gray-700">
+                JSON 貼り付け <span className="text-gray-400 font-normal">（{orientation}）</span>
+              </span>
+              <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
+            </div>
+            <p className="text-[11px] text-gray-400">
+              現在の <strong>{orientation}</strong> レイアウトを上書きします。<br />
+              <code className="bg-gray-100 px-1 rounded">{'{landscape: {...}}'}</code> 形式でも、ノード直書きでも対応します。
+            </p>
+            <textarea
+              className="w-full h-56 text-xs font-mono border border-gray-200 rounded-lg p-2 resize-none focus:outline-none focus:ring-2 focus:ring-sky-200"
+              placeholder='{ "type": "row", ... }'
+              value={text}
+              onChange={e => { setText(e.target.value); setError('') }}
+            />
+            {error && <p className="text-xs text-red-500">{error}</p>}
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-xs rounded border border-gray-200 text-gray-500 hover:bg-gray-50">キャンセル</button>
+              <button onClick={handleApply} disabled={!text.trim()} className="px-3 py-1.5 text-xs rounded bg-sky-500 text-white font-semibold hover:bg-sky-600 disabled:opacity-40">適用</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+function CopyLayoutButton({ layout }: { layout: LayoutNode }) {
+  const [copied, setCopied] = useState(false)
+  const handleCopy = () => {
+    navigator.clipboard.writeText(JSON.stringify(layout, null, 2))
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+  return (
+    <button
+      onClick={handleCopy}
+      className={`px-2 py-1 text-xs rounded border transition-colors ${
+        copied
+          ? 'border-green-300 bg-green-50 text-green-700'
+          : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+      }`}
+    >
+      {copied ? '✓ コピー済み' : 'JSON コピー'}
+    </button>
   )
 }

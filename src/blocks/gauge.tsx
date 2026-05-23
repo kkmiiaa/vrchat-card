@@ -1,26 +1,30 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
 import { BG_VARIANT_STYLE } from './types'
+import { ColorPicker } from './colorPicker'
 
 type GaugeConfig = {
   barColor?: string
   barGradient?: string[]
   barHeight?: number
   showLabel?: boolean
+  unit?: string
 }
 
 export const gaugeComponent: ComponentDef<number> = {
   key: 'gauge',
   defaultValue: 0,
   variants: ['default'],
+  supportsBgVariant: true,
 
-  CardItem({ value, ctx, bgVariant, blockConfig }) {
+  CardItem({ value, ctx, bgVariant, blockConfig, label }) {
     const cfg = (blockConfig ?? {}) as GaugeConfig
     const rate = typeof value === 'number' ? value : 0
     const fs = ctx.fontSize.sm
 
     const barHeight = cfg.barHeight ?? 8
     const showLabel = cfg.showLabel !== false
+    const unit = typeof cfg.unit === 'string' ? cfg.unit : ''
 
     const barFill = cfg.barGradient && cfg.barGradient.length >= 2
       ? `linear-gradient(to right, ${cfg.barGradient.join(', ')})`
@@ -36,10 +40,18 @@ export const gaugeComponent: ComponentDef<number> = {
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',
-        alignItems: 'center',
-        gap: 6,
+        flexDirection: label ? 'column' : 'row',
+        alignItems: label ? 'stretch' : 'center',
+        gap: label ? ctx.cardWidth * 0.003 : 6,
         fontFamily: ctx.fontFamily,
       }}>
+        {label && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
+            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
+          </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
         <div style={{
           flex: 1,
           height: barHeight,
@@ -64,9 +76,10 @@ export const gaugeComponent: ComponentDef<number> = {
             minWidth: ctx.cardWidth * 0.032,
             textAlign: 'right',
           }}>
-            {rate}%
+            {rate}{unit}
           </span>
         )}
+        </div>
       </div>
     )
   },
@@ -86,7 +99,7 @@ export const gaugeComponent: ComponentDef<number> = {
             onChange={e => onChange(Number(e.target.value))}
             className="flex-1 accent-[#00AADB] h-1.5"
           />
-          <span className="text-sm font-semibold text-gray-700 w-10 text-right">{value}%</span>
+          <span className="text-sm font-semibold text-gray-700 w-10 text-right">{value}{typeof blockConfig?.unit === 'string' ? blockConfig.unit : ''}</span>
         </div>
       </div>
     )
@@ -119,10 +132,7 @@ export const gaugeComponent: ComponentDef<number> = {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-gray-500 w-24 shrink-0">バー色</span>
-          <input type="color" value={barColor || '#00AADB'}
-            onChange={e => onChange({ ...blockConfig, barColor: e.target.value })}
-            className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0.5" />
-          {barColor && <button type="button" onClick={() => onChange({ ...blockConfig, barColor: undefined })} className="text-xs text-gray-300 hover:text-gray-500">reset</button>}
+          <ColorPicker value={barColor ?? ''} onChange={v => onChange({ ...blockConfig, barColor: v || undefined })} defaultColor="#00AADB" />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-gray-500 w-24 shrink-0">バー高さ(px)</span>

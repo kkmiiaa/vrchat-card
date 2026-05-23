@@ -1,14 +1,21 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
 import { BG_VARIANT_STYLE } from './types'
+import { renderIcon, IconPicker } from './iconRegistry'
+import { ColorPicker } from './colorPicker'
 
 export const multiSelectComponent: ComponentDef<string[]> = {
   key: 'multi-select',
   defaultValue: [],
   variants: ['default', 'slash', 'icon'],
-  CardItem({ value, ctx, variant, bgVariant }) {
+  supportsBgVariant: true,
+  bgVariantFor: ['slash'],
+  CardItem({ value, ctx, variant, bgVariant, blockConfig, label }) {
     const items = Array.isArray(value) ? value : []
     const fs = ctx.fontSize.sm
+    type OptionRow = { value: string; label: string; color?: string; icon?: string }
+    const options: OptionRow[] = Array.isArray(blockConfig?.options) ? blockConfig!.options as OptionRow[] : []
+    const getOption = (v: string) => options.find(o => o.value === v)
 
     if (variant === 'slash') {
       const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
@@ -18,7 +25,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
           background: bgStyle.background,
           border: bgStyle.border,
           borderRadius: ctx.cardWidth * 0.006,
-          padding: `0 ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
+          padding: `${label ? `${ctx.cardWidth * 0.006 * ctx.paddingScale}px` : '0'} ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
           fontSize: fs,
           color: ctx.theme.text,
           fontFamily: ctx.fontFamily,
@@ -26,25 +33,41 @@ export const multiSelectComponent: ComponentDef<string[]> = {
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           display: 'flex',
-          alignItems: 'center',
+          flexDirection: label ? 'column' : 'row',
+          alignItems: label ? 'stretch' : 'center',
+          gap: label ? ctx.cardWidth * 0.003 : 0,
         }}>
-          {items.join(' / ') || '—'}
+          {label && (
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+              <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
+              {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
+            </div>
+          )}
+          {items.map(v => getOption(v)?.label || v).join(' / ') || '—'}
         </div>
       )
     }
 
-    // default: badges
+    // default & icon: badges with option colors
     if (!items.length) return null
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-        {items.map(v => (
-          <span key={v} style={{ fontSize: fs, color: ctx.theme.text, background: ctx.theme.bg, padding: '2px 8px', borderRadius: 999, fontFamily: ctx.fontFamily, border: `1px solid ${ctx.theme.accent}40` }}>{v}</span>
-        ))}
+        {items.map(v => {
+          const opt = getOption(v)
+          const color = opt?.color ?? ctx.theme.accent
+          const label = opt?.label || v
+          return (
+            <span key={v} style={{ fontSize: fs, color, background: `${color}18`, padding: '2px 8px', borderRadius: 999, fontFamily: ctx.fontFamily, border: `1px solid ${color}50`, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+              {variant === 'icon' && opt?.icon && <span style={{ display: 'inline-flex', alignItems: 'center' }}>{renderIcon(opt.icon, fs)}</span>}
+              {label}
+            </span>
+          )
+        })}
       </div>
     )
   },
   FormItem({ value, onChange, blockConfig }) {
-    type OptionRow = { value: string; label: string }
+    type OptionRow = { value: string; label: string; color?: string; icon?: string }
     const options: OptionRow[] = Array.isArray(blockConfig?.options) ? blockConfig.options as OptionRow[] : []
     return (
       <div className="flex flex-col gap-2">
@@ -59,12 +82,13 @@ export const multiSelectComponent: ComponentDef<string[]> = {
                   if (selected) onChange(value.filter(v => v !== opt.value))
                   else onChange([...value, opt.value])
                 }}
-                className={`px-4 py-1.5 rounded-lg text-sm border font-medium transition-all ${
+                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm border font-medium transition-all ${
                   selected
                     ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
                     : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
                 }`}
               >
+                {opt.icon && <span className="inline-flex items-center">{renderIcon(opt.icon, 13)}</span>}
                 {opt.label || opt.value}
               </button>
             )
@@ -91,10 +115,8 @@ export const multiSelectComponent: ComponentDef<string[]> = {
               className="w-24 px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-sky-200" />
             <input type="text" value={opt.label} placeholder="label" onChange={e => updateOption(i, { label: e.target.value })}
               className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-sky-200" />
-            <input type="color" value={opt.color ?? '#9ca3af'} onChange={e => updateOption(i, { color: e.target.value })}
-              className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0.5" title="color" />
-            <input type="text" value={opt.icon ?? ''} placeholder="icon" onChange={e => updateOption(i, { icon: e.target.value || undefined })}
-              className="w-16 px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-sky-200" />
+            <ColorPicker value={opt.color ?? ''} onChange={v => updateOption(i, { color: v || undefined })} defaultColor="#9ca3af" />
+            <IconPicker value={opt.icon ?? ''} onChange={v => updateOption(i, { icon: v || undefined })} />
             <button type="button" onClick={() => removeOption(i)} className="text-gray-300 hover:text-red-400 transition-colors">✕</button>
           </div>
         ))}

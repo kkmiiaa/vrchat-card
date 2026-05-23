@@ -15,7 +15,8 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
   key: 'dateItem',
   defaultValue: { display: '', iso: '' },
   variants: ['default', 'compact', 'badge'],
-  CardItem({ value, ctx, variant = 'default', bgVariant }) {
+  supportsBgVariant: true,
+  CardItem({ value, ctx, variant = 'default', bgVariant, label }) {
     const safe: DateItemValue = (value && typeof value === 'object' && 'display' in value)
       ? value as DateItemValue
       : { display: '', iso: '' }
@@ -83,10 +84,18 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: label ? 'column' : 'row',
+        alignItems: label ? 'stretch' : 'center',
+        gap: label ? ctx.cardWidth * 0.003 : 0,
         fontFamily: ctx.fontFamily,
         overflow: 'hidden',
       }}>
+        {label && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
+            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
+          </div>
+        )}
         <span style={{
           fontSize: fs,
           color: ctx.theme.text,
@@ -141,8 +150,8 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
   },
   blockConfigForm({ blockConfig, onChange }: BlockConfigFormProps) {
     const format = typeof blockConfig.format === 'string' ? blockConfig.format : ''
-    const min = typeof blockConfig.min === 'string' ? blockConfig.min : ''
-    const max = typeof blockConfig.max === 'string' ? blockConfig.max : ''
+    const minDate = typeof blockConfig.minDate === 'string' ? blockConfig.minDate : ''
+    const maxDate = typeof blockConfig.maxDate === 'string' ? blockConfig.maxDate : ''
     return (
       <div className="flex flex-col gap-2 text-sm">
         <div className="flex items-center gap-2">
@@ -153,14 +162,14 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-gray-500 w-20 shrink-0">最小日付</span>
-          <input type="date" value={min}
-            onChange={e => onChange({ ...blockConfig, min: e.target.value || undefined })}
+          <input type="date" value={minDate}
+            onChange={e => onChange({ ...blockConfig, minDate: e.target.value || undefined })}
             className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 bg-white" />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-gray-500 w-20 shrink-0">最大日付</span>
-          <input type="date" value={max}
-            onChange={e => onChange({ ...blockConfig, max: e.target.value || undefined })}
+          <input type="date" value={maxDate}
+            onChange={e => onChange({ ...blockConfig, maxDate: e.target.value || undefined })}
             className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 bg-white" />
         </div>
       </div>

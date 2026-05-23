@@ -97,9 +97,19 @@ export type BlockVariant = string
  */
 export type BgVariant = 'default' | 'glass' | 'transparent' | 'outline'
 
+/** ラベル定義。外ラベル・insetLabel 共通で使用 */
+export type LabelDef = {
+  text: string
+  subText?: string
+  /** テキスト色。省略時はテーマの text 色 */
+  color?: string
+  /** フォントサイズ倍率。省略時は 1 */
+  fontScale?: number
+}
+
 export const BG_VARIANT_STYLE = {
   default:     { background: 'rgba(255,255,255,0.85)', border: 'none' },
-  glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)' },
+  glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)' },
   transparent: { background: 'transparent',            border: 'none' },
   outline:     { background: 'transparent',            border: '1px solid rgba(255,255,255,0.6)' },
 } satisfies Record<BgVariant, { background: string; border: string }>
@@ -111,6 +121,11 @@ export type ComponentCardProps<T> = {
   variant?: BlockVariant
   /** 背景・コンテナの見た目バリアント。未指定時は 'default' */
   bgVariant?: BgVariant
+  /**
+   * labelInset が有効なとき渡されるラベル定義。
+   * コンポーネント自身の bgVariant コンテナ内に描画する。
+   */
+  label?: LabelDef
   /** ブロック作成時にテンプレート作成者が設定した値（FormItem・CardItem 共通） */
   blockConfig?: Record<string, unknown>
 }
@@ -129,21 +144,25 @@ export type ComponentDef<T = unknown> = {
   CardItem?: (props: ComponentCardProps<T>) => ReactNode
   /** テンプレート作成者向けのブロック設定UI */
   blockConfigForm?: (props: BlockConfigFormProps) => ReactNode
+  /** CardItem が bgVariant を解釈する場合 true */
+  supportsBgVariant?: boolean
+  /** bgVariant が有効なバリアント一覧。未指定かつ supportsBgVariant=true なら compact/badge 以外で有効 */
+  bgVariantFor?: string[]
 }
 
 // --- テンプレート定義型 ---
 
-/** グリッド設定（cellSize 単位で minW/minH を指定するために使用） */
+/** グリッド設定 */
 export type TemplateGridDef = {
-  /** 1セルの一辺（px）。常に正方形 */
+  /** 1セルの一辺（px）。minW/minH の基準単位 */
   cellSize: number
-  /** セル間のギャップ（px） */
+  /** 間隔の基準単位（px）。node.gap はこの倍数で指定する */
   gap: number
 }
 
 /** セル数をピクセルに変換するユーティリティ */
-export function cellsToPixels(cells: number, cellSize: number, gap: number): number {
-  return cells * cellSize + (cells - 1) * gap
+export function cellsToPixels(cells: number, cellSize: number): number {
+  return cells * cellSize
 }
 
 /**

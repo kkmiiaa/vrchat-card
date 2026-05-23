@@ -6,9 +6,15 @@ export const textComponent: ComponentDef<string> = {
   key: 'text',
   defaultValue: '',
   variants: ['default'],
-  CardItem({ value, ctx, bgVariant }) {
+  supportsBgVariant: true,
+  CardItem({ value, ctx, bgVariant, label, blockConfig }) {
     const fs = ctx.fontSize.lg
-    const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+    // label（insetLabel）があるときはコンテナが見える必要があるため、transparent は default にフォールバック
+    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      ? 'default'
+      : (bgVariant ?? 'transparent')
+    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+    const multiline = blockConfig?.multiline !== false
     return (
       <div style={{
         width: '100%',
@@ -18,25 +24,58 @@ export const textComponent: ComponentDef<string> = {
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.007 * ctx.paddingScale}px ${ctx.cardWidth * 0.009 * ctx.paddingScale}px`,
         overflow: 'hidden',
+        display: 'flex',
+        flexDirection: label ? 'column' : 'row',
+        gap: label ? ctx.cardWidth * 0.003 : 0,
+        alignItems: label ? 'stretch' : (multiline ? 'flex-start' : 'center'),
       }}>
-        <p style={{ fontSize: fs, color: ctx.theme.text, lineHeight: 1.75, whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontFamily: ctx.fontFamily, margin: 0, height: '100%', overflow: 'hidden' }}>{value as string || ''}</p>
+        {label && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
+            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
+          </div>
+        )}
+        <p style={{
+          fontSize: fs,
+          color: ctx.theme.text,
+          lineHeight: 1.75,
+          whiteSpace: multiline ? 'pre-wrap' : 'nowrap',
+          wordBreak: multiline ? 'break-all' : 'normal',
+          overflow: 'hidden',
+          textOverflow: multiline ? 'clip' : 'ellipsis',
+          fontFamily: ctx.fontFamily,
+          margin: 0,
+          width: '100%',
+        }}>{value as string || ''}</p>
       </div>
     )
   },
   FormItem({ value, onChange, t, blockConfig }) {
+    const multiline = blockConfig?.multiline !== false
     const rows = typeof blockConfig?.rows === 'number' ? blockConfig.rows : 5
     const placeholder = typeof blockConfig?.placeholder === 'string' ? blockConfig.placeholder : undefined
     const maxLength = typeof blockConfig?.maxLength === 'number' ? blockConfig.maxLength : undefined
     return (
       <div className="flex flex-col gap-2">
-        <textarea
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          rows={rows}
-          placeholder={placeholder}
-          maxLength={maxLength}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200 resize-none"
-        />
+        {multiline ? (
+          <textarea
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            rows={rows}
+            placeholder={placeholder}
+            maxLength={maxLength}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200 resize-none"
+          />
+        ) : (
+          <input
+            type="text"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            placeholder={placeholder}
+            maxLength={maxLength}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+          />
+        )}
       </div>
     )
   },

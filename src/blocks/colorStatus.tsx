@@ -83,7 +83,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
     const fs = ctx.fontSize.sm
     const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
     return (
-      <div style={{ display: 'flex', flexDirection: label?.dir === 'row' ? 'row' : 'column', gap: label ? ctx.cardWidth * 0.003 : 4, width: '100%', height: '100%', alignItems: label?.dir === 'row' ? 'center' : 'stretch' }}>
+      <div style={{ display: 'flex', flexDirection: label?.dir === 'row' ? 'row' : 'column', gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 4, width: '100%', height: '100%', alignItems: label?.dir === 'row' ? 'center' : 'stretch' }}>
         {label && (
           <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
             <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>

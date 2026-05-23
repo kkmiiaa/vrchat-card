@@ -26,7 +26,7 @@ export const textComponent: ComponentDef<string> = {
         overflow: 'hidden',
         display: 'flex',
         flexDirection: (label?.dir === 'row') ? 'row' : 'column',
-        gap: label ? ctx.cardWidth * 0.003 : 0,
+        gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
         alignItems: (label?.dir === 'row') ? 'center' : (label ? 'stretch' : (multiline ? 'flex-start' : 'center')),
       }}>
         {label && (

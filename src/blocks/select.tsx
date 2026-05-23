@@ -23,7 +23,7 @@ export const selectComponent: ComponentDef<string> = {
       const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'default']
       const fs = ctx.fontSize.md
       return (
-        <div style={{ width: '100%', height: '100%', background: bgStyle.background, border: bgStyle.border, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: label.dir === 'row' ? 'row' : 'column', gap: ctx.cardWidth * 0.003, alignItems: label.dir === 'row' ? 'center' : 'stretch', overflow: 'hidden' }}>
+        <div style={{ width: '100%', height: '100%', background: bgStyle.background, border: bgStyle.border, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: label.dir === 'row' ? 'row' : 'column', gap: label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003, alignItems: label.dir === 'row' ? 'center' : 'stretch', overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
             <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
             {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}

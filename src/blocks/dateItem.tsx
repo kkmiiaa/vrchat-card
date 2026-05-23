@@ -86,7 +86,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
         display: 'flex',
         flexDirection: (label?.dir === 'row') ? 'row' : 'column',
         alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
-        gap: label ? ctx.cardWidth * 0.003 : 0,
+        gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
         fontFamily: ctx.fontFamily,
         overflow: 'hidden',
       }}>

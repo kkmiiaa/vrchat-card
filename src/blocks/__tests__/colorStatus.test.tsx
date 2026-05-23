@@ -80,7 +80,7 @@ describe('colorStatus', () => {
     expect(screen.getByText('募集中テキスト')).toBeInTheDocument()
   })
 
-  it('13. cards variant の各アイテムに hardcoded な rgba 背景色が設定されていない', () => {
+  it('13. cards variant の各アイテムに白背景が設定されている', () => {
     const { container } = render(
       colorStatusComponent.CardItem!({
         value: { blue: '募集中' },
@@ -89,12 +89,12 @@ describe('colorStatus', () => {
         blockConfig: { fields: FIELDS },
       })
     )
-    // cards variant のアイテム div に rgba(255,255,255, ...) の background がないこと
+    // cards variant のアイテム自体が白背景を持つ（外側の glass ラッパーは不要）
     const itemDivs = container.querySelectorAll('div > div')
-    itemDivs.forEach(div => {
-      const bg = (div as HTMLElement).style.background
-      expect(bg).not.toMatch(/rgba\(255,\s*255,\s*255/)
-    })
+    const hasWhiteBg = Array.from(itemDivs).some(div =>
+      (div as HTMLElement).style.background.includes('rgba(255')
+    )
+    expect(hasWhiteBg).toBe(true)
   })
 
   it('14. cards variant は variants 配列に含まれる', () => {

@@ -135,7 +135,7 @@ export const cardV2Definition: TemplateDefinition = {
               minH: 11,
               children: [
                 {
-                  type: 'block', componentKey: 'color-status', dataKey: 'status', variant: 'cards', flex: 1, label: 'STATUS', contentFontScale: 0.9, glass: true, minH: 8, bgVariant: 'transparent',
+                  type: 'block', componentKey: 'color-status', dataKey: 'status', variant: 'cards', flex: 1, label: 'STATUS', contentFontScale: 0.9, minH: 8,
                   blockConfig: {
                     fields: [
                       { key: 'blue',   label: '青', color: '#60a5fa' },

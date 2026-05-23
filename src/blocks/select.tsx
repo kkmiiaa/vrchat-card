@@ -1,24 +1,44 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
+import { BG_VARIANT_STYLE } from './types'
+import { renderIcon, IconPicker } from './iconRegistry'
+import { ColorPicker } from './colorPicker'
 
 export const selectComponent: ComponentDef<string> = {
   key: 'select',
   defaultValue: '',
   variants: ['default', 'badge', 'compact'],
-  CardItem({ value, ctx, variant = 'default', blockConfig }) {
+  CardItem({ value, ctx, variant = 'default', bgVariant, label, blockConfig }) {
     if (!value) return null
-    type OptionRow = { value: string; label: string; color?: string }
+    type OptionRow = { value: string; label: string; color?: string; icon?: string }
     const options: OptionRow[] = Array.isArray(blockConfig?.options) ? blockConfig!.options as OptionRow[] : []
     const matchedOption = options.find(o => o.value === value)
     const displayValue = matchedOption?.label || value
     const optionColor = matchedOption?.color
     const color = optionColor ?? ctx.theme.subText
+    const icon = matchedOption?.icon
+
+    // label があるとき: bgVariant コンテナの中にラベル＋値を描く
+    if (label) {
+      const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'default']
+      const fs = ctx.fontSize.md
+      return (
+        <div style={{ width: '100%', height: '100%', background: bgStyle.background, border: bgStyle.border, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: label.dir === 'row' ? 'row' : 'column', gap: ctx.cardWidth * 0.003, alignItems: label.dir === 'row' ? 'center' : 'stretch', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
+            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
+          </div>
+          <span style={{ fontSize: fs, lineHeight: 1, color, fontWeight: 700, fontFamily: ctx.fontFamily }}>{icon && renderIcon(icon, fs)}{displayValue}</span>
+        </div>
+      )
+    }
 
     if (variant === 'badge') {
       const fs = ctx.fontSize.sm
       return (
         <span style={{
           fontSize: fs,
+          lineHeight: 1,
           color: '#fff',
           fontWeight: 700,
           background: color,
@@ -26,10 +46,13 @@ export const selectComponent: ComponentDef<string> = {
           borderRadius: ctx.cardWidth * 0.005,
           fontFamily: ctx.fontFamily,
           boxShadow: `0 2px 6px ${color}55`,
-          display: 'inline-block',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
           whiteSpace: 'nowrap',
         }}>
-          {value}
+          {icon && renderIcon(icon, fs)}
+          {displayValue}
         </span>
       )
     }
@@ -39,6 +62,7 @@ export const selectComponent: ComponentDef<string> = {
       return (
         <span style={{
           fontSize: fs,
+          lineHeight: 1,
           color,
           fontWeight: 600,
           background: color + '18',
@@ -47,9 +71,12 @@ export const selectComponent: ComponentDef<string> = {
           border: `1px solid ${color}50`,
           fontFamily: ctx.fontFamily,
           whiteSpace: 'nowrap',
-          display: 'inline-block',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 3,
         }}>
-          {value}
+          {icon && renderIcon(icon, fs)}
+          {displayValue}
         </span>
       )
     }
@@ -57,18 +84,19 @@ export const selectComponent: ComponentDef<string> = {
     // default
     const fs = ctx.fontSize.sm
     return (
-      <span style={{ fontSize: fs, color, fontWeight: 700, background: color + '20', padding: '2px 10px', borderRadius: 999, border: `1px solid ${color}60`, fontFamily: ctx.fontFamily }}>
+      <span style={{ fontSize: fs, lineHeight: 1, color, fontWeight: 700, background: color + '20', padding: '2px 10px', borderRadius: 999, border: `1px solid ${color}60`, fontFamily: ctx.fontFamily, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        {icon && renderIcon(icon, fs)}
         {displayValue}
       </span>
     )
   },
   FormItem({ value, onChange, blockConfig }) {
-    type OptionRow = { value: string; label: string; color?: string }
+    type OptionRow = { value: string; label: string; color?: string; icon?: string }
     const options: OptionRow[] = Array.isArray(blockConfig?.options) ? blockConfig.options as OptionRow[] : []
     return (
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap gap-1.5">
-          {options.map(({ value: optVal, label, color }) => (
+          {options.map(({ value: optVal, label, color, icon }) => (
             <button
               key={optVal}
               type="button"
@@ -77,10 +105,11 @@ export const selectComponent: ComponentDef<string> = {
                 ? { borderColor: color ?? '#6b7280', backgroundColor: color ?? '#6b7280', color: '#fff' }
                 : { borderColor: (color ?? '#6b7280') + '60', color: color ?? '#6b7280' }
               }
-              className={`px-3 py-1.5 rounded-lg text-xs transition-colors border font-semibold ${
+              className={`px-3 py-1.5 rounded-lg text-xs transition-colors border font-semibold inline-flex items-center gap-1.5 ${
                 value === optVal ? '' : 'bg-white hover:opacity-80'
               }`}
             >
+              {icon && <span className="inline-flex items-center">{renderIcon(icon, 13)}</span>}
               {label || optVal}
             </button>
           ))}
@@ -106,10 +135,8 @@ export const selectComponent: ComponentDef<string> = {
               className="w-24 px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-sky-200" />
             <input type="text" value={opt.label} placeholder="label" onChange={e => updateOption(i, { label: e.target.value })}
               className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-sky-200" />
-            <input type="color" value={opt.color ?? '#9ca3af'} onChange={e => updateOption(i, { color: e.target.value })}
-              className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0.5" title="color" />
-            <input type="text" value={opt.icon ?? ''} placeholder="icon" onChange={e => updateOption(i, { icon: e.target.value || undefined })}
-              className="w-16 px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-sky-200" />
+            <ColorPicker value={opt.color ?? ''} onChange={v => updateOption(i, { color: v || undefined })} defaultColor="#9ca3af" />
+            <IconPicker value={opt.icon ?? ''} onChange={v => updateOption(i, { icon: v || undefined })} />
             <button type="button" onClick={() => removeOption(i)} className="text-gray-300 hover:text-red-400 transition-colors">✕</button>
           </div>
         ))}

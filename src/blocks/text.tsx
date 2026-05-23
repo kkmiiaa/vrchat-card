@@ -25,9 +25,9 @@ export const textComponent: ComponentDef<string> = {
         padding: `${ctx.cardWidth * 0.007 * ctx.paddingScale}px ${ctx.cardWidth * 0.009 * ctx.paddingScale}px`,
         overflow: 'hidden',
         display: 'flex',
-        flexDirection: label ? 'column' : 'row',
+        flexDirection: (label?.dir === 'row') ? 'row' : 'column',
         gap: label ? ctx.cardWidth * 0.003 : 0,
-        alignItems: label ? 'stretch' : (multiline ? 'flex-start' : 'center'),
+        alignItems: (label?.dir === 'row') ? 'center' : (label ? 'stretch' : (multiline ? 'flex-start' : 'center')),
       }}>
         {label && (
           <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>

@@ -154,7 +154,7 @@ type Block = {
   subLabel?: string             // ラベル右のサブテキスト
   labelColor?: string
   labelInset?: boolean          // ラベルをコンテンツ枠内に表示するか
-  labelInsetDir?: 'col' | 'row'
+  labelInsetDir?: 'col' | 'row' // ラベルとコンテンツの並び方向（'col'=縦、'row'=横）
   contentFontScale?: number     // コンテンツフォントサイズ倍率
   labelFontScale?: number       // ラベルフォントサイズ倍率
   blockConfig?: Record<string, unknown> // コンポーネントへ渡す追加設定
@@ -166,6 +166,25 @@ type Block = {
   glassRadius?: number
 }
 ```
+
+#### labelInset と LabelDef
+
+`labelInset: true` を指定すると、`GenericCardRenderer` がブロックのラベル情報を `LabelDef` としてコンポーネントの `CardItem` に渡す。コンポーネント側はこの `label` prop を受け取り、自コンテナ内にラベルとコンテンツを描画する責務を持つ。
+
+```typescript
+type LabelDef = {
+  text: string
+  subText?: string
+  color?: string        // 省略時はテーマの text 色
+  fontScale?: number    // 省略時は 1
+  dir?: 'row' | 'col'  // 並び方向（省略時は 'col' 相当）
+}
+```
+
+- `dir === 'col'`（デフォルト）: ラベルが上、コンテンツが下に縦並び
+- `dir === 'row'`: ラベルが左、コンテンツが右に横並び。単行コンポーネントでは縦方向センタリング（`alignItems: center`）が適用される
+
+コンポーネントがラベルをサポートするかは variant に依存する場合がある（例: `language`, `multiSelect` は `slash` variant のみ label 対応）。
 
 **例**: `gauge` コンポーネントから `マイクオン率` ブロックを作る
 

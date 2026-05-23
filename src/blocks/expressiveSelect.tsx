@@ -37,8 +37,8 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',
-        flexDirection: label ? 'column' : 'row',
-        alignItems: label ? 'stretch' : 'center',
+        flexDirection: (label?.dir === 'row') ? 'row' : 'column',
+        alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
         gap: label ? ctx.cardWidth * 0.003 : 4,
         overflow: 'hidden',
       }}>

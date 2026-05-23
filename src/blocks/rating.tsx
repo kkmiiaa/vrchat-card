@@ -1,13 +1,16 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
 import { BG_VARIANT_STYLE } from './types'
+import { renderIcon, IconPicker } from './iconRegistry'
+import { ColorPicker } from './colorPicker'
 
 export const ratingComponent: ComponentDef<number> = {
   key: 'rating',
   defaultValue: 0,
   variants: ['default', 'compact'],
-  CardItem({ value, ctx, variant, bgVariant, blockConfig }) {
-    const rating = typeof value === 'number' ? Math.min(5, Math.max(0, value)) : 0
+  CardItem({ value, ctx, variant, bgVariant, blockConfig, label }) {
+    const maxValue = typeof blockConfig?.maxValue === 'number' ? blockConfig.maxValue : 5
+    const rating = typeof value === 'number' ? Math.min(maxValue, Math.max(0, value)) : 0
     const isCompact = variant === 'compact'
     const starSize = isCompact ? ctx.fontSize.sm * 1.2 : ctx.fontSize.lg * 1.2
     const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
@@ -23,33 +26,43 @@ export const ratingComponent: ComponentDef<number> = {
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',
-        alignItems: 'center',
-        gap: isCompact ? 2 : 3,
+        flexDirection: (label?.dir === 'row') ? 'row' : 'column',
+        alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
+        gap: label ? ctx.cardWidth * 0.003 : (isCompact ? 2 : 3),
         fontFamily: ctx.fontFamily,
       }}>
-        {Array.from({ length: 5 }, (_, i) => (
+        {label && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
+            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
+          </div>
+        )}
+        {Array.from({ length: maxValue }, (_, i) => (
           <span
             key={i}
             style={{
               fontSize: starSize,
               color: i < rating ? activeColor : '#d1d5db',
               lineHeight: 1,
+              display: 'inline-flex',
+              alignItems: 'center',
             }}
           >
-            {icon}
+            {renderIcon(icon, starSize) ?? icon}
           </span>
         ))}
       </div>
     )
   },
   FormItem({ value, onChange, blockConfig }) {
+    const maxValue = typeof blockConfig?.maxValue === 'number' ? blockConfig.maxValue : 5
     const rating = typeof value === 'number' ? value : 0
     const icon = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '★'
     const activeColor = typeof blockConfig?.color === 'string' ? blockConfig.color : '#f59e0b'
     return (
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-1">
-          {Array.from({ length: 5 }, (_, i) => (
+          {Array.from({ length: maxValue }, (_, i) => (
             <button
               key={i}
               type="button"
@@ -57,10 +70,10 @@ export const ratingComponent: ComponentDef<number> = {
               className="text-2xl leading-none transition-colors focus:outline-none"
               style={{ color: i < rating ? activeColor : '#d1d5db' }}
             >
-              {icon}
+              {renderIcon(icon, 20) ?? icon}
             </button>
           ))}
-          <span className="ml-2 text-sm text-gray-500">{rating} / 5</span>
+          <span className="ml-2 text-sm text-gray-500">{rating} / {maxValue}</span>
         </div>
       </div>
     )
@@ -77,18 +90,13 @@ export const ratingComponent: ComponentDef<number> = {
             onChange={e => onChange({ ...blockConfig, maxValue: e.target.value ? Number(e.target.value) : undefined })}
             className="w-20 text-xs border border-gray-200 rounded px-2 py-1 bg-white" />
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] text-gray-500 w-20 shrink-0">アイコン</span>
-          <input type="text" value={icon} placeholder="★"
-            onChange={e => onChange({ ...blockConfig, icon: e.target.value || undefined })}
-            className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 bg-white" />
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] text-gray-500">アイコン</span>
+          <IconPicker value={icon || '★'} onChange={v => onChange({ ...blockConfig, icon: v || undefined })} />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-gray-500 w-20 shrink-0">色</span>
-          <input type="color" value={color || '#f59e0b'}
-            onChange={e => onChange({ ...blockConfig, color: e.target.value })}
-            className="w-8 h-7 rounded border border-gray-200 cursor-pointer" />
-          {color && <button type="button" onClick={() => onChange({ ...blockConfig, color: undefined })} className="text-xs text-gray-300 hover:text-gray-500">reset</button>}
+          <ColorPicker value={color ?? ''} onChange={v => onChange({ ...blockConfig, color: v || undefined })} defaultColor="#f59e0b" />
         </div>
       </div>
     )

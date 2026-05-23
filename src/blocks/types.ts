@@ -105,6 +105,8 @@ export type LabelDef = {
   color?: string
   /** フォントサイズ倍率。省略時は 1 */
   fontScale?: number
+  /** ラベルとコンテンツの並び方向。'row'=横並び / 'col'=縦並び（デフォルト） */
+  dir?: 'row' | 'col'
 }
 
 export const BG_VARIANT_STYLE = {

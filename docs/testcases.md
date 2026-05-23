@@ -354,6 +354,21 @@
 > 対象: `src/blocks/` 以下の各コンポーネント定義（`ComponentDef<T>`）  
 > ユニットテストまたは Admin UI の BlockPreviewList でのスモークテストとして実施する。
 
+### 共通: labelInset レイアウト（`src/blocks/__tests__/labelLayout.test.tsx`）
+
+labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリング挙動を検証する。
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | `label.dir === 'col'` で各コンポーネントを描画 | デフォルト方向（縦並び） | ルートコンテナの `flexDirection` が `column` |
+| 2 | `label.dir === 'row'` で各コンポーネントを描画 | 横並び指定 | ルートコンテナの `flexDirection` が `row` |
+| 3 | `label.dir === 'row'` で単行コンポーネントを描画 | 横並び時の縦方向センタリング | ルートコンテナの `alignItems` が `center` |
+
+**対象コンポーネント**: `age`, `gender`, `rating`, `gauge`, `language(slash)`, `select`, `text`, `multiSelect(slash)`, `colorStatus`  
+**NOTE**: `language`, `multiSelect` の label 対応は `slash` variant のみ。
+
+---
+
 ### 共通バリデーション（`dataKey` / 文字列入力）
 
 | # | テスト内容 | 意味 | 期待値 |

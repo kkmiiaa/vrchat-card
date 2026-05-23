@@ -33,8 +33,8 @@ export const multiSelectComponent: ComponentDef<string[]> = {
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           display: 'flex',
-          flexDirection: label ? 'column' : 'row',
-          alignItems: label ? 'stretch' : 'center',
+          flexDirection: (label?.dir === 'row') ? 'row' : 'column',
+          alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
           gap: label ? ctx.cardWidth * 0.003 : 0,
         }}>
           {label && (

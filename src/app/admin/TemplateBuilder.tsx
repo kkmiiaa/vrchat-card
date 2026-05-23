@@ -302,33 +302,51 @@ export default function TemplateBuilder({ definitions, values }: Props) {
     return `${cells}セル / ${cellsToPixels(cells, grid.cellSize)}px`
   }
 
-  // ドロップゾーン（兄弟間の挿入ターゲット）
+  // ドロップゾーン（常時レンダリング・ドラッグ中のみ可視・インタラクティブ）
   function renderDropZone(parentPath: NodePath, insertIdx: number): React.ReactNode {
-    if (!isDraggingActive || !dragPathRef.current) return null
     const dp = dragPathRef.current
-    // 自分自身の子孫へのドロップは無効
-    if (parentPath.length >= dp.length &&
-        JSON.stringify(parentPath.slice(0, dp.length)) === JSON.stringify(dp)) return null
-    // 元の位置と同じなら不要
-    const fromParent = dp.slice(0, -1)
-    const fromIdx = dp[dp.length - 1]
-    if (JSON.stringify(fromParent) === JSON.stringify(parentPath) &&
-        (insertIdx === fromIdx || insertIdx === fromIdx + 1)) return null
+    // 自分自身の子孫へのドロップ位置はスペーサーのみ
+    const isDescendant = dp !== null &&
+      parentPath.length >= dp.length &&
+      JSON.stringify(parentPath.slice(0, dp.length)) === JSON.stringify(dp)
+    // 元の位置と同じ（ノーオペレーション）
+    const isNoop = dp !== null && (() => {
+      const fromParent = dp.slice(0, -1)
+      const fromIdx = dp[dp.length - 1]
+      return JSON.stringify(fromParent) === JSON.stringify(parentPath) &&
+        (insertIdx === fromIdx || insertIdx === fromIdx + 1)
+    })()
 
     const isActive = !!dropTarget &&
       JSON.stringify(dropTarget.parentPath) === JSON.stringify(parentPath) &&
       dropTarget.insertIdx === insertIdx
 
+    const canDrop = isDraggingActive && !isDescendant && !isNoop
+
     return (
       <div
-        className={`mx-2 rounded transition-colors ${isActive ? 'bg-sky-400' : 'bg-transparent'}`}
-        style={{ height: 3, marginTop: 1, marginBottom: 1 }}
-        onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDropTarget({ parentPath, insertIdx }) }}
+        style={{ height: isDraggingActive && canDrop ? 10 : 2, transition: 'height 0.1s', display: 'flex', alignItems: 'center', padding: '0 8px' }}
+        onDragOver={e => {
+          if (!canDrop) return
+          e.preventDefault()
+          e.stopPropagation()
+          setDropTarget({ parentPath, insertIdx })
+        }}
+        onDragLeave={() => {
+          if (isActive) setDropTarget(null)
+        }}
         onDrop={e => {
           e.preventDefault(); e.stopPropagation()
-          if (dragPathRef.current) handleReparent(dragPathRef.current, parentPath, insertIdx)
+          if (dragPathRef.current && canDrop) handleReparent(dragPathRef.current, parentPath, insertIdx)
         }}
-      />
+      >
+        <div
+          className={`w-full rounded transition-colors ${
+            isActive ? 'bg-sky-400' : isDraggingActive && canDrop ? 'bg-gray-200' : 'bg-transparent'
+          }`}
+          style={{ height: 2 }}
+        />
+      </div>
     )
   }
 
@@ -800,7 +818,11 @@ export default function TemplateBuilder({ definitions, values }: Props) {
         </div>
 
         {rightTab === 'layout' && <>
-        <div className="flex-1 overflow-y-auto py-1 text-xs">
+        <div
+          className="flex-1 overflow-y-auto py-1 text-xs"
+          onDragOver={e => isDraggingActive && e.preventDefault()}
+          onDragEnd={() => { dragPathRef.current = null; setIsDraggingActive(false); setDropTarget(null) }}
+        >
           {renderTree(layout, [], 0)}
         </div>
         {/* フォントスケール編集 */}

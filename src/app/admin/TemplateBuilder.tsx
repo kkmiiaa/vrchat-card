@@ -325,7 +325,7 @@ export default function TemplateBuilder({ definitions, values }: Props) {
 
     return (
       <div
-        style={{ height: isDraggingActive && canDrop ? 10 : 2, transition: 'height 0.1s', display: 'flex', alignItems: 'center', padding: '0 8px' }}
+        style={{ height: 4, display: 'flex', alignItems: 'center', padding: '0 8px' }}
         onDragOver={e => {
           if (!canDrop) return
           e.preventDefault()
@@ -342,7 +342,7 @@ export default function TemplateBuilder({ definitions, values }: Props) {
       >
         <div
           className={`w-full rounded transition-colors ${
-            isActive ? 'bg-sky-400' : isDraggingActive && canDrop ? 'bg-gray-200' : 'bg-transparent'
+            isActive ? 'bg-sky-400' : isDraggingActive && canDrop ? 'bg-gray-100' : 'bg-transparent'
           }`}
           style={{ height: 2 }}
         />

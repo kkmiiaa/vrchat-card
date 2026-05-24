@@ -369,6 +369,21 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 
 ---
 
+### 共通: labelColor の反映（`src/components/__tests__/GenericCardRenderer.labelColor.test.tsx`）
+
+`labelInset` OFF 時（block の外部ラベル）および `col` / `row` ノードのラベル色が `GenericCardRenderer` で正しく反映されることを検証する。
+
+| # | ノード種別 | テスト内容 | 期待値 |
+|---|---|---|---|
+| 1 | `block`（labelInset:false） | `labelColor` を指定 | ラベル span のカラーが指定色 |
+| 2 | `block`（labelInset:false） | `labelColor` 未指定 | `theme.text` 色が使われる |
+| 3 | `col` | `labelColor` を指定 | ラベル span のカラーが指定色 |
+| 4 | `col` | `labelColor` 未指定 | `theme.text` 色が使われる |
+| 5 | `row` | `labelColor` を指定 | ラベル span のカラーが指定色 |
+| 6 | `row` | `labelColor` 未指定 | `theme.text` 色が使われる |
+
+---
+
 ### 共通バリデーション（`dataKey` / 文字列入力）
 
 | # | テスト内容 | 意味 | 期待値 |

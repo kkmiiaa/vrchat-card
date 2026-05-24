@@ -45,6 +45,42 @@ function makeDefinition(layout: TemplateDefinition['landscape']['layout']): Temp
   }
 }
 
+describe('GenericCardRenderer – labelIcon（アイコンプレフィックス）', () => {
+  it('col: labelIcon を指定するとラベル行に svg が描画される', () => {
+    const def = makeDefinition({
+      type: 'col',
+      label: 'SECTION',
+      labelIcon: 'TbMicrophone',
+      children: [],
+    })
+    const { container } = render(
+      <GenericCardRenderer definition={def} values={{}} noBackground />
+    )
+    // アイコンは svg として描画される
+    expect(container.querySelector('svg')).not.toBeNull()
+  })
+
+  it('col: labelIcon 未指定のとき svg が描画されない', () => {
+    const def = makeDefinition({
+      type: 'col',
+      label: 'SECTION',
+      children: [],
+    })
+    const { container } = render(
+      <GenericCardRenderer definition={def} values={{}} noBackground />
+    )
+    expect(container.querySelector('svg')).toBeNull()
+  })
+
+  it('block(labelInset:false): labelIcon を指定するとラベル行に svg が描画される', () => {
+    const def = makeBlockDefinition({ label: 'NAME', labelIcon: 'TbMicrophone', labelInset: false })
+    const { container } = render(
+      <GenericCardRenderer definition={def} values={{ name: 'テスト' }} noBackground />
+    )
+    expect(container.querySelector('svg')).not.toBeNull()
+  })
+})
+
 describe('GenericCardRenderer – block labelInset:false のラベル色', () => {
   it('labelColor を指定するとラベル span にその色が反映される', () => {
     const def = makeBlockDefinition({ label: 'NAME', labelColor: '#ff0000', labelInset: false })

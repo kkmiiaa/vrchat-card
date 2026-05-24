@@ -127,6 +127,14 @@ type ComponentDef<T = unknown> = {
 | `background` | `background.tsx` | ❌ | ❌ | — | カード背景 |
 | `overlay` | `overlay.tsx` | ❌ | ❌ | — | オーバーレイ |
 
+#### labelIcon（ラベルアイコンプレフィックス）
+
+`Block`・`LayoutNodeRow`・`LayoutNodeCol` の `labelIcon` フィールドに Tabler Icons のキー（例: `TbMicrophone`）を指定すると、ラベルテキストの左にアイコンが描画される。
+
+- `labelInset: true` の block → `LabelDef.icon` 経由でコンポーネントに渡される
+- `labelInset: false` の block / `col` / `row` → `GenericCardRenderer` がラベル行に直接描画する
+- テンプレートビルダーの「アイコン」入力欄（テキスト）から設定可能
+
 #### コンポーネント別 CardItem の表示挙動
 
 | コンポーネント | 条件 | CardItem の動作 |

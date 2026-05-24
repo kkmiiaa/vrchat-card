@@ -13,6 +13,7 @@ import { cellsToPixels, makeFontSizeTokens } from '@/blocks/types'
 import { getComponent } from '@/blocks/registry'
 import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
 import type { BackgroundValue } from '@/blocks/types'
+import { renderIcon } from '@/blocks/iconRegistry'
 
 type Props = {
   definition: TemplateDefinition
@@ -94,6 +95,7 @@ function renderNode(
       color: node.labelColor,
       fontScale: labelScale !== 1 ? labelScale : undefined,
       dir: node.labelInsetDir,
+      icon: node.labelIcon,
     } : undefined
 
     const cardContent = block.CardItem({ value, ctx: blockCtx, variant: node.variant, bgVariant: node.bgVariant, label: insetLabelDef, blockConfig: node.blockConfig })
@@ -125,7 +127,8 @@ function renderNode(
     }
 
     const labelEl = (
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+        {node.labelIcon && <span style={{ display: 'inline-flex', alignItems: 'center', color: labelColor, fontSize: titleFs, lineHeight: 1 }}>{renderIcon(node.labelIcon, titleFs)}</span>}
         <span style={{ fontSize: titleFs, fontWeight: 700, color: labelColor, fontFamily: ctx.fontFamily }}>{node.label}</span>
         {node.subLabel && <span style={{ fontSize: subFs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{node.subLabel}</span>}
       </div>
@@ -176,7 +179,8 @@ function renderNode(
     return (
       <div style={outerStyle}>
         {node.label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+            {node.labelIcon && <span style={{ display: 'inline-flex', alignItems: 'center', color: labelColor, fontSize: titleFs, lineHeight: 1 }}>{renderIcon(node.labelIcon, titleFs)}</span>}
             <span style={{ fontSize: titleFs, fontWeight: 700, color: labelColor, fontFamily: ctx.fontFamily }}>{node.label}</span>
             {node.subLabel && <span style={{ fontSize: subFs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{node.subLabel}</span>}
           </div>
@@ -216,7 +220,8 @@ function renderNode(
     return (
       <div style={style}>
         {node.label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+            {node.labelIcon && <span style={{ display: 'inline-flex', alignItems: 'center', color: labelColor, fontSize: titleFs, lineHeight: 1 }}>{renderIcon(node.labelIcon, titleFs)}</span>}
             <span style={{ fontSize: titleFs, fontWeight: 700, color: labelColor, fontFamily: ctx.fontFamily }}>{node.label}</span>
             {node.subLabel && <span style={{ fontSize: subFs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{node.subLabel}</span>}
           </div>

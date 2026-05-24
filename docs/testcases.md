@@ -375,12 +375,15 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 
 | # | ノード種別 | テスト内容 | 期待値 |
 |---|---|---|---|
-| 1 | `block`（labelInset:false） | `labelColor` を指定 | ラベル span のカラーが指定色 |
-| 2 | `block`（labelInset:false） | `labelColor` 未指定 | `theme.text` 色が使われる |
-| 3 | `col` | `labelColor` を指定 | ラベル span のカラーが指定色 |
-| 4 | `col` | `labelColor` 未指定 | `theme.text` 色が使われる |
-| 5 | `row` | `labelColor` を指定 | ラベル span のカラーが指定色 |
-| 6 | `row` | `labelColor` 未指定 | `theme.text` 色が使われる |
+| 1 | `col` | `labelIcon` を指定 | ラベル行に svg アイコンが描画される |
+| 2 | `col` | `labelIcon` 未指定 | svg が描画されない |
+| 3 | `block`（labelInset:false） | `labelIcon` を指定 | ラベル行に svg アイコンが描画される |
+| 4 | `block`（labelInset:false） | `labelColor` を指定 | ラベル span のカラーが指定色 |
+| 5 | `block`（labelInset:false） | `labelColor` 未指定 | `theme.text` 色が使われる |
+| 6 | `col` | `labelColor` を指定 | ラベル span のカラーが指定色 |
+| 7 | `col` | `labelColor` 未指定 | `theme.text` 色が使われる |
+| 8 | `row` | `labelColor` を指定 | ラベル span のカラーが指定色 |
+| 9 | `row` | `labelColor` 未指定 | `theme.text` 色が使われる |
 
 ---
 

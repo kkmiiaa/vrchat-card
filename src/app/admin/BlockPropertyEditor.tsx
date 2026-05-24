@@ -11,6 +11,7 @@ export type BlockDisplaySettings = {
   label: string
   subLabel: string
   labelColor: string
+  labelIcon: string
   labelInset: boolean
   labelInsetDir: 'col' | 'row'
 }
@@ -22,6 +23,7 @@ export function defaultBlockDisplaySettings(component: ComponentDef<unknown>): B
     label: '',
     subLabel: '',
     labelColor: '',
+    labelIcon: '',
     labelInset: false,
     labelInsetDir: 'col',
   }
@@ -155,6 +157,18 @@ export function BlockPropertyEditor({
           onChange={v => onChange({ labelColor: v })}
           defaultColor="#1f2937"
           presetColors={LABEL_PRESET_COLORS}
+        />
+      </div>
+
+      {/* labelIcon */}
+      <div className="flex items-center gap-2">
+        <FieldLabel>labelIcon</FieldLabel>
+        <input
+          type="text"
+          value={settings.labelIcon}
+          onChange={e => onChange({ labelIcon: e.target.value })}
+          placeholder="例: TbMicrophone"
+          className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs font-mono text-gray-700 focus:outline-none focus:ring-1 focus:ring-sky-200"
         />
       </div>
 

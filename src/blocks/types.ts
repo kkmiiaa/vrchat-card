@@ -201,6 +201,8 @@ export type Block = {
   subLabel?: string
   /** ラベルのテキスト色（省略時はテーマの text 色） */
   labelColor?: string
+  /** ラベルの左に表示するアイコン（Tabler Icons キー: 例 'TbMicrophone'） */
+  labelIcon?: string
   /** true のときラベルをコンテンツ枠の内側に描画する */
   labelInset?: boolean
   /** labelInset 時のラベルとコンテンツの並び方向。'col'=上下（デフォルト）, 'row'=左右 */
@@ -236,6 +238,8 @@ export type LayoutNodeRow = {
   subLabel?: string
   /** ラベルのテキスト色（省略時はテーマの text 色） */
   labelColor?: string
+  /** ラベルの左に表示するアイコン（Tabler Icons キー: 例 'TbMicrophone'） */
+  labelIcon?: string
 }
 
 export type LayoutNodeCol = {
@@ -255,6 +259,8 @@ export type LayoutNodeCol = {
   subLabel?: string
   /** ラベルのテキスト色（省略時はテーマの text 色） */
   labelColor?: string
+  /** ラベルの左に表示するアイコン（Tabler Icons キー: 例 'TbMicrophone'） */
+  labelIcon?: string
 }
 
 export type LayoutNode = Block | LayoutNodeRow | LayoutNodeCol

@@ -549,6 +549,16 @@ export default function TemplateBuilder({ definitions, values }: Props) {
                 presetColors={LABEL_PRESET_COLORS}
               />
             </div>
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] text-gray-500 flex-shrink-0 w-16">アイコン</label>
+              <input
+                type="text"
+                value={(node as LayoutNodeCol).labelIcon ?? ''}
+                onChange={e => handleUpdate(path, n => ({ ...n, labelIcon: e.target.value || undefined }))}
+                placeholder="例: TbMicrophone"
+                className="flex-1 text-xs border rounded px-2 py-1 font-mono"
+              />
+            </div>
           </div>
         )}
 
@@ -597,6 +607,7 @@ export default function TemplateBuilder({ definitions, values }: Props) {
             label:          node.label ?? '',
             subLabel:       node.subLabel ?? '',
             labelColor:     (node as Block).labelColor ?? '',
+            labelIcon:      (node as Block).labelIcon ?? '',
             labelInset:     (node as Block).labelInset ?? false,
             labelInsetDir:  (node as Block).labelInsetDir ?? 'col',
           }
@@ -604,8 +615,9 @@ export default function TemplateBuilder({ definitions, values }: Props) {
             handleUpdate(path, n => {
               const next = { ...n, ...patch }
               // 空文字は undefined に正規化
-              if (patch.label !== undefined)    next.label    = patch.label    || undefined
-              if (patch.subLabel !== undefined) next.subLabel = patch.subLabel || undefined
+              if (patch.label !== undefined)     next.label     = patch.label     || undefined
+              if (patch.subLabel !== undefined)  next.subLabel  = patch.subLabel  || undefined
+              if (patch.labelIcon !== undefined) next.labelIcon = patch.labelIcon || undefined
               if (patch.bgVariant !== undefined && !isBgVariantApplicable(comp, next.variant ?? 'default')) {
                 delete (next as Block).bgVariant
               }

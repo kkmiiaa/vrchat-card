@@ -43,7 +43,7 @@ export const gaugeComponent: ComponentDef<number> = {
         display: 'flex',
         flexDirection: (label?.dir === 'row') ? 'row' : 'column',
         alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
-        gap: label ? ctx.cardWidth * 0.003 : 6,
+        gap: label ? ctx.cardWidth * 0.008 : 6,
         fontFamily: ctx.fontFamily,
       }}>
         {label && (
@@ -75,7 +75,7 @@ export const gaugeComponent: ComponentDef<number> = {
             color: ctx.theme.text,
             fontWeight: 600,
             flexShrink: 0,
-            minWidth: ctx.cardWidth * 0.032,
+            minWidth: ctx.cardWidth * 0.02,
             textAlign: 'right',
           }}>
             {rate}{unit}

@@ -41,6 +41,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
               borderLeft: `3px solid ${f.color}`,
               borderRadius: ctx.cardWidth * 0.006,
               background: cardBgStyle.background,
+              boxShadow: (bgVariant ?? 'glass') === 'glass' ? '0 1px 4px rgba(0,0,0,0.08)' : undefined,
               padding: `${ctx.cardWidth * 0.002 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px ${ctx.cardWidth * 0.002 * ctx.paddingScale}px ${ctx.cardWidth * 0.005 * ctx.paddingScale}px`,
               flex: 1, minHeight: 0, overflow: 'hidden',
             }}>

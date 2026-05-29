@@ -81,7 +81,7 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
 
         {/* 単色 */}
         <div>
-          <span className="text-sm font-semibold">{t.solidColorBg}</span>
+          <span className="text-base font-semibold text-gray-700">{t.solidColorBg}</span>
           <div className="grid grid-cols-10 gap-1.5 mt-2">
             {PALETTE.map(color => (
               <ColorSwatch
@@ -96,7 +96,7 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
 
         {/* グラデーション */}
         <div>
-          <span className="text-sm font-semibold">{t.gradientBg}</span>
+          <span className="text-base font-semibold text-gray-700">{t.gradientBg}</span>
 
           {/* プリセット */}
           <div className="grid grid-cols-5 gap-2 mt-2">
@@ -158,7 +158,7 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
 
         {/* プリセット画像 */}
         <div>
-          <span className="text-sm font-semibold">{t.handwrittenBg}</span>
+          <span className="text-base font-semibold text-gray-700">{t.handwrittenBg}</span>
           <div className="flex gap-2 mt-2">
             {PRESET_IMAGES.map(src => (
               <button
@@ -173,7 +173,7 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
 
         {/* カスタム画像 */}
         <div>
-          <span className="text-sm font-semibold">{t.imageBg}</span>
+          <span className="text-base font-semibold text-gray-700">{t.imageBg}</span>
           <label className="flex items-center mt-1">
             <input
               type="file"

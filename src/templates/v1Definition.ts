@@ -27,7 +27,6 @@ export const cardV1Definition: TemplateDefinition = {
   landscape: {
     cardWidth:  CARD_LANDSCAPE_WIDTH,
     cardHeight: CARD_LANDSCAPE_HEIGHT,
-    autoHeight: true,
     grid: { cellSize: 8, gap: 4 },
     layout: {
       type: 'row',
@@ -145,7 +144,6 @@ export const cardV1Definition: TemplateDefinition = {
   portrait: {
     cardWidth:  CARD_PORTRAIT_WIDTH,
     cardHeight: CARD_PORTRAIT_HEIGHT,
-    autoHeight: true,
     grid: { cellSize: 8, gap: 4 },
     defaultLabelFontScale: 1.8,
     defaultContentFontScale: 1.6,

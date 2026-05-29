@@ -11,10 +11,13 @@ import { gaugeComponent } from '@/blocks/gauge'
 import { expressiveSelectComponent } from '@/blocks/expressiveSelect'
 import { genderComponent } from '@/blocks/gender'
 import { simpleSnsComponent } from '@/blocks/simpleSns'
-import { snsBundleComponent } from '@/blocks/snsBundle'
+import { snsWithFriendPolicyComponent } from '@/blocks/snsWithFriendPolicy'
 import { colorStatusComponent } from '@/blocks/colorStatus'
 import { activityComponent } from '@/blocks/activity'
 import { markListComponent } from '@/blocks/markList'
+import { markGridComponent } from '@/blocks/markGrid'
+import { galleryComponent } from '@/blocks/gallery'
+import { dividerComponent } from '@/blocks/divider'
 import { badgeComponent } from '@/blocks/badge'
 import { booleanFlagComponent } from '@/blocks/booleanFlag'
 import { ratingComponent } from '@/blocks/rating'
@@ -22,9 +25,11 @@ import { tagListComponent } from '@/blocks/tagList'
 import { linkItemComponent } from '@/blocks/linkItem'
 import { colorPaletteComponent } from '@/blocks/colorPalette'
 import { dateItemComponent } from '@/blocks/dateItem'
+import { qrCodeComponent } from '@/blocks/qrCode'
 import { translations } from '@/utils/translations'
 import type { ComponentDef, BgVariant } from '@/blocks/types'
 import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
+import { BlockPropertyEditor, defaultBlockDisplaySettings, type BlockDisplaySettings } from './BlockPropertyEditor'
 
 const t = translations.ja
 
@@ -39,6 +44,7 @@ export const INPUT_TYPE_COLORS: Record<string, string> = {
   'number':                 'bg-orange-100 text-orange-700 border-orange-200',
   // complex
   'mark-list':              'bg-amber-100 text-amber-700 border-amber-200',
+  'mark-grid':              'bg-amber-100 text-amber-700 border-amber-200',
   'weekly-activity':        'bg-teal-100 text-teal-700 border-teal-200',
   'gallery':                'bg-yellow-100 text-yellow-700 border-yellow-200',
   'profile-image':          'bg-indigo-100 text-indigo-700 border-indigo-200',
@@ -46,7 +52,6 @@ export const INPUT_TYPE_COLORS: Record<string, string> = {
   'color-status':           'bg-teal-100 text-teal-700 border-teal-200',
   'simple-sns':             'bg-pink-100 text-pink-700 border-pink-200',
   'sns-with-friend-policy': 'bg-rose-100 text-rose-700 border-rose-200',
-  'sns-bundle':             'bg-rose-100 text-rose-700 border-rose-200',
   // promoted
   'gender':                 'bg-violet-100 text-violet-700 border-violet-200',
   'language':               'bg-violet-100 text-violet-700 border-violet-200',
@@ -245,7 +250,8 @@ function SearchNoSupportInput({ onQueryChange: _ }: SearchInputProps) {
 
 // ─── ComponentEntry ────────────────────────────────────────────────
 
-export type ComponentCategory = 'primitive' | 'complex' | 'sns' | 'global'
+export type { ComponentCategory } from './componentCatalog'
+export { COMPONENT_CATEGORIES } from './componentCatalog'
 
 export type ComponentEntry = {
   name: string
@@ -253,19 +259,12 @@ export type ComponentEntry = {
   inputType: string
   format: string
   description: string
-  exampleBlock: string
+  exampleBlock?: string
   component: ComponentDef<unknown>
-  SearchInput: (props: SearchInputProps) => ReactNode
-  /** bgVariant が意味を持つコンポーネントかどうか */
-  supportsBgVariant: boolean
+  SearchInput?: (props: SearchInputProps) => ReactNode
 }
 
-export const COMPONENT_CATEGORIES: { key: ComponentCategory; label: string }[] = [
-  { key: 'primitive', label: 'Primitive' },
-  { key: 'complex',   label: 'Complex' },
-  { key: 'sns',       label: 'SNS' },
-  { key: 'global', label: 'Global' },
-]
+import type { ComponentCategory } from './componentCatalog'
 
 export const COMPONENTS: ComponentEntry[] = [
   // ─── Primitive ────────────────────────────────────────────────
@@ -278,7 +277,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'selfIntro',
     component: textComponent as ComponentDef<unknown>,
     SearchInput: SearchTextInput,
-    supportsBgVariant: true,
   },
   {
     name: 'select',
@@ -289,7 +287,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'trustRank',
     component: selectComponent as ComponentDef<unknown>,
     SearchInput: SearchSelectInput,
-    supportsBgVariant: true,
   },
   {
     name: 'multi-select',
@@ -300,7 +297,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'playEnv',
     component: multiSelectComponent as ComponentDef<unknown>,
     SearchInput: SearchMultiSelectInput,
-    supportsBgVariant: true,
   },
   {
     name: 'expressive-select',
@@ -311,7 +307,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'genderTag',
     component: expressiveSelectComponent as ComponentDef<unknown>,
     SearchInput: SearchExpressiveSelectInput,
-    supportsBgVariant: true,
   },
   {
     name: 'gauge',
@@ -322,7 +317,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'micOnRate',
     component: gaugeComponent as ComponentDef<unknown>,
     SearchInput: SearchGaugeInput,
-    supportsBgVariant: true,
   },
   {
     name: 'badge',
@@ -333,7 +327,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'badge',
     component: badgeComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
-    supportsBgVariant: false,
   },
   {
     name: 'boolean',
@@ -344,7 +337,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'booleanFlag',
     component: booleanFlagComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
-    supportsBgVariant: true,
   },
   {
     name: 'rating',
@@ -355,7 +347,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'rating',
     component: ratingComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
-    supportsBgVariant: false,
   },
   {
     name: 'link',
@@ -366,7 +357,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'linkItem',
     component: linkItemComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
-    supportsBgVariant: true,
   },
   {
     name: 'date',
@@ -377,20 +367,38 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'dateItem',
     component: dateItemComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
-    supportsBgVariant: true,
   },
 
   // ─── Complex ──────────────────────────────────────────────────
+  {
+    name: 'divider',
+    category: 'primitive',
+    inputType: 'none',
+    format: 'null',
+    description: '水平・垂直の区切り線。色・不透明度・太さを設定可能',
+    exampleBlock: 'divider',
+    component: dividerComponent as ComponentDef<unknown>,
+    SearchInput: SearchNoSupportInput,
+  },
   {
     name: 'mark-list',
     category: 'complex',
     inputType: 'mark-list',
     format: '{ label: string, mark: string }[]',
-    description: 'ラベル＋記号（◎◯△✗）の汎用リスト。順序性なし。検索対象外',
+    description: 'ラベル＋記号（◎◯△✗）のバッジ形式リスト。マークされた項目のみ表示',
     exampleBlock: 'interactions',
     component: markListComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
-    supportsBgVariant: true,
+  },
+  {
+    name: 'mark-grid',
+    category: 'complex',
+    inputType: 'mark-grid',
+    format: '{ label: string, mark: string }[]',
+    description: 'ラベル＋記号（◎◯△✗）のグリッド表示。全項目を格子状に並べる',
+    exampleBlock: 'interactions',
+    component: markGridComponent as ComponentDef<unknown>,
+    SearchInput: SearchNoSupportInput,
   },
   {
     name: 'weekly-activity',
@@ -401,7 +409,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'activity',
     component: activityComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
-    supportsBgVariant: false,
   },
   {
     name: 'tag-list',
@@ -412,7 +419,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'tagList',
     component: tagListComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
-    supportsBgVariant: false,
   },
   {
     name: 'color-palette',
@@ -423,7 +429,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'colorPalette',
     component: colorPaletteComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
-    supportsBgVariant: false,
   },
 
   {
@@ -435,7 +440,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'status',
     component: colorStatusComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
-    supportsBgVariant: true,
   },
 
   // ─── SNS ──────────────────────────────────────────────────────
@@ -448,29 +452,16 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'x / discord',
     component: simpleSnsComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
-    supportsBgVariant: true,
   },
   {
     name: 'sns-with-friend-policy',
     category: 'sns',
     inputType: 'sns-with-friend-policy',
-    format: '{ id: string, policy: string }',
-    description: 'ID ＋フレンドポリシー付きSNSブロック。VRChat などに使用',
-    exampleBlock: 'vrchat',
-    component: simpleSnsComponent as ComponentDef<unknown>,
+    format: '{ platforms: Record<string, string>, friendPolicy: string }',
+    description: 'SNS ID複数 ＋ フレンドポリシーをまとめて扱うブロック',
+    exampleBlock: 'sns-with-friend-policy',
+    component: snsWithFriendPolicyComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
-    supportsBgVariant: true,
-  },
-  {
-    name: 'sns-bundle',
-    category: 'sns',
-    inputType: 'sns-bundle',
-    format: 'Record<string, string>',
-    description: '複数SNSプラットフォームをまとめて表示。プラットフォーム構成は blockConfig で定義',
-    exampleBlock: 'sns',
-    component: snsBundleComponent as ComponentDef<unknown>,
-    SearchInput: SearchNoSupportInput,
-    supportsBgVariant: true,
   },
 
   // ─── 昇格 ─────────────────────────────────────────────────────
@@ -483,7 +474,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'gender',
     component: genderComponent as ComponentDef<unknown>,
     SearchInput: SearchGenderInput,
-    supportsBgVariant: true,
   },
   {
     name: 'language',
@@ -494,7 +484,6 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'language',
     component: languageComponent as ComponentDef<unknown>,
     SearchInput: SearchLanguageInput,
-    supportsBgVariant: true,
   },
   {
     name: 'age',
@@ -505,14 +494,27 @@ export const COMPONENTS: ComponentEntry[] = [
     exampleBlock: 'age',
     component: ageComponent as ComponentDef<unknown>,
     SearchInput: SearchAgeInput,
-    supportsBgVariant: true,
+  },
+  {
+    name: 'gallery',
+    category: 'complex',
+    inputType: 'gallery',
+    format: '{ images: (File|null)[], base64: (string|null)[] }',
+    description: '画像ギャラリー（最大3枚）。optional: true にすると未入力時は非表示',
+    component: galleryComponent as ComponentDef<unknown>,
+    SearchInput: SearchNoSupportInput,
+  },
+  // ─── Utility ────────────────────────────────────────────────────
+  {
+    name: 'qr-code',
+    category: 'utility',
+    inputType: 'qr',
+    format: '{ customUrl?: string }',
+    description: 'QR コード。カードページ・ユーザーページ・カスタム URL に対応',
+    component: qrCodeComponent as ComponentDef<unknown>,
   },
 ]
 
-/** component key → supportsBgVariant のマッピング（TemplateBuilder などで参照） */
-export const COMPONENT_SUPPORTS_BG_VARIANT: Record<string, boolean> = Object.fromEntries(
-  COMPONENTS.map(c => [c.component.key, c.supportsBgVariant])
-)
 
 // ─── セクションラベル ─────────────────────────────────────────────
 
@@ -526,21 +528,6 @@ function RowDivider() {
 
 // ─── ラベル付き CardItem プレビュー ──────────────────────────────
 
-type LabelConfig = {
-  label: string
-  subLabel: string
-  labelColor: string
-  labelInset: boolean
-  labelInsetDir: 'col' | 'row'
-}
-
-const BG_VARIANT_OPTIONS: { value: BgVariant; label: string }[] = [
-  { value: 'default',     label: 'default（白ボックス）' },
-  { value: 'glass',       label: 'glass（すりガラス）' },
-  { value: 'transparent', label: 'transparent（背景なし）' },
-  { value: 'outline',     label: 'outline（枠線のみ）' },
-]
-
 function LabeledCardItemPreview({
   component, value, variant, bgVariant, labelConfig, config,
 }: {
@@ -548,7 +535,7 @@ function LabeledCardItemPreview({
   value: unknown
   variant: string
   bgVariant: BgVariant
-  labelConfig: LabelConfig
+  labelConfig: Pick<BlockDisplaySettings, 'label' | 'subLabel' | 'labelColor' | 'labelInset' | 'labelInsetDir'>
   config?: Record<string, unknown>
 }) {
   const ctx = DEFAULT_CARD_RENDER_CONTEXT
@@ -615,6 +602,7 @@ const CATEGORY_BADGE: Record<ComponentCategory, string> = {
   complex:   'bg-orange-100 text-orange-700 border-orange-200',
   sns:       'bg-pink-100 text-pink-700 border-pink-200',
   global:    'bg-violet-100 text-violet-700 border-violet-200',
+  utility:   'bg-sky-100 text-sky-700 border-sky-200',
 }
 
 // CardItem プレビュー背景パターン
@@ -633,20 +621,17 @@ const CELL_OPTIONS = [
   ...[2, 3, 4, 6, 8, 10, 12, 14, 16, 20, 24].map(n => ({ label: `${n}c — ${cellsToPx(n)}px`, value: String(cellsToPx(n)) })),
 ]
 
-function ComponentPreview({ name, category, inputType, format, description, exampleBlock, component, SearchInput, supportsBgVariant }: ComponentEntry) {
+function ComponentPreview({ name, category, inputType, format, description, exampleBlock, component, SearchInput }: ComponentEntry) {
   const [value, setValue] = useState(component.defaultValue)
   const [blockConfig, setBlockConfig] = useState<Record<string, unknown>>({})
   const [dataKey, setDataKey] = useState('')
   const [formLabel, setFormLabel] = useState('')
   const [query, setQuery] = useState('')
-  const variants = component.variants ?? ['default']
-  const [selectedVariant, setSelectedVariant] = useState(variants[0])
-  const [selectedBgVariant, setSelectedBgVariant] = useState<BgVariant>('transparent')
-  const [labelConfig, setLabelConfig] = useState<LabelConfig>({
-    label: '', subLabel: '', labelColor: '', labelInset: false, labelInsetDir: 'col',
-  })
-  const setLabel = <K extends keyof LabelConfig>(key: K, val: LabelConfig[K]) =>
-    setLabelConfig(prev => ({ ...prev, [key]: val }))
+  const [displaySettings, setDisplaySettings] = useState<BlockDisplaySettings>(
+    () => defaultBlockDisplaySettings(component)
+  )
+  const patchDisplay = (patch: Partial<BlockDisplaySettings>) =>
+    setDisplaySettings(prev => ({ ...prev, ...patch }))
 
   // サイズ制約
   const [previewW, setPreviewW] = useState('')
@@ -659,14 +644,6 @@ function ComponentPreview({ name, category, inputType, format, description, exam
   // プレビュー背景
   const [previewBg, setPreviewBg] = useState<PreviewBgKey>('slate')
 
-  // blockConfig
-  const [configJson, setConfigJson] = useState('')
-  const [configError, setConfigError] = useState(false)
-  const parsedConfig = (() => {
-    if (!configJson.trim()) return undefined
-    try { const v = JSON.parse(configJson); setConfigError(false); return v }
-    catch { setConfigError(true); return undefined }
-  })()
 
   return (
     <div id={`component-${name}`} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -759,149 +736,30 @@ function ComponentPreview({ name, category, inputType, format, description, exam
       <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
         <div className="px-5 py-4 min-w-0 overflow-hidden flex flex-col gap-3">
           <SectionLabel>CardItem 設定</SectionLabel>
-
-          {/* bgVariant */}
-          {supportsBgVariant && <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] text-gray-400 w-16 shrink-0">bgVariant</span>
-            <div className="flex flex-wrap gap-1">
-              {BG_VARIANT_OPTIONS.map(o => (
-                <button
-                  key={o.value}
-                  type="button"
-                  onClick={() => setSelectedBgVariant(o.value)}
-                  className={`text-xs px-2 py-0.5 rounded border font-mono transition-colors ${
-                    selectedBgVariant === o.value
-                      ? 'bg-sky-600 text-white border-sky-600'
-                      : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
-                  }`}
-                >
-                  {o.value}
-                </button>
-              ))}
-            </div>
-          </div>}
-
-          {/* variant */}
-          {variants.length > 1 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] text-gray-400 w-16 shrink-0">variant</span>
-              <div className="flex flex-wrap gap-1">
-                {variants.map(v => (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => setSelectedVariant(v)}
-                    className={`text-xs px-2 py-0.5 rounded border font-mono transition-colors ${
-                      selectedVariant === v
-                        ? 'bg-gray-800 text-white border-gray-800'
-                        : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
-                    }`}
-                  >
-                    {v}
-                  </button>
-                ))}
+          <BlockPropertyEditor
+            component={component}
+            settings={displaySettings}
+            onChange={patchDisplay}
+            extras={
+              <div className="border-t border-gray-100 pt-3 mt-1 flex flex-col gap-2">
+                <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">サイズ制約</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-gray-400 w-16 shrink-0">width</span>
+                  <select value={previewW} onChange={e => setPreviewW(e.target.value)}
+                    className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-sky-200">
+                    {CELL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-gray-400 w-16 shrink-0">height</span>
+                  <select value={previewH} onChange={e => setPreviewH(e.target.value)}
+                    className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-sky-200">
+                    {CELL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* label */}
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-gray-400 w-16 shrink-0">label</span>
-            <input
-              type="text"
-              value={labelConfig.label}
-              onChange={e => setLabel('label', e.target.value)}
-              placeholder="例: 言語"
-              className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-sky-200"
-            />
-          </div>
-
-          {/* subLabel */}
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-gray-400 w-16 shrink-0">subLabel</span>
-            <input
-              type="text"
-              value={labelConfig.subLabel}
-              onChange={e => setLabel('subLabel', e.target.value)}
-              placeholder="例: language"
-              className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-sky-200"
-            />
-          </div>
-
-          {/* labelColor */}
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-gray-400 w-16 shrink-0">labelColor</span>
-            <input
-              type="color"
-              value={labelConfig.labelColor || '#1f2937'}
-              onChange={e => setLabel('labelColor', e.target.value)}
-              className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0.5"
-            />
-            {labelConfig.labelColor && (
-              <button type="button" onClick={() => setLabel('labelColor', '')}
-                className="text-[10px] text-gray-300 hover:text-gray-500">reset</button>
-            )}
-          </div>
-
-          {/* labelInset */}
-          {labelConfig.label && (
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-gray-400 w-16 shrink-0">labelInset</span>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={labelConfig.labelInset}
-                  onChange={e => setLabel('labelInset', e.target.checked)}
-                  className="w-3 h-3 accent-sky-500"
-                />
-                <span className="text-xs text-gray-500">枠内に配置</span>
-              </label>
-              {labelConfig.labelInset && (
-                <select
-                  value={labelConfig.labelInsetDir}
-                  onChange={e => setLabel('labelInsetDir', e.target.value as 'col' | 'row')}
-                  className="ml-2 text-xs border border-gray-200 rounded px-1 py-0.5 text-gray-600 focus:outline-none"
-                >
-                  <option value="col">col（上下）</option>
-                  <option value="row">row（左右）</option>
-                </select>
-              )}
-            </div>
-          )}
-
-          {/* サイズ制約 */}
-          <div className="border-t border-gray-100 pt-3 mt-1 flex flex-col gap-2">
-            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">サイズ制約</p>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-gray-400 w-16 shrink-0">width</span>
-              <select value={previewW} onChange={e => setPreviewW(e.target.value)}
-                className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-sky-200">
-                {CELL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-gray-400 w-16 shrink-0">height</span>
-              <select value={previewH} onChange={e => setPreviewH(e.target.value)}
-                className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-sky-200">
-                {CELL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* blockConfig */}
-          <div className="border-t border-gray-100 pt-3 mt-1 flex flex-col gap-2">
-            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">blockConfig</p>
-            <textarea
-              value={configJson}
-              onChange={e => setConfigJson(e.target.value)}
-              placeholder={'{\n  "palette": ["#60a5fa"],\n  "maxItems": 4\n}'}
-              rows={4}
-              className={`w-full px-2 py-1.5 border rounded text-[11px] font-mono text-gray-700 focus:outline-none focus:ring-1 resize-y ${
-                configError ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-sky-200'
-              }`}
-            />
-            {configError && <p className="text-[10px] text-red-400">JSON が不正です</p>}
-          </div>
+            }
+          />
         </div>
 
         <div className="px-5 py-4 min-w-0 overflow-hidden">
@@ -928,10 +786,10 @@ function ComponentPreview({ name, category, inputType, format, description, exam
               <LabeledCardItemPreview
                 component={component}
                 value={value}
-                variant={selectedVariant}
-                bgVariant={selectedBgVariant}
-                labelConfig={labelConfig}
-                config={Object.keys(blockConfig).length > 0 ? blockConfig : parsedConfig}
+                variant={displaySettings.variant}
+                bgVariant={displaySettings.bgVariant}
+                labelConfig={displaySettings}
+                config={Object.keys(blockConfig).length > 0 ? blockConfig : undefined}
               />
             </div>
           </div>
@@ -944,7 +802,7 @@ function ComponentPreview({ name, category, inputType, format, description, exam
       <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
         <div className="px-5 py-4 min-w-0 overflow-hidden">
           <SectionLabel>SearchForm 入力UI</SectionLabel>
-          <SearchInput onQueryChange={setQuery} />
+          {SearchInput ? <SearchInput onQueryChange={setQuery} /> : <p className="text-xs text-gray-400">検索非対応</p>}
         </div>
         <div className="px-5 py-4 min-w-0 overflow-hidden">
           <SectionLabel>クエリ</SectionLabel>

@@ -57,8 +57,9 @@ type Props = {
   orientation?: 'landscape' | 'portrait'
 }
 
-export const CARD_V1_WIDTH  = 900
-export const CARD_V1_HEIGHT = 506
+import { CARD_LANDSCAPE_WIDTH, CARD_LANDSCAPE_HEIGHT } from '@/lib/cardDimensions'
+export const CARD_V1_WIDTH  = CARD_LANDSCAPE_WIDTH
+export const CARD_V1_HEIGHT = CARD_LANDSCAPE_HEIGHT
 export const CARD_V1_PORTRAIT_WIDTH  = 900
 export const CARD_V1_PORTRAIT_HEIGHT = 1125
 

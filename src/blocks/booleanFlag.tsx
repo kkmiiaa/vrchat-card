@@ -1,16 +1,29 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
 import { BG_VARIANT_STYLE } from './types'
+import { renderIcon, IconPicker } from './iconRegistry'
+import { ColorPicker } from './colorPicker'
 
 export const booleanFlagComponent: ComponentDef<boolean> = {
   key: 'booleanFlag',
   defaultValue: false,
   variants: ['default', 'badge'],
-  CardItem({ value, ctx, variant, bgVariant }) {
+  supportsBgVariant: true,
+  CardItem({ value, ctx, variant, bgVariant, blockConfig, label }) {
     const on = typeof value === 'boolean' ? value : false
     const fs = ctx.fontSize.md
+    const trueIcon = typeof blockConfig?.trueIcon === 'string' ? blockConfig.trueIcon : null
+    const falseIcon = typeof blockConfig?.falseIcon === 'string' ? blockConfig.falseIcon : null
+    const trueLabel = typeof blockConfig?.trueLabel === 'string' ? blockConfig.trueLabel : 'ON'
+    const falseLabel = typeof blockConfig?.falseLabel === 'string' ? blockConfig.falseLabel : 'OFF'
+    const trueColor = typeof blockConfig?.trueColor === 'string' ? blockConfig.trueColor : '#16a34a'
+    const falseColor = typeof blockConfig?.falseColor === 'string' ? blockConfig.falseColor : '#ef4444'
+    const displayLabel = on ? trueLabel : falseLabel
 
     if (variant === 'badge') {
+      const badgeColor = on
+        ? (typeof blockConfig?.trueColor === 'string' ? blockConfig.trueColor : ctx.theme.accent)
+        : (typeof blockConfig?.falseColor === 'string' ? blockConfig.falseColor : '#9ca3af')
       return (
         <div style={{
           width: '100%',
@@ -25,19 +38,23 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
             justifyContent: 'center',
             padding: `${ctx.cardWidth * 0.004 * ctx.paddingScale}px ${ctx.cardWidth * 0.012 * ctx.paddingScale}px`,
             borderRadius: 9999,
-            background: on ? ctx.theme.accent : '#9ca3af',
+            background: badgeColor,
             fontSize: fs,
             color: '#fff',
             fontFamily: ctx.fontFamily,
             fontWeight: 600,
           }}>
-            {on ? 'ON' : 'OFF'}
+            {displayLabel}
           </div>
         </div>
       )
     }
 
-    const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      ? 'default'
+      : (bgVariant ?? 'transparent')
+    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+    const iconColor = on ? trueColor : falseColor
 
     return (
       <div style={{
@@ -48,17 +65,29 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',
-        alignItems: 'center',
-        gap: 6,
+        flexDirection: (label?.dir === 'row') ? 'row' : 'column',
+        alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
+        gap: label ? ctx.cardWidth * 0.003 : 6,
         fontFamily: ctx.fontFamily,
       }}>
-        <span style={{ fontSize: fs * 1.1, color: on ? '#16a34a' : '#ef4444' }}>{on ? '✓' : '✗'}</span>
-        <span style={{ fontSize: fs, color: ctx.theme.text, fontWeight: 600 }}>{on ? 'ON' : 'OFF'}</span>
+        {label && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
+            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
+          </div>
+        )}
+        {(on ? trueIcon : falseIcon)
+          ? <span style={{ fontSize: fs * 1.3, display: 'inline-flex', alignItems: 'center' }}>{renderIcon(on ? trueIcon : falseIcon, fs * 1.3)}</span>
+          : <span style={{ fontSize: fs * 1.1, color: iconColor }}>{on ? '✓' : '✗'}</span>
+        }
+        <span style={{ fontSize: fs, color: ctx.theme.text, fontWeight: 600 }}>{displayLabel}</span>
       </div>
     )
   },
-  FormItem({ value, onChange }) {
+  FormItem({ value, onChange, blockConfig }) {
     const on = typeof value === 'boolean' ? value : false
+    const trueLabel = typeof blockConfig?.trueLabel === 'string' ? blockConfig.trueLabel : 'ON'
+    const falseLabel = typeof blockConfig?.falseLabel === 'string' ? blockConfig.falseLabel : 'OFF'
     return (
       <div className="flex items-center gap-3">
         <button
@@ -72,7 +101,7 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
             className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${on ? 'translate-x-6' : 'translate-x-1'}`}
           />
         </button>
-        <span className="text-sm font-medium text-gray-700">{on ? 'ON' : 'OFF'}</span>
+        <span className="text-sm font-medium text-gray-700">{on ? trueLabel : falseLabel}</span>
       </div>
     )
   },
@@ -97,17 +126,19 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-gray-500 w-24 shrink-0">ON色</span>
-          <input type="color" value={trueColor || '#16a34a'}
-            onChange={e => onChange({ ...blockConfig, trueColor: e.target.value })}
-            className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0.5" />
-          {trueColor && <button type="button" onClick={() => onChange({ ...blockConfig, trueColor: undefined })} className="text-xs text-gray-300 hover:text-gray-500">reset</button>}
+          <ColorPicker value={trueColor ?? ''} onChange={v => onChange({ ...blockConfig, trueColor: v || undefined })} defaultColor="#16a34a" />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-gray-500 w-24 shrink-0">OFF色</span>
-          <input type="color" value={falseColor || '#ef4444'}
-            onChange={e => onChange({ ...blockConfig, falseColor: e.target.value })}
-            className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0.5" />
-          {falseColor && <button type="button" onClick={() => onChange({ ...blockConfig, falseColor: undefined })} className="text-xs text-gray-300 hover:text-gray-500">reset</button>}
+          <ColorPicker value={falseColor ?? ''} onChange={v => onChange({ ...blockConfig, falseColor: v || undefined })} defaultColor="#ef4444" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] text-gray-500">ONアイコン</span>
+          <IconPicker value={typeof blockConfig.trueIcon === 'string' ? blockConfig.trueIcon : ''} onChange={v => onChange({ ...blockConfig, trueIcon: v || undefined })} />
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] text-gray-500">OFFアイコン</span>
+          <IconPicker value={typeof blockConfig.falseIcon === 'string' ? blockConfig.falseIcon : ''} onChange={v => onChange({ ...blockConfig, falseIcon: v || undefined })} />
         </div>
       </div>
     )

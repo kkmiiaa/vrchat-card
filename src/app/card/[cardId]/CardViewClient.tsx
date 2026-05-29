@@ -492,7 +492,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               >
                 <div style={{ width: '100%', height: cardH * scale, position: 'relative', overflow: 'hidden' }}>
                   <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: cardW, height: cardH, position: 'absolute', top: 0, left: 0 }}>
-                    <template.CardRenderer values={values} fontFamily={fontFamily} t={translations.ja} isInteractive orientation={orientation} />
+                    <template.CardRenderer values={values} fontFamily={fontFamily} t={translations.ja} isInteractive orientation={orientation} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
                   </div>
                 </div>
               </div>
@@ -674,7 +674,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
 
       <div style={{ position: 'fixed', top: -9999, left: -9999, pointerEvents: 'none' }}>
         <div ref={exportRef}>
-          <template.CardRenderer values={values} fontFamily={fontFamily} t={translations.ja} />
+          <template.CardRenderer values={values} fontFamily={fontFamily} t={translations.ja} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
         </div>
       </div>
     </div>

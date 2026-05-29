@@ -1,8 +1,5 @@
 import type { TemplateDefinition } from '@/blocks/types'
-import { CARD_V1_WIDTH, CARD_V1_HEIGHT } from '@/components/CardV1'
-
-const PORTRAIT_WIDTH  = 630
-const PORTRAIT_HEIGHT = 900
+import { CARD_LANDSCAPE_WIDTH, CARD_LANDSCAPE_HEIGHT, CARD_PORTRAIT_WIDTH, CARD_PORTRAIT_HEIGHT } from '@/lib/cardDimensions'
 
 /**
  * CardV1 の実際のレイアウトに合わせた TemplateDefinition
@@ -28,61 +25,116 @@ export const cardV1Definition: TemplateDefinition = {
   overlayKey: 'overlay',
 
   landscape: {
-    cardWidth:  CARD_V1_WIDTH,
-    cardHeight: CARD_V1_HEIGHT,
-    grid: { cellSize: 10, gap: 2 },
+    cardWidth:  CARD_LANDSCAPE_WIDTH,
+    cardHeight: CARD_LANDSCAPE_HEIGHT,
+    grid: { cellSize: 8, gap: 4 },
     layout: {
       type: 'row',
       flex: 1,
-      gap: 20,
+      gap: 4,
       children: [
         {
           type: 'col',
-          minW: 16,
+          minW: 24,
           justify: 'space-between',
           children: [
-            { type: 'block', componentKey: 'profileImage', dataKey: 'profileImage', variant: 'default', minH: 16 },
-            { type: 'block', componentKey: 'language', dataKey: 'language',  variant: 'slash',    minH: 2, label: '言語',      subLabel: 'languages spoken',  contentFontScale: 0.9 },
-            { type: 'block', componentKey: 'gauge', dataKey: 'micOnRate', variant: 'default', minH: 2, label: 'マイクON率', subLabel: 'microphone usage',  contentFontScale: 0.9 },
-            { type: 'block', componentKey: 'color-status', dataKey: 'status',    variant: 'default',  minH: 9, label: 'ステータス', subLabel: 'status description' },
+            { type: 'block', componentKey: 'profileImage', dataKey: 'profileImage', variant: 'default', minH: 24 },
+            { type: 'block', componentKey: 'language', dataKey: 'language', variant: 'slash', minH: 3, label: '言語', subLabel: 'languages spoken', contentFontScale: 0.9, bgVariant: 'default' },
+            { type: 'block', componentKey: 'gauge', dataKey: 'micOnRate', variant: 'default', minH: 3, label: 'マイクON率', subLabel: 'microphone usage', contentFontScale: 0.9, bgVariant: 'default', blockConfig: { unit: '%' } },
+            {
+              type: 'block', componentKey: 'color-status', dataKey: 'status', variant: 'default', minH: 12,
+              label: 'ステータス', subLabel: 'status description', bgVariant: 'default',
+              blockConfig: {
+                fields: [
+                  { key: 'blue',   label: '青', color: '#60a5fa' },
+                  { key: 'green',  label: '緑', color: '#4ade80' },
+                  { key: 'yellow', label: '黃', color: '#facc15' },
+                  { key: 'red',    label: '赤', color: '#f87171' },
+                ],
+              },
+            },
           ],
         },
         {
           type: 'col',
-          minW: 22,
-          gap: 8,
+          minW: 35,
+          gap: 2,
+          justify: 'space-between',
           children: [
-            { type: 'block', componentKey: 'text', dataKey: 'name',      variant: 'default', minH: 4, label: '名前', subLabel: 'name', contentFontScale: 0.8 },
+            { type: 'block', componentKey: 'text', dataKey: 'name', variant: 'default', minH: 5, label: '名前', subLabel: 'name', contentFontScale: 1.4, blockConfig: { multiline: false }, bgVariant: 'default' },
             {
               type: 'row',
-              minH: 4,
-              gap: 8,
+              minH: 6,
+              gap: 2,
               children: [
-                { type: 'block', componentKey: 'gender', dataKey: 'gender', variant: 'default', minW: 8, minH: 2, label: '性別', subLabel: 'gender', contentFontScale: 0.8 },
-                { type: 'block', componentKey: 'multi-select', dataKey: 'playEnv',   variant: 'slash',   flex: 1,          label: '環境', subLabel: 'environment' },
+                { type: 'block', componentKey: 'gender', dataKey: 'gender', variant: 'default', minW: 12, minH: 2, label: '性別', subLabel: 'gender', contentFontScale: 0.9, bgVariant: 'default' },
+                {
+                  type: 'block', componentKey: 'multi-select', dataKey: 'playEnv', variant: 'slash', flex: 1,
+                  label: '環境', subLabel: 'environment', bgVariant: 'default',
+                  blockConfig: {
+                    options: [
+                      { value: 'pcvr',    label: 'PCVR',    icon: 'TbBadgeVr' },
+                      { value: 'quest',   label: 'Quest',   icon: 'TbDeviceGamepad2' },
+                      { value: 'desktop', label: 'Desktop', icon: 'TbDeviceDesktop' },
+                    ],
+                  },
+                },
               ],
             },
             {
               type: 'col',
-              gap: 4,
+              gap: 1,
               justify: 'center',
               children: [
-                { type: 'block', componentKey: 'simple-sns', dataKey: 'vrchat',  variant: 'default', minH: 2, contentFontScale: 1, blockConfig: { platform: 'vrchat' } },
-                { type: 'block', componentKey: 'simple-sns', dataKey: 'x',       variant: 'default', minH: 2, contentFontScale: 1, blockConfig: { platform: 'x' } },
-                { type: 'block', componentKey: 'simple-sns', dataKey: 'discord', variant: 'default', minH: 2, contentFontScale: 1, blockConfig: { platform: 'discord' } },
+                { type: 'block', componentKey: 'simple-sns', dataKey: 'vrchat',  variant: 'default', minH: 3, contentFontScale: 1, blockConfig: { platform: 'vrchat' } },
+                { type: 'block', componentKey: 'simple-sns', dataKey: 'x',       variant: 'default', minH: 3, contentFontScale: 1, blockConfig: { platform: 'x' },       bgVariant: 'default' },
+                { type: 'block', componentKey: 'simple-sns', dataKey: 'discord', variant: 'default', minH: 3, contentFontScale: 1, blockConfig: { platform: 'discord' }, bgVariant: 'default' },
               ],
             },
-            { type: 'block', componentKey: 'multi-select', dataKey: 'friendPolicy', variant: 'default', minH: 4,  label: 'フレンド申請', subLabel: 'friend request policy', contentFontScale: 0.8 },
-            { type: 'block', componentKey: 'mark-list', dataKey: 'interactions', variant: 'grid',    minH: 10, label: 'OKなこと・NGなこと', subLabel: 'ok & ng', contentFontScale: 0.85 },
+            {
+              type: 'block', componentKey: 'multi-select', dataKey: 'friendPolicy', variant: 'slash', minH: 4,
+              label: 'フレンド申請', subLabel: 'friend request policy', contentFontScale: 1, bgVariant: 'default',
+              blockConfig: {
+                options: [
+                  { value: 'frPolicyAnyone',             label: 'だれでもOK' },
+                  { value: 'frPolicyIfInterested',       label: '気になったら許可' },
+                  { value: 'frPolicyMutualsOnX',         label: 'X相互は申請OK' },
+                  { value: 'frPolicyAfterGettingToKnow', label: '仲良くなってから許可' },
+                  { value: 'frPolicyNo',                 label: '送らないでください' },
+                ],
+              },
+            },
+            {
+              type: 'block', componentKey: 'mark-grid', dataKey: 'mark-grid1', variant: 'default', minH: 15,
+              label: 'OKなこと・NGなこと', subLabel: 'ok & ng', contentFontScale: 0.9,
+              blockConfig: {
+                items: [
+                  { label: '触る' },
+                  { label: '近距離' },
+                  { label: 'お砂糖' },
+                  { label: '武器' },
+                  { label: '暴言/暴力' },
+                  { label: '下ネタ' },
+                ],
+                marks: [
+                  { symbol: '◎', color: '#22c55e', bg: '#f9fafb' },
+                  { symbol: '◯', color: '#22c55e', bg: '#f9fafb' },
+                  { symbol: '△', color: '#f59e0b', bg: '#f9fafb' },
+                  { symbol: '✕', color: '#ef4444', bg: '#f9fafb' },
+                ],
+                cols: 3,
+                rows: 3,
+              },
+            },
           ],
         },
         {
           type: 'col',
           flex: 1,
-          gap: 8,
+          gap: 1,
           children: [
-            { type: 'block', componentKey: 'text', dataKey: 'selfIntro', variant: 'default', flex: 1, label: '自己紹介', subLabel: 'about me', contentFontScale: 0.75 },
-            { type: 'block', componentKey: 'gallery', dataKey: 'gallery',   variant: 'default', minH: 9 },
+            { type: 'block', componentKey: 'text', dataKey: 'selfIntro', variant: 'default', flex: 1, label: '自己紹介', subLabel: 'about me', contentFontScale: 0.75, bgVariant: 'default' },
+            { type: 'block', componentKey: 'gallery', dataKey: 'gallery', variant: 'default', minH: 12, bgVariant: 'default' },
           ],
         },
       ],
@@ -90,34 +142,34 @@ export const cardV1Definition: TemplateDefinition = {
   },
 
   portrait: {
-    cardWidth:  PORTRAIT_WIDTH,
-    cardHeight: PORTRAIT_HEIGHT,
-    grid: { cellSize: 10, gap: 2 },
+    cardWidth:  CARD_PORTRAIT_WIDTH,
+    cardHeight: CARD_PORTRAIT_HEIGHT,
+    grid: { cellSize: 8, gap: 4 },
     defaultLabelFontScale: 1.8,
     defaultContentFontScale: 1.6,
     defaultPaddingScale: 1.8,
     layout: {
       type: 'col',
       flex: 1,
-      gap: 12,
+      gap: 3,
       children: [
         {
           type: 'row',
           minH: 20,
-          gap: 12,
+          gap: 3,
           children: [
             { type: 'block', componentKey: 'profileImage', dataKey: 'profileImage', variant: 'default', minW: 20 },
             {
               type: 'col',
               flex: 1,
-              gap: 8,
+              gap: 2,
               justify: 'space-between',
               children: [
                 { type: 'block', componentKey: 'text', dataKey: 'name', variant: 'default', minH: 4, label: '名前', subLabel: 'name', contentFontScale: 0.9 },
                 {
                   type: 'row',
                   minH: 4,
-                  gap: 8,
+                  gap: 2,
                   children: [
                     { type: 'block', componentKey: 'gender', dataKey: 'gender', variant: 'default', flex: 1, label: '性別', subLabel: 'gender', contentFontScale: 0.8 },
                     { type: 'block', componentKey: 'multi-select', dataKey: 'playEnv',   variant: 'slash',   flex: 2, label: '環境', subLabel: 'env' },
@@ -125,7 +177,7 @@ export const cardV1Definition: TemplateDefinition = {
                 },
                 {
                   type: 'col',
-                  gap: 4,
+                  gap: 1,
                   children: [
                     { type: 'block', componentKey: 'simple-sns', dataKey: 'vrchat',  variant: 'default', blockConfig: { platform: 'vrchat' } },
                     { type: 'block', componentKey: 'simple-sns', dataKey: 'x',       variant: 'default', blockConfig: { platform: 'x' } },

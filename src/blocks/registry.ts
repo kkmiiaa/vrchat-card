@@ -11,10 +11,10 @@ import { ageComponent } from './age'
 import { colorStatusComponent } from './colorStatus'
 import { colorLabeledListComponent } from './colorLabeledList'
 import { dividerComponent } from './divider'
-import { snsBundleComponent } from './snsBundle'
 import { simpleSnsComponent } from './simpleSns'
 import { activityComponent } from './activity'
 import { markListComponent } from './markList'
+import { markGridComponent } from './markGrid'
 import { galleryComponent } from './gallery'
 import { backgroundComponent } from './background'
 import { overlayComponent } from './overlay'
@@ -25,6 +25,8 @@ import { multiSelectComponent } from './multiSelect'
 import { gaugeComponent } from './gauge'
 import { expressiveSelectComponent } from './expressiveSelect'
 import { genderComponent } from './gender'
+import { snsWithFriendPolicyComponent } from './snsWithFriendPolicy'
+import { qrCodeComponent } from './qrCode'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const COMPONENT_REGISTRY: Record<string, ComponentDef<any>> = {
@@ -33,10 +35,10 @@ const COMPONENT_REGISTRY: Record<string, ComponentDef<any>> = {
   [colorStatusComponent.key]:       colorStatusComponent,
   [colorLabeledListComponent.key]:  colorLabeledListComponent,
   [dividerComponent.key]:           dividerComponent,
-  [snsBundleComponent.key]:         snsBundleComponent,
   [simpleSnsComponent.key]:         simpleSnsComponent,
   [activityComponent.key]:          activityComponent,
   [markListComponent.key]:          markListComponent,
+  [markGridComponent.key]:          markGridComponent,
   [galleryComponent.key]:           galleryComponent,
   [backgroundComponent.key]:        backgroundComponent,
   [overlayComponent.key]:           overlayComponent,
@@ -54,6 +56,8 @@ const COMPONENT_REGISTRY: Record<string, ComponentDef<any>> = {
   [gaugeComponent.key]:             gaugeComponent,
   [expressiveSelectComponent.key]:  expressiveSelectComponent,
   [genderComponent.key]:            genderComponent,
+  [snsWithFriendPolicyComponent.key]: snsWithFriendPolicyComponent,
+  [qrCodeComponent.key]:              qrCodeComponent,
 }
 
 export function getComponent(blockKey: string): ComponentDef<unknown> | undefined {

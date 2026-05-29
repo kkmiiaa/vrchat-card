@@ -25,11 +25,44 @@ export const interactionsBlock: Block<InteractionItem[]> = {
   key: 'interactions',
   defaultValue: defaultItems(),
   variants: ['default', 'grid'],  // default=横長タグ(マーク|ラベル), grid=グリッド(ラベル上/マーク下)
-  CardItem({ value, ctx }) {
+  CardItem({ value, ctx, variant = 'default', blockConfig }) {
     const items = Array.isArray(value) ? value : []
     const visible = items.filter(item => item.mark !== '-' && item.mark !== '―')
-    if (!visible.length) return null
-    const fs = ctx.cardWidth * 0.011
+    if (!visible.length) {
+      if (blockConfig?.hideWhenEmpty) return null
+      return <span style={{ fontSize: ctx.fontSize.sm, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>–</span>
+    }
+    const fs = ctx.fontSize.xs
+
+    // grid: ラベル上・マーク下 のグリッドカード形式
+    if (variant === 'grid') {
+      const markFs = ctx.fontSize.md
+      return (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignContent: 'flex-start' }}>
+          {visible.map((item, i) => {
+            const style = markStyle(item.mark)
+            return (
+              <div key={i} style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
+                padding: '4px 6px',
+                borderRadius: ctx.cardWidth * 0.005,
+                background: style.bg,
+                border: `1px solid ${style.border}`,
+                minWidth: ctx.cardWidth * 0.055,
+              }}>
+                <span style={{ fontSize: fs * 0.9, color: ctx.theme.subText, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', lineHeight: 1 }}>{item.label}</span>
+                <span style={{ fontSize: markFs, fontWeight: 700, color: style.text, fontFamily: ctx.fontFamily, lineHeight: 1 }}>{item.mark}</span>
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
+
+    // default: 横長タグ（マーク + ラベル 横並び）
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
         {visible.map((item, i) => {
@@ -50,7 +83,7 @@ export const interactionsBlock: Block<InteractionItem[]> = {
     }
     return (
       <div className="flex flex-col gap-2">
-        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.okNg}</h2>
+        <h2 className="text-sm font-medium text-gray-500">{t.okNg}</h2>
         {value.map((item, index) => {
           const style = markStyle(item.mark)
           return (

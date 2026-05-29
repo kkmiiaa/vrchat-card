@@ -13,21 +13,21 @@ export const trustRankBlock: Block<string> = {
   key: 'trustRank',
   defaultValue: '',
   variants: ['default'],  // default=カラーバッジ
-  CardItem({ value, ctx }) {
-    if (!value) return null
+  CardItem({ value, ctx, blockConfig }) {
+    if (!value && blockConfig?.hideWhenEmpty) return null
     const rankInfo = RANKS.find(r => r.rank === value)
     const color = rankInfo?.color ?? ctx.theme.subText
-    const fs = ctx.cardWidth * 0.012
+    const fs = ctx.fontSize.md
     return (
       <span style={{ fontSize: fs, color, fontWeight: 700, background: color + '20', padding: '2px 10px', borderRadius: 999, border: `1px solid ${color}60`, fontFamily: ctx.fontFamily }}>
-        {value}
+        {value || '–'}
       </span>
     )
   },
   FormItem({ value, onChange, t }) {
     return (
       <div className="flex flex-col gap-2">
-        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.trustRank}</h2>
+        <h2 className="text-sm font-medium text-gray-500">{t.trustRank}</h2>
         <div className="flex flex-wrap gap-1.5">
           {RANKS.map(({ rank, color }) => (
             <button

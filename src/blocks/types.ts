@@ -70,6 +70,10 @@ export type CardRenderContext = {
   defaultContentFontScale?: number
   /** パディング倍率（デフォルト 1） */
   paddingScale: number
+  /** カード個別ページの URL（QR コード等に利用） */
+  cardUrl?: string
+  /** ユーザーページの URL（QR コード等に利用） */
+  userUrl?: string
 }
 
 export const DEFAULT_CARD_RENDER_CONTEXT: CardRenderContext = {
@@ -97,9 +101,23 @@ export type BlockVariant = string
  */
 export type BgVariant = 'default' | 'glass' | 'transparent' | 'outline'
 
+/** ラベル定義。外ラベル・insetLabel 共通で使用 */
+export type LabelDef = {
+  text: string
+  subText?: string
+  /** テキスト色。省略時はテーマの text 色 */
+  color?: string
+  /** フォントサイズ倍率。省略時は 1 */
+  fontScale?: number
+  /** ラベルとコンテンツの並び方向。'row'=横並び / 'col'=縦並び（デフォルト） */
+  dir?: 'row' | 'col'
+  /** ラベル左に表示するアイコンキー（iconRegistry の key） */
+  icon?: string
+}
+
 export const BG_VARIANT_STYLE = {
   default:     { background: 'rgba(255,255,255,0.85)', border: 'none' },
-  glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)' },
+  glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)' },
   transparent: { background: 'transparent',            border: 'none' },
   outline:     { background: 'transparent',            border: '1px solid rgba(255,255,255,0.6)' },
 } satisfies Record<BgVariant, { background: string; border: string }>
@@ -111,6 +129,11 @@ export type ComponentCardProps<T> = {
   variant?: BlockVariant
   /** 背景・コンテナの見た目バリアント。未指定時は 'default' */
   bgVariant?: BgVariant
+  /**
+   * labelInset が有効なとき渡されるラベル定義。
+   * コンポーネント自身の bgVariant コンテナ内に描画する。
+   */
+  label?: LabelDef
   /** ブロック作成時にテンプレート作成者が設定した値（FormItem・CardItem 共通） */
   blockConfig?: Record<string, unknown>
 }
@@ -129,21 +152,27 @@ export type ComponentDef<T = unknown> = {
   CardItem?: (props: ComponentCardProps<T>) => ReactNode
   /** テンプレート作成者向けのブロック設定UI */
   blockConfigForm?: (props: BlockConfigFormProps) => ReactNode
+  /** CardItem が bgVariant を解釈する場合 true */
+  supportsBgVariant?: boolean
+  /** bgVariant が有効なバリアント一覧。未指定かつ supportsBgVariant=true なら compact/badge 以外で有効 */
+  bgVariantFor?: string[]
+  /** 値が「空」かどうかを判定する関数。未定義なら defaultValue と深い比較でフォールバック */
+  isEmpty?: (value: T) => boolean
 }
 
 // --- テンプレート定義型 ---
 
-/** グリッド設定（cellSize 単位で minW/minH を指定するために使用） */
+/** グリッド設定 */
 export type TemplateGridDef = {
-  /** 1セルの一辺（px）。常に正方形 */
+  /** 1セルの一辺（px）。minW/minH の基準単位 */
   cellSize: number
-  /** セル間のギャップ（px） */
+  /** 間隔の基準単位（px）。node.gap はこの倍数で指定する */
   gap: number
 }
 
 /** セル数をピクセルに変換するユーティリティ */
-export function cellsToPixels(cells: number, cellSize: number, gap: number): number {
-  return cells * cellSize + (cells - 1) * gap
+export function cellsToPixels(cells: number, cellSize: number): number {
+  return cells * cellSize
 }
 
 /**
@@ -178,6 +207,8 @@ export type Block = {
   subLabel?: string
   /** ラベルのテキスト色（省略時はテーマの text 色） */
   labelColor?: string
+  /** ラベルの左に表示するアイコン（Tabler Icons キー: 例 'TbMicrophone'） */
+  labelIcon?: string
   /** true のときラベルをコンテンツ枠の内側に描画する */
   labelInset?: boolean
   /** labelInset 時のラベルとコンテンツの並び方向。'col'=上下（デフォルト）, 'row'=左右 */
@@ -188,12 +219,14 @@ export type Block = {
   labelFontScale?: number
   /** テンプレート定義時にブロックへ渡す設定（mark-list の marks など） */
   blockConfig?: Record<string, unknown>
+  /** ユーザーの編集フォームに表示するラベル */
+  formLabel?: string
   /** flex コンテナ内での自身の揃え（例: 'flex-start' でコンテンツ高さに縮む） */
   alignSelf?: string
-  /** true のとき白枠ガラススタイルでラップ */
-  glass?: boolean
-  /** glass ラッパーの角丸（px）。省略時は cardWidth * 0.008 */
-  glassRadius?: number
+  /** true のとき値が空なら FormItem を非表示にする（デフォルト false） */
+  hideWhenEmpty?: boolean
+  /** コンテンツエリアの縦方向揃え（alignItems）。省略時は 'stretch' */
+  contentAlign?: string
 }
 
 export type LayoutNodeRow = {
@@ -207,12 +240,16 @@ export type LayoutNodeRow = {
   gap?: number
   /** justify-content 値（例: 'space-between'） */
   justify?: string
+  /** align-items 値（例: 'center'）。省略時は stretch */
+  alignItems?: string
   /** コンテナ上部に表示するセクションラベル */
   label?: string
   /** ラベルの右に表示するサブテキスト */
   subLabel?: string
   /** ラベルのテキスト色（省略時はテーマの text 色） */
   labelColor?: string
+  /** ラベルの左に表示するアイコン（Tabler Icons キー: 例 'TbMicrophone'） */
+  labelIcon?: string
 }
 
 export type LayoutNodeCol = {
@@ -226,20 +263,66 @@ export type LayoutNodeCol = {
   gap?: number
   /** justify-content 値（例: 'space-between'） */
   justify?: string
+  /** align-items 値（例: 'center'）。省略時は stretch */
+  alignItems?: string
   /** コンテナ上部に表示するセクションラベル */
   label?: string
   /** ラベルの右に表示するサブテキスト */
   subLabel?: string
   /** ラベルのテキスト色（省略時はテーマの text 色） */
   labelColor?: string
+  /** ラベルの左に表示するアイコン（Tabler Icons キー: 例 'TbMicrophone'） */
+  labelIcon?: string
 }
 
-export type LayoutNode = Block | LayoutNodeRow | LayoutNodeCol
+/**
+ * blockPool のエントリ。
+ * 「何を表示するか」を定義する共有プロパティのみ持つ。
+ * variant / bgVariant / label 系はプールで一度だけ定義し、レイアウト側では上書きしない。
+ */
+export type BlockPoolEntry = {
+  componentKey: string
+  dataKey: string
+  variant?: BlockVariant
+  bgVariant?: BgVariant
+  blockConfig?: Record<string, unknown>
+  label?: string
+  subLabel?: string
+  labelColor?: string
+  labelIcon?: string
+  labelInset?: boolean
+  labelInsetDir?: 'col' | 'row'
+  hideWhenEmpty?: boolean
+  formLabel?: string
+}
+
+/**
+ * blockPool に定義したブロックをレイアウト内で参照するノード。
+ * サイズ・配置・フォントスケールなどレイアウト固有のプロパティのみ上書き可。
+ * variant / bgVariant / label 系は pool 側で固定され上書き不可。
+ */
+export type LayoutNodeRef = {
+  type: 'ref'
+  /** blockPool のキー */
+  blockId: string
+  minW?: number
+  minH?: number
+  flex?: number
+  alignSelf?: string
+  contentAlign?: string
+  contentFontScale?: number
+  labelFontScale?: number
+}
+
+export type LayoutNode = Block | LayoutNodeRow | LayoutNodeCol | LayoutNodeRef
 
 /** 向き別レイアウト定義（landscape / portrait それぞれ持つ） */
 export type TemplateOrientationDef = {
   cardWidth: number
-  cardHeight: number
+  /** 固定高さ（px）。省略時は autoHeight: true と組み合わせてコンテンツ高さに追従 */
+  cardHeight?: number
+  /** true のとき高さをコンテンツに合わせてスクロール可能な Web 表示にする */
+  autoHeight?: boolean
   grid: TemplateGridDef
   /** ルートレイアウトノード（通常 row か col） */
   layout: LayoutNode
@@ -273,15 +356,56 @@ export type TemplateDefinition = {
   landscape: TemplateOrientationDef
   /** 縦向きレイアウト */
   portrait: TemplateOrientationDef
+  /** フォームのセクション構成（省略時はレイアウト上のブロックをフラット表示） */
+  formSections?: FormSection[]
+  /**
+   * 名前付きブロック定義プール。
+   * componentKey / dataKey / blockConfig / label など「何を表示するか」を一度だけ定義し、
+   * レイアウト内の LayoutNodeRef から blockId で参照する。
+   * サイズ・フォントスケールなどレイアウト固有の値は ref ノード側で指定する。
+   */
+  blockPool?: Record<string, BlockPoolEntry>
+}
+
+/** フォームレイアウト定義 */
+export type FormNodeBlock = {
+  type: 'block'
+  dataKey: string
+  hideWhenEmpty?: boolean
+  formLabel?: string
+}
+
+export type FormNodeText = {
+  type: 'text'
+  content: string
+  style?: 'heading' | 'description'
+}
+
+export type FormNodeFont = { type: 'font' }
+
+export type FormNode = FormNodeBlock | FormNodeText | FormNodeFont
+
+export type FormSection = {
+  title: string
+  items: FormNode[]
+  defaultOpen?: boolean
 }
 
 /** ブロック値の集合 */
 export type BlockValues = Record<string, unknown>
 
 /** フォームのセクション定義 */
+export type TemplateSectionBlock = {
+  key: string
+  /** true のとき値が空なら FormItem を非表示にする（デフォルト false） */
+  hideWhenEmpty?: boolean
+  /** ユーザーの編集フォームに表示するラベル */
+  formLabel?: string
+}
+
 export type TemplateSection = {
-  titleKey: string          // translations キー or そのままタイトル文字列
-  blockKeys: string[]       // このセクションに含むブロックの key 一覧
+  titleKey: string
+  blockKeys: (string | TemplateSectionBlock)[]
   defaultOpen?: boolean
 }
 
@@ -312,6 +436,8 @@ export type CardTemplate = {
     isInteractive?: boolean
     noBackground?: boolean
     orientation?: 'landscape' | 'portrait'
+    cardUrl?: string
+    userUrl?: string
   }) => ReactNode
 }
 

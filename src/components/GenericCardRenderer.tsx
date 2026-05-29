@@ -6,12 +6,15 @@ import type {
   BlockValues,
   CardRenderContext,
   LayoutNode,
+  Block,
   TemplateGridDef,
+  LabelDef,
 } from '@/blocks/types'
 import { cellsToPixels, makeFontSizeTokens } from '@/blocks/types'
 import { getComponent } from '@/blocks/registry'
 import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
 import type { BackgroundValue } from '@/blocks/types'
+import { renderIcon } from '@/blocks/iconRegistry'
 
 type Props = {
   definition: TemplateDefinition
@@ -23,6 +26,10 @@ type Props = {
   orientation?: 'landscape' | 'portrait'
   /** 選択中のノードパス（admin ビルダー用ハイライト） */
   highlightPath?: number[]
+  /** カード個別ページ URL（QR コード用） */
+  cardUrl?: string
+  /** ユーザーページ URL（QR コード用） */
+  userUrl?: string
 }
 
 type Inset = { top: number; right: number; bottom: number; left: number }
@@ -41,6 +48,19 @@ function resolveInset(definition: TemplateDefinition, values: BlockValues, fallb
   }
 }
 
+function resolveRef(
+  node: LayoutNode,
+  blockPool: TemplateDefinition['blockPool'],
+): LayoutNode {
+  if (node.type !== 'ref') return node
+  const poolEntry = blockPool?.[node.blockId]
+  if (!poolEntry) return { type: 'block', componentKey: '', dataKey: node.blockId, variant: 'default' }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { type: _type, blockId: _blockId, ...refOverrides } = node
+  const merged = { type: 'block' as const, ...poolEntry, ...Object.fromEntries(Object.entries(refOverrides).filter(([, v]) => v !== undefined)) }
+  return merged as Block
+}
+
 function renderNode(
   node: LayoutNode,
   grid: TemplateGridDef,
@@ -48,13 +68,15 @@ function renderNode(
   ctx: CardRenderContext,
   currentPath: number[],
   highlightPath: number[] | undefined,
+  blockPool?: TemplateDefinition['blockPool'],
 ): React.ReactNode {
-  const { cellSize, gap } = grid
+  node = resolveRef(node, blockPool)
+  const { cellSize, gap: gapUnit } = grid
   const isHighlighted = highlightPath !== undefined &&
     JSON.stringify(currentPath) === JSON.stringify(highlightPath)
 
   const highlight: React.CSSProperties = isHighlighted
-    ? { outline: '2px solid #00AADB', outlineOffset: '-2px', position: 'relative', zIndex: 10 }
+    ? { outline: '2px solid #00AADB', outlineOffset: '-2px' }
     : {}
 
   if (node.type === 'block') {
@@ -64,12 +86,12 @@ function renderNode(
 
     const hasFlex = node.flex !== undefined
     const style: React.CSSProperties = {
-      display: 'flex', alignItems: 'stretch', overflow: 'hidden', minWidth: 0, minHeight: 0,
+      display: 'flex', alignItems: (node.minH !== undefined || hasFlex) ? 'stretch' : 'flex-start', minWidth: 0, minHeight: 0,
       flexGrow: hasFlex ? node.flex : 0,
       flexShrink: hasFlex ? 1 : 0,
       flexBasis: hasFlex ? 0 : 'auto',
-      ...(node.minW !== undefined && !hasFlex ? { width: cellsToPixels(node.minW, cellSize, gap) } : {}),
-      ...(node.minH !== undefined && !hasFlex ? { height: cellsToPixels(node.minH, cellSize, gap) } : {}),
+      ...(node.minW !== undefined && !hasFlex ? { width: cellsToPixels(node.minW, cellSize) } : {}),
+      ...(node.minH !== undefined && !hasFlex ? { minHeight: cellsToPixels(node.minH, cellSize) } : {}),
       ...(node.alignSelf ? { alignSelf: node.alignSelf } : {}),
       ...highlight,
     }
@@ -85,89 +107,57 @@ function renderNode(
         }}
       : ctx
 
-    const cardContent = block.CardItem({ value, ctx: blockCtx, variant: node.variant, bgVariant: node.bgVariant, blockConfig: node.blockConfig })
-    if (cardContent === null || cardContent === undefined) return null
+    // labelInset のとき LabelDef を組み立ててコンポーネントに渡す。コンポーネント自身が自前コンテナ内に描画する。
+    const labelScale = (node.labelFontScale ?? 1) * (ctx.defaultLabelFontScale ?? 1)
+    const insetLabelDef: LabelDef | undefined = node.labelInset && node.label ? {
+      text: node.label,
+      subText: node.subLabel,
+      color: node.labelColor,
+      fontScale: labelScale !== 1 ? labelScale : undefined,
+      dir: node.labelInsetDir,
+      icon: node.labelIcon,
+    } : undefined
 
-    const glassRadius = node.glassRadius ?? ctx.cardWidth * 0.008
-    const glassStyle: React.CSSProperties = node.glass
-      ? { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: glassRadius, overflow: 'hidden' }
-      : {}
+    const resolvedVariant = node.variant
+    const cardContent = block.CardItem({ value, ctx: blockCtx, variant: resolvedVariant, bgVariant: node.bgVariant, label: insetLabelDef, blockConfig: node.blockConfig })
+    if (cardContent === null || cardContent === undefined) return null
 
     const innerStyle = (flexOverride?: React.CSSProperties): React.CSSProperties => ({ ...style, ...flexOverride })
 
-    if (!node.label) return (
-      <div style={innerStyle(node.glass ? glassStyle : {})}>
-        <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0, minHeight: 0, overflow: 'hidden', display: 'flex', alignItems: 'stretch', ...(node.glass ? { borderRadius: glassRadius } : {}) }}>
-          {cardContent}
-        </div>
-      </div>
+    // labelInset: ラベルはコンポーネント側が管理。GenericCardRenderer は外枠ラベルのみ担当
+    if (!node.label || node.labelInset) return (
+      <div style={innerStyle()}>{cardContent}</div>
     )
 
-    const labelScale = (node.labelFontScale ?? 1) * (ctx.defaultLabelFontScale ?? 1)
     const titleFs = ctx.fontSize.sm * labelScale
     const subFs   = ctx.fontSize.xs * labelScale
     const labelColor = node.labelColor ?? ctx.theme.text
-    const contentMinH = node.minH !== undefined ? cellsToPixels(node.minH, cellSize, gap) : undefined
+    const contentMinH = node.minH !== undefined ? cellsToPixels(node.minH, cellSize) : undefined
     const innerFlex: React.CSSProperties = {
-      flexGrow: 1, flexShrink: 1, flexBasis: 0, height: undefined,
+      flexGrow: 1, flexShrink: 1, flexBasis: 'auto',
       ...(contentMinH !== undefined ? { minHeight: contentMinH } : {}),
     }
 
     const labelEl = (
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+        {node.labelIcon && <span style={{ display: 'inline-flex', alignItems: 'center', color: labelColor, fontSize: titleFs, lineHeight: 1 }}>{renderIcon(node.labelIcon, titleFs)}</span>}
         <span style={{ fontSize: titleFs, fontWeight: 700, color: labelColor, fontFamily: ctx.fontFamily }}>{node.label}</span>
         {node.subLabel && <span style={{ fontSize: subFs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{node.subLabel}</span>}
       </div>
     )
 
-    // labelInset: ラベルをコンテンツ枠（白枠）の内側に描画
-    if (node.labelInset) {
-      const dir = node.labelInsetDir ?? 'col'
-      const insetPad = `${ctx.cardWidth * 0.007 * ctx.paddingScale}px ${ctx.cardWidth * 0.009 * ctx.paddingScale}px`
-      const flexDir: React.CSSProperties['flexDirection'] = dir === 'row' ? 'row' : 'column'
-      const insetBoxStyle: React.CSSProperties = node.glass
-        ? glassStyle
-        : { background: 'rgba(255,255,255,0.85)', borderRadius: glassRadius, overflow: 'hidden' }
-      const boxStyle: React.CSSProperties = {
-        ...insetBoxStyle,
-        display: 'flex',
-        flexDirection: flexDir,
-        gap: dir === 'col' ? ctx.cardWidth * 0.004 : ctx.cardWidth * 0.008,
-        alignItems: dir === 'row' ? 'center' : 'stretch',
-        padding: insetPad,
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: 0,
-        minWidth: 0,
-        minHeight: 0,
-        overflow: 'hidden',
-      }
-      return (
-        <div style={innerStyle()}>
-          <div style={boxStyle}>
-            {labelEl}
-            <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0, minHeight: 0, overflow: 'hidden', display: 'flex', alignItems: 'stretch' }}>
-              {cardContent}
-            </div>
-          </div>
-        </div>
-      )
-    }
-
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: ctx.cardWidth * 0.004, flexGrow: hasFlex ? node.flex : 0, flexShrink: hasFlex ? 1 : 0, flexBasis: hasFlex ? 0 : 'auto', overflow: 'hidden', minWidth: 0, minHeight: 0, ...(node.alignSelf ? { alignSelf: node.alignSelf } : {}), ...highlight }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: ctx.cardWidth * 0.004, flexGrow: hasFlex ? node.flex : 0, flexShrink: hasFlex ? 1 : 0, flexBasis: hasFlex ? 0 : 'auto', minWidth: 0, minHeight: 0, ...(node.alignSelf ? { alignSelf: node.alignSelf } : {}), ...highlight }}>
         {labelEl}
-        <div style={innerStyle({ ...innerFlex, ...glassStyle })}>
-          <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0, minHeight: 0, overflow: 'hidden', display: 'flex', alignItems: 'stretch' }}>
-            {cardContent}
-          </div>
+        <div style={innerStyle(innerFlex)}>
+          {cardContent}
         </div>
       </div>
     )
   }
 
   if (node.type === 'row') {
-    const nodeGap = node.gap ?? 8
+    const nodeGap = (node.gap ?? 2) * gapUnit
     const hasFlex = node.flex !== undefined
     const labelScale = ctx.defaultLabelFontScale ?? 1
     const titleFs = ctx.fontSize.sm * labelScale
@@ -182,6 +172,7 @@ function renderNode(
       flexGrow: hasFlex ? node.flex : 0,
       flexShrink: hasFlex ? 1 : 0,
       flexBasis: hasFlex ? 0 : 'auto',
+      ...(node.minH !== undefined && !hasFlex ? { minHeight: cellsToPixels(node.minH, cellSize) } : {}),
       ...highlight,
     }
     const innerStyle: React.CSSProperties = {
@@ -192,14 +183,15 @@ function renderNode(
       minHeight: 0,
       flexGrow: 1,
       flexShrink: 1,
-      flexBasis: 0,
-      ...(node.minH !== undefined && !hasFlex ? { minHeight: cellsToPixels(node.minH, cellSize, gap) } : {}),
+      flexBasis: 'auto',
       ...(node.justify ? { justifyContent: node.justify } : {}),
+      ...(node.alignItems ? { alignItems: node.alignItems } : {}),
     }
     return (
       <div style={outerStyle}>
         {node.label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+            {node.labelIcon && <span style={{ display: 'inline-flex', alignItems: 'center', color: labelColor, fontSize: titleFs, lineHeight: 1 }}>{renderIcon(node.labelIcon, titleFs)}</span>}
             <span style={{ fontSize: titleFs, fontWeight: 700, color: labelColor, fontFamily: ctx.fontFamily }}>{node.label}</span>
             {node.subLabel && <span style={{ fontSize: subFs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{node.subLabel}</span>}
           </div>
@@ -207,7 +199,7 @@ function renderNode(
         <div style={innerStyle}>
           {node.children.map((child, i) => (
             <React.Fragment key={i}>
-              {renderNode(child, grid, values, ctx, [...currentPath, i], highlightPath)}
+              {renderNode(child, grid, values, ctx, [...currentPath, i], highlightPath, blockPool)}
             </React.Fragment>
           ))}
         </div>
@@ -217,7 +209,7 @@ function renderNode(
 
   if (node.type === 'col') {
     const spacingJustify = node.justify === 'space-between' || node.justify === 'space-around' || node.justify === 'space-evenly'
-    const nodeGap = node.justify && spacingJustify ? 0 : (node.gap ?? 8)
+    const nodeGap = node.justify && spacingJustify ? 0 : (node.gap ?? 2) * gapUnit
     const hasFlex = node.flex !== undefined
     const labelScale = ctx.defaultLabelFontScale ?? 1
     const titleFs = ctx.fontSize.sm * labelScale
@@ -229,25 +221,27 @@ function renderNode(
       gap: nodeGap,
       minWidth: 0,
       minHeight: 0,
-      overflow: 'hidden',
       flexGrow: hasFlex ? node.flex : 0,
       flexShrink: hasFlex ? 1 : 0,
       flexBasis: hasFlex ? 0 : 'auto',
       ...(node.justify ? { justifyContent: node.justify } : {}),
-      ...(node.minW !== undefined && !hasFlex ? { width: cellsToPixels(node.minW, cellSize, gap) } : {}),
+      ...(node.alignItems ? { alignItems: node.alignItems } : {}),
+      ...(node.minW !== undefined && !hasFlex ? { width: cellsToPixels(node.minW, cellSize) } : {}),
+      ...(node.minH !== undefined && !hasFlex ? { minHeight: cellsToPixels(node.minH, cellSize) } : {}),
       ...highlight,
     }
     return (
       <div style={style}>
         {node.label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+            {node.labelIcon && <span style={{ display: 'inline-flex', alignItems: 'center', color: labelColor, fontSize: titleFs, lineHeight: 1 }}>{renderIcon(node.labelIcon, titleFs)}</span>}
             <span style={{ fontSize: titleFs, fontWeight: 700, color: labelColor, fontFamily: ctx.fontFamily }}>{node.label}</span>
             {node.subLabel && <span style={{ fontSize: subFs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{node.subLabel}</span>}
           </div>
         )}
         {node.children.map((child, i) => (
           <React.Fragment key={i}>
-            {renderNode(child, grid, values, ctx, [...currentPath, i], highlightPath)}
+            {renderNode(child, grid, values, ctx, [...currentPath, i], highlightPath, blockPool)}
           </React.Fragment>
         ))}
       </div>
@@ -258,13 +252,14 @@ function renderNode(
 }
 
 const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCardRenderer(
-  { definition, values, fontFamily, background, isInteractive: _, noBackground, orientation = 'landscape', highlightPath },
+  { definition, values, fontFamily, background, isInteractive: _, noBackground, orientation = 'landscape', highlightPath, cardUrl, userUrl },
   ref
 ) {
-  const { cardWidth, cardHeight, grid, layout, defaultLabelFontScale, defaultContentFontScale, defaultPaddingScale } = definition[orientation]
-  const { cellSize, gap } = grid
+  const { cardWidth, cardHeight, autoHeight, grid, layout, defaultLabelFontScale, defaultContentFontScale, defaultPaddingScale } = definition[orientation]
+  const { cellSize, gap: gapUnit } = grid
   const { theme } = definition
   const resolvedFont = fontFamily ?? definition.fontFamily
+  const isAutoHeight = autoHeight === true
 
   const ctx: CardRenderContext = {
     fontFamily: resolvedFont,
@@ -274,6 +269,8 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
     defaultLabelFontScale,
     defaultContentFontScale,
     paddingScale: defaultPaddingScale ?? 1,
+    cardUrl,
+    userUrl,
   }
 
   const bgValue: BackgroundValue | undefined =
@@ -289,8 +286,52 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
     ? { [definition.overlayKey!]: definition.overlayFixed }
     : values
   const pad = resolveInset(definition, overlayValuesForInset, cardWidth * 0.025)
-  const innerWidth  = cardWidth  - pad.left - pad.right
-  const innerHeight = cardHeight - pad.top  - pad.bottom
+  const innerWidth = cardWidth - pad.left - pad.right
+  const innerHeight = cardHeight !== undefined ? cardHeight - pad.top - pad.bottom : undefined
+
+  if (isAutoHeight) {
+    return (
+      <div
+        ref={ref}
+        style={{
+          width: cardWidth,
+          position: 'relative',
+          fontFamily: resolvedFont,
+          background: bg,
+          borderRadius: definition.borderRadius ?? 20,
+          overflow: 'hidden',
+        }}
+      >
+        {/* コンテンツ（通常フロー）が親の高さを決定する */}
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            paddingTop: pad.top,
+            paddingBottom: pad.bottom,
+            paddingLeft: pad.left,
+            paddingRight: pad.right,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0,
+          }}
+        >
+          {renderNode(layout, grid, values, ctx, [], highlightPath, definition.blockPool)}
+        </div>
+        {/* オーバーレイ：コンテンツが確定した高さに追従する */}
+        {definition.overlayKey && (() => {
+          const overlayBlock = getComponent(definition.overlayKey!)
+          if (!overlayBlock?.CardItem) return null
+          const overlayValue = definition.overlayFixed ?? values[definition.overlayKey!] ?? overlayBlock.defaultValue
+          return (
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: definition.borderRadius ?? 20 }}>
+              <overlayBlock.CardItem value={overlayValue} ctx={ctx} variant="default" />
+            </div>
+          )
+        })()}
+      </div>
+    )
+  }
 
   return (
     <div
@@ -303,6 +344,7 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
         fontFamily: resolvedFont,
         background: bg,
         borderRadius: definition.borderRadius ?? 20,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
       }}
     >
       {/* オーバーレイ（背景の上・コンテンツの下） */}
@@ -311,7 +353,7 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
         if (!overlayBlock?.CardItem) return null
         const overlayValue = definition.overlayFixed ?? values[definition.overlayKey!] ?? overlayBlock.defaultValue
         return (
-          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', boxShadow: '0 8px 32px rgba(0,0,0,0.18)', borderRadius: definition.borderRadius ?? 20 }}>
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: definition.borderRadius ?? 20 }}>
             <overlayBlock.CardItem value={overlayValue} ctx={ctx} variant="default" />
           </div>
         )
@@ -325,11 +367,10 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
           top: pad.top,
           width: innerWidth,
           height: innerHeight,
-          overflow: 'hidden',
           display: 'flex',
         }}
       >
-{renderNode(layout, grid, values, ctx, [], highlightPath)}
+{renderNode(layout, grid, values, ctx, [], highlightPath, definition.blockPool)}
       </div>
     </div>
   )

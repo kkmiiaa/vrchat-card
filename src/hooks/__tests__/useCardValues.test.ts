@@ -59,9 +59,9 @@ describe('useCardValues', () => {
 
   it('initialValues が渡された場合はそれで上書きされる', () => {
     const { result } = renderHook(() =>
-      useCardValues(mockBlocks, { name: '上書き', gender: '男性' })
+      useCardValues(mockBlocks, { name: '上書き', gender: { tag: 'male', display: '男性' } })
     )
     expect(result.current.values.name).toBe('上書き')
-    expect(result.current.values.gender).toBe('男性')
+    expect((result.current.values.gender as { tag: string }).tag).toBe('male')
   })
 })

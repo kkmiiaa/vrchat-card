@@ -1838,7 +1838,7 @@ function FormBuilder({ layout, allLayouts, definition, localValues, localFontFam
                     if (item.type === 'font') {
                       return (
                         <div key={ii} className="pt-3 pb-3">
-                          <p className="text-xs font-medium text-gray-700 mb-1.5">フォント</p>
+                          <p className="text-sm font-semibold text-gray-700 mb-1">フォント</p>
                           <div className="flex gap-1 flex-wrap">
                             {(Object.entries(fontMap) as [string, { style: { fontFamily: string } }][]).map(([key, font]) => {
                               const ff = font.style.fontFamily

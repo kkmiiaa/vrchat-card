@@ -1822,7 +1822,7 @@ function FormBuilder({ layout, allLayouts, definition, localValues, localFontFam
               if (!block?.FormItem) return null
               return (
                 <div key={dataKey} className="border-b pb-3">
-                  {formLabel && <p style={{ fontSize: '1.125rem', fontWeight: 700, color: '#1f2937', marginBottom: 4 }}>{formLabel}</p>}
+                  {formLabel && <p className="text-sm font-semibold text-gray-700 mb-1">{formLabel}</p>}
                   <block.FormItem value={localValues[dataKey] ?? block.defaultValue} onChange={v => updateLocalValue(dataKey, v)} t={translations.ja} blockConfig={blockConfig} />
                 </div>
               )
@@ -1864,7 +1864,7 @@ function FormBuilder({ layout, allLayouts, definition, localValues, localFontFam
                     const label = item.formLabel || entry?.formLabel
                     return (
                       <div key={ii} className="pt-3 pb-3">
-                        {label && <p style={{ fontSize: '1.125rem', fontWeight: 700, color: '#1f2937', marginBottom: 4 }}>{label}</p>}
+                        {label && <p className="text-sm font-semibold text-gray-700 mb-1">{label}</p>}
                         <block.FormItem value={(localValues[item.dataKey] ?? block.defaultValue) as never} onChange={v => updateLocalValue(item.dataKey, v)} t={translations.ja} blockConfig={entry?.blockConfig} />
                       </div>
                     )

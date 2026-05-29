@@ -86,7 +86,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const tiltWrapRef = useRef<HTMLDivElement>(null)
   const exportRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
-  const [orientation, setOrientation] = useState<'landscape' | 'portrait'>('landscape')
+  const [orientation, setOrientation] = useState<'card' | 'web'>('card')
   const [downloading, setDownloading] = useState(false)
   const [likeCount, setLikeCount] = useState(initialLikeCount)
   const [liked, setLiked] = useState(false)
@@ -133,12 +133,12 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     return () => window.removeEventListener('vaacard:copied', handler)
   }, [showToast])
 
-  const cardW = template ? (orientation === 'portrait' && template.portraitWidth ? template.portraitWidth : template.cardWidth) : 900
-  const cardH = template ? (orientation === 'portrait' && template.portraitHeight ? template.portraitHeight : template.cardHeight) : 506
+  const cardW = template ? (orientation === 'web' && template.webWidth ? template.webWidth : template.cardWidth) : 900
+  const cardH = template ? (orientation === 'web' && template.webHeight ? template.webHeight : template.cardHeight) : 506
 
   useEffect(() => {
     if (!template) return
-    const padding = orientation === 'portrait' ? 8 : 32
+    const padding = orientation === 'web' ? 8 : 32
     setScale(Math.min(1, (window.innerWidth - padding) / cardW))
     const el = containerRef.current
     if (!el) return
@@ -152,8 +152,8 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
 
   useEffect(() => {
     if (!template) return
-    const hasPortrait = !!(template.portraitWidth && template.portraitHeight)
-    if (hasPortrait && window.innerWidth < 768) setOrientation('portrait')
+    const hasWeb = !!(template.webWidth && template.webHeight)
+    if (hasWeb && window.innerWidth < 768) setOrientation('web')
   }, [template])
 
   useEffect(() => {
@@ -441,7 +441,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
         </div>
       </header>
 
-      <main className={['relative z-10 flex-1 flex flex-col items-center justify-center py-10 gap-5 overflow-x-hidden', orientation === 'portrait' ? 'px-1' : 'px-4'].join(' ')}>
+      <main className={['relative z-10 flex-1 flex flex-col items-center justify-center py-10 gap-5 overflow-x-hidden', orientation === 'web' ? 'px-1' : 'px-4'].join(' ')}>
 
         <div className="w-full flex justify-center" style={{ maxWidth: cardW }}>
           <div
@@ -485,10 +485,10 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               {toast}
             </div>
 
-            <div className={orientation === 'portrait' ? 'flex justify-center' : ''}>
+            <div className={orientation === 'web' ? 'flex justify-center' : ''}>
               <div
                 ref={containerRef}
-                style={{ width: '100%', maxWidth: orientation === 'portrait' ? 620 : undefined, overflow: 'hidden' }}
+                style={{ width: '100%', maxWidth: orientation === 'web' ? 620 : undefined, overflow: 'hidden' }}
               >
                 <div style={{ width: '100%', height: cardH * scale, position: 'relative', overflow: 'hidden' }}>
                   <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: cardW, height: cardH, position: 'absolute', top: 0, left: 0 }}>
@@ -500,11 +500,11 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
           </div>
         </div>
 
-        {template.portraitWidth && (
+        {template.webWidth && (
           <div className="flex items-center gap-1 bg-white/40 backdrop-blur-sm rounded-full p-1 border border-white/60">
             <button
-              onClick={() => setOrientation('landscape')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${orientation === 'landscape' ? 'bg-white text-gray-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              onClick={() => setOrientation('card')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${orientation === 'card' ? 'bg-white text-gray-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <rect x="2" y="6" width="20" height="12" rx="2"/>
@@ -512,8 +512,8 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               横
             </button>
             <button
-              onClick={() => setOrientation('portrait')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${orientation === 'portrait' ? 'bg-white text-gray-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              onClick={() => setOrientation('web')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${orientation === 'web' ? 'bg-white text-gray-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <rect x="6" y="2" width="12" height="20" rx="2"/>

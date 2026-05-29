@@ -24,7 +24,7 @@ export const cardV1Definition: TemplateDefinition = {
   backgroundKey: 'background',
   overlayKey: 'overlay',
 
-  landscape: {
+  card: {
     cardWidth:  CARD_LANDSCAPE_WIDTH,
     cardHeight: CARD_LANDSCAPE_HEIGHT,
     grid: { cellSize: 8, gap: 4 },
@@ -141,7 +141,7 @@ export const cardV1Definition: TemplateDefinition = {
     },
   },
 
-  portrait: {
+  web: {
     cardWidth:  CARD_PORTRAIT_WIDTH,
     autoHeight: true,
     grid: { cellSize: 8, gap: 4 },

@@ -31,8 +31,8 @@ const makeDefinition = (overrides: Partial<TemplateDefinition> = {}): TemplateDe
   theme: { accent: '#000', text: '#000', subText: '#999', bg: '#fff' },
   fontFamily: 'sans-serif',
   backgroundKey: 'background',
-  landscape: { layout: makeRow(), cardWidth: 800, cardHeight: 450 } as never,
-  portrait:  { layout: makeRow(), cardWidth: 450, cardHeight: 700 } as never,
+  card: { layout: makeRow(), cardWidth: 800, cardHeight: 450 } as never,
+  web:  { layout: makeRow(), cardWidth: 450, cardHeight: 700 } as never,
   ...overrides,
 })
 
@@ -41,8 +41,8 @@ const makeSavedLayout = (overrides: Partial<TemplateLayoutRow> = {}): TemplateLa
   label: 'テスト',
   description: null,
   is_published: false,
-  landscape_layout: null,
-  portrait_layout: null,
+  card_layout: null,
+  web_layout: null,
   block_pool: null,
   form_sections: null,
   orientation_scales: null,
@@ -273,10 +273,10 @@ describe('resolveFormSections', () => {
 describe('buildSavePayload', () => {
   const layout = makeRow(makeBlock('text', 'name'))
   const baseData = {
-    landscape_layout: layout,
-    portrait_layout:  layout,
+    card_layout: layout,
+    web_layout:  layout,
     form_sections:    [] as FormSection[],
-    orientation_scales: { landscape: {}, portrait: {} },
+    orientation_scales: { card: {}, web: {} },
   }
 
   it('1. id が payload に含まれる', () => {
@@ -284,10 +284,10 @@ describe('buildSavePayload', () => {
     expect(payload.id).toBe('v2')
   })
 
-  it('2. landscape_layout / portrait_layout が正しく含まれる', () => {
+  it('2. card_layout / web_layout が正しく含まれる', () => {
     const payload = buildSavePayload('v2', baseData)
-    expect(payload.landscape_layout).toBe(layout)
-    expect(payload.portrait_layout).toBe(layout)
+    expect(payload.card_layout).toBe(layout)
+    expect(payload.web_layout).toBe(layout)
   })
 
   it('3. form_sections が含まれる', () => {
@@ -297,7 +297,7 @@ describe('buildSavePayload', () => {
   })
 
   it('4. orientation_scales が含まれる', () => {
-    const scales = { landscape: { defaultPaddingScale: 1.2 }, portrait: {} }
+    const scales = { card: { defaultPaddingScale: 1.2 }, web: {} }
     const payload = buildSavePayload('v2', { ...baseData, orientation_scales: scales })
     expect(payload.orientation_scales).toBe(scales)
   })

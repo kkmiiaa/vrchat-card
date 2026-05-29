@@ -31,8 +31,8 @@ export const v1Template: CardTemplate = {
   communitySlug: 'vrchat',
   cardWidth: CARD_V1_WIDTH,
   cardHeight: CARD_V1_HEIGHT,
-  portraitWidth: CARD_V1_PORTRAIT_WIDTH,
-  portraitHeight: CARD_V1_PORTRAIT_HEIGHT,
+  webWidth: CARD_V1_PORTRAIT_WIDTH,
+  webHeight: CARD_V1_PORTRAIT_HEIGHT,
   sections: [
     { titleKey: 'カードデザイン',   blockKeys: ['background', 'font', 'showBalloon'], defaultOpen: true },
     { titleKey: 'プロフィール情報', blockKeys: ['name', 'gender', 'age'] },

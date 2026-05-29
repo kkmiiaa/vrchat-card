@@ -176,8 +176,8 @@ export const cardV2Definition: TemplateDefinition = {
     },
   },
 
-  // ─── 横向きレイアウト ────────────────────────────────────────────────────────
-  landscape: {
+  // ─── カード表示レイアウト ────────────────────────────────────────────────────
+  card: {
     cardWidth:  LANDSCAPE_WIDTH,
     cardHeight: LANDSCAPE_HEIGHT,
     grid: { cellSize: 10, gap: 4 },
@@ -258,8 +258,8 @@ export const cardV2Definition: TemplateDefinition = {
     },
   },
 
-  // ─── 縦向きレイアウト（Web 表示：流動高さ・スクロール対応）────────────────────
-  portrait: {
+  // ─── Web表示レイアウト（流動高さ・スクロール対応）────────────────────────────
+  web: {
     cardWidth:  PORTRAIT_WIDTH,
     autoHeight: true,
     grid: { cellSize: 10, gap: 4 },

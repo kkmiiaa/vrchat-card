@@ -32,8 +32,8 @@ export const v2Template: CardTemplate = {
   communitySlug: 'vrchat',
   cardWidth: 900,
   cardHeight: 506,
-  portraitWidth: 900,
-  portraitHeight: 1125,
+  webWidth: 900,
+  webHeight: 1125,
   sections: [
     { titleKey: 'カードデザイン',   blockKeys: ['background', 'font'],                                        defaultOpen: true },
     { titleKey: 'プロフィール情報', blockKeys: ['name', 'gender', 'age', 'trustRank', 'playEnv', 'language', 'micOnRate'] },

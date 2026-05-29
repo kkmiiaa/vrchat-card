@@ -11,7 +11,7 @@ function makeDefinition(overrides: Partial<TemplateDefinition> = {}): TemplateDe
     theme: { accent: '#00AADB', text: '#1f2937', subText: '#9ca3af', bg: '#fff' },
     fontFamily: 'sans-serif',
     borderRadius: 0,
-    landscape: {
+    card: {
       cardWidth: 900,
       cardHeight: 500,
       grid: { cellSize: 10, gap: 4 },
@@ -21,7 +21,7 @@ function makeDefinition(overrides: Partial<TemplateDefinition> = {}): TemplateDe
         dataKey: 'profileImage',
       },
     },
-    portrait: {
+    web: {
       cardWidth: 630,
       cardHeight: 900,
       grid: { cellSize: 10, gap: 4 },
@@ -41,13 +41,13 @@ describe('GenericCardRenderer – pool variant', () => {
   it('pool エントリの variant が ref ノードに適用される', () => {
     const def = makeDefinition({
       blockPool: { img: { componentKey: 'profileImage', dataKey: 'profileImage', variant: 'glass' } },
-      landscape: {
+      card: {
         cardWidth: 900, cardHeight: 500, grid: { cellSize: 10, gap: 4 },
         layout: { type: 'ref', blockId: 'img' },
       },
     })
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} noBackground orientation="landscape" />
+      <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} noBackground orientation="card" />
     )
     const hasBorder = Array.from(container.querySelectorAll('div')).some(d => d.style.border?.includes('rgba(255, 255, 255, 0.75)'))
     expect(hasBorder).toBe(true)
@@ -56,20 +56,20 @@ describe('GenericCardRenderer – pool variant', () => {
   it('variant は pool で固定され、2つのレイアウトで同じ ref を参照しても同じ variant が適用される', () => {
     const def = makeDefinition({
       blockPool: { img: { componentKey: 'profileImage', dataKey: 'profileImage', variant: 'glass' } },
-      landscape: {
+      card: {
         cardWidth: 900, cardHeight: 500, grid: { cellSize: 10, gap: 4 },
         layout: { type: 'ref', blockId: 'img' },
       },
-      portrait: {
+      web: {
         cardWidth: 630, cardHeight: 900, grid: { cellSize: 10, gap: 4 },
         layout: { type: 'ref', blockId: 'img' },
       },
     })
     const { container: lc } = render(
-      <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} noBackground orientation="landscape" />
+      <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} noBackground orientation="card" />
     )
     const { container: pc } = render(
-      <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} noBackground orientation="portrait" />
+      <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} noBackground orientation="web" />
     )
     const hasGlassL = Array.from(lc.querySelectorAll('div')).some(d => d.style.border?.includes('rgba(255, 255, 255, 0.75)'))
     const hasGlassP = Array.from(pc.querySelectorAll('div')).some(d => d.style.border?.includes('rgba(255, 255, 255, 0.75)'))
@@ -84,7 +84,7 @@ describe('GenericCardRenderer – glass プロパティは無効化済み', () =
   it('ノードに glass: true があっても GenericCardRenderer はガラス枠を追加しない', () => {
     const def: TemplateDefinition = {
       ...makeDefinition(),
-      landscape: {
+      card: {
         cardWidth: 900,
         cardHeight: 500,
         grid: { cellSize: 10, gap: 4 },

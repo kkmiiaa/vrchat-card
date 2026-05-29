@@ -316,7 +316,7 @@ export type LayoutNodeRef = {
 
 export type LayoutNode = Block | LayoutNodeRow | LayoutNodeCol | LayoutNodeRef
 
-/** 向き別レイアウト定義（landscape / portrait それぞれ持つ） */
+/** 向き別レイアウト定義（card / web それぞれ持つ） */
 export type TemplateOrientationDef = {
   cardWidth: number
   /** 固定高さ（px）。省略時は autoHeight: true と組み合わせてコンテンツ高さに追従 */
@@ -352,10 +352,10 @@ export type TemplateDefinition = {
   overlayFixed?: import('./overlay').OverlayValue
   /** フォントサイズ比率のオーバーライド（省略時はデフォルト比率を使用） */
   fontScale?: Partial<FontScale>
-  /** 横向きレイアウト */
-  landscape: TemplateOrientationDef
-  /** 縦向きレイアウト */
-  portrait: TemplateOrientationDef
+  /** カード表示レイアウト（固定サイズ・画像書き出し用） */
+  card: TemplateOrientationDef
+  /** Web表示レイアウト（autoHeight・スマホ閲覧用） */
+  web: TemplateOrientationDef
   /** フォームのセクション構成（省略時はレイアウト上のブロックをフラット表示） */
   formSections?: FormSection[]
   /**
@@ -427,15 +427,15 @@ export type CardTemplate = {
   /** フォームのセクション構成 */
   sections: TemplateSection[]
   /** カード全体のレンダラー。全ブロック値を受け取り描画する */
-  portraitWidth?: number
-  portraitHeight?: number
+  webWidth?: number
+  webHeight?: number
   CardRenderer: (props: {
     values: BlockValues
     fontFamily: string
     t: Translations
     isInteractive?: boolean
     noBackground?: boolean
-    orientation?: 'landscape' | 'portrait'
+    orientation?: 'card' | 'web'
     cardUrl?: string
     userUrl?: string
   }) => ReactNode

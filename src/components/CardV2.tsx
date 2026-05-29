@@ -50,7 +50,7 @@ type Props = {
   okNgLabels: Record<string, string>
   isInteractive?: boolean
   noBackground?: boolean
-  orientation?: 'landscape' | 'portrait'
+  orientation?: 'card' | 'web'
 }
 
 function getBackground(
@@ -167,7 +167,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
     okNgLabels,
     isInteractive,
     noBackground,
-    orientation = 'landscape',
+    orientation = 'card',
   } = props
 
   const visibleGallery = (galleryImages ?? []).filter(Boolean) as string[]
@@ -208,7 +208,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
     'Trusted User': '#a855f7',
   }
 
-  if (orientation === 'portrait') {
+  if (orientation === 'web') {
     const PW = 900, PH = 1125
     // 縦レイアウト用フォントスケール（横より約30%大きく）
     const pLabel: React.CSSProperties = { fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(0,0,0,0.35)', textTransform: 'uppercase' as const }

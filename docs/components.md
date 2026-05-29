@@ -377,16 +377,16 @@ type TemplateDefinition = {
   overlayKey?: string       // オーバーレイコンポーネントの dataKey
   overlayFixed?: OverlayValue
   fontScale?: Partial<FontScale>
-  landscape: TemplateOrientationDef  // 横向きレイアウト
-  portrait: TemplateOrientationDef   // 縦向きレイアウト
-  /** dataKey ごとのデフォルト variant（landscape/portrait 共通で適用）。ノード直指定が優先される。 */
+  card: TemplateOrientationDef  // カード表示レイアウト（固定サイズ）
+  web: TemplateOrientationDef   // Web表示レイアウト（autoHeight）
+  /** dataKey ごとのデフォルト variant（card/web 共通で適用）。ノード直指定が優先される。 */
   blockVariants?: Record<string, string>
 }
 ```
 
 #### blockVariants
 
-`blockVariants` はテンプレート全体で orientation をまたいで共通の variant を指定する仕組み。これにより landscape と portrait で同じ dataKey のコンポーネントが常に同じ variant で描画されることが保証される。
+`blockVariants` はテンプレート全体で orientation をまたいで共通の variant を指定する仕組み。これにより card と web で同じ dataKey のコンポーネントが常に同じ variant で描画されることが保証される。
 
 ```typescript
 // 例: V2 では profileImage を常に glass variant で描画

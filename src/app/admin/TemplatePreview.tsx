@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import type { TemplateDefinition, BlockValues } from '@/blocks/types'
 import GenericCardRenderer from '@/components/GenericCardRenderer'
 
-type Orientation = 'landscape' | 'portrait'
+type Orientation = 'card' | 'web'
 
 type Props = {
   definition: TemplateDefinition
@@ -14,7 +14,7 @@ type Props = {
 const ZOOM_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 1.0]
 
 export default function TemplatePreview({ definition, values }: Props) {
-  const [orientation, setOrientation] = useState<Orientation>('landscape')
+  const [orientation, setOrientation] = useState<Orientation>('card')
   const [zoom, setZoom] = useState<number | 'fit'>('fit')
   const containerRef = useRef<HTMLDivElement>(null)
   const [fitScale, setFitScale] = useState(0.5)
@@ -44,7 +44,7 @@ export default function TemplatePreview({ definition, values }: Props) {
       <div className="flex items-center gap-3 flex-wrap px-4 py-3 border-b bg-white flex-shrink-0">
         {/* orientation トグル */}
         <div className="flex bg-gray-100 rounded-lg p-0.5">
-          {(['landscape', 'portrait'] as const).map(ori => (
+          {(['card', 'web'] as const).map(ori => (
             <button
               key={ori}
               onClick={() => setOrientation(ori)}
@@ -52,7 +52,7 @@ export default function TemplatePreview({ definition, values }: Props) {
                 orientation === ori ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              {ori === 'landscape' ? 'カード（900×506）' : 'Web'}
+              {ori === 'card' ? 'カード（900×506）' : 'Web'}
             </button>
           ))}
         </div>

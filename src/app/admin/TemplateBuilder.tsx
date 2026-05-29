@@ -19,7 +19,7 @@ import { BlockPropertyEditor, isBgVariantApplicable, type BlockDisplaySettings }
 import { ColorPicker, LABEL_PRESET_COLORS } from '@/blocks/colorPicker'
 import { IconPicker } from '@/blocks/iconRegistry'
 
-type Orientation = 'landscape' | 'portrait'
+type Orientation = 'card' | 'web'
 type NodePath = number[]
 
 const BLOCK_COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16']
@@ -202,25 +202,25 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           node.children.forEach(scanIntoPool)
         }
       }
-      const landscape = saved?.landscape_layout ?? d.landscape.layout
-      const portrait = saved?.portrait_layout ?? d.portrait.layout
-      if (landscape) scanIntoPool(landscape)
-      if (portrait) scanIntoPool(portrait)
+      const card = saved?.card_layout ?? d.card.layout
+      const web = saved?.web_layout ?? d.web.layout
+      if (card) scanIntoPool(card)
+      if (web) scanIntoPool(web)
       return [d.id, initPool]
     }))
   )
 
-  const [orientation, setOrientation] = useState<Orientation>('landscape')
+  const [orientation, setOrientation] = useState<Orientation>('card')
   const [fitScale, setFitScale] = useState(0.5)
   const [scaleMultiplier, setScaleMultiplier] = useState(1.0)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const [layouts, setLayouts] = useState<Record<string, { landscape: LayoutNode; portrait: LayoutNode }>>(
+  const [layouts, setLayouts] = useState<Record<string, { card: LayoutNode; web: LayoutNode }>>(
     () => Object.fromEntries(definitions.map(d => {
       const saved = savedLayouts[d.id]
       return [d.id, {
-        landscape: saved?.landscape_layout ?? d.landscape.layout,
-        portrait:  saved?.portrait_layout  ?? d.portrait.layout,
+        card: saved?.card_layout ?? d.card.layout,
+        web:  saved?.web_layout  ?? d.web.layout,
       }]
     }))
   )
@@ -234,25 +234,25 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
   }, [definition.id])
 
   const currentLayouts = layouts[definition.id]
-  const landscapeLayout = currentLayouts.landscape
-  const portraitLayout  = currentLayouts.portrait
+  const cardLayout = currentLayouts.card
+  const webLayout  = currentLayouts.web
 
-  const layout = orientation === 'landscape' ? landscapeLayout : portraitLayout
+  const layout = orientation === 'card' ? cardLayout : webLayout
   const setLayout = useCallback((updater: LayoutNode | ((prev: LayoutNode) => LayoutNode)) => {
     setLayouts(prev => {
       const current = prev[definition.id]
-      const next = typeof updater === 'function' ? updater(orientation === 'landscape' ? current.landscape : current.portrait) : updater
+      const next = typeof updater === 'function' ? updater(orientation === 'card' ? current.card : current.web) : updater
       return { ...prev, [definition.id]: { ...current, [orientation]: next } }
     })
   }, [definition.id, orientation])
 
   type OrientationScales = { defaultLabelFontScale?: number; defaultContentFontScale?: number; defaultPaddingScale?: number }
-  const [orientationScales, setOrientationScales] = useState<Record<string, { landscape: OrientationScales; portrait: OrientationScales }>>(
+  const [orientationScales, setOrientationScales] = useState<Record<string, { card: OrientationScales; web: OrientationScales }>>(
     () => Object.fromEntries(definitions.map(d => {
       const saved = savedLayouts[d.id]?.orientation_scales
       return [d.id, {
-        landscape: saved?.landscape ?? { defaultLabelFontScale: d.landscape.defaultLabelFontScale, defaultContentFontScale: d.landscape.defaultContentFontScale, defaultPaddingScale: d.landscape.defaultPaddingScale },
-        portrait:  saved?.portrait  ?? { defaultLabelFontScale: d.portrait.defaultLabelFontScale,  defaultContentFontScale: d.portrait.defaultContentFontScale,  defaultPaddingScale: d.portrait.defaultPaddingScale  },
+        card: saved?.card ?? { defaultLabelFontScale: d.card.defaultLabelFontScale, defaultContentFontScale: d.card.defaultContentFontScale, defaultPaddingScale: d.card.defaultPaddingScale },
+        web:  saved?.web  ?? { defaultLabelFontScale: d.web.defaultLabelFontScale,  defaultContentFontScale: d.web.defaultContentFontScale,  defaultPaddingScale: d.web.defaultPaddingScale  },
       }]
     }))
   )
@@ -329,8 +329,8 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
     const d = definitions[selectedDefIdx]
     const pool = (d.blockPool ?? {}) as TemplateDefinition['blockPool']
     return {
-      ...collectDefaultValues(d.landscape.layout, pool),
-      ...collectDefaultValues(d.portrait.layout, pool),
+      ...collectDefaultValues(d.card.layout, pool),
+      ...collectDefaultValues(d.web.layout, pool),
     }
   })
   const [localFontFamily, setLocalFontFamily] = useState<string>(definition.fontFamily)
@@ -340,11 +340,11 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
   const resetLocalValues = useCallback(() => {
     const pool = currentPool as TemplateDefinition['blockPool']
     setLocalValues({
-      ...collectDefaultValues(landscapeLayout, pool),
-      ...collectDefaultValues(portraitLayout,  pool),
+      ...collectDefaultValues(cardLayout, pool),
+      ...collectDefaultValues(webLayout,  pool),
     })
     setLocalFontFamily(definition.fontFamily)
-  }, [landscapeLayout, definition.fontFamily])
+  }, [cardLayout, definition.fontFamily])
 
   const [overlayConfigs, setOverlayConfigs] = useState<Record<string, OverlayValue | null>>(
     () => Object.fromEntries(definitions.map(d => [
@@ -366,19 +366,19 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
     setSaveState('saving')
     const { error } = await saveTemplateLayout(definition.id, {
       label:              definition.label,
-      landscape_layout:   landscapeLayout,
-      portrait_layout:    portraitLayout,
+      card_layout:        cardLayout,
+      web_layout:         webLayout,
       block_pool:         currentPool as Record<string, unknown>,
       form_sections:      currentFormSections,
       orientation_scales: {
-        landscape: orientationScales[definition.id]?.landscape ?? {},
-        portrait:  orientationScales[definition.id]?.portrait  ?? {},
+        card: orientationScales[definition.id]?.card ?? {},
+        web:  orientationScales[definition.id]?.web  ?? {},
       },
       overlay_config: overlayConfigs[definition.id] ?? null,
     })
     setSaveState(error ? 'error' : 'saved')
     setTimeout(() => setSaveState('idle'), 2000)
-  }, [definition.id, landscapeLayout, portraitLayout, currentFormSections, orientationScales, overlayConfigs, currentPool])
+  }, [definition.id, cardLayout, webLayout, currentFormSections, orientationScales, overlayConfigs, currentPool])
 
   const [selectedPath, setSelectedPath] = useState<NodePath | null>(null)
   const selectedNode = selectedPath ? getNode(layout, selectedPath) : null
@@ -418,8 +418,8 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
       }
     }
     const found: Record<string, PoolEntry> = {}
-    scanBlocks(landscapeLayout, found)
-    scanBlocks(portraitLayout,  found)
+    scanBlocks(cardLayout, found)
+    scanBlocks(webLayout,  found)
     if (Object.keys(found).length === 0) return
     setCurrentPool(prev => {
       const next = { ...prev }
@@ -429,7 +429,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
       }
       return changed ? next : prev
     })
-  }, [landscapeLayout, portraitLayout, setCurrentPool])
+  }, [cardLayout, webLayout, setCurrentPool])
 
   const allBlocks = getAllComponents().filter(b => b.key !== 'background' && b.key !== 'overlay')
 
@@ -1184,15 +1184,15 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
     )
   }
 
-  const landscapeUsedKeys = collectUsedKeys(landscapeLayout)
-  const portraitUsedKeys = collectUsedKeys(portraitLayout)
+  const cardUsedKeys = collectUsedKeys(cardLayout)
+  const webUsedKeys = collectUsedKeys(webLayout)
 
   const resolvedDefinition = {
     ...definition,
     blockPool: currentPool as unknown as TemplateDefinition['blockPool'],
     overlayFixed: currentOverlayConfig ?? definition.overlayFixed,
-    landscape: { ...definition.landscape, layout: landscapeLayout, ...orientationScales[definition.id]?.landscape },
-    portrait:  { ...definition.portrait,  layout: portraitLayout,  ...orientationScales[definition.id]?.portrait  },
+    card: { ...definition.card, layout: cardLayout, ...orientationScales[definition.id]?.card },
+    web:  { ...definition.web,  layout: webLayout,  ...orientationScales[definition.id]?.web  },
   }
 
   return (
@@ -1231,8 +1231,8 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
               <p className="text-[10px] text-gray-400 px-3 py-2">ブロックなし</p>
             )}
             {Object.entries(currentPool).map(([blockId, entry]) => {
-              const lUsed = landscapeUsedKeys.has(blockId)
-              const pUsed = portraitUsedKeys.has(blockId)
+              const lUsed = cardUsedKeys.has(blockId)
+              const pUsed = webUsedKeys.has(blockId)
               const color = blockColor(entry.componentKey)
               return (
                 <div key={blockId} className="flex items-center gap-1.5 px-2 py-1 hover:bg-gray-50 group">
@@ -1266,8 +1266,8 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
                         return {
                           ...prev,
                           [definition.id]: {
-                            landscape: removeRefsById(cur.landscape, blockId),
-                            portrait:  removeRefsById(cur.portrait,  blockId),
+                            card: removeRefsById(cur.card, blockId),
+                            web:  removeRefsById(cur.web,  blockId),
                           },
                         }
                       })
@@ -1329,7 +1329,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           )}
           <div className="w-px h-4 bg-gray-200 mx-1 flex-shrink-0" />
           <div className="flex bg-gray-100 rounded-lg p-0.5 flex-shrink-0">
-            {(['landscape', 'portrait'] as const).map(ori => (
+            {(['card', 'web'] as const).map(ori => (
               <button
                 key={ori}
                 onClick={() => { setOrientation(ori); setSelectedPath(null) }}
@@ -1337,12 +1337,12 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
                   orientation === ori ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                {ori === 'landscape' ? 'カード' : 'Web'}
+                {ori === 'card' ? 'カード' : 'Web'}
               </button>
             ))}
           </div>
           <div className="ml-auto flex items-center gap-1.5 flex-shrink-0">
-            {orientation === 'portrait' && (
+            {orientation === 'web' && (
               <button
                 onClick={() => setScaleMultiplier(390 / o.cardWidth / fitScale)}
                 className="px-1.5 py-0.5 text-[10px] border border-gray-200 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-50"
@@ -1356,7 +1356,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           </div>
           <button
             onClick={() => {
-              if (!confirm(`${orientation === 'landscape' ? 'カード' : 'Web'}レイアウトを定義のデフォルトに戻しますか？`)) return
+              if (!confirm(`${orientation === 'card' ? 'カード' : 'Web'}レイアウトを定義のデフォルトに戻しますか？`)) return
               setLayouts(prev => ({
                 ...prev,
                 [definition.id]: {
@@ -1527,7 +1527,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
         {rightTab === 'form' && (
           <FormBuilder
             layout={layout}
-            allLayouts={[landscapeLayout, portraitLayout]}
+            allLayouts={[cardLayout, webLayout]}
             definition={definition}
             localValues={localValues}
             localFontFamily={localFontFamily}

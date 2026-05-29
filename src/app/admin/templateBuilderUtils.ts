@@ -99,13 +99,13 @@ export function resolveFormSections(
 
 export type SavePayload = {
   id: string
-  landscape_layout: LayoutNode
-  portrait_layout: LayoutNode
+  card_layout: LayoutNode
+  web_layout: LayoutNode
   block_pool?: Record<string, unknown>
   form_sections: FormSection[]
   orientation_scales: {
-    landscape: Record<string, unknown>
-    portrait: Record<string, unknown>
+    card: Record<string, unknown>
+    web: Record<string, unknown>
   }
   updated_at: string
   label?: string
@@ -117,17 +117,17 @@ export function buildSavePayload(
   data: {
     label?: string
     description?: string
-    landscape_layout: LayoutNode
-    portrait_layout: LayoutNode
+    card_layout: LayoutNode
+    web_layout: LayoutNode
     block_pool?: Record<string, unknown>
     form_sections: FormSection[]
-    orientation_scales: { landscape: Record<string, unknown>; portrait: Record<string, unknown> }
+    orientation_scales: { card: Record<string, unknown>; web: Record<string, unknown> }
   },
 ): SavePayload {
   const payload: SavePayload = {
     id:                 templateId,
-    landscape_layout:   data.landscape_layout,
-    portrait_layout:    data.portrait_layout,
+    card_layout:        data.card_layout,
+    web_layout:         data.web_layout,
     form_sections:      data.form_sections,
     orientation_scales: data.orientation_scales,
     updated_at:         new Date().toISOString(),

@@ -14,7 +14,7 @@ function makeBlockDefinition(blockProps: Partial<{
     theme: { accent: '#00AADB', text: '#1f2937', subText: '#9ca3af', bg: '#fff' },
     fontFamily: 'sans-serif',
     borderRadius: 0,
-    landscape: {
+    card: {
       cardWidth: 900,
       cardHeight: 500,
       grid: { cellSize: 10, gap: 4 },
@@ -28,20 +28,28 @@ function makeBlockDefinition(blockProps: Partial<{
   }
 }
 
+const DEFAULT_WEB: TemplateDefinition['web'] = {
+  cardWidth: 630,
+  autoHeight: true,
+  grid: { cellSize: 10, gap: 4 },
+  layout: { type: 'col', children: [] },
+}
+
 /** 最小限のテンプレート定義を組み立てるヘルパー */
-function makeDefinition(layout: TemplateDefinition['landscape']['layout']): TemplateDefinition {
+function makeDefinition(layout: TemplateDefinition['card']['layout']): TemplateDefinition {
   return {
     id: 'test',
     label: 'test',
     theme: { accent: '#00AADB', text: '#1f2937', subText: '#9ca3af', bg: '#fff' },
     fontFamily: 'sans-serif',
     borderRadius: 0,
-    landscape: {
+    card: {
       cardWidth: 900,
       cardHeight: 500,
       grid: { cellSize: 10, gap: 4 },
       layout,
     },
+    web: DEFAULT_WEB,
   }
 }
 

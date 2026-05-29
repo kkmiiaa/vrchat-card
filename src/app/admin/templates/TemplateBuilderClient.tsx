@@ -55,17 +55,17 @@ export default function TemplateBuilderClient({ definitions: initialDefinitions,
     setCreating(true)
     setCreateError('')
 
-    const landscapeLayout = baseLayout?.landscape_layout ?? baseDef.landscape.layout
-    const portraitLayout  = baseLayout?.portrait_layout  ?? baseDef.portrait.layout
+    const cardLayout = baseLayout?.card_layout ?? baseDef.card.layout
+    const webLayout  = baseLayout?.web_layout  ?? baseDef.web.layout
     const formSections    = baseLayout?.form_sections    ?? []
-    const orientationScales = baseLayout?.orientation_scales ?? { landscape: {}, portrait: {} }
+    const orientationScales = baseLayout?.orientation_scales ?? { card: {}, web: {} }
 
     // 1. テンプレート保存
     const { error: saveError } = await saveTemplateLayout(id, {
       label,
       description: newDescription.trim() || undefined,
-      landscape_layout:   landscapeLayout,
-      portrait_layout:    portraitLayout,
+      card_layout:        cardLayout,
+      web_layout:         webLayout,
       form_sections:      formSections,
       orientation_scales: orientationScales,
     })
@@ -96,8 +96,8 @@ export default function TemplateBuilderClient({ definitions: initialDefinitions,
         id, label,
         description: newDescription.trim() || null,
         is_published: false,
-        landscape_layout:   landscapeLayout,
-        portrait_layout:    portraitLayout,
+        card_layout:        cardLayout,
+        web_layout:         webLayout,
         block_pool:         baseLayout?.block_pool ?? null,
         form_sections:      formSections,
         orientation_scales: orientationScales,
@@ -119,13 +119,13 @@ export default function TemplateBuilderClient({ definitions: initialDefinitions,
       const saved = prev[id]
       if (!saved) return prev
       // DB 保存は最新の state を参照するためここで行う
-      if (saved.landscape_layout && saved.portrait_layout) {
+      if (saved.card_layout && saved.web_layout) {
         saveTemplateLayout(id, {
           label,
-          landscape_layout:   saved.landscape_layout,
-          portrait_layout:    saved.portrait_layout,
+          card_layout:        saved.card_layout,
+          web_layout:         saved.web_layout,
           form_sections:      saved.form_sections ?? [],
-          orientation_scales: saved.orientation_scales ?? { landscape: {}, portrait: {} },
+          orientation_scales: saved.orientation_scales ?? { card: {}, web: {} },
         })
       }
       return { ...prev, [id]: { ...saved, label } }

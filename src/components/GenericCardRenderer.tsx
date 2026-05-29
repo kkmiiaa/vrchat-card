@@ -23,7 +23,7 @@ type Props = {
   background?: BackgroundValue
   isInteractive?: boolean
   noBackground?: boolean
-  orientation?: 'landscape' | 'portrait'
+  orientation?: 'card' | 'web'
   /** 選択中のノードパス（admin ビルダー用ハイライト） */
   highlightPath?: number[]
   /** カード個別ページ URL（QR コード用） */
@@ -253,7 +253,7 @@ function renderNode(
 }
 
 const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCardRenderer(
-  { definition, values, fontFamily, background, isInteractive: _, noBackground, orientation = 'landscape', highlightPath, cardUrl, userUrl },
+  { definition, values, fontFamily, background, isInteractive: _, noBackground, orientation = 'card', highlightPath, cardUrl, userUrl },
   ref
 ) {
   const { cardWidth, cardHeight, autoHeight, grid, layout, defaultLabelFontScale, defaultContentFontScale, defaultPaddingScale } = definition[orientation]

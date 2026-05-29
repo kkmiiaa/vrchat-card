@@ -4,7 +4,7 @@
  * 検証する仕様：
  * - pool の label / labelColor / labelInset / variant は ref 参照時に適用される
  * - contentFontScale / labelFontScale は ref ノード（レイアウト）側で独立して設定できる
- * - 同じ blockId を landscape / portrait から参照しても fontScale を別々に持てる
+ * - 同じ blockId を card / web から参照しても fontScale を別々に持てる
  */
 import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
@@ -22,7 +22,7 @@ const BASE: Pick<TemplateDefinition, 'id' | 'label' | 'theme' | 'fontFamily' | '
 
 const GRID = { cellSize: 10, gap: 4 }
 
-function makeOrient(layout: TemplateDefinition['landscape']['layout']): TemplateDefinition['landscape'] {
+function makeOrient(layout: TemplateDefinition['card']['layout']): TemplateDefinition['card'] {
   return { cardWidth: 900, cardHeight: 500, grid: GRID, layout }
 }
 
@@ -33,11 +33,11 @@ describe('GenericCardRenderer – pool の label が ref に反映される', ()
     const def: TemplateDefinition = {
       ...BASE,
       blockPool: { name: { componentKey: 'text', dataKey: 'name', label: 'プロフィール名' } },
-      landscape: makeOrient({ type: 'ref', blockId: 'name' }),
-      portrait:  makeOrient({ type: 'ref', blockId: 'name' }),
+      card: makeOrient({ type: 'ref', blockId: 'name' }),
+      web:  makeOrient({ type: 'ref', blockId: 'name' }),
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="landscape" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="card" />
     )
     const spans = Array.from(container.querySelectorAll('span'))
     expect(spans.some(s => s.textContent === 'プロフィール名')).toBe(true)
@@ -47,11 +47,11 @@ describe('GenericCardRenderer – pool の label が ref に反映される', ()
     const def: TemplateDefinition = {
       ...BASE,
       blockPool: { name: { componentKey: 'text', dataKey: 'name' } },
-      landscape: makeOrient({ type: 'ref', blockId: 'name' }),
-      portrait:  makeOrient({ type: 'ref', blockId: 'name' }),
+      card: makeOrient({ type: 'ref', blockId: 'name' }),
+      web:  makeOrient({ type: 'ref', blockId: 'name' }),
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="landscape" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="card" />
     )
     // ラベルなし → span がない（text コンポーネントは p タグを使う）
     expect(container.querySelector('span')).toBeNull()
@@ -65,11 +65,11 @@ describe('GenericCardRenderer – pool の labelColor が ref に反映される
     const def: TemplateDefinition = {
       ...BASE,
       blockPool: { name: { componentKey: 'text', dataKey: 'name', label: 'NAME', labelColor: '#ff0000' } },
-      landscape: makeOrient({ type: 'ref', blockId: 'name' }),
-      portrait:  makeOrient({ type: 'ref', blockId: 'name' }),
+      card: makeOrient({ type: 'ref', blockId: 'name' }),
+      web:  makeOrient({ type: 'ref', blockId: 'name' }),
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="landscape" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="card" />
     )
     const labelSpan = Array.from(container.querySelectorAll('span')).find(s => s.textContent === 'NAME') as HTMLElement
     expect(labelSpan).not.toBeUndefined()
@@ -80,11 +80,11 @@ describe('GenericCardRenderer – pool の labelColor が ref に反映される
     const def: TemplateDefinition = {
       ...BASE,
       blockPool: { name: { componentKey: 'text', dataKey: 'name', label: 'NAME' } },
-      landscape: makeOrient({ type: 'ref', blockId: 'name' }),
-      portrait:  makeOrient({ type: 'ref', blockId: 'name' }),
+      card: makeOrient({ type: 'ref', blockId: 'name' }),
+      web:  makeOrient({ type: 'ref', blockId: 'name' }),
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="landscape" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="card" />
     )
     const labelSpan = Array.from(container.querySelectorAll('span')).find(s => s.textContent === 'NAME') as HTMLElement
     expect(labelSpan.style.color).toBe('#1f2937')
@@ -94,49 +94,49 @@ describe('GenericCardRenderer – pool の labelColor が ref に反映される
 // ─── contentFontScale（レイアウト固有） ──────────────────────────────────────────
 
 describe('GenericCardRenderer – contentFontScale はレイアウト固有', () => {
-  it('landscape の ref ノードに contentFontScale:2 を設定するとフォントサイズが2倍になる', () => {
+  it('card の ref ノードに contentFontScale:2 を設定するとフォントサイズが2倍になる', () => {
     const def: TemplateDefinition = {
       ...BASE,
       blockPool: { name: { componentKey: 'text', dataKey: 'name' } },
-      landscape: makeOrient({ type: 'ref', blockId: 'name', contentFontScale: 2 }),
-      portrait:  makeOrient({ type: 'ref', blockId: 'name' }),
+      card: makeOrient({ type: 'ref', blockId: 'name', contentFontScale: 2 }),
+      web:  makeOrient({ type: 'ref', blockId: 'name' }),
     }
     const { container: lc } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="landscape" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="card" />
     )
     const { container: pc } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="portrait" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="web" />
     )
     const getLargestFont = (c: HTMLElement) =>
       Math.max(...Array.from(c.querySelectorAll<HTMLElement>('span, p')).map(s => parseFloat(s.style.fontSize || '0')))
 
     const lFont = getLargestFont(lc)
     const pFont = getLargestFont(pc)
-    // landscape(contentFontScale:2) は portrait(1) の約2倍（cardWidth差も加わるのでさらに差が出る）
+    // card(contentFontScale:2) は web(1) の約2倍（cardWidth差も加わるのでさらに差が出る）
     expect(lFont).toBeGreaterThan(pFont * 1.5)
   })
 
-  it('landscape と portrait で同じ blockId を別の contentFontScale で参照できる', () => {
+  it('card と web で同じ blockId を別の contentFontScale で参照できる', () => {
     const def: TemplateDefinition = {
       ...BASE,
       blockPool: { name: { componentKey: 'text', dataKey: 'name' } },
-      landscape: makeOrient({ type: 'ref', blockId: 'name', contentFontScale: 1.5 }),
-      portrait: {
+      card: makeOrient({ type: 'ref', blockId: 'name', contentFontScale: 1.5 }),
+      web: {
         cardWidth: 900, cardHeight: 500, grid: GRID,
         layout: { type: 'ref', blockId: 'name', contentFontScale: 0.8 },
       },
     }
     const { container: lc } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="landscape" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="card" />
     )
     const { container: pc } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="portrait" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="web" />
     )
     const getFont = (c: HTMLElement) => {
       const els = Array.from(c.querySelectorAll<HTMLElement>('span, p'))
       return els.map(s => parseFloat(s.style.fontSize || '0')).find(n => n > 0) ?? 0
     }
-    // 同じ cardWidth で contentFontScale 1.5 vs 0.8 → landscape の方が大きい
+    // 同じ cardWidth で contentFontScale 1.5 vs 0.8 → card の方が大きい
     expect(getFont(lc)).toBeGreaterThan(getFont(pc))
   })
 })
@@ -150,11 +150,11 @@ describe('GenericCardRenderer – pool の blockConfig.hideWhenEmpty が ref に
     const def: TemplateDefinition = {
       ...BASE,
       blockPool: { sel: { componentKey: 'select', dataKey: 'sel', blockConfig: { options: [], hideWhenEmpty: true } } },
-      landscape: makeOrient({ type: 'ref', blockId: 'sel' }),
-      portrait:  makeOrient({ type: 'ref', blockId: 'sel' }),
+      card: makeOrient({ type: 'ref', blockId: 'sel' }),
+      web:  makeOrient({ type: 'ref', blockId: 'sel' }),
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ sel: '' }} noBackground orientation="landscape" />
+      <GenericCardRenderer definition={def} values={{ sel: '' }} noBackground orientation="card" />
     )
     // select が null を返すのでブロックラッパーごと消える → テキストノードなし
     expect(container.querySelector('span')).toBeNull()
@@ -164,11 +164,11 @@ describe('GenericCardRenderer – pool の blockConfig.hideWhenEmpty が ref に
     const def: TemplateDefinition = {
       ...BASE,
       blockPool: { sel: { componentKey: 'select', dataKey: 'sel', blockConfig: { options: [{ value: 'a', label: 'A' }], hideWhenEmpty: true } } },
-      landscape: makeOrient({ type: 'ref', blockId: 'sel' }),
-      portrait:  makeOrient({ type: 'ref', blockId: 'sel' }),
+      card: makeOrient({ type: 'ref', blockId: 'sel' }),
+      web:  makeOrient({ type: 'ref', blockId: 'sel' }),
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ sel: 'a' }} noBackground orientation="landscape" />
+      <GenericCardRenderer definition={def} values={{ sel: 'a' }} noBackground orientation="card" />
     )
     expect(container.querySelector('span')).not.toBeNull()
   })

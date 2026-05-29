@@ -15,11 +15,11 @@ export type TemplateLayoutRow = {
   label: string
   description: string | null
   is_published: boolean
-  landscape_layout:   LayoutNode | null
-  portrait_layout:    LayoutNode | null
+  card_layout:        LayoutNode | null
+  web_layout:         LayoutNode | null
   block_pool:         Record<string, unknown> | null | undefined
   form_sections:      FormSection[] | null
-  orientation_scales: { landscape: OrientationScales; portrait: OrientationScales } | null
+  orientation_scales: { card: OrientationScales; web: OrientationScales } | null
   overlay_config:     OverlayValue | null
 }
 
@@ -28,7 +28,7 @@ export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLay
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('templates')
-    .select('id, label, description, landscape_layout, portrait_layout, block_pool, form_sections, orientation_scales, overlay_config')
+    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config')
     .order('sort_order', { ascending: true })
 
   if (error) {
@@ -44,11 +44,11 @@ export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLay
         label:              row.label,
         description:        row.description,
         is_published:       false,
-        landscape_layout:   row.landscape_layout   as LayoutNode | null,
-        portrait_layout:    row.portrait_layout    as LayoutNode | null,
+        card_layout:        row.card_layout        as LayoutNode | null,
+        web_layout:         row.web_layout         as LayoutNode | null,
         block_pool:         row.block_pool         as Record<string, unknown> | null,
         form_sections:      row.form_sections      as FormSection[] | null,
-        orientation_scales: row.orientation_scales as { landscape: OrientationScales; portrait: OrientationScales } | null,
+        orientation_scales: row.orientation_scales as { card: OrientationScales; web: OrientationScales } | null,
         overlay_config:     row.overlay_config     as OverlayValue | null,
       },
     ])
@@ -132,10 +132,10 @@ export async function saveTemplateLayout(
   data: {
     label?:             string
     description?:       string
-    landscape_layout:   LayoutNode
-    portrait_layout:    LayoutNode
+    card_layout:        LayoutNode
+    web_layout:         LayoutNode
     form_sections:      FormSection[]
-    orientation_scales: { landscape: OrientationScales; portrait: OrientationScales }
+    orientation_scales: { card: OrientationScales; web: OrientationScales }
     overlay_config?:    OverlayValue | null
     block_pool?:        Record<string, unknown>
   }
@@ -144,8 +144,8 @@ export async function saveTemplateLayout(
 
   const payload: Record<string, unknown> = {
     id:                 templateId,
-    landscape_layout:   data.landscape_layout,
-    portrait_layout:    data.portrait_layout,
+    card_layout:        data.card_layout,
+    web_layout:         data.web_layout,
     form_sections:      data.form_sections,
     orientation_scales: data.orientation_scales,
     updated_at:         new Date().toISOString(),

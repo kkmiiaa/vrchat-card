@@ -54,7 +54,7 @@ type Props = {
   friendPolicyLabels?: Record<string, string>
   isInteractive?: boolean
   noBackground?: boolean
-  orientation?: 'landscape' | 'portrait'
+  orientation?: 'card' | 'web'
 }
 
 import { CARD_LANDSCAPE_WIDTH, CARD_LANDSCAPE_HEIGHT } from '@/lib/cardDimensions'
@@ -182,7 +182,7 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
   const fs = W * 0.010
 
   // ── Portrait layout ──
-  if (orientation === 'portrait') {
+  if (orientation === 'web') {
     const PW = CARD_V1_PORTRAIT_WIDTH
     const PH = CARD_V1_PORTRAIT_HEIGHT
     const pBox = (extra?: React.CSSProperties): React.CSSProperties => ({

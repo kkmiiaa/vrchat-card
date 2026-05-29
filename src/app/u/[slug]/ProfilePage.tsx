@@ -53,7 +53,7 @@ function LiveCardPreview({
 }: {
   templateId: string
   cardData: Record<string, unknown> | null
-  onOrientation?: (o: 'landscape' | 'portrait') => void
+  onOrientation?: (o: 'card' | 'web') => void
   transparentBg?: boolean
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -64,7 +64,7 @@ function LiveCardPreview({
     const t = templateMap[templateId]
     if (!t) return
     setTemplate(t)
-    onOrientation?.(t.cardWidth >= t.cardHeight ? 'landscape' : 'portrait')
+    onOrientation?.(t.cardWidth >= t.cardHeight ? 'card' : 'web')
   }, [templateId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -153,10 +153,10 @@ export default function ProfilePage({ profile, slug, userRowId, cards: initialCa
   // --- 表示状態 ---
   const [cards, setCards] = useState(initialCards)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'portrait'>>({})
+const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>({})
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
-  const setOrientation = useCallback((id: string, o: 'landscape' | 'portrait') => {
+  const setOrientation = useCallback((id: string, o: 'card' | 'web') => {
     setOrientations(prev => prev[id] === o ? prev : { ...prev, [id]: o })
   }, [])
 
@@ -496,7 +496,7 @@ const [orientations, setOrientations] = useState<Record<string, 'landscape' | 'p
             {cards.length > 0 ? (
               <div className="grid gap-x-4 gap-y-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))' }}>
                 {cards.map(card => {
-                  const isPortrait = orientations[card.id] === 'portrait'
+                  const isPortrait = orientations[card.id] === 'web'
                   const colSpan = 'col-span-1'
                   return (
                     <div key={card.id} className={`group ${colSpan}`}>

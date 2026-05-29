@@ -33,7 +33,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
       const dotSize = ctx.cardWidth * 0.006
       const cardBgStyle = BG_VARIANT_STYLE[bgVariant ?? 'glass']
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', height: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
           {fields.map((f, i) => (
             <div key={i} style={{
               display: 'flex', alignItems: 'center', gap: ctx.cardWidth * 0.005,
@@ -47,7 +47,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
             }}>
               <div style={{ width: dotSize, height: dotSize, borderRadius: '50%', background: f.color, flexShrink: 0, boxShadow: `0 0 4px ${f.color}` }} />
               <span style={{ fontSize: fs, color: safe[f.key] ? ctx.theme.text : ctx.theme.subText, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {safe[f.key] || '—'}
+                {safe[f.key] || '-'}
               </span>
             </div>
           ))}
@@ -75,7 +75,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
             />
           ))}
           {activeFields.length === 0 && (
-            <span style={{ fontSize: ctx.fontSize.xs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>—</span>
+            <span style={{ fontSize: ctx.fontSize.xs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>-</span>
           )}
         </div>
       )
@@ -83,9 +83,12 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
 
     // default
     const fs = ctx.fontSize.sm
-    const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      ? 'default'
+      : (bgVariant ?? 'transparent')
+    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
     return (
-      <div style={{ display: 'flex', flexDirection: label?.dir === 'row' ? 'row' : 'column', gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 4, width: '100%', height: '100%', alignItems: label?.dir === 'row' ? 'center' : 'stretch' }}>
+      <div style={{ display: 'flex', flexDirection: label?.dir === 'row' ? 'row' : 'column', gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 4, width: '100%', alignItems: label?.dir === 'row' ? 'center' : 'stretch' }}>
         {label && (
           <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
             <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
@@ -105,8 +108,8 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
               display: 'flex',
               alignItems: 'center',
             }}>
-              <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', width: '100%' }}>
-                {safe[f.key] || '—'}
+              <span style={{ fontSize: fs, color: safe[f.key] ? ctx.theme.text : ctx.theme.subText, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', width: '100%' }}>
+                {safe[f.key] || '-'}
               </span>
             </div>
           </div>

@@ -43,7 +43,7 @@ describe('badgeList', () => {
         blockConfig: { allowColorPicker: true },
       })
     )
-    const colorInput = container.querySelector('input[type="color"]')
+    const colorInput = container.querySelector('[data-testid="color-picker-trigger"]')
     expect(colorInput).not.toBeNull()
   })
 
@@ -56,7 +56,7 @@ describe('badgeList', () => {
         blockConfig: { allowColorPicker: false },
       })
     )
-    const colorInput = container.querySelector('input[type="color"]')
+    const colorInput = container.querySelector('[data-testid="color-picker-trigger"]')
     expect(colorInput).toBeNull()
   })
 

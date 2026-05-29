@@ -69,9 +69,9 @@ describe('rating', () => {
         ctx: DEFAULT_CARD_RENDER_CONTEXT,
       })
     )
-    // デフォルトアイコン ★ が5個ある
-    const stars = container.querySelectorAll('span')
-    expect(stars.length).toBe(5)
+    // デフォルトアイコン ★ が5個ある（各スターは外側span + renderIconのspan でネスト）
+    const starIcons = screen.getAllByText('★')
+    expect(starIcons.length).toBe(5)
   })
 
   it('CardItem: 未評価はエラーなく描画される', () => {

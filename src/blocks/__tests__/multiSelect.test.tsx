@@ -85,15 +85,14 @@ describe('multiSelect', () => {
     expect(screen.getByText('Quest')).toBeInTheDocument()
   })
 
-  it('11. CardItem: 空配列はエラーなく描画される', () => {
-    expect(() =>
-      render(
-        multiSelectComponent.CardItem!({
-          value: [],
-          ctx: DEFAULT_CARD_RENDER_CONTEXT,
-        })
-      )
-    ).not.toThrow()
+  it('11. CardItem: 空配列のとき「-」が表示される（null を返さない）', () => {
+    render(
+      multiSelectComponent.CardItem!({
+        value: [],
+        ctx: DEFAULT_CARD_RENDER_CONTEXT,
+      })
+    )
+    expect(screen.getByText('-')).toBeInTheDocument()
   })
 
   it('12. CardItem: icon-slash variant でアイコン付きラベルが「/」区切りで描画される', () => {

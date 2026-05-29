@@ -23,25 +23,47 @@ export const genderComponent: ComponentDef<GenderValue> = {
   defaultValue: DEFAULT_GENDER_VALUE,
   variants: ['default', 'compact'],
   supportsBgVariant: true,
-  CardItem({ value, ctx, bgVariant, label }) {
+  CardItem({ value, ctx, variant = 'default', bgVariant, label }) {
     const safe: GenderValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as GenderValue
       : DEFAULT_GENDER_VALUE
 
-    if (!safe.tag) return null
-
     const option = GENDER_OPTIONS.find(o => o.value === safe.tag)
     const isNone = safe.tag === 'none'
-    const display = isNone ? 'ー' : (safe.display || option?.label || safe.tag)
-    // 非公開: フラットなマイナスアイコン、それ以外: 性別アイコン
-    const Icon = isNone ? TbMinus : option?.Icon
-    const fs = ctx.fontSize.md
-    const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+    const isEmpty = !safe.tag
+    const display = isEmpty ? '-' : (isNone ? '-' : (safe.display || option?.label || safe.tag))
+    // 非公開: フラットなマイナスアイコン、それ以外: 性別アイコン（未設定はアイコンなし）
+    const Icon = isEmpty ? null : (isNone ? TbMinus : option?.Icon)
+    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      ? 'default'
+      : (bgVariant ?? 'transparent')
+    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
 
+    // compact: アイコン + 短縮テキストのみ（ラベルなし・背景なし）
+    if (variant === 'compact') {
+      const fs = ctx.fontSize.sm
+      return (
+        <div style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 3,
+          overflow: 'hidden',
+        }}>
+          {Icon && <Icon style={{ fontSize: fs * 1.2, color: ctx.theme.subText, flexShrink: 0 }} />}
+          <span style={{ fontSize: fs, color: isEmpty ? ctx.theme.subText : ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', lineHeight: 1 }}>
+            {display}
+          </span>
+        </div>
+      )
+    }
+
+    // default
+    const fs = ctx.fontSize.md
     return (
       <div style={{
         width: '100%',
-        height: '100%',
         background: bgStyle.background,
         border: bgStyle.border,
         borderRadius: ctx.cardWidth * 0.006,
@@ -49,6 +71,7 @@ export const genderComponent: ComponentDef<GenderValue> = {
         display: 'flex',
         flexDirection: (label?.dir === 'row') ? 'row' : 'column',
         alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
+        justifyContent: (label?.dir === 'row') ? undefined : 'center',
         gap: label ? ctx.cardWidth * 0.003 : 4,
         overflow: 'hidden',
       }}>
@@ -61,7 +84,7 @@ export const genderComponent: ComponentDef<GenderValue> = {
         {/* アイコンとテキストは常に横並び */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 1, minWidth: 0, overflow: 'hidden' }}>
           {Icon && <Icon style={{ fontSize: fs, color: ctx.theme.subText, flexShrink: 0 }} />}
-          <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1 }}>
+          <span style={{ fontSize: fs, color: isEmpty ? ctx.theme.subText : ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1 }}>
             {display}
           </span>
         </div>

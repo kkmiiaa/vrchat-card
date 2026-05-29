@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { BlockValues } from '@/blocks/types'
+import { BlockValuesSchema } from '@/blocks/schemas'
 
 const STORAGE_KEY = 'vrchat-card-cache'
 
@@ -78,12 +79,13 @@ export function useCardValues(
     if (!hasMounted || initialized) return
     const blockKeys = new Set(blocks.map(b => b.key))
     if (initialValues) {
+      const safe = BlockValuesSchema.parse(initialValues)
       setValues(prev => {
         const next = { ...prev }
         for (const key of blockKeys) {
-          if (initialValues[key] !== undefined) next[key] = initialValues[key]
+          if (safe[key] !== undefined) next[key] = safe[key]
         }
-        if (initialValues.profileImageUrl) next.profileImageUrl = initialValues.profileImageUrl
+        if (safe.profileImageUrl) next.profileImageUrl = safe.profileImageUrl
         return next
       })
     } else {
@@ -91,7 +93,7 @@ export function useCardValues(
         const saved = localStorage.getItem(STORAGE_KEY)
         if (saved) {
           const raw = JSON.parse(saved)
-          const migrated = migrateFromOld(raw)
+          const migrated = BlockValuesSchema.parse(migrateFromOld(raw))
           setValues(prev => {
             const next = { ...prev }
             for (const key of blockKeys) {

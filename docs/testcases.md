@@ -813,4 +813,105 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 | 14 | `cardItem.value = { searchTag: '', display: '' }` | 空値の表示 | 「ー」テキストが描画される（null を返さない） |
 | 15 | `cardItem.value = { searchTag: '', display: '' }` | 空値時に null を返さない | `CardItem` が null でないことを確認 |
 
+---
+
+## TC-8: テンプレートビルダー（templateBuilderUtils.test.ts）
+
+> 実装ファイル: `src/app/admin/templateBuilderUtils.ts`  
+> テストファイル: `src/app/admin/__tests__/templateBuilderUtils.test.ts`  
+> テスト種別: ユニットテスト（vitest）
+
+---
+
+### TC-8-1: `collectBlockEntries` — レイアウトツリーからブロックエントリを収集
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | 単一ブロックノードからエントリを返す | 最小構成での動作 | `[{ componentKey, dataKey }]` が1件返る |
+| 2 | ネストした row/col から全ブロックを順序通りに収集する | ツリー走査の順序保証 | `['name', 'gender', 'selfIntro']` の順で返る |
+| 3 | 同じ dataKey は重複して収集されない | 重複排除 | 同じ dataKey が2つあっても結果は1件 |
+| 4 | blockConfig が設定されているとき保持される | blockConfig の引き継ぎ | `result[0].blockConfig` が元の値と一致 |
+| 5 | formLabel が設定されているとき保持される | formLabel の引き継ぎ | `result[0].formLabel` が元の値と一致 |
+| 6 | optional フラグが設定されているとき保持される | optional の引き継ぎ | `result[0].optional === true` |
+| 7 | 空の col/row は空配列を返す | 空ツリーの安全性 | `[]` が返る |
+| 8 | 深くネストした構造でも全ブロックを収集する | 再帰の深さに依存しない | 全 dataKey が収集される |
+
+---
+
+### TC-8-2: `collectAllDataKeys` — レイアウト内の全 dataKey を収集
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | レイアウト内の全 dataKey を Set で返す | キー集合の正確性 | `Set(['name', 'gender', 'selfIntro'])` |
+| 2 | 重複 dataKey は Set なので1件になる | 重複排除 | `size === 1` |
+
+---
+
+### TC-8-3: `generateDataKey` — ユニークな dataKey を生成
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | 使用済みキーがない場合は `<componentKey>1` を返す | 初回生成 | `'text1'` |
+| 2 | text1 が使用済みなら text2 を返す | 連番インクリメント | `'text2'` |
+| 3 | text1〜text3 が使用済みなら text4 を返す | 連続した使用済みキーをスキップ | `'text4'` |
+| 4 | 別の componentKey のキーは無視して独立してカウントする | componentKey ごとの独立した連番 | `'gender1'` |
+| 5 | 連番に空きがあっても最小の未使用番号を返す | 最小空き番号を選択 | text1/text3 使用済みのとき `'text2'` |
+
+---
+
+### TC-8-4: `collectDefaultValues` — ブロックの defaultValue を収集
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | レジストリに登録されたブロックの defaultValue が収集される | text の defaultValue は `''` | `values['name'] === ''` |
+| 2 | 複数ブロックの defaultValue が全て収集される | 複数ブロックの一括収集 | `name / gender / selfIntro` 全て含まれる |
+| 3 | 登録されていない componentKey のブロックはスキップされる | 未知コンポーネントの安全処理 | キーが結果に含まれない |
+| 4 | 空レイアウトのとき空オブジェクトを返す | 空ツリーの安全性 | `{}` |
+| 5 | 同じ dataKey が複数あっても defaultValue は1件のみ収集される | 重複排除 | 同名キーが1件のみ |
+
+---
+
+### TC-8-5: `makeDefaultFormSections` — デフォルトフォームセクション生成
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | 「カードデザイン」セクションが1つ生成される | セクション数と名称 | `sections.length === 1`, `title === 'カードデザイン'` |
+| 2 | defaultOpen が true になっている | 初期展開状態 | `sections[0].defaultOpen === true` |
+| 3 | items に font アイテムが含まれる | フォント選択の必須配置 | `items.some(i => i.type === 'font')` |
+| 4 | backgroundKey がある場合、items に背景ブロックが含まれる | 背景設定の自動追加 | `items.some(i => i.type === 'block' && i.dataKey === 'background')` |
+| 5 | backgroundKey がない場合、背景ブロックは含まれない | backgroundKey 省略時の安全性 | block アイテムが含まれない |
+| 6 | items の順序は font → background | UI上の表示順 | `items[0].type === 'font'`, `items[1].dataKey === backgroundKey` |
+
+---
+
+### TC-8-6: `resolveFormSections` — フォームセクションの解決優先度
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | DB に form_sections があればそれを優先する | DB 優先 | DB のセクションが返る |
+| 2 | DB の form_sections が空配列のときは TS 定義にフォールバック | 空配列はフォールバック扱い | TS 定義のセクションが返る |
+| 3 | DB の form_sections が null のときは TS 定義にフォールバック | null はフォールバック扱い | TS 定義のセクションが返る |
+| 4 | DB も TS 定義もない場合はデフォルト（カードデザイン）を返す | 最終フォールバック | `title === 'カードデザイン'` |
+| 5 | savedLayouts に対象テンプレートの行がない場合もデフォルトを返す | 未登録テンプレートの安全処理 | `title === 'カードデザイン'` |
+| 6 | savedLayouts を省略した場合もデフォルトを返す | 引数省略時の安全性 | `title === 'カードデザイン'` |
+| 7 | DB の form_sections が1件以上あれば TS 定義は無視される | DB が TS 定義より優先 | DB セクションのタイトルが返る |
+
+---
+
+### TC-8-7: `buildSavePayload` — DB 保存 payload の構築
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | id が payload に含まれる | テンプレート ID の保持 | `payload.id === 'v2'` |
+| 2 | landscape_layout / portrait_layout が正しく含まれる | レイアウトの保持 | 渡したオブジェクトと同一参照 |
+| 3 | form_sections が含まれる | フォームセクションの保持 | 渡した配列と同一参照 |
+| 4 | orientation_scales が含まれる | スケール設定の保持 | 渡したオブジェクトと同一参照 |
+| 5 | label を渡すと payload に含まれる | ラベルの書き込み | `payload.label === 'Glass Card'` |
+| 6 | label を渡さないと payload に label キーが存在しない | 省略時は送信しない | `'label' in payload === false` |
+| 7 | description を渡すと payload に含まれる | 説明文の書き込み | `payload.description === '説明文'` |
+| 8 | description を渡さないと payload に description キーが存在しない | 省略時は送信しない | `'description' in payload === false` |
+| 9 | updated_at が ISO 8601 形式の文字列になっている | 更新日時の形式 | `new Date(payload.updated_at).toISOString() === payload.updated_at` |
+| 10 | 空文字の label は payload に含まれない | 空文字は省略扱い | `'label' in payload === false` |
+| 11 | 空文字の description は payload に含まれない | 空文字は省略扱い | `'description' in payload === false` |
+
 > **将来課題**: 現在の `searchTag` は `'18歳未満' | '18+' | '非公開'` の粗い粒度。将来的に「20代」「30代」「40代」など細かい年代での検索ニーズが発生した場合、`searchTag` の選択肢拡張と検索インデックスの見直しが必要になる可能性がある。

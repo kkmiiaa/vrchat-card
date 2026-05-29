@@ -79,14 +79,14 @@ describe('age', () => {
     ).not.toThrow()
   })
 
-  it('12. CardItem: 非公開の場合は「ー」が表示される', () => {
+  it('12. CardItem: 非公開の場合は「-」が表示される', () => {
     render(
       ageComponent.CardItem!({
         value: { searchTag: '非公開', display: '' },
         ctx: DEFAULT_CARD_RENDER_CONTEXT,
       })
     )
-    expect(screen.getByText('ー')).toBeInTheDocument()
+    expect(screen.getByText('-')).toBeInTheDocument()
   })
 
   it('13. CardItem: 非公開の場合は null を返さない', () => {
@@ -97,14 +97,14 @@ describe('age', () => {
     expect(result).not.toBeNull()
   })
 
-  it('14. CardItem: searchTag も display も空の場合は「ー」が表示される', () => {
+  it('14. CardItem: searchTag も display も空の場合は「-」が表示される', () => {
     render(
       ageComponent.CardItem!({
         value: { searchTag: '', display: '' },
         ctx: DEFAULT_CARD_RENDER_CONTEXT,
       })
     )
-    expect(screen.getByText('ー')).toBeInTheDocument()
+    expect(screen.getByText('-')).toBeInTheDocument()
   })
 
   it('15. CardItem: searchTag も display も空の場合は null を返さない', () => {

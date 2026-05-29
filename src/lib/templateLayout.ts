@@ -1,0 +1,163 @@
+'use server'
+
+import { createClient, createAdminClient } from '@/lib/supabase/server'
+import type { LayoutNode, FormSection } from '@/blocks/types'
+import type { OverlayValue } from '@/blocks/overlay'
+
+export type OrientationScales = {
+  defaultLabelFontScale?: number
+  defaultContentFontScale?: number
+  defaultPaddingScale?: number
+}
+
+export type TemplateLayoutRow = {
+  id: string
+  label: string
+  description: string | null
+  is_published: boolean
+  landscape_layout:   LayoutNode | null
+  portrait_layout:    LayoutNode | null
+  block_pool:         Record<string, unknown> | null | undefined
+  form_sections:      FormSection[] | null
+  orientation_scales: { landscape: OrientationScales; portrait: OrientationScales } | null
+  overlay_config:     OverlayValue | null
+}
+
+/** 全テンプレート行を DB から取得 */
+export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLayoutRow>> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('templates')
+    .select('id, label, description, landscape_layout, portrait_layout, block_pool, form_sections, orientation_scales, overlay_config')
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('fetchTemplateLayouts error:', error)
+    return {}
+  }
+
+  return Object.fromEntries(
+    (data ?? []).map(row => [
+      row.id,
+      {
+        id:                 row.id,
+        label:              row.label,
+        description:        row.description,
+        is_published:       false,
+        landscape_layout:   row.landscape_layout   as LayoutNode | null,
+        portrait_layout:    row.portrait_layout    as LayoutNode | null,
+        block_pool:         row.block_pool         as Record<string, unknown> | null,
+        form_sections:      row.form_sections      as FormSection[] | null,
+        orientation_scales: row.orientation_scales as { landscape: OrientationScales; portrait: OrientationScales } | null,
+        overlay_config:     row.overlay_config     as OverlayValue | null,
+      },
+    ])
+  )
+}
+
+export type CommunityRow = {
+  slug: string
+  label: string
+  description: string | null
+  sort_order: number
+}
+
+/** 全界隈を取得 */
+export async function fetchCommunities(): Promise<CommunityRow[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('communities')
+    .select('slug, label, description, sort_order')
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('fetchCommunities error:', error)
+    return []
+  }
+  return (data ?? []) as CommunityRow[]
+}
+
+/** 界隈を作成・更新（upsert） */
+export async function saveCommunity(data: {
+  slug: string
+  label: string
+  description?: string
+  sort_order?: number
+}): Promise<{ error: string | null }> {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('communities')
+    .upsert({
+      slug:        data.slug,
+      label:       data.label,
+      description: data.description ?? null,
+      sort_order:  data.sort_order ?? 0,
+    }, { onConflict: 'slug' })
+  return { error: error?.message ?? null }
+}
+
+/** 界隈の sort_order を一括更新 */
+export async function updateCommunitySortOrders(
+  items: { slug: string; sort_order: number }[]
+): Promise<{ error: string | null }> {
+  const supabase = createAdminClient()
+  const results = await Promise.all(
+    items.map(({ slug, sort_order }) =>
+      supabase.from('communities').update({ sort_order }).eq('slug', slug)
+    )
+  )
+  const err = results.find(r => r.error)?.error
+  return { error: err?.message ?? null }
+}
+
+/** テンプレートを界隈に紐づける（insert or ignore） */
+export async function linkTemplateToCommunity(
+  templateId: string,
+  communitySlug: string,
+  sortOrder = 0,
+): Promise<{ error: string | null }> {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('community_templates')
+    .upsert(
+      { community_slug: communitySlug, template_id: templateId, sort_order: sortOrder },
+      { onConflict: 'community_slug,template_id' },
+    )
+  return { error: error?.message ?? null }
+}
+
+/** テンプレートを新規作成（upsert）して動的部分も保存 */
+export async function saveTemplateLayout(
+  templateId: string,
+  data: {
+    label?:             string
+    description?:       string
+    landscape_layout:   LayoutNode
+    portrait_layout:    LayoutNode
+    form_sections:      FormSection[]
+    orientation_scales: { landscape: OrientationScales; portrait: OrientationScales }
+    overlay_config?:    OverlayValue | null
+    block_pool?:        Record<string, unknown>
+  }
+): Promise<{ error: string | null }> {
+  const supabase = createAdminClient()
+
+  const payload: Record<string, unknown> = {
+    id:                 templateId,
+    landscape_layout:   data.landscape_layout,
+    portrait_layout:    data.portrait_layout,
+    form_sections:      data.form_sections,
+    orientation_scales: data.orientation_scales,
+    updated_at:         new Date().toISOString(),
+  }
+  if (data.label)       payload.label       = data.label
+  if (data.description) payload.description = data.description
+  if ('overlay_config' in data) payload.overlay_config = data.overlay_config ?? null
+  if (data.block_pool !== undefined) payload.block_pool = data.block_pool
+
+  const { error } = await supabase
+    .from('templates')
+    .upsert(payload, { onConflict: 'id' })
+
+  return { error: error?.message ?? null }
+}

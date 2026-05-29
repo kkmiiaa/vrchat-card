@@ -26,14 +26,17 @@ export const markListComponent: ComponentDef<{ marks: MarkMap; custom: CustomIte
       ...customItems,
     ].filter(item => item.mark !== '-' && item.mark !== '―' && item.label)
 
-    if (!allItems.length) return null
     const fs = ctx.fontSize.sm
+    if (!allItems.length) {
+      if (blockConfig?.hideWhenEmpty) return null
+      return <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: fs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>-</span></div>
+    }
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignSelf: 'flex-start', alignContent: 'flex-start' }}>
         {allItems.map((item, i) => {
           const style = getMarkStyle(item.mark, markDefs)
           return (
-            <span key={i} style={{ fontSize: fs, padding: '2px 8px', borderRadius: 999, background: style.bg, color: style.text, fontFamily: ctx.fontFamily }}>
+            <span key={i} style={{ fontSize: fs, padding: '2px 8px', borderRadius: 999, background: style.bg, color: style.text, border: `0.5px solid ${style.border ?? 'transparent'}`, fontFamily: ctx.fontFamily }}>
               {item.mark} {item.label}
             </span>
           )
@@ -101,7 +104,7 @@ export const markListComponent: ComponentDef<{ marks: MarkMap; custom: CustomIte
             </div>
           )
         })}
-        {maxCustomItems > 0 && customItems.length < maxCustomItems && (
+        {maxCustomItems > 0 && customItems.length < maxCustomItems - configItems.length && (
           <button onClick={addCustom}
             className="mt-1 text-sm text-sky-500 hover:text-sky-700 font-medium text-left transition-colors">
             + カスタム項目を追加
@@ -147,8 +150,8 @@ export const markListComponent: ComponentDef<{ marks: MarkMap; custom: CustomIte
           <button type="button" onClick={addItem} className="text-xs text-sky-500 hover:text-sky-700 mt-1">+ 追加</button>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-gray-500 w-28 shrink-0">カスタム最大件数</span>
-          <input type="number" min={0} value={maxCustomItems} placeholder="0"
+          <span className="text-[10px] text-gray-500 w-28 shrink-0">最大件数（合計）</span>
+          <input type="number" min={configItems.length} value={maxCustomItems} placeholder={String(configItems.length)}
             onChange={e => onChange({ ...blockConfig, maxCustomItems: e.target.value ? Number(e.target.value) : undefined })}
             className="w-20 text-xs border border-gray-200 rounded px-2 py-1 bg-white" />
         </div>

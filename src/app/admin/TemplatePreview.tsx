@@ -35,8 +35,8 @@ export default function TemplatePreview({ definition, values }: Props) {
   }, [o.cardWidth, orientation])
 
   const scale = zoom === 'fit' ? fitScale : zoom
-  const displayW = o.cardWidth  * scale
-  const displayH = o.cardHeight * scale
+  const displayW = o.cardWidth * scale
+  const displayH = o.autoHeight ? undefined : (o.cardHeight ?? o.cardWidth) * scale
 
   return (
     <div className="flex flex-col h-full">
@@ -52,7 +52,7 @@ export default function TemplatePreview({ definition, values }: Props) {
                 orientation === ori ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              {ori === 'landscape' ? '横（900×506）' : '縦（900×1125）'}
+              {ori === 'landscape' ? 'カード（900×506）' : 'Web'}
             </button>
           ))}
         </div>
@@ -82,7 +82,7 @@ export default function TemplatePreview({ definition, values }: Props) {
 
         {/* グリッド情報 */}
         <span className="text-[11px] text-gray-400 font-mono ml-auto">
-          {o.grid.cellSize}px/cell gap:{o.grid.gap}
+          {o.grid.cellSize}px/cell
           　{Math.round(scale * 100)}%
         </span>
       </div>
@@ -90,10 +90,25 @@ export default function TemplatePreview({ definition, values }: Props) {
       {/* カードプレビューエリア */}
       <div
         ref={containerRef}
-        className="flex-1 bg-gray-100 flex items-center justify-center overflow-auto p-6"
+        className={`flex-1 bg-gray-100 p-6 ${o.autoHeight ? 'overflow-y-auto flex items-start justify-center' : 'flex items-center justify-center overflow-auto'}`}
       >
-        <div
-          style={{
+        {o.autoHeight ? (
+          // zoom でレイアウトごとスケール
+          <div style={{
+            width: o.cardWidth,
+            zoom: scale,
+            boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+            borderRadius: 8,
+            flexShrink: 0,
+          }}>
+            <GenericCardRenderer
+              definition={definition}
+              orientation={orientation}
+              values={values}
+            />
+          </div>
+        ) : (
+          <div style={{
             width: displayW,
             height: displayH,
             position: 'relative',
@@ -101,16 +116,16 @@ export default function TemplatePreview({ definition, values }: Props) {
             borderRadius: 8,
             boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
             flexShrink: 0,
-          }}
-        >
-          <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: o.cardWidth, height: o.cardHeight }}>
-            <GenericCardRenderer
-              definition={definition}
-              orientation={orientation}
-              values={values}
-            />
+          }}>
+            <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: o.cardWidth, height: o.cardHeight }}>
+              <GenericCardRenderer
+                definition={definition}
+                orientation={orientation}
+                values={values}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

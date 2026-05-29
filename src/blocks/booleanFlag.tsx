@@ -50,7 +50,10 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
       )
     }
 
-    const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      ? 'default'
+      : (bgVariant ?? 'transparent')
+    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
     const iconColor = on ? trueColor : falseColor
 
     return (

@@ -2,6 +2,7 @@
 
 import type { ComponentDef, BlockConfigFormProps } from './types'
 import { BG_VARIANT_STYLE } from './types'
+import { ColorPicker } from './colorPicker'
 
 export type BadgeValue = {
   label: string
@@ -20,7 +21,7 @@ export const badgeComponent: ComponentDef<BadgeValue> = {
       ? value as BadgeValue
       : DEFAULT_BADGE_VALUE
 
-    const label = safe.label || '—'
+    const label = safe.label || '-'
     const defaultColor = typeof blockConfig?.defaultColor === 'string' ? blockConfig.defaultColor : ctx.theme.accent
     const color = safe.color || defaultColor
     const fs = ctx.fontSize.sm
@@ -96,16 +97,7 @@ export const badgeComponent: ComponentDef<BadgeValue> = {
         {allowColorPicker && (
         <div className="flex items-center gap-3">
           <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">カラー</label>
-          <input
-            type="color"
-            value={safe.color || '#00AADB'}
-            onChange={e => onChange({ ...safe, color: e.target.value })}
-            className="w-8 h-8 rounded border border-gray-200 cursor-pointer p-0.5"
-          />
-          {safe.color && (
-            <button type="button" onClick={() => onChange({ ...safe, color: '' })}
-              className="text-[10px] text-gray-300 hover:text-gray-500">reset</button>
-          )}
+          <ColorPicker value={safe.color ?? ''} onChange={v => onChange({ ...safe, color: v })} defaultColor="#00AADB" />
         </div>
         )}
       </div>
@@ -125,13 +117,7 @@ export const badgeComponent: ComponentDef<BadgeValue> = {
         {!allowColorPicker && (
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-gray-500 w-28 shrink-0">デフォルトカラー</span>
-            <input type="color" value={defaultColor || '#00AADB'}
-              onChange={e => onChange({ ...blockConfig, defaultColor: e.target.value })}
-              className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0.5" />
-            {defaultColor && (
-              <button type="button" onClick={() => onChange({ ...blockConfig, defaultColor: undefined })}
-                className="text-xs text-gray-300 hover:text-gray-500">reset</button>
-            )}
+            <ColorPicker value={defaultColor ?? ''} onChange={v => onChange({ ...blockConfig, defaultColor: v || undefined })} defaultColor="#00AADB" />
           </div>
         )}
       </div>

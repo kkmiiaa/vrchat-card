@@ -26,7 +26,10 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
     const optionLabel = options.find(o => o.value === safe.tag)?.label
     const display = safe.display || optionLabel
     const fs = ctx.fontSize.md
-    const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      ? 'default'
+      : (bgVariant ?? 'transparent')
+    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
 
     return (
       <div style={{
@@ -48,8 +51,8 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
             {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
           </div>
         )}
-        <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {(safe.tag && display) ? display : '—'}
+        <span style={{ fontSize: fs, color: (safe.tag && display) ? ctx.theme.text : ctx.theme.subText, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {(safe.tag && display) ? display : '-'}
         </span>
       </div>
     )

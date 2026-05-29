@@ -89,15 +89,14 @@ describe('select', () => {
     expect(span?.style.color).toContain('#6366f1')
   })
 
-  it('12. CardItem: 空文字はエラーなく描画される', () => {
-    expect(() =>
-      render(
-        selectComponent.CardItem!({
-          value: '',
-          ctx: DEFAULT_CARD_RENDER_CONTEXT,
-          blockConfig: { options: OPTIONS },
-        })
-      )
-    ).not.toThrow()
+  it('12. CardItem: 空文字のとき「-」が表示される（null を返さない）', () => {
+    render(
+      selectComponent.CardItem!({
+        value: '',
+        ctx: DEFAULT_CARD_RENDER_CONTEXT,
+        blockConfig: { options: OPTIONS },
+      })
+    )
+    expect(screen.getByText('-')).toBeInTheDocument()
   })
 })

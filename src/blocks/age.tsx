@@ -15,24 +15,51 @@ export const ageComponent: ComponentDef<AgeValue> = {
   defaultValue: { searchTag: '', display: '' },
   variants: ['default', 'badge'],
   supportsBgVariant: true,
-  CardItem({ value, ctx, variant, bgVariant, label }) {
+  CardItem({ value, ctx, variant = 'default', bgVariant, label }) {
     const safe: AgeValue = (value && typeof value === 'object' && 'searchTag' in value)
       ? value as AgeValue
       : { searchTag: '', display: '' }
     const isPrivate = safe.searchTag === '非公開'
     const isEmpty = !safe.searchTag && !safe.display
-    const text = (isPrivate || isEmpty) ? 'ー' : (safe.display || safe.searchTag)
+    const text = (isPrivate || isEmpty) ? '-' : (safe.display || safe.searchTag)
+    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      ? 'default'
+      : (bgVariant ?? 'transparent')
+    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+
+    // badge: カラーバッジ形式（select/badge・dateItem/badge と同じスタイル）
+    if (variant === 'badge') {
+      const color = ctx.theme.accent
+      const fs = ctx.fontSize.sm
+      return (
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{
+            fontSize: fs,
+            color: '#ffffff',
+            fontWeight: 700,
+            background: color,
+            padding: `${ctx.cardWidth * 0.003 * ctx.paddingScale}px ${ctx.cardWidth * 0.012 * ctx.paddingScale}px`,
+            borderRadius: ctx.cardWidth * 0.005,
+            fontFamily: ctx.fontFamily,
+            whiteSpace: 'nowrap',
+          }}>
+            {text}
+          </span>
+        </div>
+      )
+    }
+
+    // default
     const fs = ctx.fontSize.md
-    const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
     return (
-      <div style={{ width: '100%', height: '100%', background: bgStyle.background, border: bgStyle.border, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: (label?.dir === 'row') ? 'row' : 'column', gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0, alignItems: (label?.dir === 'row') ? 'center' : 'stretch', overflow: 'hidden' }}>
+      <div style={{ width: '100%', background: bgStyle.background, border: bgStyle.border, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: (label?.dir === 'row') ? 'row' : 'column', gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0, alignItems: (label?.dir === 'row') ? 'center' : 'stretch', justifyContent: (label?.dir === 'row') ? undefined : 'center', overflow: 'hidden' }}>
         {label && (
           <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
             <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
             {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
           </div>
         )}
-        <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{text}</span>
+        <span style={{ fontSize: fs, color: (isEmpty || isPrivate) ? ctx.theme.subText : ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{text}</span>
       </div>
     )
   },

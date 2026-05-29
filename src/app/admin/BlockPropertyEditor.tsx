@@ -1,6 +1,7 @@
 'use client'
 
 import { ColorPicker, LABEL_PRESET_COLORS } from '@/blocks/colorPicker'
+import { IconPicker } from '@/blocks/iconRegistry'
 import type { ComponentDef, BgVariant } from '@/blocks/types'
 
 // ─── 型定義 ─────────────────────────────────────────────────────────
@@ -163,13 +164,7 @@ export function BlockPropertyEditor({
       {/* labelIcon */}
       <div className="flex items-center gap-2">
         <FieldLabel>labelIcon</FieldLabel>
-        <input
-          type="text"
-          value={settings.labelIcon}
-          onChange={e => onChange({ labelIcon: e.target.value })}
-          placeholder="例: TbMicrophone"
-          className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs font-mono text-gray-700 focus:outline-none focus:ring-1 focus:ring-sky-200"
-        />
+        <IconPicker value={settings.labelIcon} onChange={v => onChange({ labelIcon: v })} />
       </div>
 
       {/* labelInset（label が設定されている場合のみ） */}

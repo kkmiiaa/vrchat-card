@@ -16,6 +16,7 @@ import { colorStatusComponent } from '@/blocks/colorStatus'
 import { activityComponent } from '@/blocks/activity'
 import { markListComponent } from '@/blocks/markList'
 import { markGridComponent } from '@/blocks/markGrid'
+import { galleryComponent } from '@/blocks/gallery'
 import { dividerComponent } from '@/blocks/divider'
 import { badgeComponent } from '@/blocks/badge'
 import { booleanFlagComponent } from '@/blocks/booleanFlag'
@@ -24,6 +25,7 @@ import { tagListComponent } from '@/blocks/tagList'
 import { linkItemComponent } from '@/blocks/linkItem'
 import { colorPaletteComponent } from '@/blocks/colorPalette'
 import { dateItemComponent } from '@/blocks/dateItem'
+import { qrCodeComponent } from '@/blocks/qrCode'
 import { translations } from '@/utils/translations'
 import type { ComponentDef, BgVariant } from '@/blocks/types'
 import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
@@ -248,7 +250,8 @@ function SearchNoSupportInput({ onQueryChange: _ }: SearchInputProps) {
 
 // ─── ComponentEntry ────────────────────────────────────────────────
 
-export type ComponentCategory = 'primitive' | 'complex' | 'sns' | 'global'
+export type { ComponentCategory } from './componentCatalog'
+export { COMPONENT_CATEGORIES } from './componentCatalog'
 
 export type ComponentEntry = {
   name: string
@@ -256,17 +259,12 @@ export type ComponentEntry = {
   inputType: string
   format: string
   description: string
-  exampleBlock: string
+  exampleBlock?: string
   component: ComponentDef<unknown>
-  SearchInput: (props: SearchInputProps) => ReactNode
+  SearchInput?: (props: SearchInputProps) => ReactNode
 }
 
-export const COMPONENT_CATEGORIES: { key: ComponentCategory; label: string }[] = [
-  { key: 'primitive', label: 'Primitive' },
-  { key: 'complex',   label: 'Complex' },
-  { key: 'sns',       label: 'SNS' },
-  { key: 'global', label: 'Global' },
-]
+import type { ComponentCategory } from './componentCatalog'
 
 export const COMPONENTS: ComponentEntry[] = [
   // ─── Primitive ────────────────────────────────────────────────
@@ -497,6 +495,24 @@ export const COMPONENTS: ComponentEntry[] = [
     component: ageComponent as ComponentDef<unknown>,
     SearchInput: SearchAgeInput,
   },
+  {
+    name: 'gallery',
+    category: 'complex',
+    inputType: 'gallery',
+    format: '{ images: (File|null)[], base64: (string|null)[] }',
+    description: '画像ギャラリー（最大3枚）。optional: true にすると未入力時は非表示',
+    component: galleryComponent as ComponentDef<unknown>,
+    SearchInput: SearchNoSupportInput,
+  },
+  // ─── Utility ────────────────────────────────────────────────────
+  {
+    name: 'qr-code',
+    category: 'utility',
+    inputType: 'qr',
+    format: '{ customUrl?: string }',
+    description: 'QR コード。カードページ・ユーザーページ・カスタム URL に対応',
+    component: qrCodeComponent as ComponentDef<unknown>,
+  },
 ]
 
 
@@ -586,6 +602,7 @@ const CATEGORY_BADGE: Record<ComponentCategory, string> = {
   complex:   'bg-orange-100 text-orange-700 border-orange-200',
   sns:       'bg-pink-100 text-pink-700 border-pink-200',
   global:    'bg-violet-100 text-violet-700 border-violet-200',
+  utility:   'bg-sky-100 text-sky-700 border-sky-200',
 }
 
 // CardItem プレビュー背景パターン
@@ -785,7 +802,7 @@ function ComponentPreview({ name, category, inputType, format, description, exam
       <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
         <div className="px-5 py-4 min-w-0 overflow-hidden">
           <SectionLabel>SearchForm 入力UI</SectionLabel>
-          <SearchInput onQueryChange={setQuery} />
+          {SearchInput ? <SearchInput onQueryChange={setQuery} /> : <p className="text-xs text-gray-400">検索非対応</p>}
         </div>
         <div className="px-5 py-4 min-w-0 overflow-hidden">
           <SectionLabel>クエリ</SectionLabel>

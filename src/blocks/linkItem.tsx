@@ -14,7 +14,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
     const safe: LinkItemValue = (value && typeof value === 'object' && 'label' in value)
       ? value as LinkItemValue
       : { label: '', url: '' }
-    const displayText = safe.label || safe.url || '—'
+    const displayText = safe.label || safe.url || '-'
     const iconKey = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '🔗'
 
     if (variant === 'compact') {
@@ -38,7 +38,10 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
     }
 
     const fs = ctx.fontSize.md
-    const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      ? 'default'
+      : (bgVariant ?? 'transparent')
+    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
     return (
       <div style={{
         width: '100%',
@@ -50,6 +53,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
         display: 'flex',
         flexDirection: (label?.dir === 'row') ? 'row' : 'column',
         alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
+        justifyContent: (label?.dir === 'row') ? undefined : 'center',
         gap: label ? ctx.cardWidth * 0.003 : 6,
         fontFamily: ctx.fontFamily,
         overflow: 'hidden',
@@ -65,7 +69,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
         </span>
         <span style={{
           fontSize: fs,
-          color: safe.url ? ctx.theme.accent : ctx.theme.text,
+          color: safe.url ? ctx.theme.accent : (displayText === '-' ? ctx.theme.subText : ctx.theme.text),
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',

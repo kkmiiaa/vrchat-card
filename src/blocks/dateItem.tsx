@@ -20,7 +20,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
     const safe: DateItemValue = (value && typeof value === 'object' && 'display' in value)
       ? value as DateItemValue
       : { display: '', iso: '' }
-    const text = safe.display || formatIso(safe.iso ?? '') || '—'
+    const text = safe.display || formatIso(safe.iso ?? '') || '-'
 
     if (variant === 'compact') {
       const fs = ctx.fontSize.xs
@@ -74,7 +74,10 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
 
     // default
     const fs = ctx.fontSize.md
-    const bgStyleDefault = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      ? 'default'
+      : (bgVariant ?? 'transparent')
+    const bgStyleDefault = BG_VARIANT_STYLE[effectiveBgVariant]
     return (
       <div style={{
         width: '100%',
@@ -86,6 +89,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
         display: 'flex',
         flexDirection: (label?.dir === 'row') ? 'row' : 'column',
         alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
+        justifyContent: (label?.dir === 'row') ? undefined : 'center',
         gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
         fontFamily: ctx.fontFamily,
         overflow: 'hidden',
@@ -98,7 +102,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
         )}
         <span style={{
           fontSize: fs,
-          color: ctx.theme.text,
+          color: text === '-' ? ctx.theme.subText : ctx.theme.text,
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',

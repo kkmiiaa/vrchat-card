@@ -13,7 +13,6 @@ import { fontBlock }         from '@/blocks/font'
 import { ageComponent }          from '@/blocks/age'
 import { activityComponent }     from '@/blocks/activity'
 import { galleryComponent }      from '@/blocks/gallery'
-import { snsBundleComponent }    from '@/blocks/snsBundle'
 import CardV2 from '@/components/CardV2'
 import { fontMap } from '@/lib/fontMap'
 import type { AgeValue, ActivityValue, GalleryValue, BackgroundValue } from '@/blocks/types'
@@ -50,7 +49,6 @@ export const v2Template: CardTemplate = {
     multiSelectComponent,
     languageComponent,
     gaugeComponent,
-    snsBundleComponent,
     colorStatusComponent,
     activityComponent,
     galleryComponent,

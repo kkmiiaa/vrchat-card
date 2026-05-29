@@ -1,12 +1,12 @@
 'use client'
-import type { ComponentDef, ActivityValue } from './types'
+import type { ComponentDef, ActivityValue, BlockConfigFormProps } from './types'
 
 const DAYS = ['月', '火', '水', '木', '金', '土', '日']
 
 export const activityComponent: ComponentDef<ActivityValue> = {
   key: 'activity',
   variants: ['default', 'v2'],  // default=曜日ドット+時間帯テキスト, v2=視覚的タイムバー+曜日サークル
-  CardItem({ value, ctx, variant }) {
+  CardItem({ value, ctx, variant = 'default', blockConfig }) {
     const safe: ActivityValue = (value && typeof value === 'object' && 'days' in value) ? value as ActivityValue : { days: [], weekdayStart: '', weekdayEnd: '', holidayStart: '', holidayEnd: '' }
     const fs = ctx.fontSize.sm
 
@@ -24,7 +24,7 @@ export const activityComponent: ComponentDef<ActivityValue> = {
         { label: '休日', start: safe.holidayStart, end: safe.holidayEnd, color: '#f59e0b', irregular: safe.holidayTimesMode === 'irregular' },
       ]
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, width: '100%', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: ctx.cardWidth * 0.006, padding: '6px 8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, width: '100%', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)', borderRadius: ctx.cardWidth * 0.006, boxShadow: '0 0 12px rgba(0,0,0,0.08)', padding: '6px 8px' }}>
           {/* 曜日サークル */}
           {safe.days.length === 7 && (
             <div style={{ display: 'flex', gap: 3 }}>
@@ -47,7 +47,7 @@ export const activityComponent: ComponentDef<ActivityValue> = {
                 <span style={{ fontSize: smallFs, color: 'rgba(0,0,0,0.4)', fontWeight: 600, fontFamily: ctx.fontFamily }}>{label}</span>
                 {irregular
                   ? <span style={{ fontSize: smallFs, fontWeight: 700, color: '#60a5fa', background: 'rgba(96,165,250,0.15)', borderRadius: 99, padding: '1px 6px', fontFamily: ctx.fontFamily }}>バラバラ</span>
-                  : <span style={{ fontSize: smallFs, color: '#6b7280', fontFamily: ctx.fontFamily }}>{start && end ? `${start} – ${end}` : '—'}</span>
+                  : <span style={{ fontSize: smallFs, color: '#6b7280', fontFamily: ctx.fontFamily }}>{start && end ? `${start} – ${end}` : '-'}</span>
                 }
               </div>
               <div style={{ position: 'relative' }}>
@@ -75,7 +75,10 @@ export const activityComponent: ComponentDef<ActivityValue> = {
 
     const activeDays = safe.daysMode === 'irregular' ? null : DAYS.map((d, i) => ({ d, active: safe.days[i] }))
     const hasTime = safe.weekdayStart || safe.holidayStart
-    if (!activeDays && !hasTime) return null
+    if (!activeDays && !hasTime) {
+      if (blockConfig?.hideWhenEmpty) return null
+      return <span style={{ fontSize: ctx.fontSize.sm, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>–</span>
+    }
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontFamily: ctx.fontFamily }}>
         {activeDays && (
@@ -96,7 +99,7 @@ export const activityComponent: ComponentDef<ActivityValue> = {
     )
   },
   defaultValue: {
-    days: [true, true, true, true, true, false, false],
+    days: [false, false, false, false, false, false, false],
     weekdayStart: '',
     weekdayEnd: '',
     holidayStart: '',
@@ -223,6 +226,18 @@ export const activityComponent: ComponentDef<ActivityValue> = {
             </div>
           )
         })}
+      </div>
+    )
+  },
+  blockConfigForm({ blockConfig, onChange }: BlockConfigFormProps) {
+    const allowMixedSchedule = blockConfig.allowMixedSchedule === true
+    return (
+      <div className="flex flex-col gap-2 text-sm">
+        <div className="flex items-center gap-2">
+          <input type="checkbox" checked={allowMixedSchedule} id="activity-allowMixedSchedule" className="rounded"
+            onChange={e => onChange({ ...blockConfig, allowMixedSchedule: e.target.checked || undefined })} />
+          <label htmlFor="activity-allowMixedSchedule" className="text-[10px] text-gray-500">平日・休日を混在させる（allowMixedSchedule）</label>
+        </div>
       </div>
     )
   },

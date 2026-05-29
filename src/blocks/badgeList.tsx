@@ -1,5 +1,6 @@
 'use client'
-import type { ComponentDef } from './types'
+import type { ComponentDef, BlockConfigFormProps } from './types'
+import { ColorPicker } from './colorPicker'
 
 export type BadgeItem = { label: string; color: string }
 
@@ -11,7 +12,10 @@ export const badgeListComponent: ComponentDef<BadgeItem[]> = {
     const items = Array.isArray(value) ? value as BadgeItem[] : []
     const defaultColor = typeof blockConfig?.defaultColor === 'string' ? blockConfig.defaultColor : '#6b7280'
     const fs = ctx.fontSize.sm
-    if (!items.length) return null
+    if (!items.length) {
+      if (blockConfig?.hideWhenEmpty) return null
+      return <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: fs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>-</span></div>
+    }
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
         {items.map((item, i) => {
@@ -65,13 +69,7 @@ export const badgeListComponent: ComponentDef<BadgeItem[]> = {
               className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
             />
             {allowColorPicker && (
-              <input
-                type="color"
-                value={item.color || defaultColor}
-                onChange={e => updateBadge(i, { color: e.target.value })}
-                className="w-8 h-8 rounded border border-gray-200 cursor-pointer p-0.5"
-                title="color"
-              />
+              <ColorPicker value={item.color ?? ''} onChange={v => updateBadge(i, { color: v })} defaultColor={defaultColor || '#6b7280'} />
             )}
             <button
               type="button"
@@ -89,6 +87,23 @@ export const badgeListComponent: ComponentDef<BadgeItem[]> = {
         >
           + バッジを追加
         </button>
+      </div>
+    )
+  },
+  blockConfigForm({ blockConfig, onChange }: BlockConfigFormProps) {
+    const allowColorPicker = blockConfig.allowColorPicker === true
+    const defaultColor = typeof blockConfig.defaultColor === 'string' ? blockConfig.defaultColor : ''
+    return (
+      <div className="flex flex-col gap-2 text-sm">
+        <div className="flex items-center gap-2">
+          <input type="checkbox" checked={allowColorPicker} id="badgelist-allowColorPicker" className="rounded"
+            onChange={e => onChange({ ...blockConfig, allowColorPicker: e.target.checked || undefined })} />
+          <label htmlFor="badgelist-allowColorPicker" className="text-[10px] text-gray-500">個別カラーピッカーを表示（allowColorPicker）</label>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 w-24 shrink-0">デフォルト色</span>
+          <ColorPicker value={defaultColor ?? ''} onChange={v => onChange({ ...blockConfig, defaultColor: v || undefined })} defaultColor="#6b7280" />
+        </div>
       </div>
     )
   },

@@ -102,15 +102,15 @@ describe('markList', () => {
     expect(screen.getByText(/◎/)).toBeInTheDocument()
   })
 
-  it('9. CardItem: 全項目未選択（-）は表示されない', () => {
-    const { container } = render(
+  it('9. CardItem: 全項目未選択（-）は「-」が表示される（null を返さない）', () => {
+    render(
       markListComponent.CardItem!({
         value: defaultValue,
         ctx: DEFAULT_CARD_RENDER_CONTEXT,
         blockConfig: { items: [{ label: 'ハグOK' }] },
       })
     )
-    expect(container.firstChild).toBeNull()
+    expect(screen.getByText('-')).toBeInTheDocument()
   })
 
   it('10. CardItem: ルート要素に alignSelf: flex-start が設定される（縦方向への引き伸ばし防止）', () => {

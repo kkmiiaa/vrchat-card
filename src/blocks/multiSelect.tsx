@@ -10,7 +10,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
   variants: ['default', 'slash', 'icon', 'icon-slash'],
   supportsBgVariant: true,
   bgVariantFor: ['slash'],
-  CardItem({ value, ctx, variant, bgVariant, blockConfig, label }) {
+  CardItem({ value, ctx, variant = 'default', bgVariant, blockConfig, label }) {
     const items = Array.isArray(value) ? value : []
     const fs = ctx.fontSize.sm
     type OptionRow = { value: string; label: string; color?: string; icon?: string }
@@ -18,7 +18,10 @@ export const multiSelectComponent: ComponentDef<string[]> = {
     const getOption = (v: string) => options.find(o => o.value === v)
 
     if (variant === 'slash') {
-      const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+      const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+        ? 'default'
+        : (bgVariant ?? 'transparent')
+      const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
       return (
         <div style={{
           width: '100%',
@@ -27,7 +30,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
           borderRadius: ctx.cardWidth * 0.006,
           padding: `${label ? `${ctx.cardWidth * 0.006 * ctx.paddingScale}px` : '0'} ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
           fontSize: fs,
-          color: ctx.theme.text,
+          color: items.length ? ctx.theme.text : ctx.theme.subText,
           fontFamily: ctx.fontFamily,
           whiteSpace: 'nowrap',
           overflow: 'hidden',
@@ -35,6 +38,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
           display: 'flex',
           flexDirection: (label?.dir === 'row') ? 'row' : 'column',
           alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
+          justifyContent: (label?.dir === 'row') ? undefined : 'center',
           gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
         }}>
           {label && (
@@ -43,14 +47,17 @@ export const multiSelectComponent: ComponentDef<string[]> = {
               {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
             </div>
           )}
-          {items.map(v => getOption(v)?.label || v).join(' / ') || '—'}
+          {items.map(v => getOption(v)?.label || v).join(' / ') || '-'}
         </div>
       )
     }
 
     // icon-slash: [icon] text / [icon] text 形式でスラッシュ区切り
     if (variant === 'icon-slash') {
-      const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+      const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+        ? 'default'
+        : (bgVariant ?? 'transparent')
+      const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
       const selectedOpts = items.map(v => getOption(v) ?? { value: v, label: v, icon: undefined, color: undefined })
       return (
         <div style={{
@@ -62,6 +69,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
           display: 'flex',
           flexDirection: (label?.dir === 'row') ? 'row' : 'column',
           alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
+          justifyContent: (label?.dir === 'row') ? undefined : 'center',
           gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
           overflow: 'hidden',
         }}>
@@ -71,9 +79,9 @@ export const multiSelectComponent: ComponentDef<string[]> = {
               {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
             </div>
           )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 1, minWidth: 0, overflow: 'hidden', flexWrap: 'nowrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: selectedOpts.length === 0 ? 'center' : undefined, gap: 6, flexShrink: 1, minWidth: 0, overflow: 'hidden', flexWrap: 'nowrap' }}>
             {selectedOpts.length === 0
-              ? <span style={{ fontSize: fs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>—</span>
+              ? <span style={{ fontSize: fs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>-</span>
               : selectedOpts.map((opt, i) => (
                 <span key={opt.value} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, flexShrink: 0 }}>
                   {i > 0 && <span style={{ color: ctx.theme.subText, opacity: 0.5 }}>/</span>}
@@ -88,7 +96,10 @@ export const multiSelectComponent: ComponentDef<string[]> = {
     }
 
     // default & icon: badges with option colors
-    if (!items.length) return null
+    if (!items.length) {
+      if (blockConfig?.hideWhenEmpty) return null
+      return <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: ctx.fontSize.sm, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>-</span></div>
+    }
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
         {items.map(v => {

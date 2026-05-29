@@ -15,6 +15,8 @@ type Props = {
   orientation?: 'landscape' | 'portrait'
   className?: string
   innerRef?: React.RefObject<HTMLDivElement | null>
+  cardUrl?: string
+  userUrl?: string
 }
 
 /**
@@ -33,6 +35,8 @@ export default function CardScaledView({
   orientation,
   className,
   innerRef,
+  cardUrl,
+  userUrl,
 }: Props) {
   const W = orientation === 'portrait' ? (template.portraitWidth ?? template.cardWidth) : template.cardWidth
   const H = orientation === 'portrait' ? (template.portraitHeight ?? template.cardHeight) : template.cardHeight
@@ -52,6 +56,8 @@ export default function CardScaledView({
           isInteractive={isInteractive}
           noBackground={noBackground}
           orientation={orientation}
+          cardUrl={cardUrl}
+          userUrl={userUrl}
         />
       </div>
     </div>

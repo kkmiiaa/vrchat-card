@@ -38,18 +38,18 @@ export const simpleSnsComponent: ComponentDef<string> = {
 
     if (isGlass) {
       return (
-        <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)', borderRadius: ctx.cardWidth * 0.006, boxShadow: '0 0 12px rgba(0,0,0,0.08)', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ width: '100%', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)', borderRadius: ctx.cardWidth * 0.006, boxShadow: '0 0 12px rgba(0,0,0,0.08)', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={icon} alt="" style={{ width: iconSize * 0.65, height: iconSize * 0.65, borderRadius: 3, flexShrink: 0 }} />
           <span style={{ fontSize: fs * 0.9, color: id ? ctx.theme.text : 'rgba(0,0,0,0.3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0, fontFamily: ctx.fontFamily }}>
-            {id || '—'}
+            {id || '-'}
           </span>
         </div>
       )
     }
 
     const actionType = typeof blockConfig?.actionType === 'string' ? blockConfig.actionType : ''
-    const idText = id || '—'
+    const idText = id || '-'
     const innerContent = (
       <div style={{ flex: 1, background: 'rgba(255,255,255,0.85)', borderRadius: ctx.cardWidth * 0.005, padding: `${ctx.cardWidth * 0.004 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px`, overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 4 }}>
         <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', flex: 1 }}>

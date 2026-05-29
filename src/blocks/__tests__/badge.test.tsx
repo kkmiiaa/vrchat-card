@@ -17,7 +17,7 @@ describe('badge', () => {
         blockConfig: { allowColorPicker: true },
       })
     )
-    expect(container.querySelector('input[type="color"]')).not.toBeNull()
+    expect(container.querySelector('[data-testid="color-picker-trigger"]')).not.toBeNull()
   })
 
   it('blockConfig.allowColorPicker=false のとき FormItem にカラーピッカーが表示されない', () => {
@@ -29,7 +29,7 @@ describe('badge', () => {
         blockConfig: { allowColorPicker: false },
       })
     )
-    expect(container.querySelector('input[type="color"]')).toBeNull()
+    expect(container.querySelector('[data-testid="color-picker-trigger"]')).toBeNull()
   })
 
   it('blockConfig.allowColorPicker 未設定のときカラーピッカーが表示される（デフォルト true）', () => {
@@ -41,7 +41,7 @@ describe('badge', () => {
         blockConfig: {},
       })
     )
-    expect(container.querySelector('input[type="color"]')).not.toBeNull()
+    expect(container.querySelector('[data-testid="color-picker-trigger"]')).not.toBeNull()
   })
 
   it('blockConfig.defaultColor を設定すると allowColorPicker=false 時の CardItem にそのカラーが使われる', () => {

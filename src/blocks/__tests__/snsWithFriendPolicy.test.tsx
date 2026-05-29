@@ -3,89 +3,108 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { snsWithFriendPolicyComponent } from '../snsWithFriendPolicy'
 import { DEFAULT_CARD_RENDER_CONTEXT } from '../types'
 
+const t = {} as never
+const defaultValue = { id: '', friendPolicy: '' }
+
 describe('snsWithFriendPolicy', () => {
-  it('1. defaultValue は { platforms: {}, friendPolicy: "" }', () => {
-    expect(snsWithFriendPolicyComponent.defaultValue).toEqual({ platforms: {}, friendPolicy: '' })
+  it('1. defaultValue は { id: "", friendPolicy: "" }', () => {
+    expect(snsWithFriendPolicyComponent.defaultValue).toEqual({ id: '', friendPolicy: '' })
   })
 
-  it('2. blockConfig.platforms で入力欄が描画される', () => {
+  it('2. FormItem: ID 入力欄が描画される', () => {
     render(
       snsWithFriendPolicyComponent.FormItem!({
-        value: { platforms: {}, friendPolicy: '' },
+        value: defaultValue,
         onChange: () => {},
-        t: {} as never,
-        blockConfig: { platforms: ['x', 'discord'] },
+        t,
+        blockConfig: { platform: 'vrchat' },
       })
     )
-    expect(screen.getByText('x')).toBeInTheDocument()
-    expect(screen.getByText('discord')).toBeInTheDocument()
+    expect(screen.getByText('VRChat ID')).toBeInTheDocument()
   })
 
-  it('3. blockConfig.allowedPolicies で指定した選択肢のみ表示される', () => {
+  it('3. blockConfig.policies で指定したポリシーのみ表示される', () => {
     render(
       snsWithFriendPolicyComponent.FormItem!({
-        value: { platforms: {}, friendPolicy: '' },
+        value: defaultValue,
         onChange: () => {},
-        t: {} as never,
-        blockConfig: { platforms: [], allowedPolicies: ['anyone', 'mutual'] },
+        t,
+        blockConfig: {
+          platform: 'vrchat',
+          policies: [
+            { value: 'frPolicyAnyone', label: 'だれでもOK' },
+            { value: 'frPolicyNo',     label: '送らないでください' },
+          ],
+        },
       })
     )
-    expect(screen.getByText('誰でも')).toBeInTheDocument()
-    expect(screen.getByText('相互のみ')).toBeInTheDocument()
-    expect(screen.queryByText('申請しない')).toBeNull()
+    expect(screen.getByText('だれでもOK')).toBeInTheDocument()
+    expect(screen.getByText('送らないでください')).toBeInTheDocument()
+    expect(screen.queryByText('仲良くなってから許可')).toBeNull()
   })
 
-  it('4. フレンドポリシーを選択すると friendPolicy が更新される', () => {
+  it('4. ポリシーを選択すると friendPolicy が更新される', () => {
     const onChange = vi.fn()
     render(
       snsWithFriendPolicyComponent.FormItem!({
-        value: { platforms: {}, friendPolicy: '' },
+        value: defaultValue,
         onChange,
-        t: {} as never,
-        blockConfig: { platforms: [] },
+        t,
+        blockConfig: { platform: 'vrchat' },
       })
     )
-    fireEvent.click(screen.getByText('誰でも'))
-    expect(onChange).toHaveBeenCalledWith({ platforms: {}, friendPolicy: 'anyone' })
+    fireEvent.click(screen.getByText('だれでもOK'))
+    expect(onChange).toHaveBeenCalledWith({ id: '', friendPolicy: 'frPolicyAnyone' })
   })
 
-  it('5. SNS ID を入力すると platforms が更新される', () => {
+  it('5. 同じポリシーを再選択すると解除される', () => {
     const onChange = vi.fn()
     render(
       snsWithFriendPolicyComponent.FormItem!({
-        value: { platforms: {}, friendPolicy: '' },
+        value: { id: '', friendPolicy: 'frPolicyAnyone' },
         onChange,
-        t: {} as never,
-        blockConfig: { platforms: ['x'] },
+        t,
+        blockConfig: { platform: 'vrchat' },
       })
     )
-    const input = screen.getByPlaceholderText('x ID')
+    fireEvent.click(screen.getByText('だれでもOK'))
+    expect(onChange).toHaveBeenCalledWith({ id: '', friendPolicy: '' })
+  })
+
+  it('6. ID 入力で id が更新される', () => {
+    const onChange = vi.fn()
+    render(
+      snsWithFriendPolicyComponent.FormItem!({
+        value: defaultValue,
+        onChange,
+        t,
+        blockConfig: { platform: 'x' },
+      })
+    )
+    const input = screen.getByPlaceholderText('@yourhandle')
     fireEvent.change(input, { target: { value: '@foo' } })
-    expect(onChange).toHaveBeenCalledWith({ platforms: { x: '@foo' }, friendPolicy: '' })
+    expect(onChange).toHaveBeenCalledWith({ id: '@foo', friendPolicy: '' })
   })
 
-  it('7. card_data の値の型は { platforms: Record<string, string>, friendPolicy: string }', () => {
-    expect(snsWithFriendPolicyComponent.defaultValue).toHaveProperty('platforms')
-    expect(snsWithFriendPolicyComponent.defaultValue).toHaveProperty('friendPolicy')
-  })
-
-  it('10. CardItem: プラットフォームIDとフレンドポリシーが描画される', () => {
+  it('7. CardItem: ID とポリシーラベルが描画される', () => {
     render(
       snsWithFriendPolicyComponent.CardItem!({
-        value: { platforms: { x: '@foo' }, friendPolicy: 'mutual' },
+        value: { id: 'sample_user', friendPolicy: 'frPolicyAnyone' },
         ctx: DEFAULT_CARD_RENDER_CONTEXT,
+        blockConfig: { platform: 'vrchat' },
       })
     )
-    expect(screen.getByText(/x: @foo/)).toBeInTheDocument()
-    expect(screen.getByText(/相互のみ/)).toBeInTheDocument()
+    expect(screen.getByText('sample_user')).toBeInTheDocument()
+    expect(screen.getByText('だれでもOK')).toBeInTheDocument()
   })
 
-  it('11. CardItem: 空値はエラーなく描画される', () => {
+  it('8. CardItem: 空値はエラーなく描画される', () => {
     expect(() =>
       render(
         snsWithFriendPolicyComponent.CardItem!({
-          value: { platforms: {}, friendPolicy: '' },
+          value: defaultValue,
           ctx: DEFAULT_CARD_RENDER_CONTEXT,
+          blockConfig: { platform: 'vrchat' },
         })
       )
     ).not.toThrow()

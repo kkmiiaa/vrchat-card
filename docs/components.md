@@ -120,7 +120,7 @@ type ComponentDef<T = unknown> = {
 | `gender` | `gender.tsx` | ✅ | ❌ | `{ tag: '', display: '' }` | 性別（固定選択肢） |
 | `language` | `language.tsx` | ✅ | ❌ | `{ preset: [], custom: [] }` | 使用言語 |
 | `age` | `age.tsx` | ✅ | ❌ | `{ searchTag: '', display: '' }` | 年齢 |
-| `profileImage` | `profileImage.tsx` | ❌ | ❌ | `string` (`''`) | プロフィール画像 URL |
+| `profileImage` | `profileImage.tsx` | ❌ | ❌ | `{ base64: null, url: null }` | プロフィール画像（variant: default/circle/glass） |
 | `colorLabeledList` | `colorLabeledList.tsx` | ❌ | ❌ | — | 色付きラベルリスト |
 | `divider` | `divider.tsx` | ❌ | ❌ | — | 区切り線 |
 | `gallery` | `gallery.tsx` | ❌ | ❌ | `string[]` (`[]`) | ギャラリー画像 |
@@ -135,33 +135,152 @@ type ComponentDef<T = unknown> = {
 - `labelInset: false` の block / `col` / `row` → `GenericCardRenderer` がラベル行に直接描画する
 - テンプレートビルダーの「アイコン」入力欄（テキスト）から設定可能
 
+#### 空値表示の統一仕様
+
+値が空のときの表示は以下のルールで統一されている。
+
+| ルール | 内容 |
+|---|---|
+| 空値デフォルト表示 | `"-"`（半角ハイフン）を subText 色で表示する |
+| 全角ダッシュ禁止 | `"—"`（em dash）・`"ー"`（全角長音）はフォント依存のため使用しない |
+| `hideWhenEmpty` オプション | `blockConfig.hideWhenEmpty: true` のとき、空値で `null` を返しブロックを非表示にする |
+| null 返却コンポーネント | 値が空でも常に `null` を返すコンポーネント: `sns`, `status`, `playEnv`, `activity`, `selfIntro`, `trustRank`, `gallery`（データ性質上、空欄は「未入力」ではなく「表示なし」を意味する） |
+
+**`hideWhenEmpty` 対応コンポーネント**（blockConfig.hideWhenEmpty: true で null 返却）
+
+`select`, `multiSelect`, `language`, `badgeList`, `markList`, `colorLabeledList`
+
 #### コンポーネント別 CardItem の表示挙動
 
 | コンポーネント | 条件 | CardItem の動作 |
 |---|---|---|
-| `gender` | `tag === 'none'`（非公開） | TbMinus アイコン + 「ー」テキストを横並びで表示（null 返却しない） |
-| `gender` | 空値 (`tag === ''`) | 何も表示しない（null 返却） |
+| `gender` | `tag === 'none'`（非公開） | TbMinus アイコン + 「-」テキストを横並びで表示（null 返却しない） |
+| `gender` | 空値 (`tag === ''`) | 「-」テキストを表示（null 返却しない） |
 | `gender` | 有効な tag | アイコン+テキストを常に横並び（flex row）で表示 |
-| `age` | `searchTag === '非公開'` | 「ー」テキストを表示（null 返却しない） |
-| `age` | `searchTag === ''` かつ `display === ''` | 「ー」テキストを表示（null 返却しない） |
+| `age` | `searchTag === '非公開'` | 「-」テキストを表示（null 返却しない） |
+| `age` | `searchTag === ''` かつ `display === ''` | 「-」テキストを表示（null 返却しない） |
 | `markList` | マーク済み項目あり | ルート要素に `alignSelf: flex-start`, `alignContent: flex-start` を付与し縦方向の引き伸ばしを防ぐ |
 
-#### multiSelect バリアント一覧
+---
 
-| variant | 説明 |
+#### glass variant 統一仕様
+
+`glass` variant を持つコンポーネントは以下のスタイルを**固定値**で適用する。比率スケールは使用しない。
+
+| プロパティ | 値 |
 |---|---|
-| `default` | テキストボタン並び |
-| `slash` | 「/」区切りのテキスト並び |
-| `icon` | アイコンのみ |
-| `icon-slash` | アイコン+テキストを「/」区切りで並べる（v2 landscape の環境表示で使用） |
+| `background` | `rgba(255,255,255,0.55)` |
+| `border` | `1px solid rgba(255,255,255,0.75)` |
+| `boxShadow` | `0 0 12px rgba(0,0,0,0.08)` |
 
-#### colorStatus バリアント一覧
+> `borderRadius` のみ `ctx.cardWidth` 比率で計算してよい（カード全体との視覚的整合性のため）。
 
-| variant | 説明 |
+**glass variant を持つコンポーネント一覧**
+
+| コンポーネント | glass variant の特徴 |
 |---|---|
-| `default` | ドット+テキストの縦並びリスト |
-| `compact` | ドットのみの横並び（ホバーでテキスト表示） |
-| `cards` | 左ボーダー付きカード形式（v2 landscape の STATUS で使用） |
+| `profileImage` | 画像を角丸でクリップ + glass 枠・影 |
+| `gallery` | 各サムネイルに glass 枠・影を付与 |
+| `simpleSns` | 横並びアイコン+テキストを glass ボックスに包む |
+| `snsWithFriendPolicy` | SNS ID と友達申請ポリシーを glass ボックスに包む |
+| `qrCode` | QR コードを glass ボックスに包む（`backdropFilter: blur` を追加） |
+
+---
+
+#### コンポーネント variant 対応表
+
+全コンポーネントの variant 一覧。`bgVariant` 列は `supportsBgVariant: true` のとき ✅。
+⚠️ 列は **variant を宣言しているが CardItem 内に分岐実装がない**（宣言のみ）コンポーネントを示す。
+
+| コンポーネント key | variants | bgVariant | ⚠️ 未実装 variant | 備考 |
+|---|---|---|---|---|
+| `text` | `default` | ✅ | — | multiline false 時は縦中央揃え |
+| `select` | `default` / `badge` / `compact` | ✅ | — | — |
+| `multi-select` | `default` / `slash` / `icon` / `icon-slash` | ✅ | — | slash・icon-slash は labelInset 対応・縦中央揃え |
+| `gauge` | `default` | ✅ | — | — |
+| `expressive-select` | `default` | ✅ | — | — |
+| `badge` | `default` / `outline` / `subtle` | ❌ | — | value に color を持つ |
+| `badge-list` | `default` | ❌ | — | — |
+| `booleanFlag` | `default` / `badge` | ✅ | — | — |
+| `rating` | `default` / `compact` | ❌ | — | compact は星アイコンサイズ縮小 |
+| `linkItem` | `default` / `compact` | ❌ | — | — |
+| `dateItem` | `default` / `compact` / `badge` | ✅ | — | — |
+| `colorPalette` | `default` / `compact` | ❌ | — | — |
+| `tagList` | `default` / `compact` | ❌ | — | — |
+| `mark-list` | `default` | ❌ | — | — |
+| `mark-grid` | `default` / `white` | ❌ | — | white は全セル白背景・gap 1px |
+| `color-status` | `default` / `compact` / `cards` | ❌ | — | — |
+| `colorLabeledList` | `default` / `compact` | ❌ | — | compact はドットサイズ・フォント縮小 |
+| `interactions` | `default` / `grid` | ❌ | — | default=横長タグ、grid=ラベル上・マーク下のカード形式 |
+| `activity` | `default` / `v2` | ❌ | — | — |
+| `micOnRate` | `default` / `gradient` | ❌ | — | — |
+| `playEnv` | `default` / `slash` / `icon` | ❌ | — | default=バッジ並び、slash=スラッシュ区切り、icon=アイコン付きバッジ |
+| `sns` | `default` / `icon` | ❌ | — | default=テキストラベル+ID、icon=プラットフォームアイコン画像+ID |
+| `simple-sns` | `default` / `glass` | ✅ | — | glass は glass 統一仕様を適用 |
+| `sns-with-friend-policy` | `default` / `glass` | ❌ | — | glass は glass 統一仕様を適用 |
+| `trustRank` | `default` | ❌ | — | カラーバッジ固定 |
+| `status` | `default` | ❌ | — | カラードット+テキスト固定 |
+| `gender` | `default` / `compact` | ✅ | — | compact=アイコン+テキストのみ（背景・枠なし）、縦中央揃え |
+| `language` | `default` / `slash` | ✅ | — | slash は labelInset 対応・縦中央揃え |
+| `age` | `default` / `badge` | ✅ | — | badge=アクセントカラーのバッジ形式（白文字） |
+| `profileImage` | `default` / `circle` / `glass` | ❌ | — | circle=50%、glass は glass 統一仕様を適用 |
+| `gallery` | `default` / `glass` | ❌ | — | glass は glass 統一仕様を適用。入力枚数に応じてレイアウト変化 |
+| `qr-code` | `default` / `glass` | ❌ | — | glass は glass 統一仕様 + backdropFilter blur |
+| `selfIntro` | `default` | ❌ | — | — |
+| `divider` | `horizontal` / `vertical` | ❌ | — | variants が方向指定を兼ねる |
+| `overlay` | `glass` / `solid` | ❌ | — | カード全体のオーバーレイ |
+| `background` | — | ❌ | — | variants なし |
+| `font` | — | ❌ | — | variants なし |
+| `showBalloon` | — | ❌ | — | variants なし |
+
+> ⚠️ 列が「—」のコンポーネントは全 variant が実装済み。
+
+---
+
+#### variant key と表示の対応表
+
+variant key ごとに「何がどう変わるか」を定義した一覧。複数コンポーネントで共通して使われる key は意味が統一されている必要がある。
+
+| variant key | 視覚的な意味 | 採用コンポーネント |
+|---|---|---|
+| `default` | そのコンポーネントの標準表示。他 variant のベースライン | 全コンポーネント |
+| `compact` | フォント・ドット・余白を縮小したコンパクト版。スペース効率を優先 | `select`, `dateItem`, `rating`, `linkItem`, `colorPalette`, `tagList`, `colorLabeledList`, `color-status`, `gender` |
+| `badge` | 色付き丸角バッジ形式で値を表示 | `select`, `dateItem`, `booleanFlag`, `age` |
+| `outline` | 背景透明・枠線のみのバッジ（`badge` コンポーネント専用） | `badge` |
+| `subtle` | 色の薄いfill（`color + '22'`）のバッジ（`badge` コンポーネント専用） | `badge` |
+| `slash` | 値を「/」で区切って横並びテキスト表示。labelInset・縦中央揃え対応 | `multi-select`, `language`, `playEnv` |
+| `icon` | アイコンを先頭に追加（SVG アイコンまたはプラットフォームアイコン画像） | `multi-select`, `playEnv`, `sns` |
+| `icon-slash` | アイコン+テキストを「/」区切りで表示（`multi-select` 専用） | `multi-select` |
+| `glass` | 半透明白背景 + 白枠線 + 影のガラス質カード表示。統一仕様を適用 | `profileImage`, `gallery`, `simple-sns`, `sns-with-friend-policy`, `qr-code`, `overlay` |
+| `solid` | 不透明な塗りつぶしオーバーレイ（`overlay` 専用） | `overlay` |
+| `circle` | 50% border-radius による円形クリップ（`profileImage` 専用） | `profileImage` |
+| `white` | 全セルに白背景を強制適用し gap を縮小（`mark-grid` 専用） | `mark-grid` |
+| `gradient` | 単色バーをグラデーションバーに置き換え（`micOnRate` 専用） | `micOnRate` |
+| `cards` | 左ボーダー付きカード形式に変更（`color-status` 専用） | `color-status` |
+| `grid` | グリッドカード形式（ラベル上・マーク下）に変更（`interactions` 専用） | `interactions` |
+| `v2` | 第2世代の視覚デザイン（タイムバー+サークル）。`default` の完全リデザイン（`activity` 専用） | `activity` |
+| `horizontal` | 水平方向の区切り線（`divider` 専用。default を持たず方向が variant） | `divider` |
+| `vertical` | 垂直方向の区切り線（`divider` 専用） | `divider` |
+
+**variant key の命名ルール**
+
+| ルール | 内容 |
+|---|---|
+| `default` は常にある | 全コンポーネントの基本 variant。他 variant との比較基準 |
+| 汎用 key は意味を統一する | `compact`=縮小、`badge`=丸角バッジ、`slash`=スラッシュ区切り、`icon`=アイコン化、`glass`=ガラス質 |
+| コンポーネント専用 key は末尾に注記 | `white`（mark-grid）・`v2`（activity）・`cards`（color-status）など意味が汎化しない key |
+| `divider` は例外 | `horizontal`/`vertical` が方向指定を兼ねるため `default` が存在しない |
+
+**glass variant を持つコンポーネント**（統一仕様: `border: 1px solid rgba(255,255,255,0.75)` / `boxShadow: 0 0 12px rgba(0,0,0,0.08)`）
+
+| コンポーネント | background | 備考 |
+|---|---|---|
+| `profileImage` | `#e5e7eb`（画像なし時） | 角丸画像を glass 枠・影でラップ |
+| `gallery` | 各サムネイルに個別適用 | 入力枚数に応じてレイアウト変化 |
+| `simple-sns` | `rgba(255,255,255,0.55)` | アイコン+ID を glass ボックスに包む |
+| `sns-with-friend-policy` | `rgba(255,255,255,0.55)` | SNS ID と友達申請ポリシーを glass ボックスに包む |
+| `qr-code` | `rgba(255,255,255,0.45)` | `backdropFilter: blur(8px)` を追加。背景透過度が他より低い |
+| `overlay` | `rgba(255,255,255,0.55)` | カード全体を覆うオーバーレイ |
 
 ---
 
@@ -184,7 +303,7 @@ type Block = {
   type: 'block'
   componentKey: string          // 使用するコンポーネントの key
   dataKey: string               // card_data に保存・参照するキー
-  variant: BlockVariant         // コンテンツ表示バリアント
+  variant?: string              // コンテンツ表示バリアント（省略時は blockVariants → 'default' にフォールバック）
   bgVariant?: BgVariant         // コンテナ背景バリアント
   label?: string                // ブロック上部のラベル
   subLabel?: string             // ラベル右のサブテキスト
@@ -193,15 +312,16 @@ type Block = {
   labelInsetDir?: 'col' | 'row' // ラベルとコンテンツの並び方向（'col'=縦、'row'=横）
   contentFontScale?: number     // コンテンツフォントサイズ倍率
   labelFontScale?: number       // ラベルフォントサイズ倍率
+  contentAlign?: string         // コンテンツエリアの縦方向揃え（alignItems: 'center' 等）
+  alignSelf?: string            // 親 flex コンテナ内での自身の縦位置
   blockConfig?: Record<string, unknown> // コンポーネントへ渡す追加設定
   minW?: number                 // 最小幅（グリッドセル数）
   minH?: number                 // 最小高（グリッドセル数）
   flex?: number                 // flex 伸長係数
-  alignSelf?: string
-  glass?: boolean               // 白枠ガラススタイルでラップするか
-  glassRadius?: number
 }
 ```
+
+> ⚠️ **削除済みプロパティ**: `glass`, `glassRadius` はレンダラー由来のガラス枠指定であり、コンポーネントの責務でないため削除済み。代わりに各コンポーネントの `glass` **variant** を使用する。
 
 #### labelInset と LabelDef
 
@@ -259,8 +379,22 @@ type TemplateDefinition = {
   fontScale?: Partial<FontScale>
   landscape: TemplateOrientationDef  // 横向きレイアウト
   portrait: TemplateOrientationDef   // 縦向きレイアウト
+  /** dataKey ごとのデフォルト variant（landscape/portrait 共通で適用）。ノード直指定が優先される。 */
+  blockVariants?: Record<string, string>
 }
 ```
+
+#### blockVariants
+
+`blockVariants` はテンプレート全体で orientation をまたいで共通の variant を指定する仕組み。これにより landscape と portrait で同じ dataKey のコンポーネントが常に同じ variant で描画されることが保証される。
+
+```typescript
+// 例: V2 では profileImage を常に glass variant で描画
+blockVariants: { profileImage: 'glass' }
+```
+
+- ノードの `variant` が明示されている場合は `blockVariants` より優先される
+- `blockVariants` も未指定の場合は `'default'` にフォールバック
 
 #### レイアウトノードツリー
 

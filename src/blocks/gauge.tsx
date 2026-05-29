@@ -31,7 +31,10 @@ export const gaugeComponent: ComponentDef<number> = {
       ? `linear-gradient(to right, ${cfg.barGradient.join(', ')})`
       : cfg.barColor ?? ctx.theme.accent
 
-    const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      ? 'default'
+      : (bgVariant ?? 'transparent')
+    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
 
     return (
       <div style={{
@@ -43,6 +46,7 @@ export const gaugeComponent: ComponentDef<number> = {
         display: 'flex',
         flexDirection: (label?.dir === 'row') ? 'row' : 'column',
         alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
+        justifyContent: (label?.dir === 'row') ? undefined : 'center',
         gap: label ? ctx.cardWidth * 0.008 : 6,
         fontFamily: ctx.fontFamily,
       }}>

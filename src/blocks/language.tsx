@@ -12,14 +12,17 @@ const PRESET_LANGUAGES = [
   '日本語', 'English', '한국어', '中文',
 ]
 
-function LanguageCard({ value, ctx, variant, bgVariant, label }: ComponentCardProps<LanguageValue>) {
+function LanguageCard({ value, ctx, variant = 'default', bgVariant, label, blockConfig }: ComponentCardProps<LanguageValue>) {
   const preset = Array.isArray(value?.preset) ? value.preset : []
   const custom = Array.isArray(value?.custom) ? value.custom : []
   const all = [...preset, ...custom]
   const fs = ctx.fontSize.sm
 
   if (variant === 'slash') {
-    const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      ? 'default'
+      : (bgVariant ?? 'transparent')
+    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
     return (
       <div style={{
         width: '100%',
@@ -28,7 +31,7 @@ function LanguageCard({ value, ctx, variant, bgVariant, label }: ComponentCardPr
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${label ? `${ctx.cardWidth * 0.006 * ctx.paddingScale}px` : '0'} ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         fontSize: fs,
-        color: ctx.theme.text,
+        color: all.length ? ctx.theme.text : ctx.theme.subText,
         fontFamily: ctx.fontFamily,
         whiteSpace: 'nowrap',
         overflow: 'hidden',
@@ -36,6 +39,7 @@ function LanguageCard({ value, ctx, variant, bgVariant, label }: ComponentCardPr
         display: 'flex',
         flexDirection: (label?.dir === 'row') ? 'row' : 'column',
         alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
+        justifyContent: (label?.dir === 'row') ? undefined : 'center',
         gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
       }}>
         {label && (
@@ -44,14 +48,15 @@ function LanguageCard({ value, ctx, variant, bgVariant, label }: ComponentCardPr
             {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
           </div>
         )}
-        {all.join(' / ') || '—'}
+        {all.join(' / ') || '-'}
       </div>
     )
   }
 
-  if (!all.length) return (
-    <span style={{ fontSize: fs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>—</span>
-  )
+  if (!all.length) {
+    if (blockConfig?.hideWhenEmpty) return null
+    return <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: fs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>-</span></div>
+  }
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
       {preset.map(v => (

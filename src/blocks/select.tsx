@@ -9,7 +9,14 @@ export const selectComponent: ComponentDef<string> = {
   defaultValue: '',
   variants: ['default', 'badge', 'compact'],
   CardItem({ value, ctx, variant = 'default', bgVariant, label, blockConfig }) {
-    if (!value) return null
+    if (!value) {
+      if (blockConfig?.hideWhenEmpty) return null
+      return (
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: ctx.fontSize.sm, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>-</span>
+        </div>
+      )
+    }
     type OptionRow = { value: string; label: string; color?: string; icon?: string }
     const options: OptionRow[] = Array.isArray(blockConfig?.options) ? blockConfig!.options as OptionRow[] : []
     const matchedOption = options.find(o => o.value === value)
@@ -23,7 +30,7 @@ export const selectComponent: ComponentDef<string> = {
       const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'default']
       const fs = ctx.fontSize.md
       return (
-        <div style={{ width: '100%', height: '100%', background: bgStyle.background, border: bgStyle.border, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: label.dir === 'row' ? 'row' : 'column', gap: label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003, alignItems: label.dir === 'row' ? 'center' : 'stretch', overflow: 'hidden' }}>
+        <div style={{ width: '100%', background: bgStyle.background, border: bgStyle.border, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: label.dir === 'row' ? 'row' : 'column', gap: label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003, alignItems: label.dir === 'row' ? 'center' : 'stretch', justifyContent: label.dir === 'row' ? undefined : 'center', overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
             <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
             {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}

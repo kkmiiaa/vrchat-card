@@ -1,9 +1,5 @@
 import type { TemplateDefinition } from '@/blocks/types'
-
-const LANDSCAPE_WIDTH  = 900
-const LANDSCAPE_HEIGHT = 506
-const PORTRAIT_WIDTH   = 630
-const PORTRAIT_HEIGHT  = 900
+import { CARD_LANDSCAPE_WIDTH as LANDSCAPE_WIDTH, CARD_LANDSCAPE_HEIGHT as LANDSCAPE_HEIGHT, CARD_PORTRAIT_WIDTH as PORTRAIT_WIDTH, CARD_PORTRAIT_HEIGHT as PORTRAIT_HEIGHT } from '@/lib/cardDimensions'
 
 export const cardV2Definition: TemplateDefinition = {
   id: 'v2',
@@ -28,6 +24,159 @@ export const cardV2Definition: TemplateDefinition = {
     innerPadding: 24,
   },
 
+  // ─── ブロック定義プール ─────────────────────────────────────────────────────
+  // componentKey / dataKey / blockConfig など「何を表示するか」を一度だけ定義。
+  // レイアウト内の ref ノードから blockId で参照し、サイズ・variant を上書きできる。
+  blockPool: {
+    profileImage: {
+      componentKey: 'profileImage',
+      dataKey: 'profileImage',
+      variant: 'glass',
+    },
+    name: {
+      componentKey: 'text',
+      dataKey: 'name',
+      variant: 'default',
+      blockConfig: { multiline: false, noPadding: true },
+    },
+    trustRank: {
+      componentKey: 'select',
+      dataKey: 'trustRank',
+      variant: 'default',
+      blockConfig: {
+        options: [
+          { value: 'visitor',     label: 'Visitor',      icon: 'TbShield' },
+          { value: 'newuser',     label: 'New User',     icon: 'TbShield', color: '#3b82f6' },
+          { value: 'user',        label: 'User',         icon: 'TbShield', color: '#22c55e' },
+          { value: 'knownuser',   label: 'Known User',   icon: 'TbShield', color: '#f59e0b' },
+          { value: 'trusteduser', label: 'Trusted User', icon: 'TbShield', color: '#8b5cf6' },
+        ],
+      },
+    },
+    gender: {
+      componentKey: 'gender',
+      dataKey: 'gender',
+      variant: 'default',
+    },
+    age: {
+      componentKey: 'age',
+      dataKey: 'age',
+      variant: 'default',
+      label: '年齢',
+    },
+    playEnv: {
+      componentKey: 'multi-select',
+      dataKey: 'playEnv',
+      variant: 'icon-slash',
+      label: '環境',
+      bgVariant: 'glass',
+      labelInset: true,
+      labelInsetDir: 'row',
+      contentFontScale: 0.9,
+      labelColor: '#9ca3af',
+      blockConfig: {
+        options: [
+          { value: 'pcvr',    label: 'PCVR',    color: '#6b7280', icon: 'TbBadgeVr' },
+          { value: 'quest',   label: 'Quest',   color: '#6b7280', icon: 'TbDeviceGamepad2' },
+          { value: 'desktop', label: 'Desktop', color: '#6b7280', icon: 'TbDeviceDesktop' },
+        ],
+      },
+    },
+    language: {
+      componentKey: 'language',
+      dataKey: 'language',
+      variant: 'slash',
+      label: '言語',
+      bgVariant: 'glass',
+      labelInset: true,
+      labelInsetDir: 'row',
+      contentFontScale: 0.9,
+      labelColor: '#9ca3af',
+    },
+    gauge1: {
+      componentKey: 'gauge',
+      dataKey: 'gauge1',
+      variant: 'default',
+      label: 'マイクON率',
+      bgVariant: 'glass',
+      labelInset: true,
+      labelInsetDir: 'row',
+      contentFontScale: 0.9,
+      labelColor: '#9ca3af',
+      blockConfig: { unit: '%' },
+    },
+    selfIntro: {
+      componentKey: 'text',
+      dataKey: 'selfIntro',
+      variant: 'default',
+      label: 'ABOUT',
+    },
+    status: {
+      componentKey: 'color-status',
+      dataKey: 'status',
+      label: 'STATUS',
+      blockConfig: {
+        fields: [
+          { key: 'blue',   label: '青', color: '#60a5fa' },
+          { key: 'green',  label: '緑', color: '#4ade80' },
+          { key: 'yellow', label: '黄', color: '#facc15' },
+          { key: 'red',    label: '赤', color: '#f87171' },
+        ],
+      },
+    },
+    activity: {
+      componentKey: 'activity',
+      dataKey: 'activity',
+      variant: 'v2',
+      label: 'ACTIVITY',
+    },
+    interactions: {
+      componentKey: 'mark-list',
+      dataKey: 'interactions',
+      variant: 'default',
+      label: 'INTERACTION',
+      contentFontScale: 0.9,
+      blockConfig: {
+        items: [{ label: '触る' }],
+        marks: [{ symbol: '◎', color: '#22c55e', bg: '#f9fafb' }],
+      },
+    },
+    snsWithFriendPolicy: {
+      componentKey: 'sns-with-friend-policy',
+      dataKey: 'sns-with-friend-policy1',
+      variant: 'glass',
+      bgVariant: 'glass',
+      blockConfig: {
+        platform: 'vrchat',
+        policies: [
+          { value: 'frPolicyAnyone',             label: 'だれでもOK',         icon: 'TbHeart' },
+          { value: 'frPolicyIfInterested',       label: '気になったら許可',     icon: 'TbStar' },
+          { value: 'frPolicyMutualsOnX',         label: 'X相互は申請OK',       icon: 'TbBrandX' },
+          { value: 'frPolicyAfterGettingToKnow', label: '仲良くなってから許可', icon: 'TbSparkles' },
+          { value: 'frPolicyNo',                 label: '送らないでください',   icon: 'TbShield' },
+        ],
+      },
+    },
+    snsX: {
+      componentKey: 'simple-sns',
+      dataKey: 'x',
+      variant: 'glass',
+      blockConfig: { platform: 'x' },
+    },
+    snsDiscord: {
+      componentKey: 'simple-sns',
+      dataKey: 'discord',
+      variant: 'glass',
+      blockConfig: { platform: 'discord' },
+    },
+    gallery: {
+      componentKey: 'gallery',
+      dataKey: 'gallery',
+      variant: 'glass',
+    },
+  },
+
+  // ─── 横向きレイアウト ────────────────────────────────────────────────────────
   landscape: {
     cardWidth:  LANDSCAPE_WIDTH,
     cardHeight: LANDSCAPE_HEIGHT,
@@ -43,29 +192,17 @@ export const cardV2Definition: TemplateDefinition = {
           gap: 2,
           justify: 'center',
           children: [
-            { type: 'block', componentKey: 'profileImage', dataKey: 'profileImage', variant: 'default', minH: 22, glass: true, glassRadius: 16 },
+            { type: 'ref', blockId: 'profileImage', minH: 22 },
             {
               type: 'col',
               gap: 1,
               children: [
-                {
-                  type: 'block', componentKey: 'sns-with-friend-policy', dataKey: 'sns-with-friend-policy1', variant: 'glass', minH: 5, bgVariant: 'glass',
-                  blockConfig: {
-                    platform: 'vrchat',
-                    policies: [
-                      { value: 'frPolicyAnyone',             label: 'だれでもOK',         icon: 'TbHeart' },
-                      { value: 'frPolicyIfInterested',       label: '気になったら許可',     icon: 'TbStar' },
-                      { value: 'frPolicyMutualsOnX',         label: 'X相互は申請OK',       icon: 'TbBrandX' },
-                      { value: 'frPolicyAfterGettingToKnow', label: '仲良くなってから許可', icon: 'TbSparkles' },
-                      { value: 'frPolicyNo',                 label: '送らないでください',   icon: 'TbShield' },
-                    ],
-                  },
-                },
-                { type: 'block', componentKey: 'simple-sns', dataKey: 'x',       variant: 'glass', minH: 3, blockConfig: { platform: 'x' } },
-                { type: 'block', componentKey: 'simple-sns', dataKey: 'discord', variant: 'glass', minH: 3, blockConfig: { platform: 'discord' } },
+                { type: 'ref', blockId: 'snsWithFriendPolicy', minH: 5 },
+                { type: 'ref', blockId: 'snsX',       minH: 3 },
+                { type: 'ref', blockId: 'snsDiscord', minH: 3 },
               ],
             },
-            { type: 'block', componentKey: 'gallery', dataKey: 'gallery', variant: 'glass', minH: 7 },
+            { type: 'ref', blockId: 'gallery', minH: 7 },
           ],
         },
         { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'vertical' },
@@ -80,19 +217,8 @@ export const cardV2Definition: TemplateDefinition = {
               justify: 'space-between',
               minH: 3,
               children: [
-                { type: 'block', componentKey: 'text',   dataKey: 'name',      variant: 'default', flex: 1, alignSelf: 'center', contentFontScale: 1.5, blockConfig: { multiline: false, noPadding: true } },
-                {
-                  type: 'block', componentKey: 'select', dataKey: 'trustRank', variant: 'default', alignSelf: 'center', minH: 2.2,
-                  blockConfig: {
-                    options: [
-                      { value: 'visitor',     label: 'Visitor',      icon: 'TbShield' },
-                      { value: 'newuser',     label: 'New User',     icon: 'TbShield', color: '#3b82f6' },
-                      { value: 'user',        label: 'User',         icon: 'TbShield', color: '#22c55e' },
-                      { value: 'knownuser',   label: 'Known User',   icon: 'TbShield', color: '#f59e0b' },
-                      { value: 'trusteduser', label: 'Trusted User', icon: 'TbShield', color: '#8b5cf6' },
-                    ],
-                  },
-                },
+                { type: 'ref', blockId: 'name',      flex: 1, alignSelf: 'center', contentFontScale: 1.5 },
+                { type: 'ref', blockId: 'trustRank', alignSelf: 'center', minH: 2.2 },
               ],
             },
             {
@@ -105,145 +231,99 @@ export const cardV2Definition: TemplateDefinition = {
                   label: 'PROFILE',
                   minH: 2.3,
                   children: [
-                    { type: 'block', componentKey: 'gender',       dataKey: 'gender',   variant: 'default', bgVariant: 'glass', minH: 2.3 },
-                    { type: 'block', componentKey: 'age',          dataKey: 'age',      variant: 'default', bgVariant: 'glass', minH: 2.3, label: '年齢',  labelInset: true, labelInsetDir: 'row', contentFontScale: 0.9, labelColor: '#9ca3af' },
-                    {
-                      type: 'block', componentKey: 'multi-select', dataKey: 'playEnv', variant: 'icon-slash', bgVariant: 'glass', minH: 2.3, label: '環境',  labelInset: true, labelInsetDir: 'row', contentFontScale: 0.9, labelColor: '#9ca3af',
-                      blockConfig: {
-                        options: [
-                          { value: 'pcvr',    label: 'PCVR',    color: '#6b7280', icon: 'TbBadgeVr' },
-                          { value: 'quest',   label: 'Quest',   color: '#6b7280', icon: 'TbDeviceGamepad2' },
-                          { value: 'desktop', label: 'Desktop', color: '#6b7280', icon: 'TbDeviceDesktop' },
-                        ],
-                      },
-                    },
-                    { type: 'block', componentKey: 'language',     dataKey: 'language', variant: 'slash',   bgVariant: 'glass', minH: 2.3, label: '言語',  labelInset: true, labelInsetDir: 'row', contentFontScale: 0.9, labelColor: '#9ca3af' },
+                    { type: 'ref', blockId: 'gender',   bgVariant: 'glass', minH: 2.3 },
+                    { type: 'ref', blockId: 'age',      bgVariant: 'glass', minH: 2.3, labelInset: true, labelInsetDir: 'row', contentFontScale: 0.9, labelColor: '#9ca3af' },
+                    { type: 'ref', blockId: 'playEnv',  minH: 2.3 },
+                    { type: 'ref', blockId: 'language', minH: 2.3 },
                   ],
                 },
-                {
-                  type: 'block', componentKey: 'gauge', dataKey: 'gauge1', variant: 'default', bgVariant: 'glass', minW: 18, minH: 2.3,
-                  label: 'マイクON率', labelInset: true, labelInsetDir: 'row', contentFontScale: 0.9, labelColor: '#9ca3af',
-                  blockConfig: { unit: '%' },
-                },
+                { type: 'ref', blockId: 'gauge1', minW: 18, minH: 2.3 },
               ],
             },
             { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'default', minH: 0.5 },
-            { type: 'block', componentKey: 'text', dataKey: 'selfIntro', variant: 'default', flex: 1, label: 'ABOUT', contentFontScale: 0.8, glass: true },
+            { type: 'ref', blockId: 'selfIntro', flex: 1, bgVariant: 'glass', contentFontScale: 0.8 },
             {
               type: 'row',
               gap: 3,
               minH: 11,
               children: [
-                {
-                  type: 'block', componentKey: 'color-status', dataKey: 'status', variant: 'cards', flex: 1, label: 'STATUS', contentFontScale: 0.9, minH: 8,
-                  blockConfig: {
-                    fields: [
-                      { key: 'blue',   label: '青', color: '#60a5fa' },
-                      { key: 'green',  label: '緑', color: '#4ade80' },
-                      { key: 'yellow', label: '黄', color: '#facc15' },
-                      { key: 'red',    label: '赤', color: '#f87171' },
-                    ],
-                  },
-                },
-                { type: 'block', componentKey: 'activity', dataKey: 'activity', variant: 'v2', flex: 1, label: 'ACTIVITY' },
+                { type: 'ref', blockId: 'status',       variant: 'cards', flex: 1, contentFontScale: 0.9, minH: 8 },
+                { type: 'ref', blockId: 'activity',     flex: 1 },
               ],
             },
-            {
-              type: 'block', componentKey: 'mark-list', dataKey: 'interactions', variant: 'default', label: 'INTERACTION', contentFontScale: 0.9, minH: 1.8,
-              blockConfig: {
-                items: [{ label: '触る' }],
-                marks: [{ symbol: '◎', color: '#22c55e', bg: '#f9fafb' }],
-              },
-            },
+            { type: 'ref', blockId: 'interactions', minH: 1.8 },
           ],
         },
       ],
     },
   },
 
+  // ─── 縦向きレイアウト（Web 表示：流動高さ・スクロール対応）────────────────────
   portrait: {
     cardWidth:  PORTRAIT_WIDTH,
-    cardHeight: PORTRAIT_HEIGHT,
+    autoHeight: true,
     grid: { cellSize: 10, gap: 4 },
     defaultLabelFontScale: 1.8,
     defaultContentFontScale: 1.6,
     defaultPaddingScale: 1.8,
     layout: {
       type: 'col',
-      flex: 1,
       gap: 3,
       children: [
-        // 上部: プロフィール画像 + 名前/タグ/SNS
+        // プロフィールヘッダー
         {
           type: 'row',
-          minH: 20,
           gap: 3,
+          alignItems: 'center',
           children: [
-            { type: 'block', componentKey: 'profileImage', dataKey: 'profileImage', variant: 'default', minW: 20 },
+            { type: 'ref', blockId: 'profileImage', minW: 18 },
             {
               type: 'col',
               flex: 1,
               gap: 2,
-              justify: 'space-between',
               children: [
                 {
                   type: 'row',
                   gap: 2,
+                  alignItems: 'center',
                   children: [
-                    { type: 'block', componentKey: 'text', dataKey: 'name',      variant: 'default', flex: 1 },
-                    { type: 'block', componentKey: 'select', dataKey: 'trustRank', variant: 'default', alignSelf: 'center' },
+                    { type: 'ref', blockId: 'name',      flex: 1 },
+                    { type: 'ref', blockId: 'trustRank', alignSelf: 'center' },
                   ],
                 },
                 {
                   type: 'row',
                   gap: 1.5,
                   children: [
-                    { type: 'block', componentKey: 'gender', dataKey: 'gender', variant: 'default', flex: 1 },
-                    { type: 'block', componentKey: 'age', dataKey: 'age',       variant: 'default', flex: 1 },
+                    { type: 'ref', blockId: 'gender', flex: 1 },
+                    { type: 'ref', blockId: 'age',    flex: 1 },
                   ],
                 },
               ],
             },
           ],
         },
-        // 区切り
         { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'default' },
-        // ABOUT
-        { type: 'block', componentKey: 'text', dataKey: 'selfIntro', variant: 'default', minH: 8, label: 'ABOUT', contentFontScale: 0.9 },
-        // 区切り
+        // 自己紹介
+        { type: 'ref', blockId: 'selfIntro', minH: 8 },
         { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'default' },
-        // 下部 2 カラム
+        // プレイ環境・言語・マイク
         {
-          type: 'row',
-          flex: 1,
+          type: 'col',
+          gap: 2,
           children: [
-            // 左: PROFILE + STATUS
-            {
-              type: 'col',
-              flex: 1,
-              gap: 2,
-              justify: 'space-between',
-              children: [
-                { type: 'block', componentKey: 'multi-select', dataKey: 'playEnv',   variant: 'slash',   minH: 3, label: '環境',        subLabel: 'env' },
-                { type: 'block', componentKey: 'language', dataKey: 'language',  variant: 'slash',   minH: 3, label: '言語',        subLabel: 'language' },
-                { type: 'block', componentKey: 'gauge', dataKey: 'micOnRate', variant: 'default', minH: 3, label: 'マイクON率', subLabel: 'mic' },
-                { type: 'block', componentKey: 'color-status', dataKey: 'status',    variant: 'default', flex: 1, label: 'STATUS',      contentFontScale: 0.9 },
-              ],
-            },
-            // 縦区切り
-            { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'vertical', minW: 2 },
-            // 右: ACTIVITY + INTERACTION
-            {
-              type: 'col',
-              flex: 1,
-              gap: 2,
-              children: [
-                { type: 'block', componentKey: 'activity', dataKey: 'activity',     variant: 'v2',     minH: 12, label: 'ACTIVITY' },
-                { type: 'block', componentKey: 'mark-list', dataKey: 'interactions', variant: 'default', flex: 1, label: 'INTERACTION', contentFontScale: 0.9 },
-              ],
-            },
+            { type: 'ref', blockId: 'playEnv',  minH: 3 },
+            { type: 'ref', blockId: 'language', minH: 3 },
+            { type: 'ref', blockId: 'gauge1',   minH: 3 },
           ],
         },
+        { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'default' },
+        // ステータス
+        { type: 'ref', blockId: 'status', variant: 'cards', minH: 8 },
+        { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'default' },
+        // アクティビティ・インタラクション
+        { type: 'ref', blockId: 'activity',     minH: 12 },
+        { type: 'ref', blockId: 'interactions', minH: 8 },
       ],
     },
   },

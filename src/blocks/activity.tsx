@@ -24,7 +24,7 @@ export const activityComponent: ComponentDef<ActivityValue> = {
         { label: '休日', start: safe.holidayStart, end: safe.holidayEnd, color: '#f59e0b', irregular: safe.holidayTimesMode === 'irregular' },
       ]
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, width: '100%', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)', borderRadius: ctx.cardWidth * 0.006, boxShadow: '0 0 12px rgba(0,0,0,0.08)', padding: '6px 8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, width: '100%', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)', borderRadius: ctx.cardWidth * 0.006, boxShadow: '0 0 12px rgba(0,0,0,0.08)', padding: '6px 8px' }}>
           {/* 曜日サークル */}
           {safe.days.length === 7 && (
             <div style={{ display: 'flex', gap: 3 }}>
@@ -80,7 +80,7 @@ export const activityComponent: ComponentDef<ActivityValue> = {
       return <span style={{ fontSize: ctx.fontSize.sm, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>–</span>
     }
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontFamily: ctx.fontFamily }}>
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4, fontFamily: ctx.fontFamily }}>
         {activeDays && (
           <div style={{ display: 'flex', gap: 3 }}>
             {activeDays.map(({ d, active }, i) => (

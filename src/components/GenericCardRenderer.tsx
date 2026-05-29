@@ -91,7 +91,8 @@ function renderNode(
       flexShrink: hasFlex ? 1 : 0,
       flexBasis: hasFlex ? 0 : 'auto',
       ...(node.minW !== undefined && !hasFlex ? { width: cellsToPixels(node.minW, cellSize) } : {}),
-      ...(node.minH !== undefined && !hasFlex ? { minHeight: cellsToPixels(node.minH, cellSize) } : {}),
+      // minHeight ではなく height を使うことで子要素の height:100% が正しく解決される
+      ...(node.minH !== undefined && !hasFlex ? { height: cellsToPixels(node.minH, cellSize), overflow: 'hidden' } : {}),
       ...(node.alignSelf ? { alignSelf: node.alignSelf } : {}),
       ...highlight,
     }

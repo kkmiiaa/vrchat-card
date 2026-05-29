@@ -113,7 +113,7 @@ describe('flex stretch 互換性: ルート div が height: 100% を持たない
     expect(getRootStyle(container).height).not.toBe('100%')
   })
 
-  it('gallery / default: ルート div に height: 100% が設定されていない', () => {
+  it('gallery / default: ルート div に height: 100% が設定されている（minH を親から継承するため）', () => {
     const { container } = render(
       galleryComponent.CardItem!({
         value: { enabled: true, images: [null, null, null], base64: ['data:image/png;base64,abc', null, null] },
@@ -121,6 +121,6 @@ describe('flex stretch 互換性: ルート div が height: 100% を持たない
         variant: 'default',
       })
     )
-    expect(getRootStyle(container).height).not.toBe('100%')
+    expect(getRootStyle(container).height).toBe('100%')
   })
 })

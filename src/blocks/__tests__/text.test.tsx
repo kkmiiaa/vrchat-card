@@ -97,4 +97,44 @@ describe('text', () => {
       )
     ).not.toThrow()
   })
+
+  // jsdom は -webkit-line-clamp を認識しないため CSS 値の検証は不可。
+  // ここでは「rows 指定時にクラッシュしない」「テキストが描画される」ことを検証する。
+  // 実ブラウザでの行数制限動作は E2E テストで確認すること。
+
+  it('13. CardItem: blockConfig.rows を指定してもエラーなく描画される', () => {
+    expect(() =>
+      render(
+        textComponent.CardItem!({
+          value: 'テスト',
+          ctx: DEFAULT_CARD_RENDER_CONTEXT,
+          blockConfig: { rows: 3 },
+        })
+      )
+    ).not.toThrow()
+  })
+
+  it('14. CardItem: blockConfig.rows を指定してもテキストが描画される', () => {
+    const { container } = render(
+      textComponent.CardItem!({
+        value: 'テスト',
+        ctx: DEFAULT_CARD_RENDER_CONTEXT,
+        blockConfig: { rows: 3 },
+      })
+    )
+    const p = container.querySelector('p') as HTMLElement
+    expect(p.textContent).toBe('テスト')
+  })
+
+  it('15. CardItem: multiline=false かつ rows 指定でもエラーなく描画される', () => {
+    expect(() =>
+      render(
+        textComponent.CardItem!({
+          value: 'テスト',
+          ctx: DEFAULT_CARD_RENDER_CONTEXT,
+          blockConfig: { multiline: false, rows: 3 },
+        })
+      )
+    ).not.toThrow()
+  })
 })

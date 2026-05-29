@@ -8,7 +8,7 @@ export const showBalloonBlock: ComponentDef<boolean> = {
   FormItem({ value, onChange, t }) {
     return (
       <div className="flex flex-col gap-2">
-        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.speechBubble}</h2>
+        <h2 className="text-sm font-medium text-gray-500">{t.speechBubble}</h2>
         <BalloonToggle showBalloon={value} setShowBalloon={onChange} t={t} />
       </div>
     )

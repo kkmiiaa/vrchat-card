@@ -77,7 +77,7 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
 
     return (
       <div className="flex flex-col gap-5">
-        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.backgroundSettings}</h2>
+        <h2 className="text-sm font-medium text-gray-500">{t.backgroundSettings}</h2>
 
         {/* 単色 */}
         <div>

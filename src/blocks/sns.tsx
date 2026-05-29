@@ -1,24 +1,54 @@
 'use client'
 import type { Block, SnsValue } from './types'
 
+const SNS_ICONS: Record<string, string> = {
+  VRC: '/icon_vrchat.png',
+  X:   '/icon_x.png',
+  DC:  '/icon_discord.png',
+}
+
 export const snsBlock: Block<SnsValue> = {
   key: 'sns',
   defaultValue: { vrchatId: '', twitterId: '', discordId: '' },
-  variants: ['default', 'icon'],  // default=ラベル+テキスト, icon=アイコン+テキスト
-  CardItem({ value, ctx }) {
+  variants: ['default', 'icon'],  // default=テキストラベル+ID, icon=プラットフォームアイコン+ID
+  CardItem({ value, ctx, variant = 'default', blockConfig }) {
     const safe: SnsValue = (value && typeof value === 'object') ? value as SnsValue : { vrchatId: '', twitterId: '', discordId: '' }
     const entries = [
-      { label: 'VRC', val: safe.vrchatId },
-      { label: 'X', val: safe.twitterId },
-      { label: 'DC', val: safe.discordId },
+      { key: 'VRC', val: safe.vrchatId },
+      { key: 'X',   val: safe.twitterId },
+      { key: 'DC',  val: safe.discordId },
     ].filter(e => e.val)
-    if (!entries.length) return null
+    if (!entries.length) {
+      if (blockConfig?.hideWhenEmpty) return null
+      return <span style={{ fontSize: ctx.fontSize.md, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>–</span>
+    }
     const fs = ctx.cardWidth * 0.012
+    const iconSize = fs * 1.4
+
+    // icon: プラットフォームアイコン画像 + テキスト
+    if (variant === 'icon') {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {entries.map(({ key, val }) => (
+            <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <img
+                src={SNS_ICONS[key]}
+                alt={key}
+                style={{ width: iconSize, height: iconSize, objectFit: 'contain', flexShrink: 0 }}
+              />
+              <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{val}</span>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    // default: テキストラベル + ID
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {entries.map(({ label, val }) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: fs * 0.85, color: ctx.theme.subText, fontWeight: 600, fontFamily: ctx.fontFamily, minWidth: '2em' }}>{label}</span>
+        {entries.map(({ key, val }) => (
+          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: fs * 0.85, color: ctx.theme.subText, fontWeight: 600, fontFamily: ctx.fontFamily, minWidth: '2em' }}>{key}</span>
             <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily }}>{val}</span>
           </div>
         ))}
@@ -30,7 +60,7 @@ export const snsBlock: Block<SnsValue> = {
       onChange({ ...value, [key]: v })
     return (
       <div className="flex flex-col gap-3">
-        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.snsInfo}</h2>
+        <h2 className="text-sm font-medium text-gray-500">{t.snsInfo}</h2>
         <label className="flex flex-col gap-1">
           <span className="text-sm font-semibold text-gray-700">VRChat ID</span>
           <input type="text" value={value.vrchatId} onChange={e => update('vrchatId')(e.target.value)}

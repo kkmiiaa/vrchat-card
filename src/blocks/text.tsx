@@ -16,6 +16,7 @@ export const textComponent: ComponentDef<string> = {
     const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
     const multiline = blockConfig?.multiline !== false
     const noPadding = blockConfig?.noPadding === true
+    const maxRows = typeof blockConfig?.rows === 'number' ? blockConfig.rows : undefined
     return (
       <div style={{
         width: '100%',
@@ -29,6 +30,7 @@ export const textComponent: ComponentDef<string> = {
         flexDirection: (label?.dir === 'row') ? 'row' : 'column',
         gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
         alignItems: (label?.dir === 'row') ? 'center' : (label ? 'stretch' : (multiline ? 'flex-start' : 'center')),
+        justifyContent: (label?.dir === 'row') ? undefined : (multiline ? 'flex-start' : 'center'),
       }}>
         {label && (
           <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
@@ -38,7 +40,7 @@ export const textComponent: ComponentDef<string> = {
         )}
         <p style={{
           fontSize: fs,
-          color: ctx.theme.text,
+          color: (value as string) ? ctx.theme.text : ctx.theme.subText,
           lineHeight: 1.75,
           whiteSpace: multiline ? 'pre-wrap' : 'nowrap',
           wordBreak: multiline ? 'break-all' : 'normal',
@@ -47,7 +49,12 @@ export const textComponent: ComponentDef<string> = {
           fontFamily: ctx.fontFamily,
           margin: 0,
           width: '100%',
-        }}>{value as string || ''}</p>
+          ...(multiline && maxRows !== undefined ? {
+            display: '-webkit-box',
+            WebkitLineClamp: maxRows,
+            WebkitBoxOrient: 'vertical' as const,
+          } : {}),
+        }}>{(value as string) || '-'}</p>
       </div>
     )
   },

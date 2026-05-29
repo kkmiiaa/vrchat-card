@@ -5,11 +5,12 @@ import { useSearchParams, usePathname } from 'next/navigation'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
 
-import type { CardTemplate, BlockValues, BackgroundValue, GalleryValue } from '@/blocks/types'
+import type { CardTemplate, BlockValues, BackgroundValue, GalleryValue, TemplateSectionBlock, FormSection } from '@/blocks/types'
 import { createCard, updateCard } from '@/lib/saveCard'
 import { createClient } from '@/lib/supabase/client'
 import { uploadCardImage, ImageTooLargeError } from '@/lib/uploadImage'
 import type { FontKey } from '@/components/FontSelector'
+import FontSelector from '@/components/FontSelector'
 import { fontMap } from '@/lib/fontMap'
 import { getCroppedImg } from '@/utils/cropUtils'
 import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
@@ -35,9 +36,10 @@ type Props = {
   initialValues?: Record<string, unknown>
   readOnly?: boolean
   announcements?: Announcement[]
+  formSections?: FormSection[]
 }
 
-export default function CardEditor({ template, cardId: initialCardId, initialValues, readOnly = false, announcements = [] }: Props) {
+export default function CardEditor({ template, cardId: initialCardId, initialValues, readOnly = false, announcements = [], formSections: propFormSections }: Props) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -429,47 +431,89 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
           <AnnouncementBanner announcements={announcements} />
 
-          {/* テンプレートの順番通りにセクションを描画 */}
-          {template.sections.map(section => {
+          {/* formSections がある場合はそちらを優先、なければ template.sections にフォールバック */}
+          {propFormSections && propFormSections.length > 0 ? (
+            propFormSections.map((section, si) => (
+              <AccordionSection key={si} title={section.title} defaultOpen={section.defaultOpen} t={t}>
+                <div className="flex flex-col divide-y divide-gray-100">
+                  {section.items.map((item, ii) => {
+                    if (item.type === 'font') {
+                      return (
+                        <div key={ii} className="pt-4 first:pt-2 pb-4">
+                          <FontSelector
+                            fontKey={fontKey}
+                            setFontKey={fk => updateValue('font', fk)}
+                            t={t}
+                          />
+                        </div>
+                      )
+                    }
+                    if (item.type === 'text') {
+                      return item.style === 'heading'
+                        ? <p key={ii} className="pt-4 first:pt-2 text-sm font-semibold text-gray-700">{item.content}</p>
+                        : <p key={ii} className="pt-2 text-xs text-gray-500">{item.content}</p>
+                    }
+                    const block = blockMap[item.dataKey]
+                    if (!block) return null
+                    if (item.hideWhenEmpty) {
+                      const isEmpty = block.isEmpty
+                        ? block.isEmpty(values[item.dataKey])
+                        : JSON.stringify(values[item.dataKey]) === JSON.stringify(block.defaultValue)
+                      if (isEmpty) return null
+                    }
+                    const formLabel = item.formLabel ?? block.formLabel
+                    return (
+                      <div key={ii} className="pt-4 first:pt-2 pb-4">
+                        {formLabel && <p className="text-base font-semibold text-gray-700 mb-1">{formLabel}</p>}
+                        <block.FormItem value={values[item.dataKey]} onChange={v => updateValue(item.dataKey, v)} t={t} blockConfig={block.blockConfig} formLabel={formLabel} />
+                      </div>
+                    )
+                  })}
+                </div>
+              </AccordionSection>
+            ))
+          ) : (
+          template.sections.map(section => {
             const isProfile = section.titleKey === 'プロフィール情報'
             return (
               <AccordionSection key={section.titleKey} title={section.titleKey} defaultOpen={section.defaultOpen} t={t}>
-                <div className="flex flex-col gap-6 pt-2 pb-2">
-                  {/* プロフィール情報セクションのみ画像アップロードを先頭に挿入 */}
+                <div className="flex flex-col divide-y divide-gray-100">
                   {isProfile && (
-                    <div className="flex flex-col gap-2">
+                    <div className="pt-4 first:pt-2 pb-2 flex flex-col gap-2">
                       <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.profileImage}</h2>
                       <label className="flex items-center gap-3">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleProfileImageUpload}
-                          className="hidden"
-                          id="profile-image-upload"
-                        />
-                        <label
-                          htmlFor="profile-image-upload"
-                          className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium py-1.5 px-3 rounded-lg cursor-pointer transition-colors flex-shrink-0"
-                        >
+                        <input type="file" accept="image/*" onChange={handleProfileImageUpload} className="hidden" id="profile-image-upload" />
+                        <label htmlFor="profile-image-upload" className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium py-1.5 px-3 rounded-lg cursor-pointer transition-colors flex-shrink-0">
                           {t.chooseFile}
                         </label>
-                        <span className="text-sm text-gray-500 truncate">
-                          {profileImageFile ? profileImageFile.name : t.noFileChosen}
-                        </span>
+                        <span className="text-sm text-gray-500 truncate">{profileImageFile ? profileImageFile.name : t.noFileChosen}</span>
                       </label>
                     </div>
                   )}
-                  {section.blockKeys.map(key => {
+                  {section.blockKeys.map(entry => {
+                    const key = typeof entry === 'string' ? entry : entry.key
+                    const sectionBlock = typeof entry === 'object' ? entry as TemplateSectionBlock : undefined
                     const block = blockMap[key]
-                      if (!block) return null
-                      return (
-                        <block.FormItem key={key} value={values[key]} onChange={v => updateValue(key, v)} t={t} />
-                      )
-                    })}
-                  </div>
-                </AccordionSection>
-              )
-            })}
+                    if (!block) return null
+                    if (sectionBlock?.hideWhenEmpty) {
+                      const isEmpty = block.isEmpty
+                        ? block.isEmpty(values[key])
+                        : JSON.stringify(values[key]) === JSON.stringify(block.defaultValue)
+                      if (isEmpty) return null
+                    }
+                    const formLabel = sectionBlock?.formLabel ?? blockMap[key]?.formLabel
+                    return (
+                      <div key={key} className="pt-4 first:pt-2 pb-4">
+                        {formLabel && <p className="text-base font-semibold text-gray-700 mb-1">{formLabel}</p>}
+                        <block.FormItem value={values[key]} onChange={v => updateValue(key, v)} t={t} blockConfig={blockMap[key]?.blockConfig} formLabel={formLabel} />
+                      </div>
+                    )
+                  })}
+                </div>
+              </AccordionSection>
+            )
+          })
+          )}
 
 
           <PostTimeline t={t} />

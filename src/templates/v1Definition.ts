@@ -150,7 +150,6 @@ export const cardV1Definition: TemplateDefinition = {
     defaultPaddingScale: 1.8,
     layout: {
       type: 'col',
-      flex: 1,
       gap: 3,
       children: [
         {
@@ -191,7 +190,6 @@ export const cardV1Definition: TemplateDefinition = {
         { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'default' },
         {
           type: 'row',
-          flex: 1,
           children: [
             {
               type: 'col',
@@ -210,7 +208,7 @@ export const cardV1Definition: TemplateDefinition = {
               type: 'col',
               flex: 3,
               children: [
-                { type: 'block', componentKey: 'text', dataKey: 'selfIntro', variant: 'default', flex: 1, label: '自己紹介', subLabel: 'about me', contentFontScale: 0.7 },
+                { type: 'block', componentKey: 'text', dataKey: 'selfIntro', variant: 'default', minH: 10, label: '自己紹介', subLabel: 'about me', contentFontScale: 0.7 },
                 { type: 'block', componentKey: 'gallery', dataKey: 'gallery',   variant: 'default', minH: 9 },
               ],
             },

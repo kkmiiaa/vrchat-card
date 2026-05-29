@@ -464,7 +464,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
                     const formLabel = item.formLabel ?? block.formLabel
                     return (
                       <div key={ii} className="pt-4 first:pt-2 pb-4">
-                        {formLabel && <p className="text-base font-semibold text-gray-700 mb-1">{formLabel}</p>}
+                        {formLabel && <p className="text-lg font-bold text-gray-800 mb-1">{formLabel}</p>}
                         <block.FormItem value={values[item.dataKey]} onChange={v => updateValue(item.dataKey, v)} t={t} blockConfig={block.blockConfig} formLabel={formLabel} />
                       </div>
                     )
@@ -504,7 +504,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
                     const formLabel = sectionBlock?.formLabel ?? blockMap[key]?.formLabel
                     return (
                       <div key={key} className="pt-4 first:pt-2 pb-4">
-                        {formLabel && <p className="text-base font-semibold text-gray-700 mb-1">{formLabel}</p>}
+                        {formLabel && <p className="text-lg font-bold text-gray-800 mb-1">{formLabel}</p>}
                         <block.FormItem value={values[key]} onChange={v => updateValue(key, v)} t={t} blockConfig={blockMap[key]?.blockConfig} formLabel={formLabel} />
                       </div>
                     )

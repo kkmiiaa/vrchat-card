@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import type { TemplateDefinition, BlockValues, LayoutNode, Block, LayoutNodeRow, LayoutNodeCol, LayoutNodeRef, TemplateGridDef, FormSection, FormNode, FormNodeBlock, FormNodeFont, BgVariant } from '@/blocks/types'
 import { saveTemplateLayout } from '@/lib/templateLayout'
 import type { TemplateLayoutRow } from '@/lib/templateLayout'
@@ -177,7 +178,18 @@ type Props = {
 }
 
 export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabelChange }: Props) {
-  const [selectedDefIdx, setSelectedDefIdx] = useState(0)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const [selectedDefIdx, setSelectedDefIdx] = useState(() => {
+    const defId = searchParams.get('def')
+    if (defId) {
+      const idx = definitions.findIndex(d => d.id === defId)
+      if (idx >= 0) return idx
+    }
+    return 0
+  })
   const definition = definitions[selectedDefIdx]
 
   const [poolBlocks, setPoolBlocks] = useState<Record<string, Record<string, PoolEntry>>>(
@@ -1206,7 +1218,14 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           {definitions.map((def, idx) => (
             <button
               key={def.id}
-              onClick={() => { setSelectedDefIdx(idx); setSelectedPath(null); setSelectedOverlay(false) }}
+              onClick={() => {
+                setSelectedDefIdx(idx)
+                setSelectedPath(null)
+                setSelectedOverlay(false)
+                const p = new URLSearchParams(searchParams.toString())
+                p.set('def', definitions[idx].id)
+                router.replace(`${pathname}?${p.toString()}`)
+              }}
               className={`w-full text-left px-3 py-2.5 transition-colors ${
                 selectedDefIdx === idx ? 'bg-sky-50 border-r-2 border-sky-400' : 'hover:bg-gray-50'
               }`}

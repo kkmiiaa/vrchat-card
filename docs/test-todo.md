@@ -103,12 +103,34 @@
 1. **自動マイグレーション発動条件**: `src/components/CardEditor.tsx` `handleShareByUrl` の発動条件
    `isLoggedIn && !cardId && localStorageにデータあり` の分岐をユニット/結合でテスト（E2E は TC-6-H 済み）。
 2. **Stripe Webhook**: `checkout.session.completed` / `invoice.paid` / `customer.subscription.deleted` の plan 更新ロジック。
+   実態: `src/app/api/stripe/webhook/route.ts`
 3. **カード削除時 Storage**: gallery 画像削除・OGP 画像は残す、の分岐（spec.md「カード削除時の処理」）。
+   実態: `src/app/api/cards/[cardId]/route.ts` DELETE ハンドラ
 4. **探索フィルター実体**: タスク0 確定後、Pro の `q`/`gender`/`env`/`lang`/`friendPolicy` フィルターの結合/E2E。
+   実態: `src/app/api/cards/explore/route.ts`
 5. **`/upgrade` ページ E2E**: ページ表示・Stripe チェックアウト導線のテスト（`tests/e2e/upgrade.spec.ts`）。
    - ページが正常に表示される（500 なし）
    - Pro プランへのアップグレードボタンが表示される
    - 未ログイン時は `/auth/login` にリダイレクトされる（または適切に案内される）
+6. **API: `PATCH /api/cards/[cardId]`**: カード更新の主要ロジックのテスト。
+   実態: `src/app/api/cards/[cardId]/route.ts`
+   - card_data の更新が正しく DB に反映される
+   - 未認証時は 401 を返す
+   - 他ユーザーのカードは更新できない（`user_id` フィルター）
+   - imageBase64 が渡されると Storage にアップロードして `image_url` が更新される
+7. **API: `POST /api/cards/[cardId]/like`**: いいねカウント増減のテスト。
+   実態: `src/app/api/cards/[cardId]/like/route.ts`
+   - delta=+1 でカウントが増える
+   - delta=-1 でカウントが減る
+8. **API: `POST /api/stripe/checkout`**: Stripe チェックアウトセッション生成のテスト。
+   実態: `src/app/api/stripe/checkout/route.ts`
+   - 未認証時は 401 を返す
+   - 認証済みのとき Stripe セッション URL が返る
+9. **API: `POST /api/stripe/portal`**: Stripe 顧客ポータルセッション生成のテスト。
+   実態: `src/app/api/stripe/portal/route.ts`
+   - 未認証時は 401 を返す
+   - `stripe_customer_id` がない場合は 400 を返す
+   - 認証済み・顧客 ID あり のとき URL が返る
 
 ---
 

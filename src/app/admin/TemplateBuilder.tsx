@@ -1389,19 +1389,23 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           </div>
           <button
             onClick={() => {
-              if (!confirm(`${orientation === 'card' ? 'カード' : 'Web'}レイアウトを定義のデフォルトに戻しますか？`)) return
+              const savedLayout = orientation === 'card'
+                ? savedLayouts[definition.id]?.card_layout
+                : savedLayouts[definition.id]?.web_layout
+              if (!savedLayout) return
+              if (!confirm(`${orientation === 'card' ? 'カード' : 'Web'}レイアウトの未保存の変更を破棄しますか？`)) return
               setLayouts(prev => ({
                 ...prev,
                 [definition.id]: {
                   ...prev[definition.id],
-                  [orientation]: definition[orientation].layout,
+                  [orientation]: savedLayout,
                 },
               }))
               setSelectedPath(null)
             }}
             className="flex-shrink-0 px-3 py-1 text-xs rounded border font-medium border-gray-300 bg-white text-gray-500 hover:bg-gray-50 transition-colors"
           >
-            定義に戻す
+            変更を破棄
           </button>
           <button
             onClick={handleSave}

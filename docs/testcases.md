@@ -938,7 +938,7 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 
 ## TC-10: ライブラリ — legacyCardDataMigration（legacyCardDataMigration.test.ts / migrateV1LegacyData.test.ts）
 
-### TC-10-1: V2 移行（`migrateLegacyCardData('v2', ...)`）
+### TC-10-1: V2 旧フォーマット変換（`migrateLegacyCardData('v2', ...)`）— DB保存済みカードの読み込み時変換
 
 | # | テスト内容 | 意味 | 期待値 |
 |---|---|---|---|
@@ -955,7 +955,7 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 | 11 | `language: string[]` → `{ preset, custom: [] }` に変換 | language 型変換 | オブジェクト形式に変換 |
 | 12 | language がすでにオブジェクトなら変換しない | 冪等性 | 既存値が維持される |
 
-### TC-10-2: V1 移行（`migrateLegacyCardData('v1', ...)`）— 旧メーカー `/card/vrchat` からの自動マイグレーション
+### TC-10-2: V1 旧メーカーデータ変換（`migrateLegacyCardData('v1', ...)`）— 旧メーカー `/card/vrchat` からの自動マイグレーション
 
 | # | テスト内容 | 意味 | 期待値 |
 |---|---|---|---|

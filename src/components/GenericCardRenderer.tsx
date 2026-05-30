@@ -345,7 +345,6 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
         fontFamily: resolvedFont,
         background: bg,
         borderRadius: definition.borderRadius ?? 20,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
       }}
     >
       {/* オーバーレイ（背景の上・コンテンツの下） */}

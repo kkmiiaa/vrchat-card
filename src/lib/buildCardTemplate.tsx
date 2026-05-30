@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 import type { CardTemplate, TemplateDefinition, FormSection } from '@/blocks/types'
 import type { TemplateLayoutRow } from '@/lib/templateLayout'
@@ -60,6 +58,7 @@ export function buildCardTemplateFromDefinition(
       return true
     })
 
+
   const template: CardTemplate = {
     id:           definition.id as 'v1' | 'v2',
     title:        dbRow?.label ?? definition.label,
@@ -68,10 +67,10 @@ export function buildCardTemplateFromDefinition(
     badgeColor:   '',
     communities:  ['VRChat'],
     communitySlug:'vrchat',
-    cardWidth:    definition.card.cardWidth,
-    cardHeight:   definition.card.cardHeight ?? definition.card.cardWidth,
-    webWidth:     definition.web.cardWidth,
-    webHeight:    definition.web.cardWidth,
+    cardWidth:    resolvedDefinition.card.cardWidth,
+    cardHeight:   resolvedDefinition.card.cardHeight ?? resolvedDefinition.card.cardWidth,
+    webWidth:     resolvedDefinition.web.cardWidth,
+    webHeight:    resolvedDefinition.web.cardHeight ?? resolvedDefinition.web.cardWidth,
     sections:     [],  // propFormSections を使うため不要
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     blocks:       blocks as any,

@@ -513,7 +513,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               >
                 <div style={{ width: '100%', height: cardH * scale, position: 'relative', overflow: 'hidden' }}>
                   <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: cardW, height: cardH, position: 'absolute', top: 0, left: 0 }}>
-                    <template.CardRenderer values={values} fontFamily={fontFamily} t={translations.ja} isInteractive orientation={orientation} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
+                    <template.CardRenderer values={values} fontFamily={fontFamily} t={translations.ja} isInteractive noBackground orientation={orientation} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
                   </div>
                 </div>
               </div>
@@ -530,7 +530,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <rect x="2" y="6" width="20" height="12" rx="2"/>
               </svg>
-              横
+              カード
             </button>
             <button
               onClick={() => setOrientation('web')}
@@ -539,7 +539,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <rect x="6" y="2" width="12" height="20" rx="2"/>
               </svg>
-              縦
+              Web
             </button>
           </div>
         )}

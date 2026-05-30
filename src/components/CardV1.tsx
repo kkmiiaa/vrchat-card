@@ -163,6 +163,14 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
   ref
 ) {
   const L = lang === 'en' ? EN : JA
+
+  // language は旧フォーマット string[] または新フォーマット { preset, custom } の両方に対応
+  const languageArr: string[] = Array.isArray(language)
+    ? language
+    : language && typeof language === 'object'
+      ? [...((language as { preset?: string[]; custom?: string[] }).preset ?? []), ...((language as { preset?: string[]; custom?: string[] }).custom ?? [])]
+      : []
+
   const genderTag = resolveGenderTag(genderTagRaw)
   const genderDisplay = genderTag.display || (genderTag.tag !== 'none' ? GENDER_TAG_LABELS[genderTag.tag] ?? '' : '—')
 
@@ -298,7 +306,7 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
                 <div style={{ flexShrink: 0 }}>
                   <LabelRow title={L.lang} sub={L.sub_lang} fontFamily={fontFamily} large />
                   <div style={pBox()}>
-                    <div style={{ fontSize: pFs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(language ?? []).join(' / ') || '—'}</div>
+                    <div style={{ fontSize: pFs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{languageArr.join(' / ') || '—'}</div>
                   </div>
                 </div>
 
@@ -455,7 +463,7 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
             <LabelRow title={L.lang} sub={L.sub_lang} fontFamily={fontFamily} />
             <div style={box()}>
               <div style={{ fontSize: fs, color: '#1f2937', fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {(language ?? []).join(' / ') || '—'}
+                {languageArr.join(' / ') || '—'}
               </div>
             </div>
           </div>

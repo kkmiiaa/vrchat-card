@@ -394,6 +394,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
 
   const [selectedPath, setSelectedPath] = useState<NodePath | null>(null)
   const selectedNode = selectedPath ? getNode(layout, selectedPath) : null
+  const [selectedPoolBlockId, setSelectedPoolBlockId] = useState<string | null>(null)
 
   const o = definition[orientation]
   const scale = fitScale * scaleMultiplier
@@ -588,7 +589,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           draggable={isMovable}
           onDragStart={startDrag}
           onDragEnd={endDrag}
-          onClick={() => { setSelectedPath(path); setSelectedOverlay(false) }}
+          onClick={() => { setSelectedPath(path); setSelectedOverlay(false); setSelectedPoolBlockId(null) }}
           className={`flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer text-xs transition-colors ${
             isSelected ? 'bg-sky-100 text-indigo-700' : 'text-indigo-600 hover:bg-indigo-50'
           } ${isDraggingThis ? 'opacity-30' : ''}`}
@@ -615,7 +616,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           draggable={isMovable}
           onDragStart={startDrag}
           onDragEnd={endDrag}
-          onClick={() => { setSelectedPath(path); setSelectedOverlay(false) }}
+          onClick={() => { setSelectedPath(path); setSelectedOverlay(false); setSelectedPoolBlockId(null) }}
           className={`flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer text-xs transition-colors ${
             isSelected ? 'bg-sky-100 text-sky-800' : 'hover:bg-gray-100 text-gray-700'
           } ${isDraggingThis ? 'opacity-30' : ''}`}
@@ -644,7 +645,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           draggable={isMovable}
           onDragStart={startDrag}
           onDragEnd={endDrag}
-          onClick={() => { setSelectedPath(path); setSelectedOverlay(false) }}
+          onClick={() => { setSelectedPath(path); setSelectedOverlay(false); setSelectedPoolBlockId(null) }}
           className={`flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer text-xs transition-colors ${
             isSelected ? 'bg-sky-100 text-sky-800' : 'hover:bg-gray-100'
           } ${isDraggingThis ? 'opacity-30' : ''}`}
@@ -694,6 +695,55 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
             onChange={v => setCurrentOverlayConfig(v as OverlayValue)}
             t={translations.ja}
           />
+        </div>
+      )
+    }
+    if (selectedPoolBlockId && !selectedPath) {
+      const entry = currentPool[selectedPoolBlockId]
+      if (!entry) return <p className="text-xs text-gray-400 px-3 py-4">ブロックが見つかりません</p>
+      const comp = getComponent(entry.componentKey)
+      const updatePoolEntry = (patch: Partial<PoolEntry>) =>
+        setCurrentPool(prev => ({ ...prev, [selectedPoolBlockId]: { ...prev[selectedPoolBlockId], ...patch } }))
+      return (
+        <div className="px-3 py-3 flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-200 rounded px-2 py-0.5">{selectedPoolBlockId}</span>
+            <span className="text-[10px] text-gray-400">{entry.componentKey}</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-gray-500">ラベル</label>
+              <input
+                type="text"
+                value={entry.label ?? ''}
+                onChange={e => updatePoolEntry({ label: e.target.value || undefined })}
+                placeholder="ラベルなし"
+                className="text-xs border rounded px-2 py-1 bg-white"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-gray-500">サブラベル</label>
+              <input
+                type="text"
+                value={entry.subLabel ?? ''}
+                onChange={e => updatePoolEntry({ subLabel: e.target.value || undefined })}
+                placeholder="サブラベルなし"
+                className="text-xs border rounded px-2 py-1 bg-white"
+              />
+            </div>
+          </div>
+          {comp?.blockConfigForm && (
+            <div className="flex flex-col gap-2 border-t border-gray-100 pt-2">
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">ブロック設定</p>
+              <comp.blockConfigForm
+                blockConfig={entry.blockConfig ?? {}}
+                onChange={cfg => updatePoolEntry({ blockConfig: cfg })}
+              />
+            </div>
+          )}
+          {!comp?.blockConfigForm && (
+            <p className="text-[10px] text-gray-400">このコンポーネントには設定項目がありません</p>
+          )}
         </div>
       )
     }
@@ -904,6 +954,16 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
                   />
                   <span className="text-[10px] text-gray-500">ラベルをコンポーネント内に描画（labelInset）</span>
                 </label>
+                {/* blockConfigForm */}
+                {comp?.blockConfigForm && (
+                  <div className="flex flex-col gap-2 border-t border-indigo-100 pt-2">
+                    <p className="text-[9px] text-indigo-400 font-semibold uppercase tracking-wide">ブロック設定（全レイアウト共通）</p>
+                    <comp.blockConfigForm
+                      blockConfig={poolEntry?.blockConfig ?? {}}
+                      onChange={cfg => updatePool({ blockConfig: cfg })}
+                    />
+                  </div>
+                )}
                 {poolEntry?.labelInset && (
                   <div className="flex flex-col gap-1 pl-4">
                     <label className="text-[10px] text-gray-500">labelInsetDir</label>
@@ -1267,8 +1327,17 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
               const lUsed = cardUsedKeys.has(blockId)
               const pUsed = webUsedKeys.has(blockId)
               const color = blockColor(entry.componentKey)
+              const isPoolSelected = selectedPoolBlockId === blockId
               return (
-                <div key={blockId} className="flex items-center gap-1.5 px-2 py-1 hover:bg-gray-50 group">
+                <div
+                  key={blockId}
+                  className={`flex items-center gap-1.5 px-2 py-1 group cursor-pointer ${isPoolSelected ? 'bg-indigo-50 border-r-2 border-indigo-400' : 'hover:bg-gray-50'}`}
+                  onClick={() => {
+                    setSelectedPoolBlockId(blockId)
+                    setSelectedPath(null)
+                    setSelectedOverlay(false)
+                  }}
+                >
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
                   <div className="flex-1 min-w-0">
                     <p className="text-[10px] font-mono text-gray-700 truncate">{blockId}</p>

@@ -46,8 +46,47 @@ E2EはCIでは実行しない（時間がかかりすぎるため）。ローカ
 
 #### 🔄 フェーズ3: 既存 V1・V2 をテンプレートビルダー製テンプレートに置き換え（**現在ここ**）
 - コードで手動定義されている V1・V2 を DB 管理のテンプレートに移行
-- **V1 は既存メーカー利用者（`/card/vrchat`）のマイグレーションを検討しながら進める**
-  - マイグレーション方針は別途検討が必要
+- **V1 は既存メーカー利用者（`/card/vrchat`）のマイグレーションがメインの作業**
+- 最終的に `v1Definition.ts` / `v2Definition.ts` / `v1.tsx` / `v2.tsx` を削除する
+
+##### フェーズ3 の登り方
+
+**ステップ1（調査完了）: データ形式の差異把握**
+
+旧メーカー（`/card/vrchat`）は `CardTemplate` 型（`v1.tsx`）を使う**別システム**。
+テンプレートビルダー V1 は `TemplateDefinition` 型（`v1Definition.ts`）で型が全く異なる。
+
+旧 `BlockValues`（localStorage）と新 V1 `card_data` の主な差異：
+
+| 旧キー | 旧型 | 新キー | 新型 |
+|---|---|---|---|
+| `sns.vrchatId` | string | `vrchat` | string |
+| `sns.twitterId` | string | `x` | string |
+| `sns.discordId` | string | `discord` | string |
+| `sns.friendPolicy` | string | `friendPolicy` | string[] |
+| `gender` | string | `gender` | `{ tag, display? }` |
+| `language` | string[] | `language` | `{ preset: string[], custom: [] }` |
+| `age.mode` | string | `age.searchTag` | string |
+
+**ステップ2: V2 の DB 化（足場固め・リスクゼロ）**
+- カードエディタ（`/card/[cardId]`）が DB からテンプレート定義を読む仕組みを実装
+- V2 で動作確認（既存ユーザーなし）
+- `v2Definition.ts` はこの段階ではフォールバックとして残す
+
+**ステップ3: 旧メーカーの card_data を新 V1 形式に変換する関数を実装**
+- `migrateV1LegacyData(old: BlockValues): NewV1CardData` を実装
+- 上記の差異テーブルをすべて吸収する
+- `migrateFromOld`（さらに古い形式からの変換）とは別レイヤー
+
+**ステップ4: V1 の DB 化 + 旧メーカーの接続**
+- カードエディタが V1 を DB から読む
+- `/card/vrchat` のログイン後マイグレーション（`handleShareByUrl`）で変換関数を通す
+- 既存 DB 保存済みカードの旧形式データも読み込み時に変換
+
+**ステップ5: TS 定義を削除**
+- `v1Definition.ts` / `v2Definition.ts` のフォールバックを外す
+- `v1.tsx` / `v2.tsx` を削除
+- `CardTemplate` 型が不要になれば型定義ごと削除
 
 #### ⏳ フェーズ4: ベータテストに向けた新テンプレート作成
 - TRPG・VTuber など向けテンプレートをテンプレートビルダーで作成

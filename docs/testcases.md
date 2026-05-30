@@ -915,3 +915,102 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 | 11 | 空文字の description は payload に含まれない | 空文字は省略扱い | `'description' in payload === false` |
 
 > **将来課題**: 現在の `searchTag` は `'18歳未満' | '18+' | '非公開'` の粗い粒度。将来的に「20代」「30代」「40代」など細かい年代での検索ニーズが発生した場合、`searchTag` の選択肢拡張と検索インデックスの見直しが必要になる可能性がある。
+
+---
+
+## TC-9: ブロックコンポーネント — profileImage（profileImage.test.tsx）
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | defaultValue は `{ base64: null, url: null }` | 初期値の確認 | `{ base64: null, url: null }` |
+| 2 | variants に `glass` が含まれる | glass バリアントの存在確認 | `variants.includes('glass')` |
+| 3 | default variant: 画像なしのとき "Photo" プレースホルダーが表示される | 未設定時の表示 | `screen.getByText('Photo')` |
+| 4 | default variant: base64 画像が設定されているとき img タグが描画される | base64 の反映 | `img.src === base64文字列` |
+| 5 | url が設定されているとき img src に url が使われる | url の反映 | `img.src === url文字列` |
+| 6 | base64 と url が両方あるとき url が優先される | url 優先ルール | `img.src === url文字列` |
+| 7 | circle variant: border-radius が 50% になる | circle 形状 | `borderRadius === '50%'` |
+| 8 | glass variant: border が設定される | glass ボーダー | `border.includes('rgba(255, 255, 255, 0.75)')` |
+| 9 | glass variant: boxShadow が設定される | glass シャドウ | `boxShadow !== ''` |
+| 10 | glass variant: border は 1px 固定 | border 幅 | `border.startsWith('1px')` |
+| 11 | glass variant と default variant でボーダー有無が異なる | バリアント差異 | glass と default の border が異なる |
+
+---
+
+## TC-10: ライブラリ — legacyCardDataMigration（legacyCardDataMigration.test.ts / migrateV1LegacyData.test.ts）
+
+### TC-10-1: V2 移行（`migrateLegacyCardData('v2', ...)`）
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | templateId が v1/v2 以外のとき無変換 | 未対象テンプレートのスルー | 入力と同一参照 |
+| 2 | sns も micOnRate もない場合は無変換（冪等性） | 新フォーマット入力の安全性 | 入力と同値 |
+| 3 | `sns.twitterId` → `x`、`sns.discordId` → `discord` に変換 | SNS キー変換 | 変換後の値が正しい |
+| 4 | `sns.vrchatId` + `sns.friendPolicy` → `sns-with-friend-policy1: { id, friendPolicy }` | SNS まとめ変換 | オブジェクトが正しく生成 |
+| 5 | 変換後に `sns` キーが削除される | 旧キーの除去 | `result.sns === undefined` |
+| 6 | 既存の `x`/`discord` があれば上書きしない | 冪等性（既存値保護） | 既存値が維持される |
+| 7 | `micOnRate` → `gauge1`（gauge1 未設定時のみ） | ゲージキー変換 | `result.gauge1 === 旧値` |
+| 8 | gauge1 が既にあれば micOnRate を上書きしない | 冪等性 | 既存 gauge1 が維持される |
+| 9 | `gender: string` → `{ tag, display: '' }` に変換 | gender 型変換 | オブジェクト形式に変換 |
+| 10 | gender がすでにオブジェクトなら変換しない | 冪等性 | 既存値が維持される |
+| 11 | `language: string[]` → `{ preset, custom: [] }` に変換 | language 型変換 | オブジェクト形式に変換 |
+| 12 | language がすでにオブジェクトなら変換しない | 冪等性 | 既存値が維持される |
+
+### TC-10-2: V1 移行（`migrateLegacyCardData('v1', ...)`）— 旧メーカー `/card/vrchat` からの自動マイグレーション
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | templateId が v1/v2 以外のとき無変換 | 未対象テンプレートのスルー | 入力と同一参照 |
+| 2 | 新フォーマット入力は無変換（冪等性） | 重複実行の安全性 | 入力と同値 |
+| 3 | `sns.vrchatId` → `vrchat` に変換 | VRChat ID の昇格 | `result.vrchat === sns.vrchatId` |
+| 4 | `sns.twitterId` → `x` に変換 | Twitter ID の昇格 | `result.x === sns.twitterId` |
+| 5 | `sns.discordId` → `discord` に変換 | Discord ID の昇格 | `result.discord === sns.discordId` |
+| 6 | `sns.friendPolicy` → `friendPolicy`（string）に変換 | フレポリの昇格 | `result.friendPolicy === sns.friendPolicy` |
+| 7 | 変換後に `sns` キーが削除される | 旧キーの除去 | `result.sns === undefined` |
+| 8 | 既存の `vrchat`/`x`/`discord`/`friendPolicy` があれば上書きしない | 冪等性（既存値保護） | 既存値が維持される |
+| 9 | `gender: string` → `{ tag, display: '' }` に変換 | gender 型変換 | オブジェクト形式に変換 |
+| 10 | gender がすでにオブジェクトなら変換しない | 冪等性 | 既存値が維持される |
+| 11 | `language: string[]` → `{ preset, custom: [] }` に変換 | language 型変換 | オブジェクト形式に変換 |
+| 12 | language がすでにオブジェクトなら変換しない | 冪等性 | 既存値が維持される |
+| 13 | `age.mode` → `age.searchTag` に変換 | age キー変換 | `result.age.searchTag === 旧 mode` |
+| 14 | `age.searchTag` が既にあれば `age.mode` を上書きしない | 冪等性 | 既存 searchTag が維持される |
+| 15 | age がなければ何もしない | 省略時の安全性 | `result.age === undefined` |
+
+---
+
+## TC-11: ライブラリ — templateLayout（templateLayout.test.ts）
+
+### TC-11-1: `fetchTemplateLayout`
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | DB 行を `TemplateLayoutRow` に整形して返す | 正常系の整形 | 全フィールドが正しくマップされる |
+| 2 | 該当 ID が無いとき `null` を返す | 未存在 ID の安全処理 | `null` |
+
+### TC-11-2: `fetchTemplateLayouts`
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | `Record<id, row>` を正しく構築する | 複数行の辞書化 | `Object.keys(result)` が DB 行の id と一致 |
+| 2 | エラー時は空オブジェクトを返す | DB エラーの安全処理 | `{}` |
+| 3 | `form_sections` が null のとき null のまま返す | null 透過 | `result[id].form_sections === null` |
+
+### TC-11-3: `fetchCommunities`
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | コミュニティ行の配列を返す | 正常系 | DB 行と同値 |
+| 2 | エラー時は空配列を返す | DB エラーの安全処理 | `[]` |
+
+### TC-11-4: `saveCommunity`
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | 成功時は `error: null` を返す | 正常系 | `{ error: null }` |
+| 2 | DB エラー時はメッセージを返す | エラー伝播 | `{ error: 'upsert failed' }` |
+
+### TC-11-5: `saveTemplateLayout`
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | 成功時は `error: null` を返す | 正常系 | `{ error: null }` |
+| 2 | label / description が指定された場合 payload に含まれる | オプショナルフィールドの付与 | payload に label・description が含まれる |

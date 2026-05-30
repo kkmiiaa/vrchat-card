@@ -241,10 +241,10 @@ isPro = plan === 'pro' && (plan_expires_at == null || new Date(plan_expires_at) 
 | パラメータ | 対象フィールド | 方式 |
 |---|---|---|
 | `q`（全文検索） | `card_data->>name`, `card_data->>selfIntro` | ilike |
-| `gender` | `card_data->'genderTag'->>'tag'` | equals |
+| `gender` | `card_data->'gender'->>'tag'` | equals |
 | `env` | `card_data->'playEnv'` | 配列内検索 |
 | `lang` | `card_data->'language'` | 配列内検索 |
-| `friendPolicy` | `card_data->>friendPolicy` | equals |
+| `friendPolicy` | `card_data->>friendPolicy` | equals（string・単一値） |
 
 ---
 

@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest'
 import { migrateLegacyCardData } from '../legacyCardDataMigration'
 
 describe('migrateLegacyCardData', () => {
-  describe('templateId !== v2', () => {
+  describe('templateId が v1/v2 以外', () => {
     it('無変換で返す', () => {
       const data = { sns: { vrchatId: 'abc' }, name: 'test' }
-      expect(migrateLegacyCardData('v1', data)).toBe(data)
+      expect(migrateLegacyCardData('v3', data)).toBe(data)
     })
   })
 

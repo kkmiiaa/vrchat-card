@@ -202,10 +202,9 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     return (
       <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-indigo-100 flex flex-col items-center justify-center gap-3">
         <div className="w-12 h-12 border-4 border-sky-300 border-t-[#00AADB] rounded-full animate-spin" />
-        <div style={{ fontFamily: 'monospace', fontSize: 11, color: '#555', textAlign: 'center', maxWidth: '90vw', wordBreak: 'break-all' }}>
-          tmpl:{template ? 'ok' : 'wait'} | data:{cardData === null ? 'wait' : 'ok'} | id:{templateId}
-          {loadError && <div style={{ color: 'red', marginTop: 4 }}>{loadError}</div>}
-        </div>
+        {loadError && (
+          <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'red', textAlign: 'center', maxWidth: '90vw', wordBreak: 'break-all' }}>{loadError}</div>
+        )}
       </div>
     )
   }

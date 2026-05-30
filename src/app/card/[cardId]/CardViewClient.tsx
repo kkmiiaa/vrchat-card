@@ -427,7 +427,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
         <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full bg-white opacity-[0.08] blur-[100px]" />
       </div>
 
-      <header className="sticky top-0 z-10 border-b border-white/30 h-14 px-6 flex items-center justify-between bg-white/20 backdrop-blur-md">
+      <header className="fixed top-0 left-0 right-0 z-10 border-b border-white/30 h-14 px-6 flex items-center justify-between bg-white/20 backdrop-blur-md">
         <Link href="/" className="text-xl font-black tracking-tight text-white drop-shadow-md" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}>vaacard</Link>
         <div className="flex items-center gap-2">
           {isOwner && (
@@ -462,7 +462,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
         </div>
       </header>
 
-      <main className={['relative z-10 flex-1 flex flex-col items-center justify-center py-10 gap-5 overflow-x-hidden', orientation === 'web' ? 'px-1' : 'px-4'].join(' ')}>
+      <main className={['relative z-10 flex-1 flex flex-col items-center justify-center pt-24 pb-10 gap-5 overflow-x-hidden', orientation === 'web' ? 'px-1' : 'px-4'].join(' ')}>
 
         <div className="w-full flex justify-center" style={{ maxWidth: cardW }}>
           <div

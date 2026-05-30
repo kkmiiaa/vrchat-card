@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react'
 import CardViewClient from './CardViewClient'
+import type { TemplateLayoutRow } from '@/lib/templateLayout'
 
 export type CardViewWrapperProps = {
   cardId: string
@@ -14,6 +15,8 @@ export type CardViewWrapperProps = {
   ownerAvatar: string | null
   createdAt: string | null
   imageUrl: string | null
+  /** DB から取得したテンプレート定義行（GenericCardRenderer 用） */
+  templateDbRow?: TemplateLayoutRow | null
 }
 
 export default function CardViewWrapper(props: CardViewWrapperProps) {

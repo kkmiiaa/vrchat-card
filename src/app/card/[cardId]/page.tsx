@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { type Metadata } from 'next'
 import CardViewWrapper from './CardViewWrapper'
-// CardViewWrapper が内部で動的インポートするため、ここでは直接 import
+import { fetchTemplateLayout } from '@/lib/templateLayout'
 
 const validTemplates = ['v1', 'v2']
 
@@ -71,8 +71,11 @@ export default async function CardViewPage({ params }: { params: Promise<{ cardI
 
   const isOwner = user?.id === card.user_id
 
-  const { data: userRow } = await supabase.from('users').select('username_slug').eq('id', card.user_id).single()
-  const { data: profile } = await supabase.from('profiles').select('display_name, avatar_url').eq('user_id', card.user_id).single()
+  const [{ data: userRow }, { data: profile }, templateDbRow] = await Promise.all([
+    supabase.from('users').select('username_slug').eq('id', card.user_id).single(),
+    supabase.from('profiles').select('display_name, avatar_url').eq('user_id', card.user_id).single(),
+    fetchTemplateLayout(card.template_id),
+  ])
 
-  return <CardViewWrapper cardId={cardId} templateId={card.template_id} isOwner={isOwner} likeCount={card.like_count ?? 0} viewCount={card.view_count ?? 0} ownerSlug={userRow?.username_slug ?? null} ownerName={profile?.display_name ?? null} ownerAvatar={profile?.avatar_url ?? null} createdAt={card.created_at ?? null} imageUrl={card.image_url ?? null} />
+  return <CardViewWrapper cardId={cardId} templateId={card.template_id} isOwner={isOwner} likeCount={card.like_count ?? 0} viewCount={card.view_count ?? 0} ownerSlug={userRow?.username_slug ?? null} ownerName={profile?.display_name ?? null} ownerAvatar={profile?.avatar_url ?? null} createdAt={card.created_at ?? null} imageUrl={card.image_url ?? null} templateDbRow={templateDbRow} />
 }

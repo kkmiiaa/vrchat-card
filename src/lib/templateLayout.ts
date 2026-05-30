@@ -23,6 +23,31 @@ export type TemplateLayoutRow = {
   overlay_config:     OverlayValue | null
 }
 
+/** 単一テンプレート行を DB から取得 */
+export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow | null> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('templates')
+    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config')
+    .eq('id', id)
+    .single()
+
+  if (error || !data) return null
+
+  return {
+    id:                 data.id,
+    label:              data.label,
+    description:        data.description,
+    is_published:       false,
+    card_layout:        data.card_layout        as LayoutNode | null,
+    web_layout:         data.web_layout         as LayoutNode | null,
+    block_pool:         data.block_pool         as Record<string, unknown> | null,
+    form_sections:      data.form_sections      as FormSection[] | null,
+    orientation_scales: data.orientation_scales as { card: OrientationScales; web: OrientationScales } | null,
+    overlay_config:     data.overlay_config     as OverlayValue | null,
+  }
+}
+
 /** 全テンプレート行を DB から取得 */
 export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLayoutRow>> {
   const supabase = await createClient()

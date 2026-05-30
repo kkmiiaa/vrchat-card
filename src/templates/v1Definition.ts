@@ -25,36 +25,35 @@ export const cardV1Definition: TemplateDefinition = {
   overlayKey: 'overlay',
 
   blockPool: {
-    // ── 共通（card・web 両方で使用） ──────────────────────────────────
-    profileImage: { componentKey: 'profileImage', dataKey: 'profileImage', variant: 'default' },
-    name:         { componentKey: 'text',    dataKey: 'name',      variant: 'default', label: '名前',       subLabel: 'name',               blockConfig: { multiline: false } },
-    gender:       { componentKey: 'gender',  dataKey: 'gender',    variant: 'default', label: '性別',       subLabel: 'gender' },
-    language:     { componentKey: 'language',dataKey: 'language',  variant: 'slash',   label: '言語',       subLabel: 'languages spoken' },
-    vrchat:       { componentKey: 'simple-sns', dataKey: 'vrchat', variant: 'default', blockConfig: { platform: 'vrchat' } },
-    x:            { componentKey: 'simple-sns', dataKey: 'x',      variant: 'default', blockConfig: { platform: 'x' } },
-    discord:      { componentKey: 'simple-sns', dataKey: 'discord',variant: 'default', blockConfig: { platform: 'discord' } },
-    selfIntro:    { componentKey: 'text',    dataKey: 'selfIntro', variant: 'default', label: '自己紹介',   subLabel: 'about me' },
-    gallery:      { componentKey: 'gallery', dataKey: 'gallery',   variant: 'default' },
-    divider:      { componentKey: 'divider', dataKey: 'divider',   variant: 'default' },
-    dividerV:     { componentKey: 'divider', dataKey: 'divider',   variant: 'vertical' },
+    // ── 共通（card・web 両方で使用）────────────────────────────────────
+    // variant / bgVariant はレイアウト側の ref で指定する
+    profileImage: { componentKey: 'profileImage', dataKey: 'profileImage' },
+    name:         { componentKey: 'text',         dataKey: 'name',         label: '名前',         subLabel: 'name',               blockConfig: { multiline: false } },
+    gender:       { componentKey: 'gender',        dataKey: 'gender',       label: '性別',         subLabel: 'gender' },
+    language:     { componentKey: 'language',      dataKey: 'language',     label: '言語',         subLabel: 'languages spoken' },
+    vrchat:       { componentKey: 'simple-sns',    dataKey: 'vrchat',                              blockConfig: { platform: 'vrchat' } },
+    x:            { componentKey: 'simple-sns',    dataKey: 'x',                                   blockConfig: { platform: 'x' } },
+    discord:      { componentKey: 'simple-sns',    dataKey: 'discord',                             blockConfig: { platform: 'discord' } },
+    selfIntro:    { componentKey: 'text',          dataKey: 'selfIntro',    label: '自己紹介',     subLabel: 'about me' },
+    gallery:      { componentKey: 'gallery',       dataKey: 'gallery' },
+    divider:      { componentKey: 'divider',       dataKey: 'divider' },
+    dividerV:     { componentKey: 'divider',       dataKey: 'divider' },
 
-    // ── card レイアウト専用（bgVariant あり / variant 違い） ───────────
-    nameC:    { componentKey: 'text',    dataKey: 'name',      variant: 'default', label: '名前',       subLabel: 'name',               blockConfig: { multiline: false }, bgVariant: 'default' },
-    genderC:  { componentKey: 'gender',  dataKey: 'gender',    variant: 'default', label: '性別',       subLabel: 'gender',             bgVariant: 'default' },
-    languageC:{ componentKey: 'language',dataKey: 'language',  variant: 'slash',   label: '言語',       subLabel: 'languages spoken',   bgVariant: 'default' },
-    micOnRate:{ componentKey: 'gauge',   dataKey: 'micOnRate', variant: 'default', label: 'マイクON率', subLabel: 'microphone usage',   bgVariant: 'default', blockConfig: { unit: '%' } },
-    playEnvC: {
-      componentKey: 'multi-select', dataKey: 'playEnv', variant: 'slash', label: '環境', subLabel: 'environment', bgVariant: 'default',
+    // ── card / web 共用（表示スタイルは ref 側で variant/bgVariant を指定）──
+    micOnRate: {
+      componentKey: 'gauge',        dataKey: 'micOnRate',    label: 'マイクON率', subLabel: 'microphone usage',
+      blockConfig: { unit: '%' },
+    },
+    playEnv: {
+      componentKey: 'multi-select', dataKey: 'playEnv',      label: '環境',       subLabel: 'environment',
       blockConfig: { options: [
         { value: 'pcvr',    label: 'PCVR',    icon: 'TbBadgeVr' },
         { value: 'quest',   label: 'Quest',   icon: 'TbDeviceGamepad2' },
         { value: 'desktop', label: 'Desktop', icon: 'TbDeviceDesktop' },
       ]},
     },
-    xC:       { componentKey: 'simple-sns', dataKey: 'x',      variant: 'default', blockConfig: { platform: 'x' },       bgVariant: 'default' },
-    discordC: { componentKey: 'simple-sns', dataKey: 'discord',variant: 'default', blockConfig: { platform: 'discord' }, bgVariant: 'default' },
-    friendPolicyC: {
-      componentKey: 'multi-select', dataKey: 'friendPolicy', variant: 'slash', label: 'フレンド申請', subLabel: 'friend request policy', bgVariant: 'default',
+    friendPolicy: {
+      componentKey: 'multi-select', dataKey: 'friendPolicy', label: 'フレンド申請', subLabel: 'friend request policy',
       blockConfig: { options: [
         { value: 'frPolicyAnyone',             label: 'だれでもOK' },
         { value: 'frPolicyIfInterested',       label: '気になったら許可' },
@@ -63,8 +62,8 @@ export const cardV1Definition: TemplateDefinition = {
         { value: 'frPolicyNo',                 label: '送らないでください' },
       ]},
     },
-    statusC: {
-      componentKey: 'color-status', dataKey: 'status', variant: 'default', label: 'ステータス', subLabel: 'status description', bgVariant: 'default',
+    status: {
+      componentKey: 'color-status', dataKey: 'status',       label: 'ステータス', subLabel: 'status description',
       blockConfig: { fields: [
         { key: 'blue',   label: '青', color: '#60a5fa' },
         { key: 'green',  label: '緑', color: '#4ade80' },
@@ -73,7 +72,7 @@ export const cardV1Definition: TemplateDefinition = {
       ]},
     },
     markGrid: {
-      componentKey: 'mark-grid', dataKey: 'mark-grid1', variant: 'default', label: 'OKなこと・NGなこと', subLabel: 'ok & ng',
+      componentKey: 'mark-grid',    dataKey: 'mark-grid1',   label: 'OKなこと・NGなこと', subLabel: 'ok & ng',
       blockConfig: {
         items: [{ label: '触る' }, { label: '近距離' }, { label: 'お砂糖' }, { label: '武器' }, { label: '暴言/暴力' }, { label: '下ネタ' }],
         marks: [
@@ -85,40 +84,8 @@ export const cardV1Definition: TemplateDefinition = {
         cols: 3, rows: 3,
       },
     },
-    selfIntroC: { componentKey: 'text',    dataKey: 'selfIntro', variant: 'default', label: '自己紹介', subLabel: 'about me', bgVariant: 'default' },
-    galleryC:   { componentKey: 'gallery', dataKey: 'gallery',   variant: 'default', bgVariant: 'default' },
-
-    // ── web レイアウト専用 ────────────────────────────────────────────
-    micOnRateWeb: { componentKey: 'gauge',        dataKey: 'micOnRate',    variant: 'gradient', label: 'マイクON率',    subLabel: 'microphone usage' },
-    playEnv: {
-      componentKey: 'multi-select', dataKey: 'playEnv', variant: 'slash', label: '環境', subLabel: 'environment',
-      blockConfig: { options: [
-        { value: 'pcvr',    label: 'PCVR',    icon: 'TbBadgeVr' },
-        { value: 'quest',   label: 'Quest',   icon: 'TbDeviceGamepad2' },
-        { value: 'desktop', label: 'Desktop', icon: 'TbDeviceDesktop' },
-      ]},
-    },
-    friendPolicy: {
-      componentKey: 'multi-select', dataKey: 'friendPolicy', variant: 'default', label: 'フレンド申請', subLabel: 'friend request policy',
-      blockConfig: { options: [
-        { value: 'frPolicyAnyone',             label: 'だれでもOK' },
-        { value: 'frPolicyIfInterested',       label: '気になったら許可' },
-        { value: 'frPolicyMutualsOnX',         label: 'X相互は申請OK' },
-        { value: 'frPolicyAfterGettingToKnow', label: '仲良くなってから許可' },
-        { value: 'frPolicyNo',                 label: '送らないでください' },
-      ]},
-    },
-    status: {
-      componentKey: 'color-status', dataKey: 'status', variant: 'default', label: 'ステータス', subLabel: 'status',
-      blockConfig: { fields: [
-        { key: 'blue',   label: '青', color: '#60a5fa' },
-        { key: 'green',  label: '緑', color: '#4ade80' },
-        { key: 'yellow', label: '黃', color: '#facc15' },
-        { key: 'red',    label: '赤', color: '#f87171' },
-      ]},
-    },
     interactions: {
-      componentKey: 'mark-list', dataKey: 'interactions', variant: 'grid', label: 'OKなこと・NGなこと', subLabel: 'my boundaries',
+      componentKey: 'mark-list',    dataKey: 'interactions', label: 'OKなこと・NGなこと', subLabel: 'my boundaries',
     },
   },
 
@@ -137,9 +104,9 @@ export const cardV1Definition: TemplateDefinition = {
           justify: 'space-between',
           children: [
             { type: 'ref', blockId: 'profileImage', minH: 24 },
-            { type: 'ref', blockId: 'languageC',    minH: 3, contentFontScale: 0.9 },
-            { type: 'ref', blockId: 'micOnRate',    minH: 3, contentFontScale: 0.9 },
-            { type: 'ref', blockId: 'statusC',      minH: 12 },
+            { type: 'ref', blockId: 'language',    minH: 3, contentFontScale: 0.9, variant: 'slash',   bgVariant: 'default' },
+            { type: 'ref', blockId: 'micOnRate',    minH: 3, contentFontScale: 0.9,                    bgVariant: 'default' },
+            { type: 'ref', blockId: 'status',       minH: 12,                                          bgVariant: 'default', subLabel: 'status description' },
           ],
         },
         {
@@ -148,14 +115,14 @@ export const cardV1Definition: TemplateDefinition = {
           gap: 2,
           justify: 'space-between',
           children: [
-            { type: 'ref', blockId: 'nameC',         minH: 5, contentFontScale: 1.4 },
+            { type: 'ref', blockId: 'name',         minH: 5, contentFontScale: 1.4,                    bgVariant: 'default' },
             {
               type: 'row',
               minH: 6,
               gap: 2,
               children: [
-                { type: 'ref', blockId: 'genderC',   minW: 12, minH: 2, contentFontScale: 0.9 },
-                { type: 'ref', blockId: 'playEnvC',  flex: 1 },
+                { type: 'ref', blockId: 'gender',   minW: 12, minH: 2, contentFontScale: 0.9,          bgVariant: 'default' },
+                { type: 'ref', blockId: 'playEnv',  flex: 1,                        variant: 'slash',  bgVariant: 'default' },
               ],
             },
             {
@@ -163,13 +130,13 @@ export const cardV1Definition: TemplateDefinition = {
               gap: 1,
               justify: 'center',
               children: [
-                { type: 'ref', blockId: 'vrchat',    minH: 3, contentFontScale: 1 },
-                { type: 'ref', blockId: 'xC',        minH: 3, contentFontScale: 1 },
-                { type: 'ref', blockId: 'discordC',  minH: 3, contentFontScale: 1 },
+                { type: 'ref', blockId: 'vrchat',   minH: 3, contentFontScale: 1 },
+                { type: 'ref', blockId: 'x',        minH: 3, contentFontScale: 1 },
+                { type: 'ref', blockId: 'discord',  minH: 3, contentFontScale: 1 },
               ],
             },
-            { type: 'ref', blockId: 'friendPolicyC', minH: 4, contentFontScale: 1 },
-            { type: 'ref', blockId: 'markGrid',      minH: 15, contentFontScale: 0.9 },
+            { type: 'ref', blockId: 'friendPolicy', minH: 4, contentFontScale: 1,  variant: 'slash',  bgVariant: 'default' },
+            { type: 'ref', blockId: 'markGrid',     minH: 15, contentFontScale: 0.9 },
           ],
         },
         {
@@ -177,8 +144,8 @@ export const cardV1Definition: TemplateDefinition = {
           flex: 1,
           gap: 1,
           children: [
-            { type: 'ref', blockId: 'selfIntroC', flex: 1, contentFontScale: 0.75 },
-            { type: 'ref', blockId: 'galleryC',  minH: 12 },
+            { type: 'ref', blockId: 'selfIntro', flex: 1, contentFontScale: 0.75, bgVariant: 'default' },
+            { type: 'ref', blockId: 'gallery',   minH: 12,                        bgVariant: 'default' },
           ],
         },
       ],
@@ -215,7 +182,7 @@ export const cardV1Definition: TemplateDefinition = {
                   gap: 2,
                   children: [
                     { type: 'ref', blockId: 'gender',  flex: 1, contentFontScale: 0.8 },
-                    { type: 'ref', blockId: 'playEnv', flex: 2 },
+                    { type: 'ref', blockId: 'playEnv', flex: 2, variant: 'slash' },
                   ],
                 },
                 {
@@ -231,7 +198,7 @@ export const cardV1Definition: TemplateDefinition = {
             },
           ],
         },
-        { type: 'ref', blockId: 'divider' },
+        { type: 'ref', blockId: 'divider',   variant: 'horizontal' },
         {
           type: 'row',
           children: [
@@ -240,14 +207,14 @@ export const cardV1Definition: TemplateDefinition = {
               flex: 2,
               justify: 'space-between',
               children: [
-                { type: 'ref', blockId: 'language',        minH: 3 },
-                { type: 'ref', blockId: 'micOnRateWeb',    minH: 3 },
-                { type: 'ref', blockId: 'status',          minH: 11 },
-                { type: 'ref', blockId: 'friendPolicyWeb', minH: 5, contentFontScale: 0.9 },
-                { type: 'ref', blockId: 'interactions',    minH: 12 },
+                { type: 'ref', blockId: 'language',     minH: 3, variant: 'slash' },
+                { type: 'ref', blockId: 'micOnRate',    minH: 3, variant: 'gradient' },
+                { type: 'ref', blockId: 'status',       minH: 11 },
+                { type: 'ref', blockId: 'friendPolicy', minH: 5, contentFontScale: 0.9 },
+                { type: 'ref', blockId: 'interactions', minH: 12, variant: 'grid' },
               ],
             },
-            { type: 'ref', blockId: 'dividerV', minW: 2 },
+            { type: 'ref', blockId: 'dividerV', minW: 2, variant: 'vertical' },
             {
               type: 'col',
               flex: 3,

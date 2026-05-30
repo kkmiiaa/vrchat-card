@@ -72,7 +72,7 @@ export const galleryComponent: ComponentDef<GalleryValue> = {
                   {t.chooseFile}
                 </label>
                 <span className="text-sm text-gray-500 truncate flex-1">
-                  {value.images[index] instanceof File ? (value.images[index] as File).name : hasImage ? t.imageSet ?? '設定済み' : t.noFileChosen}
+                  {value.images[index] instanceof File ? (value.images[index] as File).name : hasImage ? '設定済み' : t.noFileChosen}
                 </span>
                 {hasImage && (
                   <button

@@ -323,6 +323,91 @@ type Block = {
 
 > ⚠️ **削除済みプロパティ**: `glass`, `glassRadius` はレンダラー由来のガラス枠指定であり、コンポーネントの責務でないため削除済み。代わりに各コンポーネントの `glass` **variant** を使用する。
 
+---
+
+### 3.2.1 ブロックプール（BlockPoolEntry）と参照ノード（LayoutNodeRef）
+
+テンプレートビルダーでは、ブロックの定義を「プール（pool）」と「レイアウトへの参照（ref）」に分離する。
+
+#### BlockPoolEntry — プール定義（コンポーネント・データ・設定の一元管理）
+
+```typescript
+type BlockPoolEntry = {
+  componentKey: string               // 使用するコンポーネント
+  dataKey: string                    // card_data のキー
+  label?: string                     // ブロックラベル
+  subLabel?: string                  // サブラベル
+  blockConfig?: Record<string, unknown>  // コンポーネント固有設定（選択肢・単位など）
+}
+```
+
+プールは card・web レイアウトの**両方から共有される定義**。ここでは componentKey・dataKey・blockConfig のみ管理する。`variant` や `bgVariant` はプールではなくレイアウト側（ref）で指定する。
+
+#### LayoutNodeRef — レイアウト参照（配置・表示スタイルの管理）
+
+```typescript
+type LayoutNodeRef = {
+  type: 'ref'
+  blockId: string            // blockPool のキー
+  // レイアウト系
+  minW?: number
+  minH?: number
+  flex?: number
+  // 表示スタイル系（レイアウトごとに異なる値を指定可能）
+  variant?: string           // card と web で異なる variant を使い分けられる
+  bgVariant?: string         // カード表示のみ 'default'、web は省略、など
+  contentFontScale?: number
+  labelFontScale?: number
+}
+```
+
+#### variant / bgVariant の分離理由
+
+同一ブロック（例: `name`）でも、カード表示は `bgVariant: 'default'`（白背景ボックス）、Web表示は背景なしにしたい場合がある。プールに両方定義すると重複エントリが増えるため、**variant と bgVariant はレイアウト（ref）レベルで指定**する設計とした。
+
+**設計の対応表**
+
+| 旧設計（重複エントリ）| 新設計（refで制御）|
+|---|---|
+| プールに `name`（web用）と `nameC`（card用）を別定義 | プールに `name` のみ定義。card 側 ref に `bgVariant: 'default'`、web 側 ref は省略 |
+
+---
+
+### 3.2.2 テンプレートビルダーでのブロック追加 UX フロー
+
+**Step 1: コンポーネントをプールに追加**
+
+- 左パネル「プール」タブ → 「+ ブロックを追加」ボタン
+- コンポーネント一覧（text / gauge / multi-select / …）から選択
+- `blockId` を入力（例: `micOnRate`）
+- → プールにエントリが追加される
+
+**Step 2: プールエントリを設定（blockConfig 編集）**
+
+- プール一覧で対象エントリをクリック → 右パネルに**ブロック設定**が表示
+- 編集できる項目:
+  - `label` / `subLabel`
+  - `dataKey`
+  - `blockConfig` — 各コンポーネントの `blockConfigForm` を使って編集
+    - `multi-select` → 選択肢の追加・削除・並び替え
+    - `color-status` → 色フィールドの定義
+    - `gauge` → `unit` の設定
+
+**Step 3: レイアウトに ref を追加**
+
+- レイアウトツリー上のコンテナノードを選択 → 「+ 子ノードを追加」
+- 「ref を追加」を選ぶとプール一覧から `blockId` を選択
+- → LayoutNodeRef としてツリーに追加される
+
+**Step 4: ref ノードのプロパティ編集**
+
+- ツリー上の ref をクリック → 右パネルに**配置・表示設定**が表示
+- 編集できる項目:
+  - `minW` / `minH` / `flex`
+  - `variant`（そのレイアウト専用の variant。card 表示と web 表示で別々に指定可能）
+  - `bgVariant`（カード表示のみ `'default'` にするなど）
+  - `contentFontScale` / `labelFontScale`
+
 #### labelInset と LabelDef
 
 `labelInset: true` を指定すると、`GenericCardRenderer` がブロックのラベル情報を `LabelDef` としてコンポーネントの `CardItem` に渡す。コンポーネント側はこの `label` prop を受け取り、自コンテナ内にラベルとコンテンツを描画する責務を持つ。
@@ -377,6 +462,8 @@ type TemplateDefinition = {
   overlayKey?: string       // オーバーレイコンポーネントの dataKey
   overlayFixed?: OverlayValue
   fontScale?: Partial<FontScale>
+  /** ブロックプール: card・web 両レイアウトから参照する BlockPoolEntry の一覧 */
+  blockPool?: Record<string, BlockPoolEntry>
   card: TemplateOrientationDef  // カード表示レイアウト（固定サイズ）
   web: TemplateOrientationDef   // Web表示レイアウト（autoHeight）
   /** dataKey ごとのデフォルト variant（card/web 共通で適用）。ノード直指定が優先される。 */
@@ -488,7 +575,7 @@ LayoutNode
 | タブ | 機能 |
 |------|------|
 | コンポーネント（BlockPreviewList） | 全コンポーネントをバリアント・bgVariant・blockConfig・ヘッダー設定でプレビュー。blockConfigForm の動作確認も可能 |
-| テンプレート（TemplateBuilder） | ブロックをドラッグ&ドロップでレイアウトに組み込むビジュアルビルダー |
+| テンプレート（TemplateBuilder） | ブロックプールを管理し、レイアウトツリーにrefを配置するビジュアルビルダー。プールでは blockConfig（選択肢・単位等）を設定し、ref では variant・bgVariant・minH・flex 等のレイアウト固有スタイルを設定する |
 | カード | 既存ユーザーカードの一覧ブラウズ |
 
 ---

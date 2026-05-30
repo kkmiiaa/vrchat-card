@@ -866,34 +866,6 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
                     className="text-xs border rounded px-2 py-1 bg-white"
                   />
                 </div>
-                {variants.length > 0 && (
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-gray-500">variant</label>
-                    <div className="flex gap-1 flex-wrap">
-                      {variants.map(v => (
-                        <button
-                          key={v}
-                          onClick={() => updatePool({ variant: v as import('@/blocks/types').BlockVariant })}
-                          className={`px-2 py-1 text-xs border rounded transition-colors ${(poolEntry?.variant ?? 'default') === v ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50 bg-white'}`}
-                        >{v}</button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {comp?.supportsBgVariant && (
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-gray-500">bgVariant</label>
-                    <div className="flex gap-1 flex-wrap">
-                      {BG_VARIANTS.map(v => (
-                        <button
-                          key={v}
-                          onClick={() => updatePool({ bgVariant: v })}
-                          className={`px-2 py-1 text-xs border rounded transition-colors ${(poolEntry?.bgVariant ?? 'default') === v ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50 bg-white'}`}
-                        >{v}</button>
-                      ))}
-                    </div>
-                  </div>
-                )}
                 {/* hideWhenEmpty */}
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input
@@ -950,6 +922,48 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
               {/* ── レイアウト固有設定 ── */}
               <div className="flex flex-col gap-2 border-t border-gray-100 pt-2">
                 <p className="text-[9px] text-gray-400 font-semibold uppercase tracking-wide">レイアウト固有設定</p>
+                {/* variant（このレイアウト専用） */}
+                {variants.length > 0 && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] text-gray-500">variant <span className="text-[9px] text-indigo-400">（このレイアウトのみ）</span></label>
+                    <div className="flex gap-1 flex-wrap">
+                      {variants.map(v => (
+                        <button
+                          key={v}
+                          onClick={() => handleUpdate(path, n => ({ ...n, variant: v === (poolEntry?.variant ?? 'default') && node.variant === undefined ? undefined : v } as LayoutNode))}
+                          className={`px-2 py-1 text-xs border rounded transition-colors ${(node.variant ?? poolEntry?.variant ?? 'default') === v ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50 bg-white'}`}
+                        >{v}{node.variant === v ? ' ✓' : ''}</button>
+                      ))}
+                      {node.variant !== undefined && (
+                        <button
+                          onClick={() => handleUpdate(path, n => { const { variant: _, ...rest } = n as LayoutNodeRef; return rest as LayoutNode })}
+                          className="px-2 py-1 text-xs border rounded border-red-200 text-red-400 hover:bg-red-50 bg-white"
+                        >クリア</button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {/* bgVariant（このレイアウト専用） */}
+                {comp?.supportsBgVariant && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] text-gray-500">bgVariant <span className="text-[9px] text-indigo-400">（このレイアウトのみ）</span></label>
+                    <div className="flex gap-1 flex-wrap">
+                      {BG_VARIANTS.map(v => (
+                        <button
+                          key={v}
+                          onClick={() => handleUpdate(path, n => ({ ...n, bgVariant: v } as LayoutNode))}
+                          className={`px-2 py-1 text-xs border rounded transition-colors ${(node.bgVariant ?? poolEntry?.bgVariant) === v ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50 bg-white'}`}
+                        >{v}{node.bgVariant === v ? ' ✓' : ''}</button>
+                      ))}
+                      {node.bgVariant !== undefined && (
+                        <button
+                          onClick={() => handleUpdate(path, n => { const { bgVariant: _, ...rest } = n as LayoutNodeRef; return rest as LayoutNode })}
+                          className="px-2 py-1 text-xs border rounded border-red-200 text-red-400 hover:bg-red-50 bg-white"
+                        >クリア</button>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {/* alignSelf */}
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] text-gray-500">alignSelf</label>

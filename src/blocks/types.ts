@@ -298,8 +298,8 @@ export type BlockPoolEntry = {
 
 /**
  * blockPool に定義したブロックをレイアウト内で参照するノード。
- * サイズ・配置・フォントスケールなどレイアウト固有のプロパティのみ上書き可。
- * variant / bgVariant / label 系は pool 側で固定され上書き不可。
+ * サイズ・配置・フォントスケールなどレイアウト固有のプロパティを指定する。
+ * variant / bgVariant はレイアウトごとに異なる値を指定でき、pool 側の値を上書きする。
  */
 export type LayoutNodeRef = {
   type: 'ref'
@@ -312,6 +312,18 @@ export type LayoutNodeRef = {
   contentAlign?: string
   contentFontScale?: number
   labelFontScale?: number
+  /** このレイアウト専用の variant。pool 側の variant を上書きする */
+  variant?: BlockVariant
+  /** このレイアウト専用の bgVariant。pool 側の bgVariant を上書きする */
+  bgVariant?: BgVariant
+  /** このレイアウト専用の label 上書き */
+  label?: string
+  /** このレイアウト専用の subLabel 上書き */
+  subLabel?: string
+  /** labelInset 上書き */
+  labelInset?: boolean
+  /** labelInsetDir 上書き */
+  labelInsetDir?: 'col' | 'row'
 }
 
 export type LayoutNode = Block | LayoutNodeRow | LayoutNodeCol | LayoutNodeRef

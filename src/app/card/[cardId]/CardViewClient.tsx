@@ -427,7 +427,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
         <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full bg-white opacity-[0.08] blur-[100px]" />
       </div>
 
-      <header className="fixed top-0 left-0 right-0 z-10 border-b border-white/30 h-14 px-6 flex items-center justify-between bg-white/20 backdrop-blur-md">
+      <header className="fixed top-0 left-0 right-0 z-20 border-b border-white/30 h-14 px-6 flex items-center justify-between bg-white/20 backdrop-blur-md">
         <Link href="/" className="text-xl font-black tracking-tight text-white drop-shadow-md" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}>vaacard</Link>
         <div className="flex items-center gap-2">
           {isOwner && (

@@ -66,61 +66,40 @@
 
 ---
 
-## 🔄 タスク4（未着手・余力で）
+## ✅ タスク4（一部完了）
 
 1. **自動マイグレーション発動条件**: `src/components/CardEditor.tsx` `handleShareByUrl` の発動条件
    `isLoggedIn && !cardId && localStorageにデータあり` の分岐をユニット/結合でテスト（E2E は TC-6-H 済み）。
 
-2. **Stripe Webhook**: `checkout.session.completed` / `invoice.paid` / `customer.subscription.deleted` の plan 更新ロジック。
-   実態: `src/app/api/stripe/webhook/route.ts`
+2. ✅ **Stripe Webhook**（完了）: `src/app/api/stripe/webhook/__tests__/route.test.ts`（8ケース）
+3. ✅ **カード GET/PATCH/DELETE**（完了）: `src/app/api/cards/[cardId]/__tests__/route.test.ts`（9ケース）
+4. ✅ **API: `POST /api/cards/[cardId]/like`**（完了）: `src/app/api/cards/[cardId]/like/__tests__/route.test.ts`（3ケース）
+5. ✅ **API: `POST /api/stripe/checkout`**（完了）: `src/app/api/stripe/checkout/__tests__/route.test.ts`（4ケース）
+6. ✅ **API: `POST /api/stripe/portal`**（完了）: `src/app/api/stripe/portal/__tests__/route.test.ts`（4ケース）
 
-3. **カード削除時 Storage**: gallery 画像削除の分岐テスト。
-   実態: `src/app/api/cards/[cardId]/route.ts` DELETE ハンドラ
-   - gallery 画像（`profile`/`gallery-0〜2`）が削除される
-   - OGP 画像（`card-images` バケットの `{userId}/{cardId}.png`）は残る（spec.md「カード削除時の処理」）
+---
 
-4. **探索フィルター（API 結合テスト）**: Pro の `gender`/`env`/`lang`/`friendPolicy` フィルターが実際に DB クエリに効いているかの結合/E2E。
+## 🔄 残タスク（未着手）
+
+1. **自動マイグレーション発動条件**: `src/components/CardEditor.tsx` `handleShareByUrl` の発動条件
+   `isLoggedIn && !cardId && localStorageにデータあり` の分岐をユニット/結合でテスト（E2E は TC-6-H 済み）。
+
+2. **探索フィルター（API 結合テスト）**: Pro の `gender`/`env`/`lang`/`friendPolicy` フィルターが DB クエリに効いているかの結合/E2E。
    実態: `src/app/api/cards/explore/route.ts`
    ※ `explore-search.spec.ts` に枠はあるが Pro プランが必要なため vacuous になる可能性あり
 
-5. **`/upgrade` ページ E2E**: ページ表示・Stripe チェックアウト導線（`tests/e2e/upgrade.spec.ts`）。
+3. **`/upgrade` ページ E2E**: ページ表示・Stripe チェックアウト導線（`tests/e2e/upgrade.spec.ts`）。
    - ページが正常に表示される（500 なし）
    - Pro プランへのアップグレードボタンが表示される
    - 未ログイン時のリダイレクト動作
-
-6. **API: `PATCH /api/cards/[cardId]`**: カード更新の主要ロジックのテスト。
-   実態: `src/app/api/cards/[cardId]/route.ts`
-   - card_data の更新が正しく DB に反映される
-   - 未認証時は 401 を返す
-   - 他ユーザーのカードは更新できない（`user_id` フィルター）
-   - imageBase64 が渡されると Storage にアップロードして `image_url` が更新される
-
-7. **API: `POST /api/cards/[cardId]/like`**: いいねカウント増減のテスト。
-   実態: `src/app/api/cards/[cardId]/like/route.ts`
-   - delta=+1 でカウントが増える
-   - delta=-1 でカウントが減る
-
-8. **API: `POST /api/stripe/checkout`**: Stripe チェックアウトセッション生成のテスト。
-   実態: `src/app/api/stripe/checkout/route.ts`
-   - 未認証時は 401 を返す
-   - 認証済みのとき Stripe セッション URL が返る
-
-9. **API: `POST /api/stripe/portal`**: Stripe 顧客ポータルセッション生成のテスト。
-   実態: `src/app/api/stripe/portal/route.ts`
-   - 未認証時は 401 を返す
-   - `stripe_customer_id` がない場合は 400 を返す
-   - 認証済み・顧客 ID あり のとき URL が返る
 
 ---
 
 ## 進め方の推奨順序（残タスク）
 
-タスク4 の中での優先順位:
-1. タスク4-2（Stripe Webhook）— 課金ロジックのデグレリスクが最大
-2. タスク4-6（PATCH API）— カード編集の主要パス
-3. タスク4-3（削除時 Storage）
-4. タスク4-5（/upgrade E2E）
-5. タスク4-7〜9（like・Stripe checkout/portal）
+1. 探索フィルター結合テスト（Pro アカウントが必要）
+2. `/upgrade` E2E
+3. 自動マイグレーション発動条件のユニットテスト
 
 各タスク完了ごとにコミットすること（CLAUDE.md 方針）。
 
@@ -132,3 +111,5 @@
 - 旧メーカーからの自動マイグレーションは V1 向けのみ。V2 の `migrateV2CardData` は別物（DB 保存済みカードの旧フォーマット変換）で変更不要。
 - `docs/spec.md` の `genderTag` は誤記。正しくは `gender`（修正済み）。
 - タスク0〜3・5 はすべて完了・コミット済み（2026-05-31）。
+- タスク4（API テスト）: Webhook・cards PATCH/DELETE・like・checkout・portal 完了（2026-05-31）。28ケース追加。
+- 残: 探索フィルター結合・/upgrade E2E・自動マイグレーション発動条件。

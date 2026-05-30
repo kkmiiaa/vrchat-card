@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { type Metadata } from 'next'
 import ProfilePage from './ProfilePage'
+import { fetchTemplateLayouts } from '@/lib/templateLayout'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -78,11 +79,17 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const isPro = plan === 'pro' &&
     (userRow.plan_expires_at == null || new Date(userRow.plan_expires_at) > new Date())
 
-  const { data: announcements } = await supabase
-    .from('announcements')
-    .select('id, title, body, published_at')
-    .eq('is_active', true)
-    .order('published_at', { ascending: false })
+  const [{ data: announcements }, templateLayouts] = await Promise.all([
+    supabase
+      .from('announcements')
+      .select('id, title, body, published_at')
+      .eq('is_active', true)
+      .order('published_at', { ascending: false }),
+    fetchTemplateLayouts(),
+  ])
+
+  // templateId → TemplateLayoutRow のマップ（ProfilePage に渡して LiveCardPreview で使用）
+  const templateDbRows = templateLayouts ?? {}
 
   return (
     <ProfilePage
@@ -93,6 +100,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       isOwner={isOwner}
       plan={isPro ? 'pro' : 'free'}
       announcements={announcements ?? []}
+      templateDbRows={templateDbRows}
     />
   )
 }

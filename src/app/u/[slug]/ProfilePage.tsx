@@ -6,10 +6,13 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { ProfileRow, ProfileLink } from '@/lib/types'
 import type { CardTemplate } from '@/blocks/types'
-import { v1Template } from '@/templates/v1'
-import { v2Template } from '@/templates/v2'
+import type { TemplateLayoutRow } from '@/lib/templateLayout'
+import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
+import { cardV1Definition } from '@/templates/v1Definition'
+import { cardV2Definition } from '@/templates/v2Definition'
+import { migrateLegacyCardData } from '@/lib/legacyCardDataMigration'
 
-const templateMap: Record<string, CardTemplate> = { v1: v1Template, v2: v2Template }
+const definitionMap = { v1: cardV1Definition, v2: cardV2Definition }
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import HeaderAuth from '@/components/HeaderAuth'
@@ -47,11 +50,13 @@ function cardBgType(cardData: Record<string, unknown> | null): string | null {
 
 function LiveCardPreview({
   templateId,
+  templateDbRow,
   cardData,
   onOrientation,
   transparentBg,
 }: {
   templateId: string
+  templateDbRow?: TemplateLayoutRow | null
   cardData: Record<string, unknown> | null
   onOrientation?: (o: 'card' | 'web') => void
   transparentBg?: boolean
@@ -61,11 +66,12 @@ function LiveCardPreview({
   const [template, setTemplate] = useState<CardTemplate | null>(null)
 
   useEffect(() => {
-    const t = templateMap[templateId]
-    if (!t) return
+    const definition = definitionMap[templateId as keyof typeof definitionMap]
+    if (!definition) return
+    const { template: t } = buildCardTemplateFromDefinition(definition, templateDbRow ?? null)
     setTemplate(t)
     onOrientation?.(t.cardWidth >= t.cardHeight ? 'card' : 'web')
-  }, [templateId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [templateId, templateDbRow]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!template) return
@@ -88,7 +94,7 @@ function LiveCardPreview({
 
   if (!template) return <div className="w-full aspect-video bg-sky-50 animate-pulse" />
 
-  const values = cardData ?? {}
+  const values = migrateLegacyCardData(templateId, cardData ?? {})
   const fontKey = (values.font as string) ?? 'rounded'
   const fontFamily = (fontMap as Record<string, { style: { fontFamily: string } }>)[fontKey]?.style?.fontFamily ?? 'sans-serif'
 
@@ -135,9 +141,10 @@ type Props = {
   isOwner: boolean
   plan?: 'free' | 'pro'
   announcements?: Announcement[]
+  templateDbRows?: Record<string, TemplateLayoutRow>
 }
 
-export default function ProfilePage({ profile, slug, userRowId, cards: initialCards, isOwner, plan = 'free', announcements = [] }: Props) {
+export default function ProfilePage({ profile, slug, userRowId, cards: initialCards, isOwner, plan = 'free', announcements = [], templateDbRows = {} }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -536,6 +543,7 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
                           <div style={{ borderRadius: 16, overflow: 'hidden', isolation: 'isolate' }}>
                             <LiveCardPreview
                               templateId={card.template_id}
+                              templateDbRow={templateDbRows[card.template_id]}
                               cardData={card.card_data}
                               onOrientation={o => setOrientation(card.id, o)}
                               transparentBg

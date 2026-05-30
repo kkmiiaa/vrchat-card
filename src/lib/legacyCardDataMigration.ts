@@ -60,8 +60,12 @@ export function migrateLegacyCardData(
   cardData: Record<string, unknown>,
 ): BlockValues {
   if (templateId === 'v2') {
-    // sns キーまたは micOnRate があれば旧フォーマットと判定
-    if (cardData.sns || cardData.micOnRate !== undefined) {
+    const isLegacy =
+      cardData.sns !== undefined ||
+      cardData.micOnRate !== undefined ||
+      typeof cardData.gender === 'string' ||
+      Array.isArray(cardData.language)
+    if (isLegacy) {
       return migrateV2CardData(cardData)
     }
   }

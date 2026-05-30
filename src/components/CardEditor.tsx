@@ -401,14 +401,13 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-1 lg:flex-row lg:pt-0 lg:overflow-hidden mt-12 sm:mt-16">
+      <div className="flex flex-col lg:flex-1 lg:flex-row lg:pt-0 lg:overflow-hidden mt-12 sm:mt-14">
         {/* カードプレビュー */}
         <section
-          className="w-full max-w-full flex items-center justify-center lg:flex-1 lg:min-w-0 lg:h-full lg:px-6 lg:static fixed lg:top-auto z-10 sm:h-auto cursor-zoom-in sm:cursor-default"
+          className="w-full max-w-full flex items-center justify-center lg:flex-1 lg:min-w-0 lg:h-full lg:px-6 lg:static fixed top-12 sm:top-14 lg:top-auto z-10 sm:h-auto cursor-zoom-in sm:cursor-default"
           onClick={e => { if (window.innerWidth < 768) { e.preventDefault(); handlePreviewOpen() } }}
           style={{
             background: getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK) ?? undefined,
-            top: 48,
           }}
         >
           {!debugMode && <CardScaledView template={template} values={values} scale={cardScale} fontFamily={fontFamily} t={t} isInteractive />}

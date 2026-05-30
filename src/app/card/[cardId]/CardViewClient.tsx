@@ -361,7 +361,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const shareUrl = typeof window !== 'undefined' ? window.location.origin + `/card/${cardId}` : ''
 
   return (
-    <div className="min-h-screen flex flex-col overflow-hidden" style={{ background: pageBg }}>
+    <div className="min-h-screen flex flex-col overflow-x-hidden" style={{ background: pageBg }}>
       <style>{`
         .vaacard-sns-item { transition: transform 0.15s ease, box-shadow 0.15s ease; }
         .vaacard-sns-item:hover { transform: scale(1.04); box-shadow: 0 2px 12px rgba(0,170,219,0.22); }
@@ -427,7 +427,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
         <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full bg-white opacity-[0.08] blur-[100px]" />
       </div>
 
-      <header className="relative z-10 border-b border-white/30 h-14 px-6 flex items-center justify-between bg-white/20 backdrop-blur-md">
+      <header className="sticky top-0 z-10 border-b border-white/30 h-14 px-6 flex items-center justify-between bg-white/20 backdrop-blur-md">
         <Link href="/" className="text-xl font-black tracking-tight text-white drop-shadow-md" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}>vaacard</Link>
         <div className="flex items-center gap-2">
           {isOwner && (

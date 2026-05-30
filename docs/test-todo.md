@@ -105,6 +105,10 @@
 2. **Stripe Webhook**: `checkout.session.completed` / `invoice.paid` / `customer.subscription.deleted` の plan 更新ロジック。
 3. **カード削除時 Storage**: gallery 画像削除・OGP 画像は残す、の分岐（spec.md「カード削除時の処理」）。
 4. **探索フィルター実体**: タスク0 確定後、Pro の `q`/`gender`/`env`/`lang`/`friendPolicy` フィルターの結合/E2E。
+5. **`/upgrade` ページ E2E**: ページ表示・Stripe チェックアウト導線のテスト（`tests/e2e/upgrade.spec.ts`）。
+   - ページが正常に表示される（500 なし）
+   - Pro プランへのアップグレードボタンが表示される
+   - 未ログイン時は `/auth/login` にリダイレクトされる（または適切に案内される）
 
 ---
 

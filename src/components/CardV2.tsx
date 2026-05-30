@@ -172,6 +172,13 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
 
   const visibleGallery = (galleryImages ?? []).filter(Boolean) as string[]
 
+  // language は旧フォーマット string[] または新フォーマット { preset, custom } の両方に対応
+  const languageArr: string[] = Array.isArray(language)
+    ? language
+    : language && typeof language === 'object'
+      ? [...((language as { preset?: string[]; custom?: string[] }).preset ?? []), ...((language as { preset?: string[]; custom?: string[] }).custom ?? [])]
+      : []
+
   const snsHref = (src: string, value: string) => {
     if (src === '/icon_x.png') return `https://x.com/${value.replace(/^@/, '')}`
     return null
@@ -179,7 +186,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
 
   const profileItems = [
     { label: '性別', value: gender },
-    { label: '言語', value: (language ?? []).join(' / ') },
+    { label: '言語', value: languageArr.join(' / ') },
     { label: '環境', value: (playEnv ?? []).join(' / ') },
   ].filter(item => item.value) as { label: string; value: string }[]
 
@@ -368,7 +375,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '7px 12px' }}>
                     <span style={{ fontSize: pFs.sectionSmall, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>言語</span>
-                    <span style={{ fontSize: pFs.sectionContent, color: (language ?? []).length > 0 ? '#374151' : 'rgba(0,0,0,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(language ?? []).join(' / ') || '—'}</span>
+                    <span style={{ fontSize: pFs.sectionContent, color: languageArr.length > 0 ? '#374151' : 'rgba(0,0,0,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{languageArr.join(' / ') || '—'}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 8, padding: '7px 12px' }}>
                     <FiMic size={12} color="rgba(0,0,0,0.4)" style={{ flexShrink: 0 }} />
@@ -679,7 +686,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px' }}>
                 <span style={{ fontSize: 8, color: 'rgba(0,0,0,0.4)', fontWeight: 700, flexShrink: 0 }}>言語</span>
-                <span style={{ fontSize: 10, color: (language ?? []).length > 0 ? '#1f2937' : 'rgba(0,0,0,0.3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>{(language ?? []).join(' / ') || '—'}</span>
+                <span style={{ fontSize: 10, color: languageArr.length > 0 ? '#1f2937' : 'rgba(0,0,0,0.3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>{languageArr.join(' / ') || '—'}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 6, padding: '2px 8px' }}>
                 <FiMic size={10} color="rgba(0,0,0,0.4)" style={{ flexShrink: 0 }} />

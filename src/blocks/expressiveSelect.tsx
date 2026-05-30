@@ -37,6 +37,7 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
         height: '100%',
         background: bgStyle.background,
         border: bgStyle.border,
+        boxShadow: bgStyle.boxShadow,
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',

@@ -31,6 +31,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
           alignItems: 'center',
           background: bgStyle.background,
           border: bgStyle.border,
+        boxShadow: bgStyle.boxShadow,
           borderRadius: ctx.cardWidth * 0.004,
           padding: `${ctx.cardWidth * 0.003 * ctx.paddingScale}px ${ctx.cardWidth * 0.005 * ctx.paddingScale}px`,
           fontFamily: ctx.fontFamily,

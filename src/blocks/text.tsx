@@ -23,6 +23,7 @@ export const textComponent: ComponentDef<string> = {
         flexGrow: 1,
         background: bgStyle.background,
         border: bgStyle.border,
+        boxShadow: bgStyle.boxShadow,
         borderRadius: ctx.cardWidth * 0.006,
         padding: noPadding ? 0 : `${ctx.cardWidth * 0.007 * ctx.paddingScale}px ${ctx.cardWidth * 0.009 * ctx.paddingScale}px`,
         overflow: 'hidden',

@@ -1,12 +1,14 @@
 /**
- * glass variant 統一仕様テスト
+ * glass 統一仕様テスト
  *
- * glass variant を持つ全コンポーネントが以下の固定値スタイルを持つことを保証する:
+ * glass スタイル（variant: "glass" または bgVariant: "glass"）を持つ全コンポーネントが
+ * 以下の固定値スタイルを持つことを保証する:
  *   background : rgba(255,255,255,0.55)
  *   border     : 1px solid rgba(255,255,255,0.75)
  *   boxShadow  : 0 0 12px rgba(0,0,0,0.08)
  *
- * 対象: profileImage / gallery / simpleSns / snsWithFriendPolicy / qrCode
+ * variant: "glass" 対象: profileImage / gallery / simpleSns / snsWithFriendPolicy
+ * bgVariant: "glass" 対象: gender / age / language / gauge / multiSelect / text / select
  */
 import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
@@ -14,6 +16,13 @@ import { profileImageComponent } from '../profileImage'
 import { galleryComponent } from '../gallery'
 import { simpleSnsComponent } from '../simpleSns'
 import { snsWithFriendPolicyComponent } from '../snsWithFriendPolicy'
+import { genderComponent } from '../gender'
+import { ageComponent } from '../age'
+import { languageComponent } from '../language'
+import { gaugeComponent } from '../gauge'
+import { multiSelectComponent } from '../multiSelect'
+import { textComponent } from '../text'
+import { selectComponent } from '../select'
 import { DEFAULT_CARD_RENDER_CONTEXT } from '../types'
 
 const CTX = DEFAULT_CARD_RENDER_CONTEXT
@@ -203,5 +212,140 @@ describe('glass variant 仕様 – snsWithFriendPolicy', () => {
     )
     const el = findGlassEl(container)
     expect(el!.style.boxShadow).toBe(GLASS_SHADOW)
+  })
+})
+
+// ─── bgVariant: "glass" を使うコンポーネント群 ────────────────────────────────
+//
+// BG_VARIANT_STYLE.glass を経由して background / border / boxShadow を適用するコンポーネント。
+// これらは variant ではなく bgVariant で glass スタイルを受け取る。
+
+function findBgGlassEl(container: HTMLElement): HTMLElement | null {
+  return Array.from(container.querySelectorAll<HTMLElement>('div')).find(
+    el => el.style.background?.includes('rgba(255, 255, 255, 0.55)')
+  ) ?? null
+}
+
+function expectGlassStyle(el: HTMLElement | null) {
+  expect(el).not.toBeNull()
+  expect(el!.style.background).toContain('rgba(255, 255, 255, 0.55)')
+  expect(el!.style.border).toBe(GLASS_BORDER)
+  expect(el!.style.boxShadow).toBe(GLASS_SHADOW)
+}
+
+// ─── gender ───────────────────────────────────────────────────────────────────
+
+describe('bgVariant: glass 仕様 – gender', () => {
+  it('bgVariant glass で background / border / boxShadow が設定される', () => {
+    const { container } = render(
+      genderComponent.CardItem!({ value: 'female', ctx: CTX, bgVariant: 'glass' })
+    )
+    expectGlassStyle(findBgGlassEl(container))
+  })
+  it('bgVariant transparent では glass スタイルがつかない', () => {
+    const { container } = render(
+      genderComponent.CardItem!({ value: 'female', ctx: CTX, bgVariant: 'transparent' })
+    )
+    expect(findBgGlassEl(container)).toBeNull()
+  })
+})
+
+// ─── age ──────────────────────────────────────────────────────────────────────
+
+describe('bgVariant: glass 仕様 – age', () => {
+  it('bgVariant glass で background / border / boxShadow が設定される', () => {
+    const { container } = render(
+      ageComponent.CardItem!({
+        value: { searchTag: '18+', display: '20代' },
+        ctx: CTX,
+        bgVariant: 'glass',
+        label: { text: '年齢', dir: 'row' },
+      })
+    )
+    expectGlassStyle(findBgGlassEl(container))
+  })
+})
+
+// ─── language ─────────────────────────────────────────────────────────────────
+
+describe('bgVariant: glass 仕様 – language', () => {
+  it('variant slash + bgVariant glass で background / border / boxShadow が設定される', () => {
+    const { container } = render(
+      languageComponent.CardItem!({
+        value: { preset: ['ja'], custom: [] },
+        ctx: CTX,
+        variant: 'slash',
+        bgVariant: 'glass',
+        label: { text: '言語', dir: 'row' },
+      })
+    )
+    expectGlassStyle(findBgGlassEl(container))
+  })
+})
+
+// ─── gauge ────────────────────────────────────────────────────────────────────
+
+describe('bgVariant: glass 仕様 – gauge', () => {
+  it('bgVariant glass で background / border / boxShadow が設定される', () => {
+    const { container } = render(
+      gaugeComponent.CardItem!({
+        value: 70,
+        ctx: CTX,
+        bgVariant: 'glass',
+        label: { text: 'ON', dir: 'row' },
+        blockConfig: { unit: '%' },
+      })
+    )
+    expectGlassStyle(findBgGlassEl(container))
+  })
+})
+
+// ─── multiSelect ──────────────────────────────────────────────────────────────
+
+describe('bgVariant: glass 仕様 – multiSelect', () => {
+  it('variant icon-slash + bgVariant glass で background / border / boxShadow が設定される', () => {
+    const { container } = render(
+      multiSelectComponent.CardItem!({
+        value: ['pcvr'],
+        ctx: CTX,
+        variant: 'icon-slash',
+        bgVariant: 'glass',
+        label: { text: '環境', dir: 'row' },
+        blockConfig: { options: [{ value: 'pcvr', label: 'PCVR', icon: 'TbBadgeVr' }] },
+      })
+    )
+    expectGlassStyle(findBgGlassEl(container))
+  })
+})
+
+// ─── text ─────────────────────────────────────────────────────────────────────
+
+describe('bgVariant: glass 仕様 – text', () => {
+  it('bgVariant glass で background / border / boxShadow が設定される', () => {
+    const { container } = render(
+      textComponent.CardItem!({
+        value: 'テスト',
+        ctx: CTX,
+        bgVariant: 'glass',
+      })
+    )
+    expectGlassStyle(findBgGlassEl(container))
+  })
+})
+
+// ─── select ───────────────────────────────────────────────────────────────────
+
+describe('bgVariant: glass 仕様 – select', () => {
+  it('bgVariant glass で background / border / boxShadow が設定される', () => {
+    const { container } = render(
+      selectComponent.CardItem!({
+        value: 'user',
+        ctx: CTX,
+        bgVariant: 'glass',
+        label: { text: 'ランク', dir: 'row' },
+        blockConfig: { options: [{ value: 'user', label: 'User', icon: 'TbShield' }] },
+      })
+    )
+    expectGlassStyle(findBgGlassEl(container))
   })
 })

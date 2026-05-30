@@ -28,6 +28,7 @@ function LanguageCard({ value, ctx, variant = 'default', bgVariant, label, block
         width: '100%',
         background: bgStyle.background,
         border: bgStyle.border,
+        boxShadow: bgStyle.boxShadow,
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${label ? `${ctx.cardWidth * 0.006 * ctx.paddingScale}px` : '0'} ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         fontSize: fs,

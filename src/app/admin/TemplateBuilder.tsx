@@ -66,6 +66,17 @@ function deleteNode(root: LayoutNode, path: NodePath): LayoutNode {
   return { ...root, children: newChildren }
 }
 
+// 選択パスからコンテナ（row/col）を解決する。ref/block なら親まで遡る
+function resolveContainerPath(path: NodePath | null, root: LayoutNode): NodePath {
+  if (!path) return []
+  for (let len = path.length; len >= 0; len--) {
+    const p = path.slice(0, len)
+    const node = len === 0 ? root : getNode(root, p)
+    if (node && node.type !== 'block' && node.type !== 'ref') return p
+  }
+  return []
+}
+
 // パスの子に追加
 function addChild(root: LayoutNode, path: NodePath, child: LayoutNode): LayoutNode {
   return setNode(root, path, (n) => {
@@ -322,6 +333,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
   }, [propHeight])
 
   const [rightTab, setRightTab] = useState<'layout' | 'form'>('layout')
+  const [propTab, setPropTab] = useState<'placement' | 'blockConfig'>('placement')
   const [formSections, setFormSections] = useState<FormSection[]>(
     () => resolveFormSections(definitions[0], savedLayouts)
   )
@@ -456,8 +468,13 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
   }, [setLayout])
 
   const handleAdd = useCallback((path: NodePath, child: LayoutNode) => {
+    const parentNode = getNode(layout, path)
+    const childCount = (parentNode && parentNode.type !== 'block' && parentNode.type !== 'ref') ? parentNode.children.length : 0
     setLayout((prev: LayoutNode) => addChild(prev, path, child))
-  }, [setLayout])
+    setSelectedPath([...path, childCount])
+    setSelectedPoolBlockId(null)
+    setPropTab('placement')
+  }, [layout, setLayout, setSelectedPath])
 
   const handleMove = useCallback((path: NodePath, dir: -1 | 1) => {
     setLayout((prev: LayoutNode) => moveNode(prev, path, dir))
@@ -589,7 +606,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           draggable={isMovable}
           onDragStart={startDrag}
           onDragEnd={endDrag}
-          onClick={() => { setSelectedPath(path); setSelectedOverlay(false); setSelectedPoolBlockId(null) }}
+          onClick={() => { setSelectedPath(path); setSelectedOverlay(false); setSelectedPoolBlockId(null); setPropTab('placement') }}
           className={`flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer text-xs transition-colors ${
             isSelected ? 'bg-sky-100 text-indigo-700' : 'text-indigo-600 hover:bg-indigo-50'
           } ${isDraggingThis ? 'opacity-30' : ''}`}
@@ -616,7 +633,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           draggable={isMovable}
           onDragStart={startDrag}
           onDragEnd={endDrag}
-          onClick={() => { setSelectedPath(path); setSelectedOverlay(false); setSelectedPoolBlockId(null) }}
+          onClick={() => { setSelectedPath(path); setSelectedOverlay(false); setSelectedPoolBlockId(null); setPropTab('placement') }}
           className={`flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer text-xs transition-colors ${
             isSelected ? 'bg-sky-100 text-sky-800' : 'hover:bg-gray-100 text-gray-700'
           } ${isDraggingThis ? 'opacity-30' : ''}`}
@@ -645,7 +662,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           draggable={isMovable}
           onDragStart={startDrag}
           onDragEnd={endDrag}
-          onClick={() => { setSelectedPath(path); setSelectedOverlay(false); setSelectedPoolBlockId(null) }}
+          onClick={() => { setSelectedPath(path); setSelectedOverlay(false); setSelectedPoolBlockId(null); setPropTab('placement') }}
           className={`flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer text-xs transition-colors ${
             isSelected ? 'bg-sky-100 text-sky-800' : 'hover:bg-gray-100'
           } ${isDraggingThis ? 'opacity-30' : ''}`}
@@ -699,59 +716,174 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
       )
     }
     if (selectedPoolBlockId && !selectedPath) {
+      // プール選択時: "ブロック設定"タブのみ有効
+      if (propTab !== 'blockConfig') return <p className="text-xs text-gray-400 px-3 py-4 text-center">「ブロック設定」タブを選択してください</p>
       const entry = currentPool[selectedPoolBlockId]
       if (!entry) return <p className="text-xs text-gray-400 px-3 py-4">ブロックが見つかりません</p>
-      const comp = getComponent(entry.componentKey)
-      const updatePoolEntry = (patch: Partial<PoolEntry>) =>
-        setCurrentPool(prev => ({ ...prev, [selectedPoolBlockId]: { ...prev[selectedPoolBlockId], ...patch } }))
-      return (
-        <div className="px-3 py-3 flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-200 rounded px-2 py-0.5">{selectedPoolBlockId}</span>
-            <span className="text-[10px] text-gray-400">{entry.componentKey}</span>
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] text-gray-500">ラベル</label>
-              <input
-                type="text"
-                value={entry.label ?? ''}
-                onChange={e => updatePoolEntry({ label: e.target.value || undefined })}
-                placeholder="ラベルなし"
-                className="text-xs border rounded px-2 py-1 bg-white"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] text-gray-500">サブラベル</label>
-              <input
-                type="text"
-                value={entry.subLabel ?? ''}
-                onChange={e => updatePoolEntry({ subLabel: e.target.value || undefined })}
-                placeholder="サブラベルなし"
-                className="text-xs border rounded px-2 py-1 bg-white"
-              />
-            </div>
-          </div>
-          {comp?.blockConfigForm && (
-            <div className="flex flex-col gap-2 border-t border-gray-100 pt-2">
-              <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">ブロック設定</p>
-              <comp.blockConfigForm
-                blockConfig={entry.blockConfig ?? {}}
-                onChange={cfg => updatePoolEntry({ blockConfig: cfg })}
-              />
-            </div>
-          )}
-          {!comp?.blockConfigForm && (
-            <p className="text-[10px] text-gray-400">このコンポーネントには設定項目がありません</p>
-          )}
-        </div>
-      )
+      return renderPoolEntryEditor(selectedPoolBlockId, entry)
     }
     if (!selectedPath || !selectedNode) {
       return <p className="text-xs text-gray-400 px-3 py-4">ノードを選択してください</p>
     }
-    const path = selectedPath
-    const node = selectedNode
+    if (propTab === 'placement') return renderPlacementTab()
+    return renderBlockConfigTab()
+  }
+
+  // ── ブロック設定タブ ──────────────────────────────────────────────────────
+  function renderPoolEntryEditor(blockId: string, entry: PoolEntry): React.ReactNode {
+    const comp = getComponent(entry.componentKey)
+    const updatePoolEntry = (patch: Partial<PoolEntry>) =>
+      setCurrentPool(prev => ({ ...prev, [blockId]: { ...prev[blockId], ...patch } }))
+    return (
+      <div className="px-3 py-3 flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-200 rounded px-2 py-0.5">{blockId}</span>
+          <span className="text-[10px] text-gray-400">{entry.componentKey}</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] text-gray-500">ラベル</label>
+          <input
+            type="text"
+            value={entry.label ?? ''}
+            onChange={e => updatePoolEntry({ label: e.target.value || undefined })}
+            placeholder="ラベルなし"
+            className="text-xs border rounded px-2 py-1 bg-white"
+          />
+          <input
+            type="text"
+            value={entry.subLabel ?? ''}
+            onChange={e => updatePoolEntry({ subLabel: e.target.value || undefined })}
+            placeholder="サブラベル（任意）"
+            className="text-xs border rounded px-2 py-1 bg-white"
+          />
+        </div>
+        <label className="flex items-center gap-1.5 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={entry.hideWhenEmpty === true}
+            onChange={e => updatePoolEntry({ hideWhenEmpty: e.target.checked || undefined })}
+            className="w-3 h-3 accent-sky-500"
+          />
+          <span className="text-[10px] text-gray-500">値が空のとき非表示</span>
+        </label>
+        <div className="flex items-center gap-2">
+          <label className="text-[10px] text-gray-500 flex-shrink-0">ラベル色</label>
+          <ColorPicker
+            value={entry.labelColor ?? ''}
+            onChange={v => updatePoolEntry({ labelColor: v || undefined })}
+            defaultColor="#1f2937"
+            presetColors={LABEL_PRESET_COLORS}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-[10px] text-gray-500 flex-shrink-0">ラベルアイコン</label>
+          <IconPicker
+            value={entry.labelIcon ?? ''}
+            onChange={v => updatePoolEntry({ labelIcon: v || undefined })}
+          />
+        </div>
+        <label className="flex items-center gap-1.5 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={entry.labelInset === true}
+            onChange={e => updatePoolEntry({ labelInset: e.target.checked || undefined })}
+            className="w-3 h-3 accent-sky-500"
+          />
+          <span className="text-[10px] text-gray-500">ラベルをコンポーネント内に描画（labelInset）</span>
+        </label>
+        {entry.labelInset && (
+          <div className="flex flex-col gap-1 pl-4">
+            <label className="text-[10px] text-gray-500">labelInsetDir</label>
+            <div className="flex gap-1">
+              {(['col', 'row'] as const).map(d => (
+                <button
+                  key={d}
+                  onClick={() => updatePoolEntry({ labelInsetDir: d })}
+                  className={`px-2 py-1 text-xs border rounded transition-colors bg-white ${(entry.labelInsetDir ?? 'col') === d ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                >{d}</button>
+              ))}
+            </div>
+          </div>
+        )}
+        {comp?.blockConfigForm ? (
+          <div className="flex flex-col gap-2 border-t border-gray-100 pt-2">
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">ブロック固有設定</p>
+            <comp.blockConfigForm
+              blockConfig={entry.blockConfig ?? {}}
+              onChange={cfg => updatePoolEntry({ blockConfig: cfg })}
+            />
+          </div>
+        ) : (
+          <p className="text-[10px] text-gray-400">このコンポーネントには固有設定がありません</p>
+        )}
+      </div>
+    )
+  }
+
+  function renderBlockConfigTab(): React.ReactNode {
+    const node = selectedNode!
+    if (node.type === 'ref') {
+      const poolEntry = currentPool[node.blockId]
+      if (!poolEntry) return <p className="text-xs text-gray-400 px-3 py-4">プールエントリが見つかりません (blockId: {node.blockId})</p>
+      return renderPoolEntryEditor(node.blockId, poolEntry)
+    }
+    if (node.type === 'block') {
+      const comp = getComponent((node as Block).componentKey)
+      if (!comp) return null
+      const path = selectedPath!
+      const displaySettings: BlockDisplaySettings = {
+        variant:        node.variant ?? 'default',
+        bgVariant:      (node as Block).bgVariant ?? 'transparent',
+        label:          node.label ?? '',
+        subLabel:       node.subLabel ?? '',
+        labelColor:     (node as Block).labelColor ?? '',
+        labelIcon:      (node as Block).labelIcon ?? '',
+        labelInset:     (node as Block).labelInset ?? false,
+        labelInsetDir:  (node as Block).labelInsetDir ?? 'col',
+      }
+      const handleDisplayChange = (patch: Partial<BlockDisplaySettings>) => {
+        handleUpdate(path, n => {
+          const next = { ...n, ...patch }
+          if (patch.label !== undefined)     next.label     = patch.label     || undefined
+          if (patch.subLabel !== undefined)  next.subLabel  = patch.subLabel  || undefined
+          if (patch.labelIcon !== undefined) next.labelIcon = patch.labelIcon || undefined
+          if (patch.bgVariant !== undefined && !isBgVariantApplicable(comp, next.variant ?? 'default')) {
+            delete (next as Block).bgVariant
+          }
+          return next
+        })
+      }
+      return (
+        <div className="px-3 py-3">
+          <BlockPropertyEditor
+            component={comp}
+            settings={displaySettings}
+            onChange={handleDisplayChange}
+            extras={
+              <div className="flex flex-col gap-2 border-t border-gray-100 pt-3">
+                {comp.blockConfigForm && (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">ブロック固有設定</p>
+                    <comp.blockConfigForm
+                      blockConfig={(node as Block).blockConfig ?? {}}
+                      onChange={cfg => handleUpdate(path, n => ({ ...n, blockConfig: cfg }))}
+                    />
+                  </div>
+                )}
+              </div>
+            }
+          />
+        </div>
+      )
+    }
+    // row / col: no block config
+    return <p className="text-xs text-gray-400 px-3 py-4 text-center">コンテナノードにはブロック設定がありません</p>
+  }
+
+  // ── 配置タブ ──────────────────────────────────────────────────────────────
+  function renderPlacementTab(): React.ReactNode {
+    const path = selectedPath!
+    const node = selectedNode!
 
     const isRoot = path.length === 0
     const parentPath = path.slice(0, -1)
@@ -845,245 +977,119 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           </div>
         )}
 
-        {/* row / col: label / subLabel / labelColor */}
-        {(node.type === 'col' || node.type === 'row') && (
-          <div className="flex flex-col gap-1">
-            <label className="text-[10px] text-gray-500">ヘッダーラベル</label>
-            <input
-              type="text"
-              value={(node as LayoutNodeCol).label ?? ''}
-              onChange={e => handleUpdate(path, n => ({ ...n, label: e.target.value || undefined }))}
-              placeholder="例: PROFILE"
-              className="text-xs border rounded px-2 py-1"
-            />
-            <input
-              type="text"
-              value={(node as LayoutNodeCol).subLabel ?? ''}
-              onChange={e => handleUpdate(path, n => ({ ...n, subLabel: e.target.value || undefined }))}
-              placeholder="サブラベル（任意）"
-              className="text-xs border rounded px-2 py-1"
-            />
-            <div className="flex items-center gap-2 mt-1">
-              <label className="text-[10px] text-gray-500 flex-shrink-0">ラベル色</label>
-              <ColorPicker
-                value={(node as LayoutNodeCol).labelColor ?? ''}
-                onChange={v => handleUpdate(path, n => v ? { ...n, labelColor: v } : (() => { const { labelColor: _, ...rest } = n as LayoutNodeCol; return rest })())}
-                defaultColor="#1f2937"
-                presetColors={LABEL_PRESET_COLORS}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] text-gray-500 flex-shrink-0 w-16">アイコン</label>
-              <IconPicker
-                value={(node as LayoutNodeCol).labelIcon ?? ''}
-                onChange={v => handleUpdate(path, n => ({ ...n, labelIcon: v || undefined }))}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* ref のみ: blockId 表示 + pool 編集 + レイアウト固有項目 */}
+        {/* ref のみ: レイアウト固有設定 (variant / bgVariant / alignSelf / contentAlign / fontScale) */}
         {node.type === 'ref' && (() => {
           const poolEntry = currentPool[node.blockId]
           const comp = poolEntry ? getComponent(poolEntry.componentKey) : undefined
           const variants = comp?.variants ?? []
           const BG_VARIANTS: BgVariant[] = ['default', 'glass', 'transparent', 'outline']
-          const updatePool = (patch: Partial<PoolEntry>) =>
-            setCurrentPool(prev => ({ ...prev, [node.blockId]: { ...prev[node.blockId], ...patch } }))
           return (
             <div className="flex flex-col gap-2">
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] text-gray-500">blockId（プール参照）</label>
                 <span className="text-xs font-mono bg-indigo-50 text-indigo-700 border border-indigo-200 rounded px-2 py-1">{node.blockId}</span>
               </div>
-              {/* ── プール共通設定（全レイアウト共通） ── */}
-              <div className="flex flex-col gap-2 border border-indigo-100 bg-indigo-50/40 rounded p-2">
-                <p className="text-[9px] text-indigo-400 font-semibold uppercase tracking-wide">プール設定（全レイアウト共通）</p>
+              {/* variant */}
+              {variants.length > 0 && (
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] text-gray-500">ラベル</label>
-                  <input
-                    type="text"
-                    value={poolEntry?.label ?? ''}
-                    onChange={e => updatePool({ label: e.target.value || undefined })}
-                    placeholder="ラベルなし"
-                    className="text-xs border rounded px-2 py-1 bg-white"
-                  />
-                  <input
-                    type="text"
-                    value={poolEntry?.subLabel ?? ''}
-                    onChange={e => updatePool({ subLabel: e.target.value || undefined })}
-                    placeholder="サブラベル（任意）"
-                    className="text-xs border rounded px-2 py-1 bg-white"
-                  />
+                  <label className="text-[10px] text-gray-500">variant <span className="text-[9px] text-indigo-400">（このレイアウトのみ）</span></label>
+                  <div className="flex gap-1 flex-wrap">
+                    {variants.map(v => (
+                      <button
+                        key={v}
+                        onClick={() => handleUpdate(path, n => ({ ...n, variant: v === (poolEntry?.variant ?? 'default') && node.variant === undefined ? undefined : v } as LayoutNode))}
+                        className={`px-2 py-1 text-xs border rounded transition-colors ${(node.variant ?? poolEntry?.variant ?? 'default') === v ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50 bg-white'}`}
+                      >{v}{node.variant === v ? ' ✓' : ''}</button>
+                    ))}
+                    {node.variant !== undefined && (
+                      <button
+                        onClick={() => handleUpdate(path, n => { const { variant: _, ...rest } = n as LayoutNodeRef; return rest as LayoutNode })}
+                        className="px-2 py-1 text-xs border rounded border-red-200 text-red-400 hover:bg-red-50 bg-white"
+                      >クリア</button>
+                    )}
+                  </div>
                 </div>
-                {/* hideWhenEmpty */}
-                <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={poolEntry?.hideWhenEmpty === true}
-                    onChange={e => updatePool({ hideWhenEmpty: e.target.checked || undefined })}
-                    className="w-3 h-3 accent-sky-500"
-                  />
-                  <span className="text-[10px] text-gray-500">値が空のとき非表示</span>
-                </label>
-                {/* labelColor */}
-                <div className="flex items-center gap-2">
-                  <label className="text-[10px] text-gray-500 flex-shrink-0">ラベル色</label>
-                  <ColorPicker
-                    value={poolEntry?.labelColor ?? ''}
-                    onChange={v => updatePool({ labelColor: v || undefined })}
-                    defaultColor="#1f2937"
-                    presetColors={LABEL_PRESET_COLORS}
-                  />
+              )}
+              {/* bgVariant */}
+              {comp?.supportsBgVariant && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] text-gray-500">bgVariant <span className="text-[9px] text-indigo-400">（このレイアウトのみ）</span></label>
+                  <div className="flex gap-1 flex-wrap">
+                    {BG_VARIANTS.map(v => (
+                      <button
+                        key={v}
+                        onClick={() => handleUpdate(path, n => ({ ...n, bgVariant: v } as LayoutNode))}
+                        className={`px-2 py-1 text-xs border rounded transition-colors ${(node.bgVariant ?? poolEntry?.bgVariant) === v ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50 bg-white'}`}
+                      >{v}{node.bgVariant === v ? ' ✓' : ''}</button>
+                    ))}
+                    {node.bgVariant !== undefined && (
+                      <button
+                        onClick={() => handleUpdate(path, n => { const { bgVariant: _, ...rest } = n as LayoutNodeRef; return rest as LayoutNode })}
+                        className="px-2 py-1 text-xs border rounded border-red-200 text-red-400 hover:bg-red-50 bg-white"
+                      >クリア</button>
+                    )}
+                  </div>
                 </div>
-                {/* labelIcon */}
-                <div className="flex items-center gap-2">
-                  <label className="text-[10px] text-gray-500 flex-shrink-0">ラベルアイコン</label>
-                  <IconPicker
-                    value={poolEntry?.labelIcon ?? ''}
-                    onChange={v => updatePool({ labelIcon: v || undefined })}
-                  />
-                </div>
-                {/* labelInset */}
-                <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={poolEntry?.labelInset === true}
-                    onChange={e => updatePool({ labelInset: e.target.checked || undefined })}
-                    className="w-3 h-3 accent-sky-500"
-                  />
-                  <span className="text-[10px] text-gray-500">ラベルをコンポーネント内に描画（labelInset）</span>
-                </label>
-                {/* blockConfigForm */}
-                {comp?.blockConfigForm && (
-                  <div className="flex flex-col gap-2 border-t border-indigo-100 pt-2">
-                    <p className="text-[9px] text-indigo-400 font-semibold uppercase tracking-wide">ブロック設定（全レイアウト共通）</p>
-                    <comp.blockConfigForm
-                      blockConfig={poolEntry?.blockConfig ?? {}}
-                      onChange={cfg => updatePool({ blockConfig: cfg })}
+              )}
+              {/* alignSelf */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] text-gray-500">alignSelf</label>
+                <select
+                  value={node.alignSelf ?? ''}
+                  onChange={e => handleUpdate(path, n => ({ ...n, alignSelf: e.target.value || undefined } as LayoutNode))}
+                  className="text-xs border rounded px-2 py-1"
+                >
+                  <option value="">stretch（デフォルト）</option>
+                  <option value="flex-start">flex-start（コンテンツ高さ）</option>
+                  <option value="flex-end">flex-end</option>
+                  <option value="center">center</option>
+                </select>
+              </div>
+              {/* contentAlign */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] text-gray-500">contentAlign</label>
+                <select
+                  value={node.contentAlign ?? ''}
+                  onChange={e => handleUpdate(path, n => ({ ...n, contentAlign: e.target.value || undefined } as LayoutNode))}
+                  className="text-xs border rounded px-2 py-1"
+                >
+                  <option value="">stretch（デフォルト）</option>
+                  <option value="center">center（縦中央揃え）</option>
+                  <option value="flex-start">flex-start（上揃え）</option>
+                  <option value="flex-end">flex-end（下揃え）</option>
+                </select>
+              </div>
+              {/* フォント倍率 */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] text-gray-500">フォント倍率</label>
+                <div className="flex gap-2">
+                  <label className="flex items-center gap-1 text-[10px] text-gray-500">
+                    ラベル
+                    <input
+                      type="number" step="0.05" min="0.5" max="3"
+                      value={node.labelFontScale ?? ''}
+                      onChange={e => handleUpdate(path, n => ({ ...n, labelFontScale: e.target.value === '' ? undefined : Number(e.target.value) }))}
+                      placeholder="—"
+                      className="w-14 border rounded px-1 py-0.5 text-xs text-right"
                     />
-                  </div>
-                )}
-                {poolEntry?.labelInset && (
-                  <div className="flex flex-col gap-1 pl-4">
-                    <label className="text-[10px] text-gray-500">labelInsetDir</label>
-                    <div className="flex gap-1">
-                      {(['col', 'row'] as const).map(d => (
-                        <button
-                          key={d}
-                          onClick={() => updatePool({ labelInsetDir: d })}
-                          className={`px-2 py-1 text-xs border rounded transition-colors bg-white ${(poolEntry?.labelInsetDir ?? 'col') === d ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
-                        >{d}</button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              {/* ── レイアウト固有設定 ── */}
-              <div className="flex flex-col gap-2 border-t border-gray-100 pt-2">
-                <p className="text-[9px] text-gray-400 font-semibold uppercase tracking-wide">レイアウト固有設定</p>
-                {/* variant（このレイアウト専用） */}
-                {variants.length > 0 && (
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-gray-500">variant <span className="text-[9px] text-indigo-400">（このレイアウトのみ）</span></label>
-                    <div className="flex gap-1 flex-wrap">
-                      {variants.map(v => (
-                        <button
-                          key={v}
-                          onClick={() => handleUpdate(path, n => ({ ...n, variant: v === (poolEntry?.variant ?? 'default') && node.variant === undefined ? undefined : v } as LayoutNode))}
-                          className={`px-2 py-1 text-xs border rounded transition-colors ${(node.variant ?? poolEntry?.variant ?? 'default') === v ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50 bg-white'}`}
-                        >{v}{node.variant === v ? ' ✓' : ''}</button>
-                      ))}
-                      {node.variant !== undefined && (
-                        <button
-                          onClick={() => handleUpdate(path, n => { const { variant: _, ...rest } = n as LayoutNodeRef; return rest as LayoutNode })}
-                          className="px-2 py-1 text-xs border rounded border-red-200 text-red-400 hover:bg-red-50 bg-white"
-                        >クリア</button>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {/* bgVariant（このレイアウト専用） */}
-                {comp?.supportsBgVariant && (
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-gray-500">bgVariant <span className="text-[9px] text-indigo-400">（このレイアウトのみ）</span></label>
-                    <div className="flex gap-1 flex-wrap">
-                      {BG_VARIANTS.map(v => (
-                        <button
-                          key={v}
-                          onClick={() => handleUpdate(path, n => ({ ...n, bgVariant: v } as LayoutNode))}
-                          className={`px-2 py-1 text-xs border rounded transition-colors ${(node.bgVariant ?? poolEntry?.bgVariant) === v ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50 bg-white'}`}
-                        >{v}{node.bgVariant === v ? ' ✓' : ''}</button>
-                      ))}
-                      {node.bgVariant !== undefined && (
-                        <button
-                          onClick={() => handleUpdate(path, n => { const { bgVariant: _, ...rest } = n as LayoutNodeRef; return rest as LayoutNode })}
-                          className="px-2 py-1 text-xs border rounded border-red-200 text-red-400 hover:bg-red-50 bg-white"
-                        >クリア</button>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {/* alignSelf */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] text-gray-500">alignSelf</label>
-                  <select
-                    value={node.alignSelf ?? ''}
-                    onChange={e => handleUpdate(path, n => ({ ...n, alignSelf: e.target.value || undefined } as LayoutNode))}
-                    className="text-xs border rounded px-2 py-1"
-                  >
-                    <option value="">stretch（デフォルト）</option>
-                    <option value="flex-start">flex-start（コンテンツ高さ）</option>
-                    <option value="flex-end">flex-end</option>
-                    <option value="center">center</option>
-                  </select>
-                </div>
-                {/* contentAlign */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] text-gray-500">contentAlign</label>
-                  <select
-                    value={node.contentAlign ?? ''}
-                    onChange={e => handleUpdate(path, n => ({ ...n, contentAlign: e.target.value || undefined } as LayoutNode))}
-                    className="text-xs border rounded px-2 py-1"
-                  >
-                    <option value="">stretch（デフォルト）</option>
-                    <option value="center">center（縦中央揃え）</option>
-                    <option value="flex-start">flex-start（上揃え）</option>
-                    <option value="flex-end">flex-end（下揃え）</option>
-                  </select>
-                </div>
-                {/* フォント倍率 */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] text-gray-500">フォント倍率</label>
-                  <div className="flex gap-2">
-                    <label className="flex items-center gap-1 text-[10px] text-gray-500">
-                      ラベル
-                      <input
-                        type="number" step="0.05" min="0.5" max="3"
-                        value={node.labelFontScale ?? ''}
-                        onChange={e => handleUpdate(path, n => ({ ...n, labelFontScale: e.target.value === '' ? undefined : Number(e.target.value) }))}
-                        placeholder="—"
-                        className="w-14 border rounded px-1 py-0.5 text-xs text-right"
-                      />
-                    </label>
-                    <label className="flex items-center gap-1 text-[10px] text-gray-500">
-                      コンテンツ
-                      <input
-                        type="number" step="0.05" min="0.5" max="3"
-                        value={node.contentFontScale ?? ''}
-                        onChange={e => handleUpdate(path, n => ({ ...n, contentFontScale: e.target.value === '' ? undefined : Number(e.target.value) }))}
-                        placeholder="—"
-                        className="w-14 border rounded px-1 py-0.5 text-xs text-right"
-                      />
-                    </label>
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] text-gray-500">
+                    コンテンツ
+                    <input
+                      type="number" step="0.05" min="0.5" max="3"
+                      value={node.contentFontScale ?? ''}
+                      onChange={e => handleUpdate(path, n => ({ ...n, contentFontScale: e.target.value === '' ? undefined : Number(e.target.value) }))}
+                      placeholder="—"
+                      className="w-14 border rounded px-1 py-0.5 text-xs text-right"
+                    />
+                  </label>
                   </div>
                 </div>
               </div>
-            </div>
           )
         })()}
 
-        {/* block のみ: componentKey / dataKey */}
+        {/* block のみ: componentKey / dataKey / contentAlign */}
         {node.type === 'block' && (
           <div className="flex flex-col gap-2">
             <div className="flex flex-col gap-1">
@@ -1137,98 +1143,41 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
                 <option value="flex-end">flex-end（下揃え）</option>
               </select>
             </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-gray-500">alignSelf</label>
+              <select
+                value={(node as Block).alignSelf ?? ''}
+                onChange={e => handleUpdate(path, n => ({ ...n, alignSelf: e.target.value || undefined }))}
+                className="text-xs border rounded px-2 py-1"
+              >
+                <option value="">stretch（デフォルト）</option>
+                <option value="flex-start">flex-start（コンテンツ高さ）</option>
+                <option value="flex-end">flex-end</option>
+                <option value="center">center</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              {(node as Block).label !== undefined && (
+                <div className="flex items-center gap-1">
+                  <label className="text-[10px] text-gray-500 flex-shrink-0">ラベル倍率</label>
+                  <input type="number" step="0.05" min="0.3" max="3" placeholder="1.0"
+                    value={(node as Block).labelFontScale ?? ''}
+                    onChange={e => handleUpdate(path, n => ({ ...n, labelFontScale: e.target.value === '' ? undefined : Number(e.target.value) }))}
+                    className="w-14 px-1 py-0.5 border rounded text-xs font-mono text-right"
+                  />
+                </div>
+              )}
+              <div className="flex items-center gap-1">
+                <label className="text-[10px] text-gray-500 flex-shrink-0">コンテンツ倍率</label>
+                <input type="number" step="0.05" min="0.3" max="3" placeholder="1.0"
+                  value={(node as Block).contentFontScale ?? ''}
+                  onChange={e => handleUpdate(path, n => ({ ...n, contentFontScale: e.target.value === '' ? undefined : Number(e.target.value) }))}
+                  className="w-14 px-1 py-0.5 border rounded text-xs font-mono text-right"
+                />
+              </div>
+            </div>
           </div>
         )}
-
-        {/* block のみ: 表示設定（BlockPropertyEditor） */}
-        {node.type === 'block' && (() => {
-          const comp = getComponent((node as Block).componentKey)
-          if (!comp) return null
-          const displaySettings: BlockDisplaySettings = {
-            variant:        node.variant ?? 'default',
-            bgVariant:      (node as Block).bgVariant ?? 'transparent',
-            label:          node.label ?? '',
-            subLabel:       node.subLabel ?? '',
-            labelColor:     (node as Block).labelColor ?? '',
-            labelIcon:      (node as Block).labelIcon ?? '',
-            labelInset:     (node as Block).labelInset ?? false,
-            labelInsetDir:  (node as Block).labelInsetDir ?? 'col',
-          }
-          const handleDisplayChange = (patch: Partial<BlockDisplaySettings>) => {
-            handleUpdate(path, n => {
-              const next = { ...n, ...patch }
-              // 空文字は undefined に正規化
-              if (patch.label !== undefined)     next.label     = patch.label     || undefined
-              if (patch.subLabel !== undefined)  next.subLabel  = patch.subLabel  || undefined
-              if (patch.labelIcon !== undefined) next.labelIcon = patch.labelIcon || undefined
-              if (patch.bgVariant !== undefined && !isBgVariantApplicable(comp, next.variant ?? 'default')) {
-                delete (next as Block).bgVariant
-              }
-              return next
-            })
-          }
-          return (
-            <BlockPropertyEditor
-              component={comp}
-              settings={displaySettings}
-              onChange={handleDisplayChange}
-              extras={
-                <div className="flex flex-col gap-2 border-t border-gray-100 pt-3">
-                  {/* alignSelf */}
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-gray-500">alignSelf</label>
-                    <select
-                      value={(node as Block).alignSelf ?? ''}
-                      onChange={e => handleUpdate(path, n => ({ ...n, alignSelf: e.target.value || undefined }))}
-                      className="text-xs border rounded px-2 py-1"
-                    >
-                      <option value="">stretch（デフォルト）</option>
-                      <option value="flex-start">flex-start（コンテンツ高さ）</option>
-                      <option value="flex-end">flex-end</option>
-                      <option value="center">center</option>
-                    </select>
-                  </div>
-                  {/* labelFontScale */}
-                  {(node as Block).label !== undefined && (
-                    <div className="flex items-center gap-2">
-                      <label className="text-[10px] text-gray-500 w-28 flex-shrink-0">ヘッダー文字倍率</label>
-                      <input type="number" step="0.05" min="0.3" max="3" placeholder="1.0"
-                        value={(node as Block).labelFontScale ?? ''}
-                        onChange={e => handleUpdate(path, n => ({ ...n, labelFontScale: e.target.value === '' ? undefined : Number(e.target.value) }))}
-                        className="flex-1 px-2 py-1 border rounded text-xs font-mono"
-                      />
-                      {(node as Block).labelFontScale !== undefined && (
-                        <button onClick={() => handleUpdate(path, n => ({ ...n, labelFontScale: undefined }))} className="text-gray-300 hover:text-gray-500 text-xs">↺</button>
-                      )}
-                    </div>
-                  )}
-                  {/* contentFontScale */}
-                  <div className="flex items-center gap-2">
-                    <label className="text-[10px] text-gray-500 w-28 flex-shrink-0">コンテンツ文字倍率</label>
-                    <input type="number" step="0.05" min="0.3" max="3" placeholder="1.0"
-                      value={(node as Block).contentFontScale ?? ''}
-                      onChange={e => handleUpdate(path, n => ({ ...n, contentFontScale: e.target.value === '' ? undefined : Number(e.target.value) }))}
-                      className="flex-1 px-2 py-1 border rounded text-xs font-mono"
-                    />
-                    {(node as Block).contentFontScale !== undefined && (
-                      <button onClick={() => handleUpdate(path, n => ({ ...n, contentFontScale: undefined }))} className="text-gray-300 hover:text-gray-500 text-xs">↺</button>
-                    )}
-                  </div>
-                  {/* blockConfigForm */}
-                  {comp.blockConfigForm && (
-                    <div className="flex flex-col gap-2 border-t border-gray-100 pt-2">
-                      <p className="text-[10px] text-gray-500 uppercase tracking-wider">ブロック設定</p>
-                      <comp.blockConfigForm
-                        blockConfig={(node as Block).blockConfig ?? {}}
-                        onChange={cfg => handleUpdate(path, n => ({ ...n, blockConfig: cfg }))}
-                      />
-                    </div>
-                  )}
-                </div>
-              }
-            />
-          )
-        })()}
 
         {/* row/col のみ: 子追加 */}
         {node.type !== 'block' && node.type !== 'ref' && (
@@ -1336,6 +1285,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
                     setSelectedPoolBlockId(blockId)
                     setSelectedPath(null)
                     setSelectedOverlay(false)
+                    setPropTab('blockConfig')
                   }}
                 >
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
@@ -1349,7 +1299,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
                     className="opacity-0 group-hover:opacity-100 text-[10px] text-sky-500 hover:text-sky-700 flex-shrink-0 px-1"
                     title="現在のレイアウトに追加"
                     onClick={() => {
-                      const path = selectedPath ?? []
+                      const path = resolveContainerPath(selectedPath, layout)
                       handleAddRefFromPool(path, blockId)
                     }}
                   >+</button>
@@ -1622,11 +1572,23 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           onMouseDown={startDragProp}
           className="h-1 flex-shrink-0 cursor-row-resize hover:bg-sky-300 active:bg-sky-400 transition-colors border-t border-gray-200"
         />
-        <div className="flex flex-col overflow-y-auto flex-shrink-0" style={{ height: propHeight }}>
-          <div className="px-3 py-2 border-b flex-shrink-0">
-            <p className="text-xs font-medium text-gray-700">プロパティ</p>
+        <div className="flex flex-col flex-shrink-0" style={{ height: propHeight }}>
+          {/* タブバー（固定） */}
+          <div className="flex border-b flex-shrink-0">
+            {(['blockConfig', 'placement'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setPropTab(tab)}
+                className={`flex-1 px-2 py-1.5 text-[11px] font-medium transition-colors border-b-2 -mb-px ${propTab === tab ? 'border-sky-500 text-sky-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+              >
+                {tab === 'blockConfig' ? 'ブロック設定' : '配置'}
+              </button>
+            ))}
           </div>
-          {renderProperties()}
+          {/* スクロール領域 */}
+          <div className="overflow-y-auto flex-1 min-h-0">
+            {renderProperties()}
+          </div>
         </div>
         </>}
 
@@ -1635,6 +1597,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
             layout={layout}
             allLayouts={[cardLayout, webLayout]}
             definition={definition}
+            blockPool={currentPool as unknown as TemplateDefinition['blockPool']}
             localValues={localValues}
             localFontFamily={localFontFamily}
             setLocalFontFamily={setLocalFontFamily}
@@ -1747,6 +1710,7 @@ type FormBuilderProps = {
   layout: LayoutNode
   allLayouts: LayoutNode[]
   definition: TemplateDefinition
+  blockPool: TemplateDefinition['blockPool']
   localValues: BlockValues
   localFontFamily: string
   setLocalFontFamily: (f: string) => void
@@ -1756,8 +1720,8 @@ type FormBuilderProps = {
   setFormSections: (updater: FormSection[] | ((prev: FormSection[]) => FormSection[])) => void
 }
 
-function FormBuilder({ layout, allLayouts, definition, localValues, localFontFamily, setLocalFontFamily, updateLocalValue, resetLocalValues, formSections, setFormSections }: FormBuilderProps) {
-  const allBlocks = allLayouts.flatMap(l => collectBlockEntries(l)).filter((b, i, arr) => arr.findIndex(x => x.dataKey === b.dataKey) === i)
+function FormBuilder({ layout, allLayouts, definition, blockPool, localValues, localFontFamily, setLocalFontFamily, updateLocalValue, resetLocalValues, formSections, setFormSections }: FormBuilderProps) {
+  const allBlocks = allLayouts.flatMap(l => collectBlockEntries(l, undefined, undefined, blockPool)).filter((b, i, arr) => arr.findIndex(x => x.dataKey === b.dataKey) === i)
   const [editingItemIdx, setEditingItemIdx] = useState<{ sectionIdx: number; itemIdx: number } | null>(null)
 
   const addSection = () => setFormSections(prev => [...prev, { title: 'セクション', items: [] }])

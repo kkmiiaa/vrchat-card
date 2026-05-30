@@ -102,6 +102,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
               flex: 1,
               background: bgStyle.background,
               border: bgStyle.border,
+              boxShadow: bgStyle.boxShadow,
               borderRadius: ctx.cardWidth * 0.006,
               padding: `${ctx.cardWidth * 0.003 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px`,
               overflow: 'hidden',

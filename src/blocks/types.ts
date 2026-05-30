@@ -116,11 +116,11 @@ export type LabelDef = {
 }
 
 export const BG_VARIANT_STYLE = {
-  default:     { background: 'rgba(255,255,255,0.85)', border: 'none' },
-  glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)' },
-  transparent: { background: 'transparent',            border: 'none' },
-  outline:     { background: 'transparent',            border: '1px solid rgba(255,255,255,0.6)' },
-} satisfies Record<BgVariant, { background: string; border: string }>
+  default:     { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined },
+  glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)',        boxShadow: '0 0 12px rgba(0,0,0,0.08)' },
+  transparent: { background: 'transparent',            border: 'none',                                   boxShadow: undefined },
+  outline:     { background: 'transparent',            border: '1px solid rgba(255,255,255,0.6)',         boxShadow: undefined },
+} satisfies Record<BgVariant, { background: string; border: string; boxShadow?: string }>
 
 export type ComponentCardProps<T> = {
   value: T

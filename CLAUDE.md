@@ -68,10 +68,11 @@ E2EはCIでは実行しない（時間がかかりすぎるため）。ローカ
 | `language` | string[] | `language` | `{ preset: string[], custom: [] }` |
 | `age.mode` | string | `age.searchTag` | string |
 
-**ステップ2: V2 の DB 化（足場固め・リスクゼロ）**
-- カードエディタ（`/card/[cardId]`）が DB からテンプレート定義を読む仕組みを実装
-- V2 で動作確認（既存ユーザーなし）
-- `v2Definition.ts` はこの段階ではフォールバックとして残す
+**ステップ2: カードエディタを DB からテンプレート定義を読む仕組みに変更（V2 で先行検証）**
+- `v1Definition.ts` / `v2Definition.ts` はテスト用手動定義。DB のテンプレートビルダー製定義が「正」
+- カードエディタ（`/card/[cardId]`）が DB からテンプレート定義を読むよう変更
+- V2 で先に動作確認（既存ユーザーなし・リスクゼロ）
+- TS 定義ファイルはこの段階ではフォールバックとして残す
 
 **ステップ3: 旧メーカーの card_data を新 V1 形式に変換する関数を実装**
 - `migrateV1LegacyData(old: BlockValues): NewV1CardData` を実装

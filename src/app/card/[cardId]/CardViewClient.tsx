@@ -200,11 +200,17 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
 
   if (!template || cardData === null) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-indigo-100 flex flex-col items-center justify-center gap-3">
-        <div className="w-12 h-12 border-4 border-sky-300 border-t-[#00AADB] rounded-full animate-spin" />
-        {loadError && (
-          <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'red', textAlign: 'center', maxWidth: '90vw', wordBreak: 'break-all' }}>{loadError}</div>
-        )}
+      <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #e0e7ff 100%)' }}>
+        <header className="fixed top-0 left-0 right-0 z-20 border-b border-white/30 h-14 px-6 flex items-center justify-between bg-white/20 backdrop-blur-md">
+          <Link href="/" className="text-xl font-black tracking-tight text-white drop-shadow-md" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}>vaacard</Link>
+          <HeaderAuth variant="white" />
+        </header>
+        <main className="flex-1 flex items-center justify-center pt-14">
+          {loadError
+            ? <p className="text-sm text-red-500">{loadError}</p>
+            : <div className="w-10 h-10 border-4 border-sky-300 border-t-[#00AADB] rounded-full animate-spin" />
+          }
+        </main>
       </div>
     )
   }

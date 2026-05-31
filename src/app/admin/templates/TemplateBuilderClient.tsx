@@ -2,12 +2,10 @@
 
 import { useState } from 'react'
 import TemplateBuilder from '../TemplateBuilder'
-import type { TemplateDefinition } from '@/blocks/types'
 import type { TemplateLayoutRow, CommunityRow } from '@/lib/templateLayout'
 import { saveTemplateLayout, linkTemplateToCommunity } from '@/lib/templateLayout'
 
 type Props = {
-  definitions: TemplateDefinition[]
   savedLayouts: Record<string, TemplateLayoutRow>
   communities: CommunityRow[]
 }
@@ -19,9 +17,8 @@ const BASE_OPTIONS = [
   { value: 'v1', label: 'v1（Standard）' },
 ]
 
-export default function TemplateBuilderClient({ definitions: initialDefinitions, savedLayouts: initialLayouts, communities }: Props) {
+export default function TemplateBuilderClient({ savedLayouts: initialLayouts, communities }: Props) {
   const [tab, setTab] = useState<Tab>('edit')
-  const [definitions, setDefinitions] = useState(initialDefinitions)
   const [savedLayouts, setSavedLayouts] = useState(initialLayouts)
 
   // 新規作成フォーム
@@ -46,21 +43,19 @@ export default function TemplateBuilderClient({ definitions: initialDefinitions,
     const label = newLabel.trim()
     if (!id || !label) { setCreateError('ID とラベルは必須です'); return }
     if (!/^[a-z0-9-]+$/.test(id)) { setCreateError('ID は英小文字・数字・ハイフンのみ使用できます'); return }
-    if (definitions.find(d => d.id === id)) { setCreateError('そのIDはすでに存在します'); return }
+    if (savedLayouts[id]) { setCreateError('そのIDはすでに存在します'); return }
     if (selectedCommunities.length === 0) { setCreateError('界隈を1つ以上選択してください'); return }
 
-    const baseDef = definitions.find(d => d.id === baseId) ?? definitions[0]
-    const baseLayout = savedLayouts[baseId]
+    const baseLayout = savedLayouts[baseId] ?? Object.values(savedLayouts)[0]
 
     setCreating(true)
     setCreateError('')
 
-    const cardLayout = baseLayout?.card_layout ?? baseDef.card.layout
-    const webLayout  = baseLayout?.web_layout  ?? baseDef.web.layout
+    const cardLayout = baseLayout?.card_layout ?? { type: 'row' as const, children: [] }
+    const webLayout  = baseLayout?.web_layout  ?? { type: 'row' as const, children: [] }
     const formSections    = baseLayout?.form_sections    ?? []
     const orientationScales = baseLayout?.orientation_scales ?? { card: {}, web: {} }
 
-    // 1. テンプレート保存
     const { error: saveError } = await saveTemplateLayout(id, {
       label,
       description: newDescription.trim() || undefined,
@@ -76,7 +71,6 @@ export default function TemplateBuilderClient({ definitions: initialDefinitions,
       return
     }
 
-    // 2. 界隈と紐づけ
     const linkResults = await Promise.all(
       selectedCommunities.map((slug, i) => linkTemplateToCommunity(id, slug, (i + 1) * 10))
     )
@@ -87,9 +81,6 @@ export default function TemplateBuilderClient({ definitions: initialDefinitions,
       return
     }
 
-    // ローカルに定義を追加
-    const newDef: TemplateDefinition = { ...baseDef, id, label }
-    setDefinitions(prev => [...prev, newDef])
     setSavedLayouts(prev => ({
       ...prev,
       [id]: {
@@ -111,7 +102,6 @@ export default function TemplateBuilderClient({ definitions: initialDefinitions,
       },
     }))
 
-    // フォームリセット → 編集タブに切り替え
     setNewId(''); setNewLabel(''); setNewDescription(''); setBaseId('v2')
     setSelectedCommunities(communities.length === 1 ? [communities[0].slug] : [])
     setCreating(false)
@@ -119,12 +109,9 @@ export default function TemplateBuilderClient({ definitions: initialDefinitions,
   }
 
   const handleLabelChange = async (id: string, label: string) => {
-    // ローカルに即時反映
-    setDefinitions(prev => prev.map(d => d.id === id ? { ...d, label } : d))
     setSavedLayouts(prev => {
       const saved = prev[id]
       if (!saved) return prev
-      // DB 保存は最新の state を参照するためここで行う
       if (saved.card_layout && saved.web_layout) {
         saveTemplateLayout(id, {
           label,
@@ -159,7 +146,7 @@ export default function TemplateBuilderClient({ definitions: initialDefinitions,
 
       {tab === 'edit' && (
         <div className="flex flex-1 overflow-hidden">
-          <TemplateBuilder definitions={definitions} savedLayouts={savedLayouts} onLabelChange={handleLabelChange} />
+          <TemplateBuilder savedLayouts={savedLayouts} onLabelChange={handleLabelChange} />
         </div>
       )}
 

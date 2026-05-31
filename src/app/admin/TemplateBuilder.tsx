@@ -3,11 +3,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import type { TemplateDefinition, BlockValues, LayoutNode, Block, LayoutNodeRow, LayoutNodeCol, LayoutNodeRef, TemplateGridDef, FormSection, FormNode, FormNodeBlock, FormNodeFont, BgVariant } from '@/blocks/types'
+import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
 import { saveTemplateLayout } from '@/lib/templateLayout'
-import type { TemplateLayoutRow } from '@/lib/templateLayout'
+import type { TemplateLayoutRow, OrientationScales } from '@/lib/templateLayout'
 import { cellsToPixels } from '@/blocks/types'
 import { getAllComponents, getComponent } from '@/blocks/registry'
-import { collectBlockEntries, collectAllDataKeys, generateDataKey, collectDefaultValues, makeDefaultFormSections, resolveFormSections } from './templateBuilderUtils'
+import { collectBlockEntries, collectAllDataKeys, generateDataKey, collectDefaultValues, resolveFormSectionsFromRow } from './templateBuilderUtils'
 import { backgroundComponent } from '@/blocks/background'
 import { overlayComponent } from '@/blocks/overlay'
 import type { OverlayValue } from '@/blocks/overlay'
@@ -183,33 +184,65 @@ function collectUsedKeys(node: LayoutNode): Set<string> {
 }
 
 type Props = {
-  definitions: TemplateDefinition[]
-  savedLayouts?: Record<string, TemplateLayoutRow>
+  savedLayouts: Record<string, TemplateLayoutRow>
   onLabelChange?: (id: string, label: string) => void
 }
 
-export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabelChange }: Props) {
+function rowToDefinition(
+  row: TemplateLayoutRow,
+  cardLayout: LayoutNode,
+  webLayout: LayoutNode,
+  cardScales: OrientationScales,
+  webScales: OrientationScales & { cardWidth?: number; cardHeight?: number },
+  blockPool: Record<string, unknown>,
+  overlayConfig: import('@/blocks/overlay').OverlayValue | null,
+): TemplateDefinition {
+  const cfg = row.card_config ?? {}
+  return {
+    id: row.id,
+    label: row.label,
+    fontFamily: cfg.fontFamily ?? 'sans-serif',
+    borderRadius: cfg.borderRadius,
+    backgroundKey: cfg.backgroundKey,
+    overlayKey: cfg.overlayKey,
+    theme: DEFAULT_CARD_RENDER_CONTEXT.theme,
+    blockPool: blockPool as TemplateDefinition['blockPool'],
+    overlayFixed: overlayConfig ?? undefined,
+    card: {
+      layout: cardLayout,
+      cardWidth:  row.card_width  ?? 900,
+      cardHeight: row.card_height ?? 506,
+      ...cardScales,
+      grid: cfg.card?.grid ?? { cellSize: 8, gap: 4 },
+    },
+    web: {
+      layout: webLayout,
+      cardWidth: row.web_width ?? 630,
+      autoHeight: true,
+      ...webScales,
+      grid: cfg.web?.grid ?? { cellSize: 8, gap: 4 },
+    },
+  } as unknown as TemplateDefinition
+}
+
+export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
 
-  const [selectedDefIdx, setSelectedDefIdx] = useState(() => {
+  const rowList = Object.values(savedLayouts)
+
+  const [selectedId, setSelectedId] = useState(() => {
     const defId = searchParams.get('def')
-    if (defId) {
-      const idx = definitions.findIndex(d => d.id === defId)
-      if (idx >= 0) return idx
-    }
-    return 0
+    if (defId && savedLayouts[defId]) return defId
+    return rowList[0]?.id ?? ''
   })
-  const definition = definitions[selectedDefIdx]
+  const currentRow = savedLayouts[selectedId] ?? rowList[0]
 
   const [poolBlocks, setPoolBlocks] = useState<Record<string, Record<string, PoolEntry>>>(
-    () => Object.fromEntries(definitions.map(d => {
-      const saved = savedLayouts[d.id]
-      // 定義側の blockPool を常にベースにして DB 値で上書き（DB が空でも定義が使われる）
-      const defPool = (d.blockPool ?? {}) as Record<string, PoolEntry>
-      const dbPool  = (saved?.block_pool ?? {}) as Record<string, PoolEntry>
-      const initPool: Record<string, PoolEntry> = { ...defPool, ...dbPool }
+    () => Object.fromEntries(rowList.map(row => {
+      const dbPool = (row.block_pool ?? {}) as Record<string, PoolEntry>
+      const initPool: Record<string, PoolEntry> = { ...dbPool }
       function scanIntoPool(node: LayoutNode) {
         if (node.type === 'block') {
           if (!initPool[node.dataKey]) {
@@ -225,11 +258,9 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           node.children.forEach(scanIntoPool)
         }
       }
-      const card = saved?.card_layout ?? d.card.layout
-      const web = saved?.web_layout ?? d.web.layout
-      if (card) scanIntoPool(card)
-      if (web) scanIntoPool(web)
-      return [d.id, initPool]
+      if (row.card_layout) scanIntoPool(row.card_layout)
+      if (row.web_layout)  scanIntoPool(row.web_layout)
+      return [row.id, initPool]
     }))
   )
 
@@ -239,53 +270,47 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
   const containerRef = useRef<HTMLDivElement>(null)
 
   const [layouts, setLayouts] = useState<Record<string, { card: LayoutNode; web: LayoutNode }>>(
-    () => Object.fromEntries(definitions.map(d => {
-      const saved = savedLayouts[d.id]
-      return [d.id, {
-        card: saved?.card_layout ?? d.card.layout,
-        web:  saved?.web_layout  ?? d.web.layout,
-      }]
-    }))
+    () => Object.fromEntries(rowList.map(row => ([row.id, {
+      card: row.card_layout ?? { type: 'row', children: [] } as LayoutNode,
+      web:  row.web_layout  ?? { type: 'row', children: [] } as LayoutNode,
+    }])))
   )
 
-  const currentPool = poolBlocks[definition.id] ?? {}
+  const currentPool = poolBlocks[currentRow.id] ?? {}
   const setCurrentPool = useCallback((updater: Record<string, PoolEntry> | ((prev: Record<string, PoolEntry>) => Record<string, PoolEntry>)) => {
     setPoolBlocks(prev => ({
       ...prev,
-      [definition.id]: typeof updater === 'function' ? updater(prev[definition.id] ?? {}) : updater,
+      [currentRow.id]: typeof updater === 'function' ? updater(prev[currentRow.id] ?? {}) : updater,
     }))
-  }, [definition.id])
+  }, [currentRow.id])
 
-  const currentLayouts = layouts[definition.id]
-  const cardLayout = currentLayouts.card
-  const webLayout  = currentLayouts.web
+  const currentLayouts = layouts[currentRow.id]
+  const cardLayout = currentLayouts?.card ?? ({ type: 'row', children: [] } as LayoutNode)
+  const webLayout  = currentLayouts?.web  ?? ({ type: 'row', children: [] } as LayoutNode)
 
   const layout = orientation === 'card' ? cardLayout : webLayout
   const setLayout = useCallback((updater: LayoutNode | ((prev: LayoutNode) => LayoutNode)) => {
     setLayouts(prev => {
-      const current = prev[definition.id]
+      const current = prev[currentRow.id]
       const next = typeof updater === 'function' ? updater(orientation === 'card' ? current.card : current.web) : updater
-      return { ...prev, [definition.id]: { ...current, [orientation]: next } }
+      return { ...prev, [currentRow.id]: { ...current, [orientation]: next } }
     })
-  }, [definition.id, orientation])
+  }, [currentRow.id, orientation])
 
-  type OrientationScales = { defaultLabelFontScale?: number; defaultContentFontScale?: number; defaultPaddingScale?: number }
-  const [orientationScales, setOrientationScales] = useState<Record<string, { card: OrientationScales; web: OrientationScales }>>(
-    () => Object.fromEntries(definitions.map(d => {
-      const saved = savedLayouts[d.id]?.orientation_scales
-      return [d.id, {
-        card: saved?.card ?? { defaultLabelFontScale: d.card.defaultLabelFontScale, defaultContentFontScale: d.card.defaultContentFontScale, defaultPaddingScale: d.card.defaultPaddingScale },
-        web:  saved?.web  ?? { defaultLabelFontScale: d.web.defaultLabelFontScale,  defaultContentFontScale: d.web.defaultContentFontScale,  defaultPaddingScale: d.web.defaultPaddingScale  },
-      }]
-    }))
+  type LocalOrientationScales = { defaultLabelFontScale?: number; defaultContentFontScale?: number; defaultPaddingScale?: number }
+  const [orientationScales, setOrientationScales] = useState<Record<string, { card: LocalOrientationScales; web: LocalOrientationScales }>>(
+    () => Object.fromEntries(rowList.map(row => ([row.id, {
+      card: row.orientation_scales?.card ?? {},
+      web:  row.orientation_scales?.web  ?? {},
+    }])))
   )
-  const currentOrientationScales = orientationScales[definition.id]?.[orientation] ?? {}
-  const setOrientationScale = useCallback((patch: OrientationScales) => {
+  const currentOrientationScales = orientationScales[currentRow.id]?.[orientation] ?? {}
+  const setOrientationScale = useCallback((patch: LocalOrientationScales) => {
     setOrientationScales(prev => ({
       ...prev,
-      [definition.id]: { ...prev[definition.id], [orientation]: { ...prev[definition.id]?.[orientation], ...patch } },
+      [currentRow.id]: { ...prev[currentRow.id], [orientation]: { ...prev[currentRow.id]?.[orientation], ...patch } },
     }))
-  }, [definition.id, orientation])
+  }, [currentRow.id, orientation])
 
   const [leftWidth, setLeftWidth] = useState(208)
   const [rightWidth, setRightWidth] = useState(288)
@@ -334,30 +359,25 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
 
   const [rightTab, setRightTab] = useState<'layout' | 'form'>('layout')
   const [propTab, setPropTab] = useState<'placement' | 'blockConfig'>('placement')
-  const [formSections, setFormSections] = useState<FormSection[]>(
-    () => resolveFormSections(definitions[0], savedLayouts)
-  )
-  // テンプレート切り替え時に formSections を同期
   const [formSectionsByDef, setFormSectionsByDef] = useState<Record<string, FormSection[]>>(
-    () => Object.fromEntries(definitions.map(d => [d.id, resolveFormSections(d, savedLayouts)]))
+    () => Object.fromEntries(rowList.map(row => [row.id, resolveFormSectionsFromRow(row)]))
   )
-  const currentFormSections = formSectionsByDef[definition.id] ?? []
+  const currentFormSections = formSectionsByDef[currentRow.id] ?? []
   const setCurrentFormSections = useCallback((updater: FormSection[] | ((prev: FormSection[]) => FormSection[])) => {
     setFormSectionsByDef(prev => ({
       ...prev,
-      [definition.id]: typeof updater === 'function' ? updater(prev[definition.id] ?? []) : updater,
+      [currentRow.id]: typeof updater === 'function' ? updater(prev[currentRow.id] ?? []) : updater,
     }))
-  }, [definition.id])
+  }, [currentRow.id])
 
   const [localValues, setLocalValues] = useState<BlockValues>(() => {
-    const d = definitions[selectedDefIdx]
-    const pool = (d.blockPool ?? {}) as TemplateDefinition['blockPool']
+    const pool = (currentRow.block_pool ?? {}) as TemplateDefinition['blockPool']
     return {
-      ...collectDefaultValues(d.card.layout, pool),
-      ...collectDefaultValues(d.web.layout, pool),
+      ...collectDefaultValues(currentRow.card_layout ?? { type: 'row', children: [] } as LayoutNode, pool),
+      ...collectDefaultValues(currentRow.web_layout  ?? { type: 'row', children: [] } as LayoutNode, pool),
     }
   })
-  const [localFontFamily, setLocalFontFamily] = useState<string>(definition.fontFamily)
+  const [localFontFamily, setLocalFontFamily] = useState<string>(currentRow.card_config?.fontFamily ?? 'sans-serif')
   const updateLocalValue = useCallback((key: string, val: unknown) => {
     setLocalValues(prev => ({ ...prev, [key]: val }))
   }, [])
@@ -367,19 +387,16 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
       ...collectDefaultValues(cardLayout, pool),
       ...collectDefaultValues(webLayout,  pool),
     })
-    setLocalFontFamily(definition.fontFamily)
-  }, [cardLayout, definition.fontFamily])
+    setLocalFontFamily(currentRow.card_config?.fontFamily ?? 'sans-serif')
+  }, [cardLayout, currentRow.card_config?.fontFamily])
 
   const [overlayConfigs, setOverlayConfigs] = useState<Record<string, OverlayValue | null>>(
-    () => Object.fromEntries(definitions.map(d => [
-      d.id,
-      savedLayouts[d.id]?.overlay_config ?? d.overlayFixed ?? null,
-    ]))
+    () => Object.fromEntries(rowList.map(row => [row.id, row.overlay_config ?? null]))
   )
-  const currentOverlayConfig = overlayConfigs[definition.id] ?? null
+  const currentOverlayConfig = overlayConfigs[currentRow.id] ?? null
   const setCurrentOverlayConfig = useCallback((v: OverlayValue | null) => {
-    setOverlayConfigs(prev => ({ ...prev, [definition.id]: v }))
-  }, [definition.id])
+    setOverlayConfigs(prev => ({ ...prev, [currentRow.id]: v }))
+  }, [currentRow.id])
   const [selectedOverlay, setSelectedOverlay] = useState(false)
 
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
@@ -388,27 +405,31 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
 
   const handleSave = useCallback(async () => {
     setSaveState('saving')
-    const { error } = await saveTemplateLayout(definition.id, {
-      label:              definition.label,
+    const cfg = currentRow.card_config ?? {}
+    const { error } = await saveTemplateLayout(currentRow.id, {
+      label:              currentRow.label,
       card_layout:        cardLayout,
       web_layout:         webLayout,
       block_pool:         currentPool as Record<string, unknown>,
       form_sections:      currentFormSections,
       orientation_scales: {
-        card: orientationScales[definition.id]?.card ?? {},
-        web:  orientationScales[definition.id]?.web  ?? {},
+        card: orientationScales[currentRow.id]?.card ?? {},
+        web:  orientationScales[currentRow.id]?.web  ?? {},
       },
-      overlay_config: overlayConfigs[definition.id] ?? null,
+      overlay_config: overlayConfigs[currentRow.id] ?? null,
+      card_config: { ...cfg, fontFamily: localFontFamily },
     })
     setSaveState(error ? 'error' : 'saved')
     setTimeout(() => setSaveState('idle'), 2000)
-  }, [definition.id, cardLayout, webLayout, currentFormSections, orientationScales, overlayConfigs, currentPool])
+  }, [currentRow, cardLayout, webLayout, currentFormSections, orientationScales, overlayConfigs, currentPool, localFontFamily])
 
   const [selectedPath, setSelectedPath] = useState<NodePath | null>(null)
   const selectedNode = selectedPath ? getNode(layout, selectedPath) : null
   const [selectedPoolBlockId, setSelectedPoolBlockId] = useState<string | null>(null)
 
-  const o = definition[orientation]
+  const o = orientation === 'card'
+    ? { cardWidth: currentRow.card_width ?? 900, cardHeight: currentRow.card_height ?? 506, autoHeight: false as const }
+    : { cardWidth: currentRow.web_width ?? 630, autoHeight: true as const, cardHeight: undefined as number | undefined }
   const scale = fitScale * scaleMultiplier
 
   useEffect(() => {
@@ -512,11 +533,12 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
     setDropTarget(null)
   }, [setLayout])
 
-  const grid = o.grid
+  const cfg = currentRow.card_config ?? {}
+  const grid = orientation === 'card' ? (cfg.card?.grid ?? { cellSize: 8, gap: 4 }) : (cfg.web?.grid ?? { cellSize: 8, gap: 4 })
 
   // ページ背景（カードと同じ背景をコンテナ全体に適用）
-  const bgValue = definition.backgroundKey
-    ? (localValues[definition.backgroundKey] as BackgroundValue | undefined)
+  const bgValue = currentRow.card_config?.backgroundKey
+    ? (localValues[currentRow.card_config?.backgroundKey] as BackgroundValue | undefined)
     : undefined
   const pageBg = bgValue
     ? (getBackgroundStyle(bgValue.type, bgValue.value, bgValue.base64 ?? null, CARD_BG_FALLBACK) ?? CARD_BG_FALLBACK)
@@ -704,7 +726,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
   // 選択ノードのプロパティ編集パネル
   function renderProperties(): React.ReactNode {
     if (selectedOverlay) {
-      const value = currentOverlayConfig ?? definition.overlayFixed ?? overlayComponent.defaultValue
+      const value = currentOverlayConfig ?? currentRow.overlay_config ?? overlayComponent.defaultValue
       return (
         <div className="px-3 py-3 flex flex-col gap-2">
           <overlayComponent.FormItem
@@ -1222,13 +1244,15 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
   const cardUsedKeys = collectUsedKeys(cardLayout)
   const webUsedKeys = collectUsedKeys(webLayout)
 
-  const resolvedDefinition = {
-    ...definition,
-    blockPool: currentPool as unknown as TemplateDefinition['blockPool'],
-    overlayFixed: currentOverlayConfig ?? definition.overlayFixed,
-    card: { ...definition.card, layout: cardLayout, ...orientationScales[definition.id]?.card },
-    web:  { ...definition.web,  layout: webLayout,  ...orientationScales[definition.id]?.web  },
-  }
+  const resolvedDefinition = rowToDefinition(
+    currentRow,
+    cardLayout,
+    webLayout,
+    orientationScales[currentRow.id]?.card ?? {},
+    orientationScales[currentRow.id]?.web  ?? {},
+    currentPool,
+    currentOverlayConfig,
+  )
 
   return (
     <div className="flex h-full w-full overflow-hidden">
@@ -1238,25 +1262,25 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           <p className="text-xs font-medium text-gray-700">テンプレート</p>
         </div>
         <div className="flex-1 overflow-y-auto py-1 min-h-0">
-          {definitions.map((def, idx) => (
+          {rowList.map(row => (
             <button
-              key={def.id}
+              key={row.id}
               onClick={() => {
-                setSelectedDefIdx(idx)
+                setSelectedId(row.id)
                 setSelectedPath(null)
                 setSelectedOverlay(false)
                 const p = new URLSearchParams(searchParams.toString())
-                p.set('def', definitions[idx].id)
+                p.set('def', row.id)
                 router.replace(`${pathname}?${p.toString()}`)
               }}
               className={`w-full text-left px-3 py-2.5 transition-colors ${
-                selectedDefIdx === idx ? 'bg-sky-50 border-r-2 border-sky-400' : 'hover:bg-gray-50'
+                selectedId === row.id ? 'bg-sky-50 border-r-2 border-sky-400' : 'hover:bg-gray-50'
               }`}
             >
-              <p className={`text-xs font-medium ${selectedDefIdx === idx ? 'text-sky-700' : 'text-gray-700'}`}>
-                {def.label}
+              <p className={`text-xs font-medium ${selectedId === row.id ? 'text-sky-700' : 'text-gray-700'}`}>
+                {row.label}
               </p>
-              <p className="text-[10px] text-gray-400 mt-0.5 font-mono">{def.id}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5 font-mono">{row.id}</p>
             </button>
           ))}
         </div>
@@ -1314,10 +1338,10 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
                         return next
                       })
                       setLayouts(prev => {
-                        const cur = prev[definition.id]
+                        const cur = prev[currentRow.id]
                         return {
                           ...prev,
-                          [definition.id]: {
+                          [currentRow.id]: {
                             card: removeRefsById(cur.card, blockId),
                             web:  removeRefsById(cur.web,  blockId),
                           },
@@ -1347,8 +1371,8 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
               onSubmit={e => {
                 e.preventDefault()
                 const trimmed = labelDraft.trim()
-                if (trimmed && trimmed !== definition.label) {
-                  onLabelChange?.(definition.id, trimmed)
+                if (trimmed && trimmed !== currentRow.label) {
+                  onLabelChange?.(currentRow.id, trimmed)
                 }
                 setEditingLabel(false)
               }}
@@ -1359,8 +1383,8 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
                 onChange={e => setLabelDraft(e.target.value)}
                 onBlur={() => {
                   const trimmed = labelDraft.trim()
-                  if (trimmed && trimmed !== definition.label) {
-                    onLabelChange?.(definition.id, trimmed)
+                  if (trimmed && trimmed !== currentRow.label) {
+                    onLabelChange?.(currentRow.id, trimmed)
                   }
                   setEditingLabel(false)
                 }}
@@ -1371,11 +1395,11 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           ) : (
             <button
               type="button"
-              onClick={() => { setLabelDraft(definition.label); setEditingLabel(true) }}
+              onClick={() => { setLabelDraft(currentRow.label); setEditingLabel(true) }}
               className="flex items-center gap-1 group min-w-0 shrink"
               title="クリックして名前を編集"
             >
-              <span className="text-xs font-semibold text-gray-800 truncate max-w-[160px]">{definition.label}</span>
+              <span className="text-xs font-semibold text-gray-800 truncate max-w-[160px]">{currentRow.label}</span>
               <span className="text-[10px] text-gray-300 group-hover:text-gray-500 transition-colors flex-shrink-0">✏</span>
             </button>
           )}
@@ -1409,14 +1433,14 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           <button
             onClick={() => {
               const savedLayout = orientation === 'card'
-                ? savedLayouts[definition.id]?.card_layout
-                : savedLayouts[definition.id]?.web_layout
+                ? savedLayouts[currentRow.id]?.card_layout
+                : savedLayouts[currentRow.id]?.web_layout
               if (!savedLayout) return
               if (!confirm(`${orientation === 'card' ? 'カード' : 'Web'}レイアウトの未保存の変更を破棄しますか？`)) return
               setLayouts(prev => ({
                 ...prev,
-                [definition.id]: {
-                  ...prev[definition.id],
+                [currentRow.id]: {
+                  ...prev[currentRow.id],
                   [orientation]: savedLayout,
                 },
               }))
@@ -1447,7 +1471,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
             { key: 'defaultContentFontScale',  label: 'コンテンツ倍率' },
             { key: 'defaultPaddingScale',      label: 'パディング倍率' },
           ] as const).map(({ key, label }) => {
-            const defVal = definition[orientation][key] ?? 1
+            const defVal = 1
             const curVal = currentOrientationScales[key] ?? defVal
             return (
               <label key={key} className="flex items-center gap-1">
@@ -1499,7 +1523,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
               height: (o.cardHeight ?? o.cardWidth) * scale,
               position: 'relative',
               overflow: 'hidden',
-              borderRadius: (definition.borderRadius ?? 20) * scale,
+              borderRadius: (currentRow.card_config?.borderRadius ?? 20) * scale,
               flexShrink: 0,
             }}>
               <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: o.cardWidth, height: o.cardHeight }}>
@@ -1557,7 +1581,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
             <span className="text-[10px] text-purple-400">■</span>
             <span className="font-mono font-medium">overlay</span>
             <span className="text-[10px] text-gray-400">
-              {currentOverlayConfig?.variant ?? definition.overlayFixed?.variant ?? '—'}
+              {currentOverlayConfig?.variant ?? currentRow.overlay_config?.variant ?? '—'}
             </span>
             <span className="ml-auto text-[10px] text-gray-300 select-none" title="削除不可">🔒</span>
           </div>
@@ -1596,7 +1620,7 @@ export default function TemplateBuilder({ definitions, savedLayouts = {}, onLabe
           <FormBuilder
             layout={layout}
             allLayouts={[cardLayout, webLayout]}
-            definition={definition}
+            backgroundKey={currentRow.card_config?.backgroundKey}
             blockPool={currentPool as unknown as TemplateDefinition['blockPool']}
             localValues={localValues}
             localFontFamily={localFontFamily}
@@ -1709,7 +1733,7 @@ function NodePasteButton({ onApply }: { onApply: (node: LayoutNode) => void }) {
 type FormBuilderProps = {
   layout: LayoutNode
   allLayouts: LayoutNode[]
-  definition: TemplateDefinition
+  backgroundKey?: string
   blockPool: TemplateDefinition['blockPool']
   localValues: BlockValues
   localFontFamily: string
@@ -1720,7 +1744,7 @@ type FormBuilderProps = {
   setFormSections: (updater: FormSection[] | ((prev: FormSection[]) => FormSection[])) => void
 }
 
-function FormBuilder({ layout, allLayouts, definition, blockPool, localValues, localFontFamily, setLocalFontFamily, updateLocalValue, resetLocalValues, formSections, setFormSections }: FormBuilderProps) {
+function FormBuilder({ layout, allLayouts, backgroundKey, blockPool, localValues, localFontFamily, setLocalFontFamily, updateLocalValue, resetLocalValues, formSections, setFormSections }: FormBuilderProps) {
   const allBlocks = allLayouts.flatMap(l => collectBlockEntries(l, undefined, undefined, blockPool)).filter((b, i, arr) => arr.findIndex(x => x.dataKey === b.dataKey) === i)
   const [editingItemIdx, setEditingItemIdx] = useState<{ sectionIdx: number; itemIdx: number } | null>(null)
 
@@ -1747,8 +1771,8 @@ function FormBuilder({ layout, allLayouts, definition, blockPool, localValues, l
   const usedDataKeys = new Set(formSections.flatMap(s => s.items.filter(it => it.type === 'block').map(it => (it as FormNodeBlock).dataKey)))
   // background など layout 外の特殊ブロックも選択肢に含める
   const extraBlocks: { componentKey: string; dataKey: string; blockConfig?: Record<string, unknown>; formLabel?: string }[] = []
-  if (definition.backgroundKey && !allBlocks.find(b => b.dataKey === definition.backgroundKey)) {
-    extraBlocks.push({ componentKey: 'background', dataKey: definition.backgroundKey, formLabel: '背景' })
+  if (backgroundKey && !allBlocks.find(b => b.dataKey === backgroundKey)) {
+    extraBlocks.push({ componentKey: 'background', dataKey: backgroundKey, formLabel: '背景' })
   }
   const availableBlocks = [...allBlocks, ...extraBlocks].filter(b => !usedDataKeys.has(b.dataKey))
   const fontAlreadyUsed = formSections.some(s => s.items.some(it => it.type === 'font'))
@@ -1929,7 +1953,7 @@ function FormBuilder({ layout, allLayouts, definition, blockPool, localValues, l
                     }
                     const entry = allBlocks.find(b => b.dataKey === item.dataKey)
                     // allBlocks にない場合（background など layout 外ブロック）は registry から直接取得
-                    const block = entry ? getComponent(entry.componentKey) : (item.dataKey === definition.backgroundKey ? backgroundComponent : null)
+                    const block = entry ? getComponent(entry.componentKey) : (item.dataKey === backgroundKey ? backgroundComponent : null)
                     if (!block?.FormItem) return null
                     const label = item.formLabel || entry?.formLabel
                     return (

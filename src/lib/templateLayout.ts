@@ -28,6 +28,7 @@ export type TemplateLayoutRow = {
     borderRadius?: number
     backgroundKey?: string
     overlayKey?: string
+    fontFamily?: string
     card?: { grid?: { cellSize?: number; gap?: number } }
     web?:  { grid?: { cellSize?: number; gap?: number }; autoHeight?: boolean }
   } | null
@@ -191,6 +192,7 @@ export async function saveTemplateLayout(
     orientation_scales: { card: OrientationScales; web: OrientationScales }
     overlay_config?:    OverlayValue | null
     block_pool?:        Record<string, unknown>
+    card_config?:       Record<string, unknown>
   }
 ): Promise<{ error: string | null }> {
   const supabase = createAdminClient()
@@ -207,6 +209,7 @@ export async function saveTemplateLayout(
   if (data.description) payload.description = data.description
   if ('overlay_config' in data) payload.overlay_config = data.overlay_config ?? null
   if (data.block_pool !== undefined) payload.block_pool = data.block_pool
+  if (data.card_config !== undefined) payload.card_config = data.card_config
 
   const { error } = await supabase
     .from('templates')

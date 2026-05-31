@@ -79,20 +79,15 @@ export function collectDefaultValues(node: LayoutNode, blockPool?: TemplateDefin
 
 // ─── フォームセクション解決 ──────────────────────────────────────────────────
 
-export function makeDefaultFormSections(d: TemplateDefinition): FormSection[] {
+export function makeDefaultFormSections(backgroundKey?: string): FormSection[] {
   const designItems: FormNode[] = [{ type: 'font' }]
-  if (d.backgroundKey) designItems.push({ type: 'block', dataKey: d.backgroundKey })
+  if (backgroundKey) designItems.push({ type: 'block', dataKey: backgroundKey })
   return [{ title: 'カードデザイン', items: designItems, defaultOpen: true }]
 }
 
-export function resolveFormSections(
-  d: TemplateDefinition,
-  savedLayouts: Record<string, TemplateLayoutRow> = {},
-): FormSection[] {
-  const fromDb = savedLayouts[d.id]?.form_sections
-  if (fromDb?.length) return fromDb
-  if (d.formSections?.length) return d.formSections
-  return makeDefaultFormSections(d)
+export function resolveFormSectionsFromRow(row: TemplateLayoutRow): FormSection[] {
+  if (row.form_sections?.length) return row.form_sections
+  return makeDefaultFormSections(row.card_config?.backgroundKey)
 }
 
 // ─── saveTemplateLayout payload 構築 ─────────────────────────────────────────

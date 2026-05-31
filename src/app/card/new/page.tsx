@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { fetchTemplateLayouts } from '@/lib/templateLayout'
 import TemplateSelector from './TemplateSelector'
 
 export default async function NewCardPage() {
@@ -8,5 +9,6 @@ export default async function NewCardPage() {
 
   if (!user) redirect('/auth/login?next=/card/new')
 
-  return <TemplateSelector />
+  const savedLayouts = await fetchTemplateLayouts()
+  return <TemplateSelector savedLayouts={savedLayouts} />
 }

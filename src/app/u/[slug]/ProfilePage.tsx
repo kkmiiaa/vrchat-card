@@ -8,11 +8,7 @@ import type { ProfileRow, ProfileLink } from '@/lib/types'
 import type { CardTemplate } from '@/blocks/types'
 import type { TemplateLayoutRow } from '@/lib/templateLayout'
 import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
-import { cardV1Definition } from '@/templates/v1Definition'
-import { cardV2Definition } from '@/templates/v2Definition'
 import { migrateLegacyCardData } from '@/lib/legacyCardDataMigration'
-
-const definitionMap = { v1: cardV1Definition, v2: cardV2Definition }
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import HeaderAuth from '@/components/HeaderAuth'
@@ -66,9 +62,7 @@ function LiveCardPreview({
   const [template, setTemplate] = useState<CardTemplate | null>(null)
 
   useEffect(() => {
-    const definition = definitionMap[templateId as keyof typeof definitionMap]
-    if (!definition) return
-    const { template: t } = buildCardTemplateFromDefinition(definition, templateDbRow ?? null)
+    const { template: t } = buildCardTemplateFromDefinition(null, templateDbRow ?? null)
     setTemplate(t)
     onOrientation?.(t.cardWidth >= t.cardHeight ? 'card' : 'web')
   }, [templateId, templateDbRow]) // eslint-disable-line react-hooks/exhaustive-deps

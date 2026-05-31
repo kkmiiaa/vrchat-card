@@ -24,6 +24,13 @@ export type TemplateLayoutRow = {
   card_width:         number | null
   card_height:        number | null
   web_width:          number | null
+  card_config:        {
+    borderRadius?: number
+    backgroundKey?: string
+    overlayKey?: string
+    card?: { grid?: { cellSize?: number; gap?: number } }
+    web?:  { grid?: { cellSize?: number; gap?: number }; autoHeight?: boolean }
+  } | null
 }
 
 /** 単一テンプレート行を DB から取得 */
@@ -31,7 +38,7 @@ export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('templates')
-    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width')
+    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config')
     .eq('id', id)
     .single()
 
@@ -51,6 +58,7 @@ export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow
     card_width:         data.card_width         as number | null,
     card_height:        data.card_height        as number | null,
     web_width:          data.web_width          as number | null,
+    card_config:        data.card_config        as TemplateLayoutRow['card_config'],
   }
 }
 
@@ -59,7 +67,7 @@ export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLay
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('templates')
-    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width')
+    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config')
     .order('sort_order', { ascending: true })
 
   if (error) {
@@ -84,6 +92,7 @@ export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLay
         card_width:         row.card_width         as number | null,
         card_height:        row.card_height        as number | null,
         web_width:          row.web_width          as number | null,
+        card_config:        row.card_config        as TemplateLayoutRow['card_config'],
       },
     ])
   )

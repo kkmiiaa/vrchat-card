@@ -6,15 +6,8 @@ import type { CardTemplate, FormSection } from '@/blocks/types'
 import type { CardRow } from '@/lib/types'
 import type { TemplateLayoutRow } from '@/lib/templateLayout'
 import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
-import { cardV1Definition } from '@/templates/v1Definition'
-import { cardV2Definition } from '@/templates/v2Definition'
 
 type Announcement = { id: string; title: string; body: string; published_at: string }
-
-const definitionMap = {
-  v1: cardV1Definition,
-  v2: cardV2Definition,
-}
 
 type Props = {
   card: CardRow
@@ -29,19 +22,9 @@ export default function CardEditorClient({ card, templateId, templateDbRow, isOw
   const [formSections, setFormSections] = useState<FormSection[]>([])
 
   useEffect(() => {
-    const definition = definitionMap[templateId as keyof typeof definitionMap]
-    if (definition) {
-      const { template: built, formSections: sections } = buildCardTemplateFromDefinition(definition, templateDbRow ?? null)
-      setTemplate(built)
-      setFormSections(sections)
-      return
-    }
-    // フォールバック: 旧 CardTemplate の動的インポート
-    const loaders: Record<string, () => Promise<CardTemplate>> = {
-      v1: () => import('@/templates/v1').then(m => m.v1Template),
-      v2: () => import('@/templates/v2').then(m => m.v2Template),
-    }
-    loaders[templateId]?.().then(t => { setTemplate(t); setFormSections([]) })
+    const { template: built, formSections: sections } = buildCardTemplateFromDefinition(null, templateDbRow ?? null)
+    setTemplate(built)
+    setFormSections(sections)
   }, [templateId, templateDbRow])
 
   if (!template) {

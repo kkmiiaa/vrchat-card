@@ -6,8 +6,6 @@ import Link from 'next/link'
 import type { CardTemplate } from '@/blocks/types'
 import type { TemplateLayoutRow } from '@/lib/templateLayout'
 import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
-import { cardV1Definition } from '@/templates/v1Definition'
-import { cardV2Definition } from '@/templates/v2Definition'
 import { migrateLegacyCardData } from '@/lib/legacyCardDataMigration'
 import { fontMap } from '@/lib/fontMap'
 import HeaderAuth from '@/components/HeaderAuth'
@@ -31,10 +29,6 @@ export type CardViewWrapperProps = {
 
 type Props = CardViewWrapperProps
 
-const definitionMap = {
-  v1: cardV1Definition,
-  v2: cardV2Definition,
-}
 
 function CopyChip({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
   const [copied, setCopied] = useState(false)
@@ -130,22 +124,9 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
         setCardData(migrateLegacyCardData(templateId, raw))
       })
 
-    // DB 定義がある場合はアダプター経由で GenericCardRenderer を使用
-    const definition = definitionMap[templateId as keyof typeof definitionMap]
-    if (definition) {
-      const { template: builtTemplate } = buildCardTemplateFromDefinition(definition, templateDbRow ?? null)
-      setTemplate(builtTemplate)
-      return
-    }
-
-    // フォールバック: 旧 CardTemplate ベースの動的インポート
-    const loaders: Record<string, () => Promise<CardTemplate>> = {
-      v1: () => import('@/templates/v1').then(m => m.v1Template),
-      v2: () => import('@/templates/v2').then(m => m.v2Template),
-    }
-    loaders[templateId]?.()
-      .then(setTemplate)
-      .catch(e => setLoadError('tmpl:' + String(e)))
+    // DB 定義から CardTemplate を構築
+    const { template: builtTemplate } = buildCardTemplateFromDefinition(null, templateDbRow ?? null)
+    setTemplate(builtTemplate)
   }, [cardId, templateId, templateDbRow])
 
   useEffect(() => {

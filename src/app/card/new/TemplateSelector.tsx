@@ -1,15 +1,17 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import HeaderAuth from '@/components/HeaderAuth'
 import { createCard } from '@/lib/saveCard'
-import { v1Template } from '@/templates/v1'
-import { v2Template } from '@/templates/v2'
 import type { CardTemplate } from '@/blocks/types'
+import type { TemplateLayoutRow } from '@/lib/templateLayout'
+import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
 
-const TEMPLATES = [v2Template, v1Template]
+type Props = {
+  savedLayouts: Record<string, TemplateLayoutRow>
+}
 
 function CardPreview({ tpl }: { tpl: CardTemplate }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -39,10 +41,18 @@ function CardPreview({ tpl }: { tpl: CardTemplate }) {
   )
 }
 
-export default function TemplateSelector() {
+export default function TemplateSelector({ savedLayouts }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
   const [activeTag, setActiveTag] = useState<string | null>(null)
+
+  // DB から取得した savedLayouts を CardTemplate に変換（v2→v1 の順）
+  const TEMPLATES = useMemo(() => {
+    const order = ['v2', 'v1']
+    return order
+      .filter(id => savedLayouts[id])
+      .map(id => buildCardTemplateFromDefinition(null, savedLayouts[id]).template)
+  }, [savedLayouts])
 
   const allTags = Array.from(new Set(TEMPLATES.flatMap(t => t.communities)))
 

@@ -62,8 +62,11 @@ export async function GET(request: NextRequest) {
     } catch {
       return NextResponse.redirect(`${origin}/auth/login?error=signup_failed`)
     }
-    // 新規ユーザーはオンボーディングへ
-    return NextResponse.redirect(`${origin}/onboarding`)
+    // 新規ユーザーはオンボーディングへ（next を引き継ぎ、カード保存フローに戻れるようにする）
+    const onboardingUrl = next && next !== '/'
+      ? `${origin}/onboarding?next=${encodeURIComponent(next)}`
+      : `${origin}/onboarding`
+    return NextResponse.redirect(onboardingUrl)
   }
 
   return NextResponse.redirect(`${origin}${next}`)

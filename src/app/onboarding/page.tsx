@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useRef, useCallback, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{2,29}$/
@@ -9,7 +9,17 @@ const SLUG_RE = /^[a-z0-9][a-z0-9-]{2,29}$/
 type SlugStatus = 'idle' | 'checking' | 'ok' | 'taken' | 'invalid'
 
 export default function OnboardingPage() {
+  return (
+    <Suspense>
+      <OnboardingForm />
+    </Suspense>
+  )
+}
+
+function OnboardingForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextUrl = searchParams.get('next')
   const supabase = createClient()
 
   const [displayName, setDisplayName] = useState('')
@@ -101,12 +111,14 @@ export default function OnboardingPage() {
       finalSlug = userRow?.username_slug ?? null
     }
 
-    router.push(finalSlug ? `/u/${finalSlug}` : '/')
+    // next があればそちら優先（/card/vrchat からの保存フロー等）
+    router.push(nextUrl ?? (finalSlug ? `/u/${finalSlug}` : '/'))
   }
 
   async function handleSkip() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth/login'); return }
+    if (nextUrl) { router.push(nextUrl); return }
     const { data: userRow } = await supabase.from('users').select('username_slug').eq('id', user.id).single()
     router.push(userRow ? `/u/${userRow.username_slug}` : '/')
   }

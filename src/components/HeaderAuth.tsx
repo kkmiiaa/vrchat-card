@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import NotificationBell from './NotificationBell'
@@ -12,6 +13,7 @@ type AuthState =
 
 export default function HeaderAuth({ variant = 'default', hideMyPage = false }: { variant?: 'default' | 'white'; hideMyPage?: boolean }) {
   const [auth, setAuth] = useState<AuthState>({ status: 'loading' })
+  const pathname = usePathname()
   const supabase = createClient()
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
           })
         })
     })
-  }, [])
+  }, [pathname])
 
   if (auth.status === 'loading') return <div className="w-8 h-8" />
 
@@ -57,7 +59,7 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
 
   if (hideMyPage) return <NotificationBell />
 
-  const myPageHref = slug ? `/u/${slug}` : '/onboarding'
+  const myPageHref = slug ? `/u/${slug}` : '/u/me'
 
   return (
     <div className="flex items-center gap-2">

@@ -2,16 +2,11 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import HeroCard from './_lp/HeroCard'
 import FeaturesSection from './_lp/FeaturesSection'
+import HeaderAuth from '@/components/HeaderAuth'
 
 export default async function Home() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
-  let mySlug: string | null = null
-  if (user) {
-    const { data } = await supabase.from('users').select('username_slug').eq('id', user.id).single()
-    mySlug = data?.username_slug ?? null
-  }
 
   return (
     <div className="min-h-screen bg-white text-gray-900 flex flex-col overflow-x-hidden">
@@ -23,33 +18,13 @@ export default async function Home() {
           <Link href="/c/vrchat" className="text-xs font-semibold text-gray-500 hover:text-[#00AADB] transition-colors hidden sm:inline">
             ユーザーを探す
           </Link>
-          {user ? (
-            <>
-              {mySlug && (
-                <Link href={`/u/${mySlug}`} className="text-xs font-semibold text-[#00AADB] border border-sky-200 px-3 py-1.5 rounded-full hover:bg-sky-50 transition-colors">
-                  マイページ
-                </Link>
-              )}
-              <Link
-                href="/card/new"
-                className="lp-btn-shine text-xs font-bold bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white px-4 py-1.5 rounded-full hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm shadow-sky-200"
-              >
-                カードを作る
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link href="/auth/login" className="text-xs font-semibold text-gray-400 hover:text-[#00AADB] transition-colors">
-                ログイン
-              </Link>
-              <Link
-                href="/card/new"
-                className="lp-btn-shine text-xs font-bold bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white px-4 py-1.5 rounded-full hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm shadow-sky-200"
-              >
-                はじめる
-              </Link>
-            </>
-          )}
+          <Link
+            href="/card/new"
+            className="lp-btn-shine text-xs font-bold bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white px-4 py-1.5 rounded-full hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm shadow-sky-200"
+          >
+            {user ? 'カードを作る' : 'はじめる'}
+          </Link>
+          <HeaderAuth />
         </div>
       </header>
 

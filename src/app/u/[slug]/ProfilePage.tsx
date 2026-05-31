@@ -317,6 +317,19 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
         <div className={`transition-all ${editMode ? 'bg-sky-50/40 border-2 border-sky-200 rounded-2xl mx-4 py-4' : ''}`}>
         <div className={`max-w-xl mx-auto px-2 sm:px-4 mb-4`}>
 
+        {/* プロフィール未設定バナー */}
+        {isOwner && !editMode && !profile.display_name && (
+          <div className="mb-4 flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-sky-50 border border-sky-200">
+            <p className="text-xs text-sky-600">表示名やプロフィール画像を設定しましょう</p>
+            <button
+              onClick={() => setEditMode(true)}
+              className="shrink-0 text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity"
+            >
+              設定する
+            </button>
+          </div>
+        )}
+
         {/* アバター・名前・bio */}
         <div className={`relative flex flex-col items-center text-center mb-10 transition-all fade-up ${editMode ? 'pt-2 pb-2' : 'px-0 pt-8 pb-0'}`}>
           {isOwner && !editMode && (

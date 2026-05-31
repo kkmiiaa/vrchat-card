@@ -18,7 +18,7 @@ function getDisplayMode(auth: AuthState, hideMyPage: boolean): 'loading' | 'logi
 }
 
 function getMyPageHref(slug: string): string {
-  return slug ? `/u/${slug}` : '/onboarding'
+  return slug ? `/u/${slug}` : '/u/me'
 }
 
 
@@ -49,7 +49,7 @@ describe('HeaderAuth マイページリンク', () => {
     expect(getMyPageHref('yota3d')).toBe('/u/yota3d')
   })
 
-  it('slug なし → /onboarding（/u/ に飛ばさない）', () => {
-    expect(getMyPageHref('')).toBe('/onboarding')
+  it('slug なし → /u/me（/u/ に飛ばさない）', () => {
+    expect(getMyPageHref('')).toBe('/u/me')
   })
 })

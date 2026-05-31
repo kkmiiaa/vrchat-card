@@ -35,8 +35,8 @@ function ColorSwatch({ color, selected, onClick }: { color: string; selected: bo
   return (
     <button
       onClick={onClick}
-      className={`w-7 h-7 rounded-lg border-2 hover:scale-110 transition-transform ${selected ? 'border-[#00AADB] scale-110' : 'border-black/10'}`}
-      style={{ backgroundColor: color }}
+      style={{ backgroundColor: color, WebkitTapHighlightColor: 'transparent' }}
+      className={`w-7 h-7 rounded-lg border-2 hover:scale-110 active:scale-90 transition-all ${selected ? 'border-[#00AADB] scale-110 shadow-md' : 'border-black/10'}`}
     />
   )
 }

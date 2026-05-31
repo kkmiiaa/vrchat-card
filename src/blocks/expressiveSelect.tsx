@@ -75,7 +75,8 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
               key={opt.value}
               type="button"
               onClick={() => onChange({ tag: opt.value, display: '' })}
-              className={`flex-1 py-2 flex items-center justify-center gap-1 transition-colors ${
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+              className={`flex-1 py-2 flex items-center justify-center gap-1 transition-all active:scale-95 ${
                 safe.tag === opt.value
                   ? 'bg-gray-900 text-white font-semibold'
                   : 'bg-white text-gray-600 hover:bg-gray-50'

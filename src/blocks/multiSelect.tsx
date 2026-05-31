@@ -134,9 +134,10 @@ export const multiSelectComponent: ComponentDef<string[]> = {
                   if (selected) onChange(value.filter(v => v !== opt.value))
                   else onChange([...value, opt.value])
                 }}
-                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm border font-medium transition-all ${
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm border font-medium transition-all active:scale-90 ${
                   selected
-                    ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
+                    ? 'border-[#00AADB] bg-sky-50 text-[#00AADB] scale-105'
                     : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
                 }`}
               >

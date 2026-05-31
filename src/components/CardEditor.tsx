@@ -382,7 +382,8 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
               {t.share}
             </button>
             <button onClick={handleShareByUrl}
-              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] rounded-full px-4 py-1.5 hover:opacity-90 transition-opacity shadow-sm shadow-sky-200">
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] rounded-full px-4 py-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm shadow-sky-200">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
@@ -421,10 +422,11 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       <div className="flex flex-col lg:flex-1 lg:flex-row lg:pt-0 lg:overflow-hidden mt-12 sm:mt-14">
         {/* カードプレビュー */}
         <section
-          className="w-full max-w-full flex items-center justify-center lg:flex-1 lg:min-w-0 lg:h-full lg:px-6 lg:static fixed top-12 sm:top-14 lg:top-auto z-10 sm:h-auto cursor-zoom-in sm:cursor-default"
+          className="w-full max-w-full flex items-center justify-center lg:flex-1 lg:min-w-0 lg:h-full lg:px-6 lg:static fixed top-12 sm:top-14 lg:top-auto z-10 sm:h-auto cursor-zoom-in sm:cursor-default active:brightness-95 transition-[filter] duration-100"
           onClick={e => { if (window.innerWidth < 768) { e.preventDefault(); handlePreviewOpen() } }}
           style={{
             background: getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK) ?? undefined,
+            WebkitTapHighlightColor: 'transparent',
           }}
         >
           {!debugMode && <CardScaledView template={template} values={values} background={background} scale={cardScale} fontFamily={fontFamily} t={t} isInteractive />}
@@ -562,7 +564,8 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
           </div>
           <button
             onClick={() => { setShowSaveNudge(false); handleShareByUrl() }}
-            className="w-full text-sm font-bold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+            className="w-full text-sm font-bold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-4 py-2.5 rounded-xl hover:opacity-90 active:scale-95 transition-all"
           >
             保存する
           </button>

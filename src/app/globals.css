@@ -146,6 +146,19 @@ a {
   transform: scale(0.96);
 }
 
+/* ─── モバイルボタン共通 ─────────────────────────── */
+button, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+/* スプリング感のある押し込みクラス（tap-scale より強め） */
+.tap-spring {
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.tap-spring:active {
+  transform: scale(0.92);
+}
+
 /* ─── LP 浮遊アニメーション ───────────────────────── */
 @keyframes lp-float-a {
   0%, 100% { transform: translateY(0px); }

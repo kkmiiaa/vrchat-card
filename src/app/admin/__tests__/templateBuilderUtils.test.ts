@@ -50,6 +50,8 @@ const makeSavedLayout = (overrides: Partial<TemplateLayoutRow> = {}): TemplateLa
   card_width: null,
   card_height: null,
   web_width: null,
+  card_config: null,
+  community_slugs: [],
   ...overrides,
 })
 

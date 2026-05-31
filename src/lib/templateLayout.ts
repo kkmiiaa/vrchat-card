@@ -31,6 +31,7 @@ export type TemplateLayoutRow = {
     card?: { grid?: { cellSize?: number; gap?: number } }
     web?:  { grid?: { cellSize?: number; gap?: number }; autoHeight?: boolean }
   } | null
+  community_slugs: string[]
 }
 
 /** 単一テンプレート行を DB から取得 */
@@ -38,7 +39,7 @@ export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('templates')
-    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config')
+    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, community_templates(community_slug)')
     .eq('id', id)
     .single()
 
@@ -59,6 +60,7 @@ export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow
     card_height:        data.card_height        as number | null,
     web_width:          data.web_width          as number | null,
     card_config:        data.card_config        as TemplateLayoutRow['card_config'],
+    community_slugs:    ((data.community_templates ?? []) as { community_slug: string }[]).map(r => r.community_slug),
   }
 }
 
@@ -67,7 +69,7 @@ export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLay
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('templates')
-    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config')
+    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, community_templates(community_slug)')
     .order('sort_order', { ascending: true })
 
   if (error) {
@@ -93,6 +95,7 @@ export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLay
         card_height:        row.card_height        as number | null,
         web_width:          row.web_width          as number | null,
         card_config:        row.card_config        as TemplateLayoutRow['card_config'],
+        community_slugs:    ((row.community_templates ?? []) as { community_slug: string }[]).map(r => r.community_slug),
       },
     ])
   )

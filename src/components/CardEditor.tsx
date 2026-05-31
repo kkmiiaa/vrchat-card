@@ -101,8 +101,8 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   // --- Visibility ---
   const [visibility, setVisibility] = useState<'public' | 'limited' | 'private'>('public')
 
-  // テンプレートから自動取得
-  const communities = template.communities ?? []
+  // テンプレートの界隈スラッグ（card_communities に保存）
+  const communitySlugs = template.communities ?? []
 
 
   useEffect(() => {
@@ -132,11 +132,11 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     if (!isLoggedIn || !cardId || !initialized) return
     setDraftStatus('saving')
     const timer = setTimeout(async () => {
-      await updateCard({ cardId, cardData: values as Record<string, unknown>, communities })
+      await updateCard({ cardId, cardData: values as Record<string, unknown>, communitySlugs })
       setDraftStatus('saved')
     }, 1500)
     return () => clearTimeout(timer)
-  }, [values, communities, cardId, isLoggedIn, initialized])
+  }, [values, communitySlugs, cardId, isLoggedIn, initialized])
 
   // ギャラリー画像が変わったら Storage にアップロード
   const prevGalleryImages = useRef<(File | null)[]>([null, null, null])
@@ -275,8 +275,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         templateId: template.id,
         cardData: migratedValues,
         title: (migratedValues.name as string) || 'My Card',
-        communities,
-        communitySlug: template.communitySlug,
+        communitySlugs,
       })
       if ('error' in result) {
         setSaveModalLoading(false)
@@ -301,7 +300,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     setSaveModalLoading(false)
     window.location.href = `/card/${currentCardId}?created=1`
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cardId, values, communities, template.id, supabase])
+  }, [cardId, values, communitySlugs, template.id, supabase])
 
 
   // V1ログイン後の自動マイグレーション

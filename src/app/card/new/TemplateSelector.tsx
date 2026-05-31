@@ -6,11 +6,12 @@ import Link from 'next/link'
 import HeaderAuth from '@/components/HeaderAuth'
 import { createCard } from '@/lib/saveCard'
 import type { CardTemplate } from '@/blocks/types'
-import type { TemplateLayoutRow } from '@/lib/templateLayout'
+import type { TemplateLayoutRow, CommunityRow } from '@/lib/templateLayout'
 import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
 
 type Props = {
   savedLayouts: Record<string, TemplateLayoutRow>
+  communities: CommunityRow[]
 }
 
 function CardPreview({ tpl }: { tpl: CardTemplate }) {
@@ -41,7 +42,8 @@ function CardPreview({ tpl }: { tpl: CardTemplate }) {
   )
 }
 
-export default function TemplateSelector({ savedLayouts }: Props) {
+export default function TemplateSelector({ savedLayouts, communities }: Props) {
+  const communityLabelMap = Object.fromEntries(communities.map(c => [c.slug, c.label]))
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
   const [activeTag, setActiveTag] = useState<string | null>(null)
@@ -163,7 +165,7 @@ export default function TemplateSelector({ savedLayouts }: Props) {
                     <div className="flex flex-wrap gap-1">
                       {tpl.communities.map(c => (
                         <span key={c} className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-sky-200 text-sky-400 bg-white">
-                          {c}
+                          {communityLabelMap[c] ?? c}
                         </span>
                       ))}
                     </div>

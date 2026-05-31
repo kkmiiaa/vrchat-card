@@ -30,7 +30,7 @@ type Card = {
   image_url: string | null
   visibility: string
   created_at: string
-  communities: string[]
+  card_communities: { community_slug: string }[]
 }
 
 function cardBg(cardData: Record<string, unknown> | null): string | null {
@@ -545,11 +545,11 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
                           </div>
 
                           {/* 界隈タグ：左上に重ねる */}
-                          {card.communities?.length > 0 && (
+                          {card.card_communities?.length > 0 && (
                             <div className="absolute top-1 left-2 flex gap-1 z-10 pointer-events-none">
-                              {card.communities.map((c, i) => (
+                              {card.card_communities.map((cc, i) => (
                                 <span key={i} className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-sky-200 text-sky-400 bg-white/80 backdrop-blur-sm whitespace-nowrap">
-                                  {c}
+                                  {cc.community_slug}
                                 </span>
                               ))}
                             </div>

@@ -69,7 +69,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   // オーナーの場合は全カード取得（visibility問わず）、他者は公開のみ
   const cardsQuery = supabase
     .from('cards')
-    .select('*')
+    .select('*, card_communities(community_slug)')
     .eq('user_id', userRow.id)
     .order('created_at', { ascending: false })
   if (!isOwner) cardsQuery.eq('visibility', 'public')

@@ -25,9 +25,9 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('cards')
-    .select('id, title, image_url, card_data, created_at, template_id, community_slug, user_id')
+    .select('id, title, image_url, card_data, created_at, template_id, user_id, card_communities!inner(community_slug)')
     .eq('visibility', 'public')
-    .eq('community_slug', communitySlug)
+    .eq('card_communities.community_slug', communitySlug)
     .order('created_at', { ascending: false })
 
   if (!isPro) {

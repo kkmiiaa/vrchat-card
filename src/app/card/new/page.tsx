@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { fetchTemplateLayouts } from '@/lib/templateLayout'
+import { fetchTemplateLayouts, fetchCommunities } from '@/lib/templateLayout'
 import TemplateSelector from './TemplateSelector'
 
 export default async function NewCardPage() {
@@ -9,6 +9,9 @@ export default async function NewCardPage() {
 
   if (!user) redirect('/auth/login?next=/card/new')
 
-  const savedLayouts = await fetchTemplateLayouts()
-  return <TemplateSelector savedLayouts={savedLayouts} />
+  const [savedLayouts, communities] = await Promise.all([
+    fetchTemplateLayouts(),
+    fetchCommunities(),
+  ])
+  return <TemplateSelector savedLayouts={savedLayouts} communities={communities} />
 }

@@ -372,6 +372,15 @@ export const COMPONENTS: ComponentEntry[] = [
 
   // ─── Complex ──────────────────────────────────────────────────
   {
+    name: 'profile-image',
+    category: 'complex',
+    inputType: 'file',
+    format: '{ base64: string | null, url: string | null }',
+    description: 'プロフィール画像。base64 または URL を格納。variant: default / circle / glass',
+    exampleBlock: 'profileImage',
+    component: profileImageComponent as ComponentDef<unknown>,
+  },
+  {
     name: 'divider',
     category: 'primitive',
     inputType: 'none',
@@ -466,15 +475,6 @@ export const COMPONENTS: ComponentEntry[] = [
   },
 
   // ─── 昇格 ─────────────────────────────────────────────────────
-  {
-    name: 'profile-image',
-    category: 'global',
-    inputType: 'file',
-    format: '{ base64: string | null, url: string | null }',
-    description: 'プロフィール画像。base64 または URL を格納。variant: default / circle / glass',
-    exampleBlock: 'profileImage',
-    component: profileImageComponent as ComponentDef<unknown>,
-  },
   {
     name: 'gender',
     category: 'global',

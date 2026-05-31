@@ -57,22 +57,44 @@ export const profileImageComponent: ComponentDef<ProfileImageValue> = {
   defaultValue: { base64: null, url: null },
   variants: ['default', 'circle', 'glass'],
   CardItem: ProfileImageCard,
-  FormItem({ value, onChange }: ComponentFormProps<ProfileImageValue>) {
+  FormItem({ value, onChange, t }) {
+    const hasImage = !!(value.base64 ?? value.url)
+
+    const handleFile = (file: File | null) => {
+      if (!file) { onChange({ base64: null, url: null }); return }
+      const reader = new FileReader()
+      reader.onload = e => onChange({ base64: e.target?.result as string, url: null })
+      reader.readAsDataURL(file)
+    }
+
     return (
-      <div className="flex flex-col gap-2">
-        <label className="text-xs text-gray-500">プロフィール画像</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={e => {
-            const file = e.target.files?.[0]
-            if (!file) return
-            const reader = new FileReader()
-            reader.onload = ev => onChange({ base64: ev.target?.result as string, url: null })
-            reader.readAsDataURL(file)
-          }}
-          className="text-xs"
-        />
+      <div className="flex flex-col gap-1">
+        <span className="text-sm font-semibold text-gray-700">{t.profileImage}</span>
+        <div className="flex items-center gap-3">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={e => handleFile(e.target.files?.[0] ?? null)}
+            className="hidden"
+            id="profile-image-upload"
+          />
+          <label
+            htmlFor="profile-image-upload"
+            className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium py-1.5 px-3 rounded-lg cursor-pointer transition-colors flex-shrink-0"
+          >
+            {t.chooseFile}
+          </label>
+          <span className="text-sm text-gray-500 truncate flex-1">
+            {hasImage ? '設定済み' : t.noFileChosen}
+          </span>
+          {hasImage && (
+            <button
+              type="button"
+              onClick={() => handleFile(null)}
+              className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0 text-base leading-none"
+            >✕</button>
+          )}
+        </div>
       </div>
     )
   },

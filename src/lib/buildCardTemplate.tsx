@@ -129,7 +129,7 @@ export function buildCardTemplateFromDefinition(
       return React.createElement(GenericCardRenderer, {
         definition: resolvedDefinition,
         orientation: 'card',
-        values:      {},
+        values:      dbRow?.sample_card_data ?? {},
         fontFamily:  resolvedDefinition.fontFamily,
       })
     },

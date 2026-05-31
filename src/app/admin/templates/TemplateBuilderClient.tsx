@@ -107,6 +107,7 @@ export default function TemplateBuilderClient({ definitions: initialDefinitions,
         web_width:          baseLayout?.web_width   ?? null,
         card_config:        baseLayout?.card_config ?? null,
         community_slugs:    baseLayout?.community_slugs ?? [],
+        sample_card_data:   baseLayout?.sample_card_data ?? null,
       },
     }))
 

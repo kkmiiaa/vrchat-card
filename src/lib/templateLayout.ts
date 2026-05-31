@@ -32,14 +32,17 @@ export type TemplateLayoutRow = {
     web?:  { grid?: { cellSize?: number; gap?: number }; autoHeight?: boolean }
   } | null
   community_slugs: string[]
+  sample_card_data: Record<string, unknown> | null
 }
 
 /** 単一テンプレート行を DB から取得 */
 export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow | null> {
   const supabase = await createClient()
+  const SELECT = 'id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, community_templates(community_slug)'
+
   const { data, error } = await supabase
     .from('templates')
-    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, community_templates(community_slug)')
+    .select(SELECT)
     .eq('id', id)
     .single()
 
@@ -61,15 +64,18 @@ export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow
     web_width:          data.web_width          as number | null,
     card_config:        data.card_config        as TemplateLayoutRow['card_config'],
     community_slugs:    ((data.community_templates ?? []) as { community_slug: string }[]).map(r => r.community_slug),
+    sample_card_data:   data.sample_card_data   as Record<string, unknown> | null,
   }
 }
 
 /** 全テンプレート行を DB から取得 */
 export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLayoutRow>> {
   const supabase = await createClient()
+  const SELECT = 'id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, community_templates(community_slug)'
+
   const { data, error } = await supabase
     .from('templates')
-    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, community_templates(community_slug)')
+    .select(SELECT)
     .order('sort_order', { ascending: true })
 
   if (error) {
@@ -96,6 +102,7 @@ export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLay
         web_width:          row.web_width          as number | null,
         card_config:        row.card_config        as TemplateLayoutRow['card_config'],
         community_slugs:    ((row.community_templates ?? []) as { community_slug: string }[]).map(r => r.community_slug),
+        sample_card_data:   row.sample_card_data   as Record<string, unknown> | null,
       },
     ])
   )

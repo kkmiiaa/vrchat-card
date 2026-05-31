@@ -57,7 +57,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*, profile_links(id, url, label, sort_order)')
+    .select('id, user_id, display_name, avatar_url, bio, created_at, updated_at, profile_links(id, url, label, sort_order)')
     .eq('user_id', userRow.id)
     .single()
 

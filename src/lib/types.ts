@@ -24,9 +24,6 @@ export type ProfileRow = {
   display_name: string | null
   avatar_url: string | null
   bio: string | null
-  sns_links: Record<string, string>
-  template: string | null
-  platform_data: Record<string, unknown>
   created_at: string
   updated_at: string
   profile_links: ProfileLink[]

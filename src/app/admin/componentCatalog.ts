@@ -29,6 +29,7 @@ export const COMPONENT_NAMES: { name: string; category: ComponentCategory }[] = 
   { name: 'gallery',                category: 'complex' },
   { name: 'simple-sns',             category: 'sns' },
   { name: 'sns-with-friend-policy', category: 'sns' },
+  { name: 'profile-image',          category: 'global' },
   { name: 'gender',                 category: 'global' },
   { name: 'language',               category: 'global' },
   { name: 'age',                    category: 'global' },

@@ -10,12 +10,11 @@ type AuthState =
   | { status: 'guest' }
   | { status: 'loggedIn'; slug: string; avatarUrl: string | null; displayName: string | null }
 
-function getDisplayMode(auth: AuthState, hideMyPage: boolean): 'loading' | 'login' | 'avatar' | 'avatar-no-slug' | 'bell-only' {
+function getDisplayMode(auth: AuthState, hideMyPage: boolean): 'loading' | 'login' | 'avatar' | 'bell-only' {
   if (auth.status === 'loading') return 'loading'
   if (auth.status === 'guest') return 'login'
-  if (hideMyPage) return 'bell-only'
-  if (auth.slug) return 'avatar'
-  return 'avatar-no-slug'
+  if (hideMyPage || !auth.slug) return 'bell-only'
+  return 'avatar'
 }
 
 function getMyPageHref(slug: string): string | null {
@@ -36,8 +35,8 @@ describe('HeaderAuth 表示ロジック', () => {
     expect(getDisplayMode({ status: 'loggedIn', slug: 'yota3d', avatarUrl: null, displayName: null }, false)).toBe('avatar')
   })
 
-  it('ログイン済み・slug なし → 「ログイン」を表示しない（オンボーディング誘導）', () => {
-    expect(getDisplayMode({ status: 'loggedIn', slug: '', avatarUrl: null, displayName: null }, false)).toBe('avatar-no-slug')
+  it('ログイン済み・slug なし → ベルのみ（ログインボタンは出さない）', () => {
+    expect(getDisplayMode({ status: 'loggedIn', slug: '', avatarUrl: null, displayName: null }, false)).toBe('bell-only')
   })
 
   it('hideMyPage=true のときはベルのみ', () => {

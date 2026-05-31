@@ -60,7 +60,7 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
   return (
     <div className="flex items-center gap-2">
       <NotificationBell />
-      {slug ? (
+      {slug && (
         <Link href={`/u/${slug}`} className="block rounded-full hover:opacity-80 transition-opacity" title="マイページ">
           {avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -74,15 +74,6 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
               {initials}
             </div>
           )}
-        </Link>
-      ) : (
-        // slug 未設定（オンボーディング未完了）はアイコンのみ
-        <Link href="/onboarding" className="block rounded-full hover:opacity-80 transition-opacity" title="プロフィール設定">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-dashed ${
-            variant === 'white' ? 'border-white/60 text-white/60' : 'border-gray-300 text-gray-400'
-          }`}>
-            {initials}
-          </div>
         </Link>
       )}
     </div>

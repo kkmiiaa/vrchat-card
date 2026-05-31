@@ -108,21 +108,22 @@ export default function TemplateBuilderClient({ savedLayouts: initialLayouts, co
     setTab('edit')
   }
 
-  const handleLabelChange = async (id: string, label: string) => {
+  const handleLabelChange = (id: string, label: string) => {
     setSavedLayouts(prev => {
       const saved = prev[id]
       if (!saved) return prev
-      if (saved.card_layout && saved.web_layout) {
-        saveTemplateLayout(id, {
-          label,
-          card_layout:        saved.card_layout,
-          web_layout:         saved.web_layout,
-          form_sections:      saved.form_sections ?? [],
-          orientation_scales: saved.orientation_scales ?? { card: {}, web: {} },
-        })
-      }
       return { ...prev, [id]: { ...saved, label } }
     })
+    const saved = savedLayouts[id]
+    if (saved?.card_layout && saved.web_layout) {
+      saveTemplateLayout(id, {
+        label,
+        card_layout:        saved.card_layout,
+        web_layout:         saved.web_layout,
+        form_sections:      saved.form_sections ?? [],
+        orientation_scales: saved.orientation_scales ?? { card: {}, web: {} },
+      })
+    }
   }
 
   return (

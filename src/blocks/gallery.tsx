@@ -56,7 +56,7 @@ export const galleryComponent: ComponentDef<GalleryValue> = {
           const hasImage = !!value.base64[index]
           return (
             <div key={index} className="flex flex-col gap-1">
-              <span className="text-sm font-semibold text-gray-700">{t.galleryImage} {index + 1}</span>
+              <span className="text-xs font-medium text-gray-500">{t.galleryImage} {index + 1}</span>
               <div className="flex items-center gap-3">
                 <input
                   type="file"

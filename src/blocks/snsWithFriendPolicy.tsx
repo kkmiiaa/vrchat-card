@@ -182,7 +182,7 @@ export const snsWithFriendPolicyComponent: ComponentDef<SnsWithFriendPolicyValue
           />
         </label>
         <div className="flex flex-col gap-1">
-          <span className="text-sm font-semibold text-gray-700">フレンド申請</span>
+          <span className="text-xs font-medium text-gray-500">フレンド申請</span>
           <div className="flex flex-wrap gap-2">
             {visiblePolicies.map(p => (
               <button

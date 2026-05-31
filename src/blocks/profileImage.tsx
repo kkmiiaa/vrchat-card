@@ -69,7 +69,6 @@ export const profileImageComponent: ComponentDef<ProfileImageValue> = {
 
     return (
       <div className="flex flex-col gap-1">
-        <span className="text-sm font-semibold text-gray-700">{t.profileImage}</span>
         <div className="flex items-center gap-3">
           <input
             type="file"

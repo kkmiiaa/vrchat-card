@@ -90,7 +90,7 @@ export const simpleSnsComponent: ComponentDef<string> = {
     return (
       <div className="flex flex-col gap-2">
         <label className="flex flex-col gap-1">
-          <span className="text-sm font-semibold text-gray-700">{label}</span>
+          <span className="text-xs font-medium text-gray-500">{label}</span>
           <input
             type="text"
             value={id}

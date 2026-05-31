@@ -11,21 +11,23 @@
 - [ ] **新テンプレート作成**（TRPG・VTuber 向け等）— テンプレートビルダーで作成
 - [ ] **ベータテスト開始**
 
+### 機能追加（優先度：中）
+
+- [ ] **探索フィルター実装** — `gender`/`env`/`lang`/`friendPolicy` フィルターが `src/app/api/cards/explore/route.ts` に未実装（現状フリーテキスト検索のみ）
+  - `tests/e2e/explore-search.spec.ts` は存在。実装後にテストが通ることを確認
+  - Pro プランのみ有効にする（既存の `isPro` フラグを流用）
+
 ### 品質・テスト（優先度：中）
 
-- [ ] **探索フィルター実装 + 結合テスト** — `gender`/`env`/`lang`/`friendPolicy` フィルターが API・DB クエリに未実装
-  - 対象: `src/app/api/cards/explore/route.ts`（現状フリーテキスト検索のみ）
-  - `tests/e2e/explore-search.spec.ts` はすでに存在。実装後にテストが通ることを確認
-  - Pro アカウントが必要なため vacuous になる可能性あり
-- [ ] **`/upgrade` ページ E2E** — ページ自体は存在（`src/app/upgrade/`）。`tests/e2e/upgrade.spec.ts` を新規作成
+- [ ] **`/upgrade` ページ E2E** — `tests/e2e/upgrade.spec.ts` を新規作成（ページは `src/app/upgrade/page.tsx` に実装済み）
 - [ ] **自動マイグレーション発動条件のユニットテスト**
-  - データ変換テストは `migrateV1Patterns.test.ts` でカバー済み
-  - 未テスト: `CardEditor.tsx` の `isLoggedIn && !cardId && localStorage にデータあり` 分岐（line 327〜335）
+  - データ変換テスト（`migrateV1Patterns.test.ts` 等）はカバー済み・685 件全パス
+  - 未テスト: `CardEditor.tsx` line 327〜335 の `isLoggedIn && !cardId && localStorage にデータあり` 分岐
 - [ ] **`/card/vrchat` の後方互換性テスト強化** — あらゆる旧データパターンを網羅
 
 ### DB・インフラ（優先度：中）
 
-- [x] **`announcements` テーブルの廃止** — `AnnouncementBanner` 削除・全参照除去完了。DB テーブル自体は残存（手動で DROP TABLE 可）
+- [ ] **`announcements` テーブル DROP** — コード側参照は全削除済み。Supabase ダッシュボードまたは `DROP TABLE announcements;` で DB テーブルを削除
 - [ ] **Supabase プロジェクト作り直し**
   - 目的: availability zone の設定ミス修正
   - 手順: DB スキーマ確定 → マイグレーションを 1 ファイルに集約 → 新プロジェクトに適用
@@ -33,7 +35,6 @@
 ### デザイン（随時）
 
 - [ ] **デザイン修正** — 気になる箇所を随時修正
-- ~~**ProfilePage.tsx の構文エラー修正**（line 568 既存バグ）~~ → 確認済み：構文エラーなし（正常なコード）
 
 ---
 
@@ -49,10 +50,22 @@
 | `cards.background` | `card_data` から分離した専用カラム。`GenericCardRenderer` は `background` prop のみ有効 |
 | `backgroundKey`（テンプレート設定） | `sample_card_data` の後方互換・TemplateBuilder プレビュー用に残存。将来削除可 |
 | テンプレート背景モード | `card_config.fixedBackground` で固定背景を管理。カスタムモードはユーザーが `cards.background` に保存 |
+| お知らせ表示 | `AnnouncementBanner` 廃止。`NotificationBell`（ヘッダー）+ `system_notifications` テーブルに統一 |
 
 ---
 
 ## 作業ログ
+
+### 2026-05-31（続き 2）
+
+#### announcements 廃止
+
+- `AnnouncementBanner` コンポーネント削除
+- `card/[cardId]/edit/page.tsx` の `announcements` DB クエリ削除
+- `CardEditorClient` / `CardEditor` / `ProfilePage` / `u/[slug]/page.tsx` の `announcements` prop 削除
+- DB テーブル自体は未 DROP（手動対応待ち）
+
+---
 
 ### 2026-05-31（続き）
 

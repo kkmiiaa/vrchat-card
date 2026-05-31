@@ -514,11 +514,19 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
                 ref={containerRef}
                 style={{ width: '100%', maxWidth: orientation === 'web' ? 620 : undefined, overflow: 'hidden' }}
               >
-                <div style={{ width: '100%', height: cardH * scale, position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: cardW, height: cardH, position: 'absolute', top: 0, left: 0 }}>
-                    <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} isInteractive orientation={orientation} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
+                {orientation === 'web' ? (
+                  // Web モード: zoom でレイアウトに影響させる（autoHeight 対応・コンテンツが下まで表示される）
+                  <div style={{ zoom: scale, width: cardW } as React.CSSProperties}>
+                    <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} isInteractive orientation="web" cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
                   </div>
-                </div>
+                ) : (
+                  // カードモード: transform scale + fixed height
+                  <div style={{ width: '100%', height: cardH * scale, position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: cardW, height: cardH, position: 'absolute', top: 0, left: 0 }}>
+                      <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} isInteractive orientation="card" cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

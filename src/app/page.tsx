@@ -15,7 +15,7 @@ export default async function Home() {
     <div className="min-h-screen bg-white text-gray-900 flex flex-col overflow-x-hidden">
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-30 bg-white/90 backdrop-blur-md border-b border-sky-100 h-14 px-6 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-30 bg-white/90 backdrop-blur-md border-b border-sky-100 shadow-sm h-14 px-6 flex items-center justify-between">
         <span className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</span>
         <div className="flex items-center gap-3">
           <Link href="/c/vrchat" className="text-xs font-semibold text-gray-500 hover:text-[#00AADB] transition-colors hidden sm:inline">

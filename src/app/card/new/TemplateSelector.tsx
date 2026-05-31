@@ -69,7 +69,7 @@ export default function TemplateSelector() {
         <div className="absolute top-0 right-0 w-80 h-60 bg-sky-50 rounded-full blur-[70px] opacity-60" />
       </div>
 
-      <header className="relative z-10 border-b border-sky-100 h-14 px-6 flex items-center justify-between bg-white/80 backdrop-blur-md">
+      <header className="relative z-10 border-b border-sky-100 shadow-sm h-14 px-6 flex items-center justify-between bg-white/80 backdrop-blur-md">
         <Link href="/" className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</Link>
         <HeaderAuth />
       </header>

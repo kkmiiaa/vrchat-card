@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="border-b border-sky-100 h-14 px-6 flex items-center justify-between bg-white/80 backdrop-blur-md">
+      <header className="border-b border-sky-100 shadow-sm h-14 px-6 flex items-center justify-between bg-white/80 backdrop-blur-md">
         <Link href="/" className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</Link>
         <HeaderAuth />
       </header>

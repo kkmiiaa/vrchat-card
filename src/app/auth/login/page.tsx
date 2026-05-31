@@ -62,7 +62,7 @@ function LoginForm() {
         <div className="absolute bottom-0 left-0 w-80 h-56 bg-cyan-50 rounded-full blur-[70px] opacity-50" />
       </div>
 
-      <header className="relative z-10 h-14 px-6 flex items-center border-b border-sky-100 bg-white/80 backdrop-blur-md">
+      <header className="relative z-10 h-14 px-6 flex items-center border-b border-sky-100 shadow-sm bg-white/80 backdrop-blur-md">
         <Link href="/" className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</Link>
       </header>
 

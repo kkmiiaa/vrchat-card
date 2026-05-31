@@ -336,7 +336,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     <>
     <main className="w-screen h-screen flex flex-col text-gray-800">
       {/* ヘッダー */}
-      <header className="fixed top-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-md h-12 sm:h-14 px-4 border-b border-white/30 flex justify-between items-center">
+      <header className="fixed top-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-md shadow-sm h-12 sm:h-14 px-4 border-b border-white/30 flex justify-between items-center">
         <div className="flex items-center gap-2 min-w-0">
           <a href="/" className="text-xl font-black tracking-tight text-[#00AADB] shrink-0">vaacard</a>
           <span className="hidden sm:inline text-gray-300 text-sm">/</span>

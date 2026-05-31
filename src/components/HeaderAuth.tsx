@@ -57,25 +57,25 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
 
   if (hideMyPage) return <NotificationBell />
 
+  const myPageHref = slug ? `/u/${slug}` : '/onboarding'
+
   return (
     <div className="flex items-center gap-2">
       <NotificationBell />
-      {slug && (
-        <Link href={`/u/${slug}`} className="block rounded-full hover:opacity-80 transition-opacity" title="マイページ">
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt={initials} className="w-8 h-8 rounded-full object-cover border-2 border-sky-100" />
-          ) : (
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border-2 ${
-              variant === 'white'
-                ? 'bg-white/90 text-[#00AADB] border-white/60'
-                : 'bg-gradient-to-br from-[#00AADB] to-[#00C9B8] text-white border-sky-100'
-            }`}>
-              {initials}
-            </div>
-          )}
-        </Link>
-      )}
+      <Link href={myPageHref} className="block rounded-full hover:opacity-80 transition-opacity" title="マイページ">
+        {avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={avatarUrl} alt={initials} className="w-8 h-8 rounded-full object-cover border-2 border-sky-100" />
+        ) : (
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border-2 ${
+            variant === 'white'
+              ? 'bg-white/90 text-[#00AADB] border-white/60'
+              : 'bg-gradient-to-br from-[#00AADB] to-[#00C9B8] text-white border-sky-100'
+          }`}>
+            {initials}
+          </div>
+        )}
+      </Link>
     </div>
   )
 }

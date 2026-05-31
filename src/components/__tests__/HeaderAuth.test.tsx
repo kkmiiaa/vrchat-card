@@ -13,14 +13,14 @@ type AuthState =
 function getDisplayMode(auth: AuthState, hideMyPage: boolean): 'loading' | 'login' | 'avatar' | 'bell-only' {
   if (auth.status === 'loading') return 'loading'
   if (auth.status === 'guest') return 'login'
-  if (hideMyPage || !auth.slug) return 'bell-only'
-  return 'avatar'
+  if (hideMyPage) return 'bell-only'
+  return 'avatar' // slug なし → /onboarding へ、slug あり → /u/[slug] へ（両方ともアバター表示）
 }
 
-function getMyPageHref(slug: string): string | null {
-  if (!slug) return null
-  return `/u/${slug}`
+function getMyPageHref(slug: string): string {
+  return slug ? `/u/${slug}` : '/onboarding'
 }
+
 
 describe('HeaderAuth 表示ロジック', () => {
   it('loading 中はローディング状態', () => {
@@ -35,8 +35,8 @@ describe('HeaderAuth 表示ロジック', () => {
     expect(getDisplayMode({ status: 'loggedIn', slug: 'yota3d', avatarUrl: null, displayName: null }, false)).toBe('avatar')
   })
 
-  it('ログイン済み・slug なし → ベルのみ（ログインボタンは出さない）', () => {
-    expect(getDisplayMode({ status: 'loggedIn', slug: '', avatarUrl: null, displayName: null }, false)).toBe('bell-only')
+  it('ログイン済み・slug なし → アバター表示（ログインボタンは出さない）', () => {
+    expect(getDisplayMode({ status: 'loggedIn', slug: '', avatarUrl: null, displayName: null }, false)).toBe('avatar')
   })
 
   it('hideMyPage=true のときはベルのみ', () => {
@@ -45,11 +45,11 @@ describe('HeaderAuth 表示ロジック', () => {
 })
 
 describe('HeaderAuth マイページリンク', () => {
-  it('slug が有効なら /u/[slug]', () => {
+  it('slug あり → /u/[slug]', () => {
     expect(getMyPageHref('yota3d')).toBe('/u/yota3d')
   })
 
-  it('slug が空文字なら null（/u/ に飛ばさない）', () => {
-    expect(getMyPageHref('')).toBeNull()
+  it('slug なし → /onboarding（/u/ に飛ばさない）', () => {
+    expect(getMyPageHref('')).toBe('/onboarding')
   })
 })

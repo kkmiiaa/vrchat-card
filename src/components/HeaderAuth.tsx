@@ -21,9 +21,11 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
           .eq('id', data.user.id)
           .single()
           .then(({ data: u }) => {
-            if (u?.username_slug) {
-              setUser({ slug: u.username_slug, avatarUrl: u.avatar_url ?? null, displayName: u.display_name ?? null })
-            }
+            setUser({
+              slug: u?.username_slug ?? '',
+              avatarUrl: u?.avatar_url ?? null,
+              displayName: u?.display_name ?? null,
+            })
             setLoading(false)
           })
       } else {

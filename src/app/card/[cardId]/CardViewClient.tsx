@@ -103,7 +103,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
   const dragOrigin = useRef({ mx: 0, my: 0, ox: 0, oy: 0 })
-  const [cardEntered, setCardEntered] = useState(false)
+  const [cardEntered, setCardEntered] = useState<'hidden' | 'entering' | 'done'>('hidden')
   const [likeBurst, setLikeBurst] = useState(false)
   const [fabExpanded, setFabExpanded] = useState(false)
   const fabCollapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -140,11 +140,12 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     return () => window.removeEventListener('vaacard:copied', handler)
   }, [showToast])
 
-  // カードが表示されたら入場アニメを起動
+  // カードが表示されたら入場アニメを起動し、完了後にクラスを外す
   useEffect(() => {
     if (!template || cardData === null) return
-    const t = setTimeout(() => { setCardEntered(true) }, 50)
-    return () => clearTimeout(t)
+    const t1 = setTimeout(() => { setCardEntered('entering') }, 50)
+    const t2 = setTimeout(() => { setCardEntered('done') }, 50 + 700)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [template, cardData])
 
   const cardW = template ? (orientation === 'web' && template.webWidth ? template.webWidth : template.cardWidth) : 900
@@ -480,7 +481,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
         <div className="w-full flex justify-center" style={{ maxWidth: cardW }}>
           <div
             ref={tiltWrapRef}
-            className={['w-full', cardEntered ? 'card-enter' : 'opacity-0'].join(' ')}
+            className={cardEntered === 'hidden' ? 'w-full opacity-0' : cardEntered === 'entering' ? 'w-full card-enter' : 'w-full'}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             onMouseDown={handleMouseDown}

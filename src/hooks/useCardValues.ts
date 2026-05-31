@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { BlockValues } from '@/blocks/types'
 import { BlockValuesSchema } from '@/blocks/schemas'
+import { migrateLegacyCardData } from '@/lib/legacyCardDataMigration'
 
 const STORAGE_KEY = 'vrchat-card-cache'
 
@@ -55,6 +56,7 @@ type UseCardValuesReturn = {
 export function useCardValues(
   blocks: Block[],
   initialValues?: Record<string, unknown> | null,
+  templateId?: string,
 ): UseCardValuesReturn {
   const [values, setValues] = useState<BlockValues>(() => {
     const v: BlockValues = {}
@@ -92,7 +94,9 @@ export function useCardValues(
         const saved = localStorage.getItem(STORAGE_KEY)
         if (saved) {
           const raw = JSON.parse(saved)
-          const migrated = BlockValuesSchema.parse(migrateFromOld(raw))
+          const oldMigrated = migrateFromOld(raw)
+          const legacyMigrated = templateId ? migrateLegacyCardData(templateId, oldMigrated as Record<string, unknown>) : oldMigrated
+          const migrated = BlockValuesSchema.parse(legacyMigrated)
           setValues(prev => {
             const next = { ...prev }
             for (const key of blockKeys) {

@@ -58,7 +58,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   }, [pathname, searchParams])
 
   // --- Block values ---
-  const { values, updateValue, initialized } = useCardValues(template.blocks, initialValues)
+  const { values, updateValue, initialized } = useCardValues(template.blocks, initialValues, template.id)
 
   // --- Background（card_data とは分離） ---
   const DEFAULT_BG: BackgroundValue = { type: 'image', value: '/backgrounds/bg_1.webp' }

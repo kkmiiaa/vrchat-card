@@ -25,6 +25,7 @@ import PostTimeline from '@/components/PostTimeline'
 import CardScaledView from '@/components/CardScaledView'
 import AnnouncementBanner from '@/components/AnnouncementBanner'
 import { trackEvent } from '@/lib/gtag'
+import { migrateLegacyCardData } from '@/lib/legacyCardDataMigration'
 
 const STORAGE_KEY = 'vrchat-card-cache'
 
@@ -266,11 +267,14 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     const dataUrl = await getCardDataUrl()
     let currentCardId = cardId
 
+    // 旧メーカー（/card/vrchat）由来の localStorage データを新フォーマットに変換してから保存
+    const migratedValues = migrateLegacyCardData(template.id, values as Record<string, unknown>)
+
     if (!currentCardId) {
       const result = await createCard({
         templateId: template.id,
-        cardData: values as Record<string, unknown>,
-        title: (values.name as string) || 'My Card',
+        cardData: migratedValues,
+        title: (migratedValues.name as string) || 'My Card',
         communities,
         communitySlug: template.communitySlug,
       })
@@ -289,7 +293,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     }
 
     if (dataUrl) {
-      await updateCard({ cardId: currentCardId, imageBase64: dataUrl, cardData: values as Record<string, unknown> })
+      await updateCard({ cardId: currentCardId, imageBase64: dataUrl, cardData: migratedValues })
     }
 
     await updateCard({ cardId: currentCardId, visibility: 'public' })

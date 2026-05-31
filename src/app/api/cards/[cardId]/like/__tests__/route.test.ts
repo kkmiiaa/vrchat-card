@@ -2,9 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
 const mockRpc = vi.fn()
+const mockGetUser = vi.fn()
+const mockFrom = vi.fn()
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(async () => ({
     rpc: mockRpc,
+    auth: { getUser: mockGetUser },
+    from: mockFrom,
   })),
 }))
 
@@ -21,7 +26,20 @@ function makeRequest(delta: 1 | -1): NextRequest {
   })
 }
 
-beforeEach(() => vi.clearAllMocks())
+function makeChain(terminalValue: unknown) {
+  const chain = { select: vi.fn(), eq: vi.fn(), single: vi.fn(), insert: vi.fn() }
+  chain.select.mockReturnValue(chain)
+  chain.eq.mockReturnValue(chain)
+  chain.single.mockResolvedValue(terminalValue)
+  chain.insert.mockResolvedValue({ error: null })
+  return chain
+}
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
+  mockFrom.mockReturnValue(makeChain({ data: { user_id: 'owner1' }, error: null }))
+})
 
 describe('POST /api/cards/[cardId]/like', () => {
   it('delta=+1 で increment_like_count RPC を呼ぶ', async () => {
@@ -38,6 +56,26 @@ describe('POST /api/cards/[cardId]/like', () => {
     const res = await POST(makeRequest(-1), makeParams('card1'))
     expect(res.status).toBe(200)
     expect(mockRpc).toHaveBeenCalledWith('increment_like_count', { card_id: 'card1', delta: -1 })
+  })
+
+  it('delta=+1 のとき user_notifications を作成する（他者のカード）', async () => {
+    mockRpc.mockResolvedValue({ data: 5, error: null })
+    const chain = makeChain({ data: { user_id: 'owner1' }, error: null })
+    mockFrom.mockReturnValue(chain)
+
+    await POST(makeRequest(1), makeParams('card1'))
+    // insert が呼ばれていること
+    expect(chain.insert).toHaveBeenCalled()
+  })
+
+  it('自分のカードへのいいねでは通知を作成しない', async () => {
+    mockRpc.mockResolvedValue({ data: 5, error: null })
+    // カードオーナーが自分自身
+    const chain = makeChain({ data: { user_id: 'u1' }, error: null })
+    mockFrom.mockReturnValue(chain)
+
+    await POST(makeRequest(1), makeParams('card1'))
+    expect(chain.insert).not.toHaveBeenCalled()
   })
 
   it('RPC エラー時は 500 を返す', async () => {

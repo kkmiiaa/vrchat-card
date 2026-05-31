@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import NotificationBell from './NotificationBell'
 
 export default function HeaderAuth({ variant = 'default', hideMyPage = false }: { variant?: 'default' | 'white'; hideMyPage?: boolean }) {
   const [slug, setSlug] = useState<string | null>(null)
@@ -31,20 +32,23 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
 
   if (slug && !hideMyPage) {
     return (
-      <Link
-        href={`/u/${slug}`}
-        className={
-          variant === 'white'
-            ? 'text-xs font-semibold text-[#00AADB] bg-white/90 border border-white px-3 py-1.5 rounded-full hover:bg-white transition-colors shadow-sm'
-            : 'text-xs font-semibold text-[#00AADB] border border-sky-200 px-3 py-1.5 rounded-full hover:bg-sky-50 transition-colors'
-        }
-      >
-        マイページ
-      </Link>
+      <div className="flex items-center gap-2">
+        <NotificationBell />
+        <Link
+          href={`/u/${slug}`}
+          className={
+            variant === 'white'
+              ? 'text-xs font-semibold text-[#00AADB] bg-white/90 border border-white px-3 py-1.5 rounded-full hover:bg-white transition-colors shadow-sm'
+              : 'text-xs font-semibold text-[#00AADB] border border-sky-200 px-3 py-1.5 rounded-full hover:bg-sky-50 transition-colors'
+          }
+        >
+          マイページ
+        </Link>
+      </div>
     )
   }
 
-  if (slug) return null
+  if (slug) return <NotificationBell />
 
   return (
     <Link

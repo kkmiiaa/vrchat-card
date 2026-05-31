@@ -26,7 +26,7 @@ export default async function Page() {
   // カードはテンプレート経由で界隈に属する（card → template → community_templates）
   const { data: initialCards } = await supabase
     .from('cards')
-    .select('id, title, image_url, card_data, created_at, template_id, user_id, templates!inner(community_templates!inner(community_slug))')
+    .select('id, title, image_url, card_data, background, created_at, template_id, user_id, templates!inner(community_templates!inner(community_slug))')
     .eq('visibility', 'public')
     .eq('templates.community_templates.community_slug', 'vrchat')
     .order('created_at', { ascending: false })

@@ -5,14 +5,26 @@ import Link from 'next/link'
 import HeaderAuth from '@/components/HeaderAuth'
 import { relativeDate } from '@/utils/relativeDate'
 
+type BackgroundValue = { type: string; value: string | string[]; base64?: string | null } | null
+
 type Card = {
   id: string
   title: string | null
   image_url: string | null
   card_data: Record<string, unknown>
+  background: BackgroundValue
   created_at: string
   template_id: string
   profile: { display_name: string | null; avatar_url: string | null } | null
+}
+
+function cardBgStyle(bg: BackgroundValue): string {
+  if (!bg) return 'linear-gradient(135deg, rgba(0,170,219,0.12), rgba(0,201,184,0.10))'
+  if (bg.type === 'color' && typeof bg.value === 'string') return bg.value
+  if (bg.type === 'gradient' && Array.isArray(bg.value)) return `linear-gradient(135deg, ${bg.value[0]}, ${bg.value[1]})`
+  if (bg.type === 'image' && bg.base64) return `url(${bg.base64}) center/cover no-repeat`
+  if (bg.type === 'image' && typeof bg.value === 'string') return `url(${bg.value}) center/cover no-repeat`
+  return 'linear-gradient(135deg, rgba(0,170,219,0.12), rgba(0,201,184,0.10))'
 }
 
 type Filters = {
@@ -277,9 +289,12 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn }: Props
                       />
                     </div>
                   ) : (
-                    <div className="aspect-video bg-gradient-to-br from-[#00AADB]/10 to-cyan-100 flex flex-col items-center justify-center gap-1">
-                      <span className="text-3xl font-black text-[#00AADB]/30">vc</span>
-                      <span className="text-[10px] font-semibold text-[#00AADB]/50 px-2 text-center truncate max-w-full">{getName(card)}</span>
+                    <div
+                      className="aspect-video flex flex-col items-center justify-center gap-1"
+                      style={{ background: cardBgStyle(card.background) }}
+                    >
+                      <span className="text-3xl font-black text-white/30 drop-shadow">vc</span>
+                      <span className="text-[10px] font-semibold text-white/50 px-2 text-center truncate max-w-full drop-shadow">{getName(card)}</span>
                     </div>
                   )}
                   <div className="p-2">

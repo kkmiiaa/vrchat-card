@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   // カードはテンプレート経由で界隈に属する（card → template → community_templates）
   let query = supabase
     .from('cards')
-    .select('id, title, image_url, card_data, created_at, template_id, user_id, templates!inner(community_templates!inner(community_slug))')
+    .select('id, title, image_url, card_data, background, created_at, template_id, user_id, templates!inner(community_templates!inner(community_slug))')
     .eq('visibility', 'public')
     .eq('templates.community_templates.community_slug', communitySlug)
     .order('created_at', { ascending: false })

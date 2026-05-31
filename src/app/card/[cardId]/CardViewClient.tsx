@@ -105,7 +105,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const dragOrigin = useRef({ mx: 0, my: 0, ox: 0, oy: 0 })
   const [cardEntered, setCardEntered] = useState<'hidden' | 'entering' | 'done'>('hidden')
   const [likeBurst, setLikeBurst] = useState(false)
-  const [fabExpanded, setFabExpanded] = useState(false)
+  const [fabExpanded, setFabExpanded] = useState(true)
   const fabCollapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [toast, setToast] = useState<string | null>(null)
@@ -145,7 +145,12 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     if (!template || cardData === null) return
     const t1 = setTimeout(() => { setCardEntered('entering') }, 50)
     const t2 = setTimeout(() => { setCardEntered('done') }, 50 + 700)
-    return () => { clearTimeout(t1); clearTimeout(t2) }
+    // FABは3秒後に自動折りたたみ
+    fabCollapseTimer.current = setTimeout(() => setFabExpanded(false), 3000)
+    return () => {
+      clearTimeout(t1); clearTimeout(t2)
+      if (fabCollapseTimer.current) clearTimeout(fabCollapseTimer.current)
+    }
   }, [template, cardData])
 
   const cardW = template ? (orientation === 'web' && template.webWidth ? template.webWidth : template.cardWidth) : 900
@@ -733,8 +738,8 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
           {/* トグルボタン */}
           <button
             onClick={() => {
+              if (fabCollapseTimer.current) { clearTimeout(fabCollapseTimer.current); fabCollapseTimer.current = null }
               setFabExpanded(v => !v)
-              if (fabCollapseTimer.current) clearTimeout(fabCollapseTimer.current)
             }}
             className="w-12 h-12 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white shadow-lg shadow-sky-200 flex items-center justify-center transition-transform duration-300"
             style={{ transform: fabExpanded ? 'rotate(45deg)' : 'rotate(0deg)' }}

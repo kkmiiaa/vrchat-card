@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 type Props = {
   onSave: () => void;
@@ -13,7 +13,18 @@ type Props = {
 };
 
 export default function FloatingButtons({ onSave, onShare, onDownload, t }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
+  const autoCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    autoCloseTimer.current = setTimeout(() => setExpanded(false), 3000);
+    return () => { if (autoCloseTimer.current) clearTimeout(autoCloseTimer.current); };
+  }, []);
+
+  function toggle() {
+    if (autoCloseTimer.current) { clearTimeout(autoCloseTimer.current); autoCloseTimer.current = null; }
+    setExpanded(v => !v);
+  }
 
   return (
     <div className="sm:hidden fixed bottom-6 right-4 flex flex-col items-end gap-2 z-50">
@@ -52,7 +63,7 @@ export default function FloatingButtons({ onSave, onShare, onDownload, t }: Prop
       </div>
       {/* トグルボタン */}
       <button
-        onClick={() => setExpanded(v => !v)}
+        onClick={toggle}
         className="w-12 h-12 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white shadow-lg shadow-sky-200 flex items-center justify-center transition-transform duration-300"
         style={{ transform: expanded ? 'rotate(45deg)' : 'rotate(0deg)' }}
       >

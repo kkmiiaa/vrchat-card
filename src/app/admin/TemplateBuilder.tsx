@@ -5,6 +5,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import type { TemplateDefinition, BlockValues, LayoutNode, Block, LayoutNodeRow, LayoutNodeCol, LayoutNodeRef, TemplateGridDef, FormSection, FormNode, FormNodeBlock, FormNodeFont, BgVariant } from '@/blocks/types'
 import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
 import { saveTemplateLayout, saveSampleCardData } from '@/lib/templateLayout'
+import { compressSampleData } from '@/lib/compressSampleData'
 import type { TemplateLayoutRow, OrientationScales } from '@/lib/templateLayout'
 import { cellsToPixels } from '@/blocks/types'
 import { getAllComponents, getComponent } from '@/blocks/registry'
@@ -455,7 +456,8 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
   const [sampleState, setSampleState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const handleSaveSample = useCallback(async () => {
     setSampleState('saving')
-    const { error } = await saveSampleCardData(currentRow.id, localValues)
+    const compressed = await compressSampleData(localValues as Record<string, unknown>)
+    const { error } = await saveSampleCardData(currentRow.id, compressed)
     setSampleState(error ? 'error' : 'saved')
     setTimeout(() => setSampleState('idle'), 2000)
   }, [currentRow.id, localValues])

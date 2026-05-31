@@ -40,12 +40,15 @@ export default function HeroCard() {
 
       <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none rounded-b-3xl" />
 
-      <div className="bg-white border-2 border-sky-100 rounded-3xl p-6 shadow-2xl shadow-sky-100/60 relative">
-        <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl bg-gradient-to-r from-[#00AADB] to-[#00C9B8]" />
+      <div
+        className="bg-white border-2 border-sky-100 rounded-3xl p-0 shadow-2xl shadow-sky-100/60 relative"
+        style={{ boxShadow: 'inset 0 3px 0 0 #00AADB, 0 25px 50px -12px rgba(186,230,253,0.6)' }}
+      >
 
+        <div className="p-6 pt-5 relative">
         {/* ホバー時の内部グロー */}
         <div
-          className="absolute inset-0 rounded-3xl transition-opacity duration-300 pointer-events-none"
+          className="absolute inset-0 transition-opacity duration-300 pointer-events-none"
           style={{
             background: 'radial-gradient(ellipse at 60% 30%, rgba(0,170,219,0.07) 0%, transparent 70%)',
             opacity: hovered ? 1 : 0,
@@ -71,6 +74,7 @@ export default function HeroCard() {
           <div className="h-2 bg-gray-50 rounded-full w-4/5 border border-gray-100" />
           <div className="h-2 bg-gray-50 rounded-full w-3/5 border border-gray-100" />
         </div>
+        </div>{/* /p-6 */}
       </div>
     </div>
   )

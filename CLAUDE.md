@@ -38,6 +38,7 @@ E2EはCIでは実行しない（時間がかかりすぎるため）。ローカ
 | `docs/spec.md` | サービス仕様・URL設計・テンプレート仕様 |
 | `docs/components.md` | コンポーネント・ブロック・テンプレートの概念設計 |
 | `docs/testcases.md` | テストケース一覧（E2E・ユニット） |
+| `docs/legacy-maker-flow.md` | 旧メーカー（/card/vrchat）の導線設計・データフロー・マイグレーション仕様 |
 
 - 機能追加・変更時は関連する docs ファイルを更新する
 - コンポーネント追加時は `docs/components.md` と `docs/testcases.md` を更新する

@@ -6,12 +6,10 @@
 
 ## 次にやること
 
-### フェーズ3 残作業（優先度：高）
+### フェーズ4 準備（優先度：高）
 
-- [x] **`TemplateBuilder` のリファクタ → admin からの `v1Definition` / `v2Definition` 参照を削除**
-  - `savedLayouts`（DB）のみで動く形にリファクタ完了
-  - `fontFamily` を DB（`card_config.fontFamily`）に保存するよう修正済み
-  - `v1Definition.ts` は `/card/vrchat` が意図的に使用するため残存（設計方針通り）
+- [ ] **新テンプレート作成**（TRPG・VTuber 向け等）— テンプレートビルダーで作成
+- [ ] **ベータテスト開始**
 
 ### 品質・テスト（優先度：中）
 
@@ -19,12 +17,9 @@
   - 対象: `src/app/api/cards/explore/route.ts`
   - Pro アカウントが必要なため `explore-search.spec.ts` は vacuous になる可能性あり
 - [ ] **`/upgrade` ページ E2E** — `tests/e2e/upgrade.spec.ts` を新規作成
-  - ページが正常に表示される（500 なし）
-  - アップグレードボタンが表示される
-  - 未ログイン時のリダイレクト動作
 - [ ] **自動マイグレーション発動条件のユニットテスト**
   - `src/components/CardEditor.tsx` `handleShareByUrl`
-  - `isLoggedIn && !cardId && localStorage にデータあり` の分岐（E2E は TC-6-H 済み）
+  - `isLoggedIn && !cardId && localStorage にデータあり` の分岐
 - [ ] **`/card/vrchat` の後方互換性テスト強化** — あらゆる旧データパターンを網羅
 
 ### DB・インフラ（優先度：中）
@@ -37,13 +32,7 @@
 ### デザイン（随時）
 
 - [ ] **デザイン修正** — 気になる箇所を随時修正
-
----
-
-### フェーズ4（ベータテスト）
-
-- [ ] 新テンプレート作成（TRPG・VTuber 向け等）— テンプレートビルダーで作成
-- [ ] ベータテスト開始
+- [ ] **ProfilePage.tsx の構文エラー修正**（line 568 既存バグ）
 
 ---
 
@@ -56,60 +45,53 @@
 | 界隈とカードの関係 | `card → template → community_templates` で導出。カード自身は界隈を持たない |
 | `/card/vrchat` の実装方針 | テンプレート構造は `v1Definition`（TS・安定）。フォームセクションは DB から取得 |
 | SNS リンク | `profile_links` テーブルで統合。`sns_links` は廃止済み |
+| `cards.background` | `card_data` から分離した専用カラム。`GenericCardRenderer` は `background` prop のみ有効 |
+| `backgroundKey`（テンプレート設定） | `sample_card_data` の後方互換・TemplateBuilder プレビュー用に残存。将来削除可 |
+| テンプレート背景モード | `card_config.fixedBackground` で固定背景を管理。カスタムモードはユーザーが `cards.background` に保存 |
 
 ---
 
 ## 作業ログ
 
+### 2026-05-31（続き）
+
+#### TemplateBuilder リファクタ・機能追加
+
+- `TemplateBuilder` を `savedLayouts`（DB）のみで動く形にリファクタ（`v1Definition` / `v2Definition` の admin 依存を削除）
+- `fontFamily` を `card_config.fontFamily` に保存するよう修正（保存されていなかったバグ修正）
+- `TemplateBuilderClient.handleLabelChange` の `setState updater` 内副作用バグを修正 + 回帰テスト追加
+- TemplateBuilder に「サンプルに設定」ボタン追加（`sample_card_data` を UI から設定可能に）
+- サンプルデータ保存時に base64 画像を 400px・JPEG 70% に圧縮（1MB 制限対策）
+- TemplateBuilder にカスタム背景 / 固定背景の切り替え機能を追加（`card_config.fixedBackground`）
+
+#### データ構造リファクタ
+
+- `cards.background` カラム新設。背景を `card_data` から分離
+- `GenericCardRenderer`: `background` prop のみ有効に変更（`backgroundKey` 読み取り廃止）
+- 各ページ（CardEditor・CardViewClient・ProfilePage）は `card.background` をコンテナ背景に使用
+
+#### admin コンポーネントページ
+
+- `profileImage` を `complex` カテゴリに追加
+- `profileImage` / `gallery` / `simple-sns` / `sns-with-friend-policy` の FormItem 見出しスタイルを統一
+
+---
+
 ### 2026-05-31
 
 #### テスト整備（フェーズ3 前提）
 
-**仕様・設計の不整合修正**
-- `friendPolicy` の型を `string`（単一選択）に統一。V1 定義の `multi-select` → `select` に変更
-- `docs/spec.md` の `genderTag` 誤記を `gender` に修正
+- `friendPolicy` を `string` に統一。V1 定義の `multi-select` → `select` に変更
+- ユニットテスト 57 ケース追加（legacyCardDataMigration / migrateV1 / templateLayout 等）
+- `testcases.md` に TC-9〜24 追記
 
-**ユニットテスト追加（計 57 ケース）**
+#### フェーズ3 完了
 
-| テストファイル | 内容 | ケース数 |
-|---|---|---|
-| `legacyCardDataMigration.test.ts` | V2 変換（バグ修正含む） | 13 |
-| `migrateV1LegacyData.test.ts` | V1 旧メーカーデータ変換 | 15 |
-| `migrateV1Patterns.test.ts` | フルパイプライン（最古フラット→新フォーマット） | 29 |
-| `templateLayout.test.ts` | Supabase モック | 11 |
-| `webhook/__tests__/route.test.ts` | Stripe Webhook | 8 |
-| `[cardId]/__tests__/route.test.ts` | cards GET/PATCH/DELETE | 9 |
-| `like/__tests__/route.test.ts` | いいね通知付き | 5（更新） |
-| `checkout/__tests__/route.test.ts` | Stripe チェックアウト | 4 |
-| `portal/__tests__/route.test.ts` | Stripe ポータル | 4 |
+- ステップ1〜5 完了（`v1.tsx` / `v2.tsx` 削除、DB テンプレートのみで動作）
+- `v1Definition.ts` は `/card/vrchat` が意図的に使用するため残存
 
-**docs 同期**
-- `testcases.md` に TC-9〜24 を追記（全 E2E ファイルを網羅）
+#### DB 正規化・機能追加
 
-#### フェーズ3 完了（ステップ 1〜5）
-
-- ステップ1（調査）: 旧メーカーデータ形式の差異把握
-- ステップ2: カードエディタを DB からテンプレート定義を読む仕組みに変更（V2 先行）
-- ステップ3: `migrateV1LegacyData` 実装（旧 localStorage → 新フォーマット変換）
-- ステップ4: `handleShareByUrl` にマイグレーション接続。DB には常に新フォーマットで保存
-- ステップ5（部分完了）: `v1.tsx` / `v2.tsx` 削除。`v1Definition.ts` / `v2Definition.ts` は admin 依存のため残存
-
-DB 拡張: `card_width`, `card_height`, `web_width`, `card_config`, `community_slugs` を templates テーブルに追加。
-
-#### DB 正規化
-
-| 対象 | 変更内容 |
-|---|---|
-| `cards.communities` + `community_slug` | 削除。界隈は `card → template → community_templates` で導出 |
-| `profiles.links` | → `profile_links(id, user_id, url, label, sort_order)` テーブル |
-| `profiles.sns_links` | 削除（`profile_links` で統合） |
-| `profiles.platform_data` | 削除（レガシー） |
-| `profiles.template` | 削除（`platform_data` のゲートとして使用、不要に） |
-
-#### 機能追加
-
-- テンプレート選択画面のサンプルカード表示（`templates.sample_card_data` カラム追加）
-- 通知システム（`system_notifications` / `user_notifications` テーブル、`NotificationBell` UI）
-- テンプレート依頼・お問い合わせの入口（`@yota3d` リンク）
-- ヘッダーに `shadow-sm` 追加
-- `docs/legacy-maker-flow.md` 新設
+- `profile_links` テーブルへの正規化、`sns_links` / `platform_data` / `template` カラム削除
+- 通知システム実装（`system_notifications` / `user_notifications`、`NotificationBell` UI）
+- テンプレート選択画面のサンプルカード表示（`sample_card_data` カラム追加）

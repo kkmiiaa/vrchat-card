@@ -138,20 +138,23 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
 
         {/* テンプレート別ページへのナビ */}
         {communityTemplates.length > 0 && (
-          <div className="mb-6 flex flex-wrap gap-2">
-            {communityTemplates.map(t => (
-              <Link
-                key={t.id}
-                href={`/c/vrchat/${t.id}`}
-                className="tap-spring inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-sky-200 text-xs font-semibold text-sky-600 hover:bg-sky-50 hover:border-sky-400 transition-all"
-              >
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <rect x="2" y="7" width="20" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 3H8"/>
-                </svg>
-                {t.label}
-              </Link>
-            ))}
+          <div className="mb-6">
+            <p className="text-xs text-gray-400 mb-2">テンプレートで絞り込む</p>
+            <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
+              {communityTemplates.map(t => (
+                <Link
+                  key={t.id}
+                  href={`/c/vrchat/${t.id}`}
+                  className="tap-spring shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-sky-200 text-xs font-semibold text-sky-600 hover:bg-sky-50 hover:border-sky-400 transition-all"
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <rect x="2" y="7" width="20" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 3H8"/>
+                  </svg>
+                  {t.label}
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 
@@ -285,8 +288,12 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
 
         {/* 件数 */}
         <p className="text-xs text-gray-400 mb-3">
-          {isPending ? '検索中...' : `${cards.length}件`}
-          {!isPro && <span className="ml-2 text-gray-300">（最新20件）</span>}
+          {isPending
+            ? '検索中...'
+            : !isPro && cards.length >= 20
+              ? `${cards.length}件`
+              : `全${cards.length}件`}
+          {!isPro && cards.length >= 20 && <span className="ml-2 text-gray-300">（最新20件）</span>}
         </p>
 
         {/* カードグリッド */}

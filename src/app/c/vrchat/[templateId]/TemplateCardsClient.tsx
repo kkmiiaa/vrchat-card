@@ -120,7 +120,7 @@ export default function TemplateCardsClient({
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="fixed top-0 left-0 right-0 z-30 bg-white/90 backdrop-blur-md border-b border-sky-100 shadow-sm h-14 px-4 sm:px-6 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-gray-500 min-w-0">
+        <div className="flex items-center gap-1 text-sm text-gray-500 min-w-0 overflow-hidden">
           <Link href="/" className="font-black text-[#00AADB] shrink-0">vaacard</Link>
           <span className="text-gray-300">/</span>
           <Link href="/c/vrchat" className="hover:text-[#00AADB] transition-colors truncate">VRChat</Link>
@@ -202,7 +202,10 @@ export default function TemplateCardsClient({
             </div>
           ) : (
             <>
-              <p className="text-xs text-gray-400 mb-4">{cards.length}件{!isPro && '（最新20件）'}</p>
+              <p className="text-xs text-gray-400 mb-4">
+                {!isPro && cards.length >= 20 ? `${cards.length}件` : `全${cards.length}件`}
+                {!isPro && cards.length >= 20 && <span className="ml-2 text-gray-300">（最新20件）</span>}
+              </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {cards.map(card => (
                   <Link

@@ -62,12 +62,12 @@ function LoginForm() {
         <div className="absolute bottom-0 left-0 w-80 h-56 bg-cyan-50 rounded-full blur-[70px] opacity-50" />
       </div>
 
-      <header className="relative z-10 h-14 px-6 flex items-center border-b border-sky-100 shadow-sm bg-white/80 backdrop-blur-md">
+      <header className="sticky top-0 z-10 h-14 px-6 flex items-center border-b border-sky-100 shadow-sm bg-white/80 backdrop-blur-md">
         <Link href="/" className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</Link>
       </header>
 
       <div className="relative z-10 flex-1 flex items-center justify-center px-4 py-12">
-        <div className="bg-white rounded-3xl border-2 border-sky-100 shadow-xl shadow-sky-100/50 p-10 max-w-md w-full">
+        <div className="bg-white rounded-3xl border-2 border-sky-100 shadow-xl shadow-sky-100/50 p-10 max-w-md w-full overflow-hidden">
           <div className="h-1 -mx-10 -mt-10 mb-8 rounded-t-3xl bg-gradient-to-r from-[#00AADB] to-[#00C9B8]" />
 
           <div className="mb-6">
@@ -79,7 +79,7 @@ function LoginForm() {
               {isSignUp ? '新規登録' : 'ログイン'}
             </h1>
             <p className="text-gray-400 text-sm">
-              アカウントでログインしてプロフィールページを作成しましょう。
+              ログインしてプロフィールを作成しましょう。
             </p>
           </div>
 
@@ -106,7 +106,7 @@ function LoginForm() {
           {/* Divider */}
           <div className="flex items-center gap-3 mb-6">
             <div className="flex-1 h-px bg-sky-100" />
-            <span className="text-xs text-gray-300 font-medium">またはメールで</span>
+            <span className="text-xs text-gray-300 font-medium">メールアドレスで続ける</span>
             <div className="flex-1 h-px bg-sky-100" />
           </div>
 

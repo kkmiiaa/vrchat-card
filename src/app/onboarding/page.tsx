@@ -209,7 +209,7 @@ function OnboardingForm() {
                 type="text"
                 value={slug}
                 onChange={e => handleSlugChange(e.target.value)}
-                placeholder="your-id"
+                placeholder="あなたのid"
                 maxLength={30}
                 className={`w-full pl-[7.5rem] pr-8 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 transition-all ${
                   slugStatus === 'ok'    ? 'border-green-300 focus:ring-green-100' :

@@ -10,7 +10,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('cards')
-    .select('*, card_communities(community_slug)')
+    .select('*')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false })
 
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'not_authenticated' }, { status: 401 })
 
-  const { templateId, title, cardData, visibility = 'public', communitySlugs = [] } = await request.json()
+  const { templateId, title, cardData, visibility = 'public' } = await request.json()
   if (!templateId) return NextResponse.json({ error: 'templateId is required' }, { status: 400 })
 
   // プラン制限チェック
@@ -61,13 +61,5 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  // card_communities に挿入
-  if (communitySlugs.length > 0) {
-    await supabase.from('card_communities').insert(
-      communitySlugs.map((slug: string) => ({ card_id: data.id, community_slug: slug }))
-    )
-  }
-
   return NextResponse.json({ cardId: data.id }, { status: 201 })
 }

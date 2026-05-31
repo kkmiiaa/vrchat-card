@@ -3,7 +3,6 @@ type CreateCardParams = {
   cardData?: Record<string, unknown>
   title?: string
   visibility?: 'public' | 'limited' | 'private'
-  communitySlugs?: string[]  // 所属する界隈のスラッグ一覧
 }
 
 type UpdateCardParams = {
@@ -12,7 +11,6 @@ type UpdateCardParams = {
   imageBase64?: string
   title?: string
   visibility?: 'public' | 'limited' | 'private'
-  communitySlugs?: string[]
 }
 
 type SaveResult = { cardId: string } | { error: string }

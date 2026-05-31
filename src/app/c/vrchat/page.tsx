@@ -23,11 +23,12 @@ export default async function Page() {
   }
 
   // 初期データ（最新20件）
+  // カードはテンプレート経由で界隈に属する（card → template → community_templates）
   const { data: initialCards } = await supabase
     .from('cards')
-    .select('id, title, image_url, card_data, created_at, template_id, user_id, card_communities!inner(community_slug)')
+    .select('id, title, image_url, card_data, created_at, template_id, user_id, templates!inner(community_templates!inner(community_slug))')
     .eq('visibility', 'public')
-    .eq('card_communities.community_slug', 'vrchat')
+    .eq('templates.community_templates.community_slug', 'vrchat')
     .order('created_at', { ascending: false })
     .limit(isPro ? 24 : 20)
 

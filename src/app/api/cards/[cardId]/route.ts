@@ -27,7 +27,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (!user) return NextResponse.json({ error: 'not_authenticated' }, { status: 401 })
 
   const body = await request.json()
-  const { cardData, imageBase64, title, visibility, communitySlugs } = body
+  const { cardData, imageBase64, title, visibility } = body
 
   const updates: Record<string, unknown> = {}
   if (cardData !== undefined) updates.card_data = cardData
@@ -61,17 +61,6 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     .eq('user_id', user.id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  // card_communities を更新（指定があれば差し替え）
-  if (communitySlugs !== undefined) {
-    await supabase.from('card_communities').delete().eq('card_id', cardId)
-    if (communitySlugs.length > 0) {
-      await supabase.from('card_communities').insert(
-        communitySlugs.map((slug: string) => ({ card_id: cardId, community_slug: slug }))
-      )
-    }
-  }
-
   return NextResponse.json({ ok: true })
 }
 

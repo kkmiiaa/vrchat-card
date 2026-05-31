@@ -63,6 +63,17 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   // --- Background（card_data とは分離） ---
   const DEFAULT_BG: BackgroundValue = { type: 'image', value: '/backgrounds/bg_1.webp' }
   const [background, setBackground] = useState<BackgroundValue>(initialBackground ?? DEFAULT_BG)
+  const bgInitialized = useRef(false)
+
+  // 新規カード（initialBackground なし）かつ localStorage に background が入っていた場合に同期
+  useEffect(() => {
+    if (bgInitialized.current || !initialized || initialBackground) return
+    const storedBg = (values as Record<string, unknown>).background as BackgroundValue | undefined
+    if (storedBg?.type) {
+      setBackground(storedBg)
+    }
+    bgInitialized.current = true
+  }, [initialized, initialBackground, values])
 
   // --- Profile image (special: cropper) ---
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null)
@@ -271,13 +282,17 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     let currentCardId = cardId
 
     // 旧メーカー（/card/vrchat）由来の localStorage データを新フォーマットに変換してから保存
-    const migratedValues = migrateLegacyCardData(template.id, values as Record<string, unknown>)
+    const migratedRaw = migrateLegacyCardData(template.id, values as Record<string, unknown>)
+    // background は card_data から分離したカラムで管理するため除外
+    const { background: migratedBg, ...migratedValues } = migratedRaw as Record<string, unknown> & { background?: BackgroundValue }
+    // localStorage に background があれば background state より優先（初期化が間に合わない場合の保険）
+    const saveBackground = migratedBg ?? background
 
     if (!currentCardId) {
       const result = await createCard({
         templateId: template.id,
-        cardData: migratedValues,
-        background,
+        cardData: migratedValues as BlockValues,
+        background: saveBackground,
         title: (migratedValues.name as string) || 'My Card',
       })
       if ('error' in result) {
@@ -295,7 +310,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     }
 
     if (dataUrl) {
-      await updateCard({ cardId: currentCardId, imageBase64: dataUrl, cardData: migratedValues, background })
+      await updateCard({ cardId: currentCardId, imageBase64: dataUrl, cardData: migratedValues as BlockValues, background: saveBackground })
     }
 
     await updateCard({ cardId: currentCardId, visibility: 'public' })

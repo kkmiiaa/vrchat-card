@@ -32,3 +32,25 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
+
+export async function DELETE(_request: NextRequest, { params }: Params) {
+  const { userId } = await params
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'not_authenticated' }, { status: 401 })
+
+  const { data: caller } = await supabase.from('users').select('role').eq('id', user.id).single()
+  if (caller?.role !== 'admin') return NextResponse.json({ error: 'forbidden' }, { status: 403 })
+
+  // 自分自身は削除不可
+  if (userId === user.id) return NextResponse.json({ error: 'cannot delete yourself' }, { status: 400 })
+
+  const admin = createAdminClient()
+
+  // Supabase Auth からユーザーを削除（DB は CASCADE で連鎖削除）
+  const { error } = await admin.auth.admin.deleteUser(userId)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ ok: true })
+}

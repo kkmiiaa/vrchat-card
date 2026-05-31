@@ -19,6 +19,20 @@ export default function UsersClient({ users: initial }: { users: User[] }) {
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  const deleteUser = async (userId: string, slug: string) => {
+    if (!confirm(`「${slug}」を削除しますか？この操作は取り消せません。`)) return
+    setLoading(`${userId}-delete`)
+    setError(null)
+    const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
+    setLoading(null)
+    if (!res.ok) {
+      const json = await res.json()
+      setError(json.error ?? '削除に失敗しました')
+      return
+    }
+    setUsers(prev => prev.filter(u => u.id !== userId))
+  }
+
   const update = async (userId: string, field: UpdateField, value: string) => {
     setLoading(`${userId}-${field}`)
     setError(null)
@@ -52,6 +66,7 @@ export default function UsersClient({ users: initial }: { users: User[] }) {
               <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">プラン</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">ロール</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">登録日</th>
+              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -94,6 +109,15 @@ export default function UsersClient({ users: initial }: { users: User[] }) {
                 </td>
                 <td className="px-4 py-3 text-xs text-gray-400">
                   {new Date(user.created_at).toLocaleDateString('ja-JP')}
+                </td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => deleteUser(user.id, user.username_slug)}
+                    disabled={loading === `${user.id}-delete`}
+                    className="text-xs text-red-400 hover:text-red-600 border border-red-200 hover:border-red-400 rounded px-2 py-0.5 transition-colors disabled:opacity-40"
+                  >
+                    {loading === `${user.id}-delete` ? '...' : '削除'}
+                  </button>
                 </td>
               </tr>
             ))}

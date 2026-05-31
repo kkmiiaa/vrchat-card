@@ -173,8 +173,8 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
   const [displayName, setDisplayName] = useState(profile.display_name ?? '')
   const [bio, setBio] = useState(profile.bio ?? '')
   const [links, setLinks] = useState<(ProfileLink & { _id: number })[]>(
-    (profile.links ?? []).length > 0
-      ? (profile.links as (ProfileLink & { _id: number })[]).map(l => ({ ...l, _id: Math.random() }))
+    (profile.profile_links ?? []).length > 0
+      ? [...profile.profile_links].sort((a, b) => a.sort_order - b.sort_order).map(l => ({ ...l, _id: Math.random() }))
       : [newLink()]
   )
   const [currentSlug, setCurrentSlug] = useState(slug)
@@ -241,9 +241,21 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
   async function handleSave() {
     if (slugStatus === 'taken' || slugStatus === 'invalid') return
     setSaving(true)
-    const cleanLinks = links.filter(l => l.url.trim()).map(({ url, label }) => ({ url: url.trim(), label: label.trim() }))
+    const cleanLinks = links.filter(l => l.url.trim()).map(({ url, label }, i) => ({
+      user_id: userRowId,
+      url: url.trim(),
+      label: label.trim(),
+      sort_order: i,
+    }))
+
+    // profile_links を差し替え（delete + insert）
+    await supabase.from('profile_links').delete().eq('user_id', userRowId)
+    if (cleanLinks.length > 0) {
+      await supabase.from('profile_links').insert(cleanLinks)
+    }
+
     const [profileRes, slugRes] = await Promise.all([
-      supabase.from('profiles').update({ display_name: displayName, bio, links: cleanLinks }).eq('user_id', userRowId),
+      supabase.from('profiles').update({ display_name: displayName, bio }).eq('user_id', userRowId),
       slugInput !== currentSlug
         ? supabase.from('users').update({ username_slug: slugInput }).eq('id', userRowId)
         : Promise.resolve({ error: null }),
@@ -264,8 +276,8 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
   function handleCancelEdit() {
     setDisplayName(profile.display_name ?? '')
     setBio(profile.bio ?? '')
-    setLinks((profile.links ?? []).length > 0
-      ? (profile.links as (ProfileLink & { _id: number })[]).map(l => ({ ...l, _id: Math.random() }))
+    setLinks((profile.profile_links ?? []).length > 0
+      ? [...profile.profile_links].sort((a, b) => a.sort_order - b.sort_order).map(l => ({ ...l, _id: Math.random() }))
       : [newLink()])
     setSlugInput(currentSlug)
     setSlugStatus('idle')

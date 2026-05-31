@@ -12,8 +12,10 @@ export type UserRow = {
 }
 
 export type ProfileLink = {
+  id: string
   url: string
   label: string
+  sort_order: number
 }
 
 export type ProfileRow = {
@@ -23,11 +25,11 @@ export type ProfileRow = {
   avatar_url: string | null
   bio: string | null
   sns_links: Record<string, string>
-  links: ProfileLink[]
   template: string | null
   platform_data: Record<string, unknown>
   created_at: string
   updated_at: string
+  profile_links: ProfileLink[]
 }
 
 export type CardRow = {

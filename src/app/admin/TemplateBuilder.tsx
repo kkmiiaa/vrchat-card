@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import type { TemplateDefinition, BlockValues, LayoutNode, Block, LayoutNodeRow, LayoutNodeCol, LayoutNodeRef, TemplateGridDef, FormSection, FormNode, FormNodeBlock, FormNodeFont, BgVariant } from '@/blocks/types'
 import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
-import { saveTemplateLayout } from '@/lib/templateLayout'
+import { saveTemplateLayout, saveSampleCardData } from '@/lib/templateLayout'
 import type { TemplateLayoutRow, OrientationScales } from '@/lib/templateLayout'
 import { cellsToPixels } from '@/blocks/types'
 import { getAllComponents, getComponent } from '@/blocks/registry'
@@ -422,6 +422,14 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
     setSaveState(error ? 'error' : 'saved')
     setTimeout(() => setSaveState('idle'), 2000)
   }, [currentRow, cardLayout, webLayout, currentFormSections, orientationScales, overlayConfigs, currentPool, localFontFamily])
+
+  const [sampleState, setSampleState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const handleSaveSample = useCallback(async () => {
+    setSampleState('saving')
+    const { error } = await saveSampleCardData(currentRow.id, localValues)
+    setSampleState(error ? 'error' : 'saved')
+    setTimeout(() => setSampleState('idle'), 2000)
+  }, [currentRow.id, localValues])
 
   const [selectedPath, setSelectedPath] = useState<NodePath | null>(null)
   const selectedNode = selectedPath ? getNode(layout, selectedPath) : null
@@ -1449,6 +1457,19 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
             className="flex-shrink-0 px-3 py-1 text-xs rounded border font-medium border-gray-300 bg-white text-gray-500 hover:bg-gray-50 transition-colors"
           >
             変更を破棄
+          </button>
+          <button
+            onClick={handleSaveSample}
+            disabled={sampleState === 'saving'}
+            title="現在のプレビュー値をサンプルカードデータとして保存"
+            className={`flex-shrink-0 px-3 py-1 text-xs rounded border font-medium transition-colors ${
+              sampleState === 'saved'  ? 'border-green-300 bg-green-50 text-green-700' :
+              sampleState === 'error'  ? 'border-red-300 bg-red-50 text-red-600' :
+              sampleState === 'saving' ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-wait' :
+              'border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100'
+            }`}
+          >
+            {sampleState === 'saving' ? '保存中…' : sampleState === 'saved' ? '✓ サンプル保存' : sampleState === 'error' ? 'エラー' : 'サンプルに設定'}
           </button>
           <button
             onClick={handleSave}

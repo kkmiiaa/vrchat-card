@@ -217,3 +217,15 @@ export async function saveTemplateLayout(
 
   return { error: error?.message ?? null }
 }
+
+export async function saveSampleCardData(
+  templateId: string,
+  sampleData: Record<string, unknown>,
+): Promise<{ error: string | null }> {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('templates')
+    .update({ sample_card_data: sampleData, updated_at: new Date().toISOString() })
+    .eq('id', templateId)
+  return { error: error?.message ?? null }
+}

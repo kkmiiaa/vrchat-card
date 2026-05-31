@@ -54,9 +54,10 @@ type Props = {
   initialCards: Card[]
   isPro: boolean
   isLoggedIn: boolean
+  communityTemplates?: { id: string; label: string }[]
 }
 
-export default function ExploreClient({ initialCards, isPro, isLoggedIn }: Props) {
+export default function ExploreClient({ initialCards, isPro, isLoggedIn, communityTemplates = [] }: Props) {
   const [cards, setCards] = useState<Card[]>(initialCards)
   const [filters, setFilters] = useState<Filters>({ q: '', gender: '', env: '', lang: '', friendPolicy: '' })
   const [cursor, setCursor] = useState<string | null>(null)
@@ -130,10 +131,29 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn }: Props
 
       <main className="pt-20 px-4 pb-16 max-w-5xl mx-auto">
         {/* タイトル */}
-        <div className="mb-6 mt-4">
+        <div className="mb-4 mt-4">
           <h1 className="text-xl font-bold text-gray-900">VRChat 界隈のユーザーをみつける</h1>
           <p className="text-sm text-gray-500 mt-1">VRChatユーザーの自己紹介カードをまとめて見られます</p>
         </div>
+
+        {/* テンプレート別ページへのナビ */}
+        {communityTemplates.length > 0 && (
+          <div className="mb-6 flex flex-wrap gap-2">
+            {communityTemplates.map(t => (
+              <Link
+                key={t.id}
+                href={`/c/vrchat/${t.id}`}
+                className="tap-spring inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-sky-200 text-xs font-semibold text-sky-600 hover:bg-sky-50 hover:border-sky-400 transition-all"
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <rect x="2" y="7" width="20" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 3H8"/>
+                </svg>
+                {t.label}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* フィルターエリア */}
         {isPro ? (

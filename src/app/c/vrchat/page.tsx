@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { type Metadata } from 'next'
 import ExploreClient from './ExploreClient'
+import { fetchTemplateLayouts } from '@/lib/templateLayout'
 
 export const metadata: Metadata = {
   title: 'VRChat 界隈のユーザーをみつける — vaacard',
@@ -41,5 +42,11 @@ export default async function Page() {
   const profileMap = Object.fromEntries((profiles ?? []).map(p => [p.user_id, p]))
   const cards = (initialCards ?? []).map(c => ({ ...c, profile: profileMap[c.user_id] ?? null }))
 
-  return <ExploreClient initialCards={cards} isPro={isPro} isLoggedIn={!!user} />
+  // VRChat 界隈のテンプレート一覧（ナビ用）
+  const allLayouts = await fetchTemplateLayouts()
+  const communityTemplates = Object.values(allLayouts)
+    .filter(t => t.community_slugs.includes('vrchat'))
+    .map(t => ({ id: t.id, label: t.label }))
+
+  return <ExploreClient initialCards={cards} isPro={isPro} isLoggedIn={!!user} communityTemplates={communityTemplates} />
 }

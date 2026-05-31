@@ -318,12 +318,12 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
         <div className={`max-w-xl mx-auto px-2 sm:px-4 mb-4`}>
 
         {/* アバター・名前・bio */}
-        <div className={`relative flex flex-col items-center text-center mb-10 transition-all ${editMode ? 'pt-2 pb-2' : 'px-0 pt-8 pb-0'}`}>
+        <div className={`relative flex flex-col items-center text-center mb-10 transition-all fade-up ${editMode ? 'pt-2 pb-2' : 'px-0 pt-8 pb-0'}`}>
           {isOwner && !editMode && (
-            <div className="absolute top-0 right-0 flex items-center gap-2">
+            <div className="absolute top-0 right-0 flex items-center gap-1.5">
               <button
                 onClick={() => setEditMode(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-sky-200 text-xs font-semibold text-sky-400 hover:border-[#00AADB] hover:text-[#00AADB] hover:bg-sky-50 transition-all shadow-sm bg-white">
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white text-xs font-semibold shadow-sm shadow-sky-200 hover:opacity-90 transition-opacity">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
@@ -331,10 +331,10 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
               </button>
               <button
                 onClick={() => setSettingsOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-xs font-semibold text-gray-400 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all shadow-sm bg-white"
+                className="w-7 h-7 rounded-full border border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all shadow-sm bg-white flex items-center justify-center"
+                title="設定"
               >
-                <IoSettingsOutline size={12} />
-                設定
+                <IoSettingsOutline size={13} />
               </button>
             </div>
           )}
@@ -471,7 +471,7 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
         </div>
 
         {/* カード一覧 */}
-        <div className="max-w-5xl mx-auto px-2 sm:px-4">
+        <div className="max-w-5xl mx-auto px-2 sm:px-4 fade-up fade-up-delay-2">
             {isOwner && cards.length > 0 && (() => {
               const atLimit = plan === 'free' && cards.length >= FREE_CARD_LIMIT
               return (

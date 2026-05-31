@@ -440,7 +440,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         </div>
 
         {/* フォームサイドバー */}
-        <aside className="lg:w-[400px] lg:min-w-[400px] lg:max-w-[500px] lg:flex-none w-full overflow-y-auto flex-1 p-2 lg:border-t-0 lg:border-l bg-white text-gray-800 isolate">
+        <aside className="lg:w-[400px] lg:min-w-[400px] lg:max-w-[500px] lg:flex-none w-full overflow-y-auto flex-1 p-2 pb-24 sm:pb-2 lg:border-t-0 lg:border-l bg-white text-gray-800 isolate">
 
           {/* モバイルでfixedカードプレビューの下にフォームが来るためのスペーサー */}
           <div className="lg:hidden" style={{ height: 'calc(100vw * 9 / 16 + 16px)' }} />

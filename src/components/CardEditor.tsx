@@ -471,7 +471,10 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
                     return (
                       <div key={ii} className="pt-4 first:pt-2 pb-4">
                         {formLabel && <p className="text-sm font-semibold text-gray-700 mb-1">{formLabel}</p>}
-                        <block.FormItem value={values[item.dataKey]} onChange={v => updateValue(item.dataKey, v)} t={t} blockConfig={blockExt.blockConfig} formLabel={formLabel} />
+                        <block.FormItem
+                          value={item.dataKey === 'background' ? background : values[item.dataKey]}
+                          onChange={v => item.dataKey === 'background' ? setBackground(v as BackgroundValue) : updateValue(item.dataKey, v)}
+                          t={t} blockConfig={blockExt.blockConfig} formLabel={formLabel} />
                       </div>
                     )
                   })}
@@ -512,7 +515,10 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
                     return (
                       <div key={key} className="pt-4 first:pt-2 pb-4">
                         {formLabel && <p className="text-sm font-semibold text-gray-700 mb-1">{formLabel}</p>}
-                        <block.FormItem value={values[key]} onChange={v => updateValue(key, v)} t={t} blockConfig={blockExtB?.blockConfig} formLabel={formLabel} />
+                        <block.FormItem
+                          value={key === 'background' ? background : values[key]}
+                          onChange={v => key === 'background' ? setBackground(v as BackgroundValue) : updateValue(key, v)}
+                          t={t} blockConfig={blockExtB?.blockConfig} formLabel={formLabel} />
                       </div>
                     )
                   })}

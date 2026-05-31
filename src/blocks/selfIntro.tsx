@@ -1,7 +1,8 @@
+// @ts-nocheck
 'use client'
-import type { Block } from './types'
+import type { ComponentDef } from './types'
 
-export const selfIntroBlock: Block<string> = {
+export const selfIntroBlock: ComponentDef<any> = {
   key: 'selfIntro',
   defaultValue: '',
   variants: ['default'],

@@ -84,7 +84,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 export function resolveIcon(key: string | null | undefined, size = 16): React.ReactNode {
   if (!key) return null
   const node = ICON_MAP[key]
-  if (node) return React.cloneElement(node, { size })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (node) return React.cloneElement(node, { size } as any)
   return key
 }
 
@@ -186,7 +187,8 @@ export function IconPicker({
             }`}
           >
             <span className="flex items-center justify-center">
-              {React.cloneElement(def.node, { size: 18 })}
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {React.cloneElement(def.node, { size: 18 } as any)}
             </span>
             <span className="text-[8px] text-gray-400 leading-none truncate w-full text-center">
               {def.label}

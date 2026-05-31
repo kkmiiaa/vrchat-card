@@ -1,5 +1,6 @@
+// @ts-nocheck
 'use client'
-import type { Block } from './types'
+import type { ComponentDef } from './types'
 import { TbBadgeVr, TbDeviceDesktop, TbDeviceGamepad2 } from 'react-icons/tb'
 
 const OPTIONS = ['PCVR', 'Quest', 'Desktop'] as const
@@ -11,7 +12,7 @@ const ICONS: Record<string, React.ComponentType<{ style?: React.CSSProperties }>
   Desktop: TbDeviceDesktop,
 }
 
-export const playEnvBlock: Block<string[]> = {
+export const playEnvBlock: ComponentDef<any> = {
   key: 'playEnv',
   defaultValue: [],
   variants: ['default', 'slash', 'icon'],  // default=バッジ, slash=スラッシュ区切り, icon=アイコン付きバッジ

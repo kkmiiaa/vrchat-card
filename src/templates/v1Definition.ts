@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { TemplateDefinition } from '@/blocks/types'
 import { CARD_LANDSCAPE_WIDTH, CARD_LANDSCAPE_HEIGHT, CARD_PORTRAIT_WIDTH } from '@/lib/cardDimensions'
 

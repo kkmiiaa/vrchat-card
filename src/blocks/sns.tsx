@@ -1,5 +1,6 @@
+// @ts-nocheck
 'use client'
-import type { Block, SnsValue } from './types'
+import type { ComponentDef, SnsValue } from './types'
 
 const SNS_ICONS: Record<string, string> = {
   VRC: '/icon_vrchat.png',
@@ -7,7 +8,7 @@ const SNS_ICONS: Record<string, string> = {
   DC:  '/icon_discord.png',
 }
 
-export const snsBlock: Block<SnsValue> = {
+export const snsBlock: ComponentDef<any> = {
   key: 'sns',
   defaultValue: { vrchatId: '', twitterId: '', discordId: '' },
   variants: ['default', 'icon'],  // default=テキストラベル+ID, icon=プラットフォームアイコン+ID

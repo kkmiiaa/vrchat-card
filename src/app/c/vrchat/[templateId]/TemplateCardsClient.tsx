@@ -68,6 +68,15 @@ function SamplePreview({ row }: { row: TemplateLayoutRow }) {
   }, [W])
 
   const values = row.sample_card_data ?? {}
+  const isEmpty = Object.keys(values).length === 0
+
+  if (isEmpty) {
+    return (
+      <div ref={containerRef} style={{ width: '100%', aspectRatio: `${W}/${H}`, borderRadius: 12, background: 'linear-gradient(135deg, #e0f2fe, #f0fdf4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600 }}>サンプル準備中</p>
+      </div>
+    )
+  }
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: H * scale, overflow: 'hidden', borderRadius: 12 }}>

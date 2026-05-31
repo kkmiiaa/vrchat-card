@@ -7,6 +7,7 @@ const PAGES = [
   { href: '/admin/templates',   label: 'テンプレート' },
   { href: '/admin/communities', label: '界隈' },
   { href: '/admin/cards',       label: 'カード' },
+  { href: '/admin/users',       label: 'ユーザー' },
 ]
 
 export default function AdminNav() {

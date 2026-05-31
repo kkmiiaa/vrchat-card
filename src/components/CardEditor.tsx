@@ -35,12 +35,13 @@ type Props = {
   template: CardTemplate
   cardId?: string
   initialValues?: Record<string, unknown>
+  initialBackground?: BackgroundValue | null
   readOnly?: boolean
   announcements?: Announcement[]
   formSections?: FormSection[]
 }
 
-export default function CardEditor({ template, cardId: initialCardId, initialValues, readOnly = false, announcements = [], formSections: propFormSections }: Props) {
+export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, announcements = [], formSections: propFormSections }: Props) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -58,6 +59,10 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
   // --- Block values ---
   const { values, updateValue, initialized } = useCardValues(template.blocks, initialValues)
+
+  // --- Background（card_data とは分離） ---
+  const DEFAULT_BG: BackgroundValue = { type: 'image', value: '/backgrounds/bg_1.webp' }
+  const [background, setBackground] = useState<BackgroundValue>(initialBackground ?? DEFAULT_BG)
 
   // --- Profile image (special: cropper) ---
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null)
@@ -130,7 +135,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     if (!isLoggedIn || !cardId || !initialized) return
     setDraftStatus('saving')
     const timer = setTimeout(async () => {
-      await updateCard({ cardId, cardData: values as Record<string, unknown> })
+      await updateCard({ cardId, cardData: values as Record<string, unknown>, background })
       setDraftStatus('saved')
     }, 1500)
     return () => clearTimeout(timer)
@@ -157,7 +162,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   }, [(values.gallery as GalleryValue)?.images, userId, cardId])
 
   // helpers
-  const bg         = (values.background  as BackgroundValue) ?? { type: 'image', value: '/backgrounds/bg_1.webp' }
+  const bg = background
   const gallery    = (values.gallery     as GalleryValue)    ?? { enabled: false, images: [null,null,null], base64: [null,null,null] }
   const fontKey    = (values.font        as FontKey)         ?? 'rounded'
   const fontFamily = fontMap[fontKey]?.style?.fontFamily ?? 'sans-serif'
@@ -194,7 +199,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     if (bg.type !== 'image') { return }
     if (bg.imageFile instanceof File) {
       const reader = new FileReader()
-      reader.onload = e => updateValue('background', { ...bg, base64: e.target?.result as string })
+      reader.onload = e => setBackground({ ...bg, base64: e.target?.result as string })
       reader.readAsDataURL(bg.imageFile)
     } else if (typeof bg.value === 'string' && bg.value && !bg.base64) {
       const controller = new AbortController()
@@ -202,7 +207,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         .then(r => r.blob())
         .then(blob => {
           const reader = new FileReader()
-          reader.onload = e => updateValue('background', { ...bg, base64: e.target?.result as string })
+          reader.onload = e => setBackground({ ...bg, base64: e.target?.result as string })
           reader.readAsDataURL(blob)
         })
         .catch(() => {})
@@ -272,6 +277,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       const result = await createCard({
         templateId: template.id,
         cardData: migratedValues,
+        background,
         title: (migratedValues.name as string) || 'My Card',
       })
       if ('error' in result) {
@@ -289,7 +295,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     }
 
     if (dataUrl) {
-      await updateCard({ cardId: currentCardId, imageBase64: dataUrl, cardData: migratedValues })
+      await updateCard({ cardId: currentCardId, imageBase64: dataUrl, cardData: migratedValues, background })
     }
 
     await updateCard({ cardId: currentCardId, visibility: 'public' })
@@ -410,14 +416,14 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
             background: getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK) ?? undefined,
           }}
         >
-          {!debugMode && <CardScaledView template={template} values={values} scale={cardScale} fontFamily={fontFamily} t={t} isInteractive />}
+          {!debugMode && <CardScaledView template={template} values={values} background={background} scale={cardScale} fontFamily={fontFamily} t={t} isInteractive />}
         </section>
 
         {/* エクスポート専用（フルサイズ、画面外に配置） */}
         <div style={debugMode
           ? { overflow: 'hidden', margin: '16px auto', outline: '2px dashed red' }
           : { position: 'fixed', top: -9999, left: -9999, overflow: 'hidden', pointerEvents: 'none' }}>
-          <CardScaledView innerRef={cardExportRef} template={template} values={values} scale={1} fontFamily={fontFamily} t={t} />
+          <CardScaledView innerRef={cardExportRef} template={template} values={values} background={background} scale={1} fontFamily={fontFamily} t={t} />
         </div>
 
         {/* フォームサイドバー */}

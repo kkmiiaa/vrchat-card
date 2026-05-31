@@ -445,6 +445,7 @@ export type CardTemplate = {
     values: BlockValues
     fontFamily: string
     t: Translations
+    background?: BackgroundValue
     isInteractive?: boolean
     noBackground?: boolean
     orientation?: 'card' | 'web'

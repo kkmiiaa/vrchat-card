@@ -22,25 +22,26 @@ import SettingsModal from '@/components/SettingsModal'
 import { IoSettingsOutline } from 'react-icons/io5'
 import { translations } from '@/utils/translations'
 
+import type { BackgroundValue } from '@/blocks/types'
+
 type Card = {
   id: string
   title: string
   template_id: string
   card_data: Record<string, unknown> | null
+  background: BackgroundValue | null
   image_url: string | null
   visibility: string
   created_at: string
 }
 
-function cardBg(cardData: Record<string, unknown> | null): string | null {
-  const bg = cardData?.background as { type?: string; value?: string | [string, string]; base64?: string } | undefined
-  if (!bg) return null
-  return getBackgroundStyle(bg.type, bg.value, bg.base64 ?? null)
+function cardBg(background: BackgroundValue | null): string | null {
+  if (!background) return null
+  return getBackgroundStyle(background.type, background.value, background.base64 ?? null)
 }
 
-function cardBgType(cardData: Record<string, unknown> | null): string | null {
-  const bg = cardData?.background as { type?: string } | undefined
-  return bg?.type ?? null
+function cardBgType(background: BackgroundValue | null): string | null {
+  return background?.type ?? null
 }
 
 function LiveCardPreview({
@@ -515,9 +516,9 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
                       {/* カードプレビュー本体 */}
                       <div className="relative" style={{ padding: '32px 16px' }}>
                         {(() => {
-                          const bg = cardBg(card.card_data) ?? 'linear-gradient(135deg, #c7d2fe, #bae6fd)'
-                          const hasCustomBg = !!cardBg(card.card_data)
-                          const bgType = cardBgType(card.card_data)
+                          const bg = cardBg(card.background) ?? 'linear-gradient(135deg, #c7d2fe, #bae6fd)'
+                          const hasCustomBg = !!cardBg(card.background)
+                          const bgType = cardBgType(card.background)
                           const isImage = bgType === 'image'
                           return (<>
                             {/* 近接層：カード背景をソリッドに表示 */}

@@ -1,6 +1,9 @@
+import type { BackgroundValue } from '@/blocks/types'
+
 type CreateCardParams = {
   templateId: string
   cardData?: Record<string, unknown>
+  background?: BackgroundValue | null
   title?: string
   visibility?: 'public' | 'limited' | 'private'
 }
@@ -8,6 +11,7 @@ type CreateCardParams = {
 type UpdateCardParams = {
   cardId: string
   cardData?: Record<string, unknown>
+  background?: BackgroundValue | null
   imageBase64?: string
   title?: string
   visibility?: 'public' | 'limited' | 'private'

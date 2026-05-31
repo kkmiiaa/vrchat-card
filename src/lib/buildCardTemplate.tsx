@@ -1,5 +1,5 @@
 import React from 'react'
-import type { CardTemplate, TemplateDefinition, FormSection } from '@/blocks/types'
+import type { CardTemplate, TemplateDefinition, FormSection, BackgroundValue } from '@/blocks/types'
 import type { TemplateLayoutRow } from '@/lib/templateLayout'
 import { getComponent } from '@/blocks/registry'
 import GenericCardRenderer from '@/components/GenericCardRenderer'
@@ -114,26 +114,30 @@ export function buildCardTemplateFromDefinition(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     blocks: blocks as any,
 
-    CardRenderer({ values, fontFamily, noBackground, orientation, cardUrl, userUrl }) {
+    CardRenderer({ values, fontFamily, background, noBackground, orientation, cardUrl, userUrl }) {
       return React.createElement(GenericCardRenderer, {
         definition: resolvedDefinition,
         orientation: orientation === 'web' ? 'web' : 'card',
         values,
         fontFamily,
-        noBackground,
-        background: fixedBackground,
+        noBackground: true,
+        background: fixedBackground ?? background,
         cardUrl,
         userUrl,
       })
     },
 
     PreviewCard() {
+      const sampleData = dbRow?.sample_card_data ?? {}
+      const sampleBg = backgroundKey
+        ? (sampleData[backgroundKey] as BackgroundValue | undefined)
+        : undefined
       return React.createElement(GenericCardRenderer, {
         definition: resolvedDefinition,
         orientation: 'card',
-        values:      dbRow?.sample_card_data ?? {},
+        values:      sampleData,
         fontFamily:  resolvedDefinition.fontFamily,
-        background:  fixedBackground,
+        background:  fixedBackground ?? sampleBg,
       })
     },
   }

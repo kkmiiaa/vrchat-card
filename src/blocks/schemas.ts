@@ -201,7 +201,6 @@ export const BlockValuesSchema = z.object({
   age:          AgeValueSchema.optional().catch(undefined),
   activity:     ActivityValueSchema.optional().catch(undefined),
   gallery:      GalleryValueSchema.optional().catch(undefined),
-  background:   BackgroundValueSchema.optional().catch(undefined),
   overlay:      OverlayValueSchema.optional().catch(undefined),
   interactions: z.array(InteractionItemSchema).catch([]),
   sns:          SnsValueSchema.optional().catch(undefined),

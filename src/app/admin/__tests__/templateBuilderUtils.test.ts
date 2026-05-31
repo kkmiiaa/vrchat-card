@@ -7,7 +7,7 @@ import {
   generateDataKey,
   collectDefaultValues,
   makeDefaultFormSections,
-  resolveFormSections,
+  resolveFormSectionsFromRow,
   buildSavePayload,
 } from '../templateBuilderUtils'
 
@@ -189,88 +189,64 @@ describe('collectDefaultValues', () => {
 
 describe('makeDefaultFormSections', () => {
   it('1. 「カードデザイン」セクションが1つ生成される', () => {
-    const sections = makeDefaultFormSections(makeDefinition())
+    const sections = makeDefaultFormSections()
     expect(sections).toHaveLength(1)
     expect(sections[0].title).toBe('カードデザイン')
   })
 
   it('2. defaultOpen が true になっている', () => {
-    const sections = makeDefaultFormSections(makeDefinition())
+    const sections = makeDefaultFormSections()
     expect(sections[0].defaultOpen).toBe(true)
   })
 
   it('3. items に font アイテムが含まれる', () => {
-    const sections = makeDefaultFormSections(makeDefinition())
+    const sections = makeDefaultFormSections()
     expect(sections[0].items.some(i => i.type === 'font')).toBe(true)
   })
 
   it('4. backgroundKey がある場合、items に背景ブロックが含まれる', () => {
-    const sections = makeDefaultFormSections(makeDefinition({ backgroundKey: 'background' }))
+    const sections = makeDefaultFormSections('background')
     expect(sections[0].items.some(i => i.type === 'block' && i.dataKey === 'background')).toBe(true)
   })
 
   it('5. backgroundKey がない場合、背景ブロックは含まれない', () => {
-    const sections = makeDefaultFormSections(makeDefinition({ backgroundKey: undefined }))
+    const sections = makeDefaultFormSections(undefined)
     expect(sections[0].items.every(i => i.type !== 'block')).toBe(true)
   })
 
   it('6. items の順序は font → background', () => {
-    const sections = makeDefaultFormSections(makeDefinition({ backgroundKey: 'bg' }))
+    const sections = makeDefaultFormSections('bg')
     expect(sections[0].items[0].type).toBe('font')
     expect(sections[0].items[1]).toMatchObject({ type: 'block', dataKey: 'bg' })
   })
 })
 
-// ─── resolveFormSections ─────────────────────────────────────────────────────
+// ─── resolveFormSectionsFromRow ───────────────────────────────────────────────
 
-describe('resolveFormSections', () => {
+describe('resolveFormSectionsFromRow', () => {
   const dbSections: FormSection[] = [
     { title: 'DBセクション', items: [{ type: 'block', dataKey: 'name' }] },
   ]
-  const defSections: FormSection[] = [
-    { title: '定義セクション', items: [{ type: 'block', dataKey: 'gender' }] },
-  ]
 
-  it('1. DB に form_sections があればそれを優先する', () => {
-    const savedLayouts = { test: makeSavedLayout({ form_sections: dbSections }) }
-    const result = resolveFormSections(makeDefinition(), savedLayouts)
-    expect(result).toBe(dbSections)
+  it('1. row に form_sections があればそれを返す', () => {
+    const row = makeSavedLayout({ form_sections: dbSections })
+    expect(resolveFormSectionsFromRow(row)).toBe(dbSections)
   })
 
-  it('2. DB の form_sections が空配列のときは TS 定義にフォールバック', () => {
-    const savedLayouts = { test: makeSavedLayout({ form_sections: [] }) }
-    const def = makeDefinition({ formSections: defSections })
-    const result = resolveFormSections(def, savedLayouts)
-    expect(result).toBe(defSections)
+  it('2. form_sections が空配列のときはデフォルト（カードデザイン）を返す', () => {
+    const row = makeSavedLayout({ form_sections: [] })
+    expect(resolveFormSectionsFromRow(row)[0].title).toBe('カードデザイン')
   })
 
-  it('3. DB の form_sections が null のときは TS 定義にフォールバック', () => {
-    const savedLayouts = { test: makeSavedLayout({ form_sections: null }) }
-    const def = makeDefinition({ formSections: defSections })
-    const result = resolveFormSections(def, savedLayouts)
-    expect(result).toBe(defSections)
+  it('3. form_sections が null のときはデフォルトを返す', () => {
+    const row = makeSavedLayout({ form_sections: null })
+    expect(resolveFormSectionsFromRow(row)[0].title).toBe('カードデザイン')
   })
 
-  it('4. DB も TS 定義もない場合はデフォルト（カードデザイン）を返す', () => {
-    const result = resolveFormSections(makeDefinition({ formSections: undefined }), {})
-    expect(result[0].title).toBe('カードデザイン')
-  })
-
-  it('5. savedLayouts に対象テンプレートの行がない場合もデフォルトを返す', () => {
-    const result = resolveFormSections(makeDefinition({ id: 'missing' }), {})
-    expect(result[0].title).toBe('カードデザイン')
-  })
-
-  it('6. savedLayouts を省略した場合もデフォルトを返す', () => {
-    const result = resolveFormSections(makeDefinition())
-    expect(result[0].title).toBe('カードデザイン')
-  })
-
-  it('7. DB の form_sections が1件以上あれば TS 定義は無視される', () => {
-    const savedLayouts = { test: makeSavedLayout({ form_sections: dbSections }) }
-    const def = makeDefinition({ formSections: defSections })
-    const result = resolveFormSections(def, savedLayouts)
-    expect(result[0].title).toBe('DBセクション')
+  it('4. card_config.backgroundKey がある場合、デフォルトに背景ブロックが含まれる', () => {
+    const row = makeSavedLayout({ form_sections: null, card_config: { backgroundKey: 'background', borderRadius: 20 } })
+    const sections = resolveFormSectionsFromRow(row)
+    expect(sections[0].items.some(i => i.type === 'block' && i.dataKey === 'background')).toBe(true)
   })
 })
 

@@ -29,12 +29,15 @@ export type ProfileRow = {
   profile_links: ProfileLink[]
 }
 
+import type { BackgroundValue } from '@/blocks/types'
+
 export type CardRow = {
   id: string
   user_id: string
   template_id: string
   title: string | null
   card_data: Record<string, unknown>
+  background: BackgroundValue | null
   image_url: string | null
   visibility: Visibility
   view_count: number

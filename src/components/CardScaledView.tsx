@@ -1,12 +1,13 @@
 'use client'
 
-import type { CardTemplate, BlockValues } from '@/blocks/types'
+import type { CardTemplate, BlockValues, BackgroundValue } from '@/blocks/types'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Translation = Record<string, any>
 
 type Props = {
   template: CardTemplate
   values: BlockValues
+  background?: BackgroundValue | null
   scale: number
   fontFamily: string
   t: Translation
@@ -27,6 +28,7 @@ type Props = {
 export default function CardScaledView({
   template,
   values,
+  background,
   scale,
   fontFamily,
   t,
@@ -50,6 +52,7 @@ export default function CardScaledView({
       <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', position: 'absolute', top: 0, left: 0 }}>
         <template.CardRenderer
           values={values}
+          background={background ?? undefined}
           fontFamily={fontFamily}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}

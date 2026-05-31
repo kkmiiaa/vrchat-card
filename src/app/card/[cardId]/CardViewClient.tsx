@@ -330,7 +330,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     }
   }
 
-  const bg = values.background as { type?: string; value?: string | [string, string]; base64?: string } | undefined
+  const bg = card.background
   const pageBg = (() => {
     if (!bg) return 'linear-gradient(135deg, #c7d2fe, #fbcfe8, #fde68a)'
     if (bg.type === 'color' && typeof bg.value === 'string') return bg.value
@@ -499,7 +499,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               >
                 <div style={{ width: '100%', height: cardH * scale, position: 'relative', overflow: 'hidden' }}>
                   <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: cardW, height: cardH, position: 'absolute', top: 0, left: 0 }}>
-                    <template.CardRenderer values={values} fontFamily={fontFamily} t={translations.ja} isInteractive noBackground orientation={orientation} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
+                    <template.CardRenderer values={values} background={card.background ?? undefined} fontFamily={fontFamily} t={translations.ja} isInteractive orientation={orientation} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
                   </div>
                 </div>
               </div>

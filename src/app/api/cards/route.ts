@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'not_authenticated' }, { status: 401 })
 
-  const { templateId, title, cardData, visibility = 'public' } = await request.json()
+  const { templateId, title, cardData, background, visibility = 'public' } = await request.json()
   if (!templateId) return NextResponse.json({ error: 'templateId is required' }, { status: 400 })
 
   // プラン制限チェック
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
       template_id: templateId,
       title,
       card_data: cardData ?? {},
+      background: background ?? null,
       visibility,
     })
     .select('id')

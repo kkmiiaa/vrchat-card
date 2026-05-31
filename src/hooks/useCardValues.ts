@@ -35,7 +35,6 @@ function migrateFromOld(raw: Record<string, unknown>): BlockValues {
       mode:    presets.includes(ageDisplay) ? ageDisplay : (ageDisplay ? 'custom' : ''),
       display: presets.includes(ageDisplay) ? '' : ageDisplay,
     },
-    background:   raw.background   ?? undefined,
     font:         raw.font         ?? 'rounded',
     interactions: raw.interactions ?? [],
     activity:     raw.activity     ?? undefined,

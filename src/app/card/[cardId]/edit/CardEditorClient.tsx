@@ -41,6 +41,7 @@ export default function CardEditorClient({ card, templateId, templateDbRow, isOw
         template={template}
         cardId={card.id}
         initialValues={card.card_data}
+        initialBackground={card.background}
         readOnly={!isOwner}
         announcements={announcements}
         formSections={formSections.length ? formSections : undefined}

@@ -274,8 +274,7 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
     userUrl,
   }
 
-  const bgValue: BackgroundValue | undefined =
-    background ?? (definition.backgroundKey ? (values[definition.backgroundKey] as BackgroundValue | undefined) : undefined)
+  const bgValue: BackgroundValue | undefined = background ?? undefined
 
   const bg = noBackground
     ? 'transparent'

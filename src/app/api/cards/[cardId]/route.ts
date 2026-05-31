@@ -27,10 +27,11 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (!user) return NextResponse.json({ error: 'not_authenticated' }, { status: 401 })
 
   const body = await request.json()
-  const { cardData, imageBase64, title, visibility } = body
+  const { cardData, background, imageBase64, title, visibility } = body
 
   const updates: Record<string, unknown> = {}
   if (cardData !== undefined) updates.card_data = cardData
+  if (background !== undefined) updates.background = background
   if (title !== undefined) updates.title = title
   if (visibility !== undefined) updates.visibility = visibility
 

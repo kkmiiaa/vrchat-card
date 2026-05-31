@@ -573,10 +573,12 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
   const cfg = currentRow.card_config ?? {}
   const grid = orientation === 'card' ? (cfg.card?.grid ?? { cellSize: 8, gap: 4 }) : (cfg.web?.grid ?? { cellSize: 8, gap: 4 })
 
-  // ページ背景（カードと同じ背景をコンテナ全体に適用）
-  const bgValue = currentRow.card_config?.backgroundKey
-    ? (localValues[currentRow.card_config?.backgroundKey] as BackgroundValue | undefined)
-    : undefined
+  // ページ背景（固定モード時は fixedBg、カスタムモード時は localValues[backgroundKey]）
+  const bgValue = currentBgMode === 'fixed'
+    ? currentFixedBg
+    : currentRow.card_config?.backgroundKey
+      ? (localValues[currentRow.card_config.backgroundKey] as BackgroundValue | undefined)
+      : undefined
   const pageBg = bgValue
     ? (getBackgroundStyle(bgValue.type, bgValue.value, bgValue.base64 ?? null, CARD_BG_FALLBACK) ?? CARD_BG_FALLBACK)
     : CARD_BG_FALLBACK

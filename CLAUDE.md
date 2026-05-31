@@ -39,7 +39,7 @@ E2EはCIでは実行しない（時間がかかりすぎるため）。ローカ
 | `docs/components.md` | コンポーネント・ブロック・テンプレートの概念設計 |
 | `docs/testcases.md` | テストケース一覧（E2E・ユニット） |
 | `docs/legacy-maker-flow.md` | 旧メーカー（/card/vrchat）の導線設計・データフロー・マイグレーション仕様 |
-| `docs/changelog.md` | 開発の大きな節目・変更の記録（セッションをまたいだ作業ログ） |
+| `docs/changelog.md` | 開発ログ・次にやること（作業記録・残タスク・確定設計方針を一元管理） |
 
 - 機能追加・変更時は関連する docs ファイルを更新する
 - コンポーネント追加時は `docs/components.md` と `docs/testcases.md` を更新する

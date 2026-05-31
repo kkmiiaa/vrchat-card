@@ -26,12 +26,17 @@ export function buildCardTemplateFromDefinition(
   const cardScales    = dbRow?.orientation_scales?.card ?? {}
   const webScales     = dbRow?.orientation_scales?.web  ?? {}
 
+  // カードサイズは DB 優先、なければ TS 定義のフォールバック
+  const resolvedCardWidth  = dbRow?.card_width  ?? definition.card.cardWidth
+  const resolvedCardHeight = dbRow?.card_height ?? definition.card.cardHeight
+  const resolvedWebWidth   = dbRow?.web_width   ?? definition.web.cardWidth
+
   const resolvedDefinition: TemplateDefinition = {
     ...definition,
     blockPool,
     overlayFixed,
-    card: { ...definition.card, layout: cardLayout, ...cardScales },
-    web:  { ...definition.web,  layout: webLayout,  ...webScales  },
+    card: { ...definition.card, layout: cardLayout, cardWidth: resolvedCardWidth, cardHeight: resolvedCardHeight, ...cardScales },
+    web:  { ...definition.web,  layout: webLayout,  cardWidth: resolvedWebWidth,  ...webScales  },
   }
 
   const formSections: FormSection[] = dbRow?.form_sections ?? definition.formSections ?? []
@@ -67,10 +72,10 @@ export function buildCardTemplateFromDefinition(
     badgeColor:   '',
     communities:  ['VRChat'],
     communitySlug:'vrchat',
-    cardWidth:    resolvedDefinition.card.cardWidth,
-    cardHeight:   resolvedDefinition.card.cardHeight ?? resolvedDefinition.card.cardWidth,
-    webWidth:     resolvedDefinition.web.cardWidth,
-    webHeight:    resolvedDefinition.web.cardHeight ?? resolvedDefinition.web.cardWidth,
+    cardWidth:    resolvedCardWidth,
+    cardHeight:   resolvedCardHeight ?? resolvedCardWidth,
+    webWidth:     resolvedWebWidth,
+    webHeight:    resolvedDefinition.web.cardHeight ?? resolvedWebWidth,
     sections:     [],  // propFormSections を使うため不要
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     blocks:       blocks as any,

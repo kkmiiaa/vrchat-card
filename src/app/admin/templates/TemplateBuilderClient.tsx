@@ -102,6 +102,9 @@ export default function TemplateBuilderClient({ definitions: initialDefinitions,
         form_sections:      formSections,
         orientation_scales: orientationScales,
         overlay_config:     null,
+        card_width:         baseLayout?.card_width  ?? null,
+        card_height:        baseLayout?.card_height ?? null,
+        web_width:          baseLayout?.web_width   ?? null,
       },
     }))
 

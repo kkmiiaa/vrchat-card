@@ -47,6 +47,9 @@ const makeSavedLayout = (overrides: Partial<TemplateLayoutRow> = {}): TemplateLa
   form_sections: null,
   orientation_scales: null,
   overlay_config: null,
+  card_width: null,
+  card_height: null,
+  web_width: null,
   ...overrides,
 })
 

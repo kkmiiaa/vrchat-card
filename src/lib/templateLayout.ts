@@ -21,6 +21,9 @@ export type TemplateLayoutRow = {
   form_sections:      FormSection[] | null
   orientation_scales: { card: OrientationScales; web: OrientationScales } | null
   overlay_config:     OverlayValue | null
+  card_width:         number | null
+  card_height:        number | null
+  web_width:          number | null
 }
 
 /** 単一テンプレート行を DB から取得 */
@@ -28,7 +31,7 @@ export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('templates')
-    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config')
+    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width')
     .eq('id', id)
     .single()
 
@@ -45,6 +48,9 @@ export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow
     form_sections:      data.form_sections      as FormSection[] | null,
     orientation_scales: data.orientation_scales as { card: OrientationScales; web: OrientationScales } | null,
     overlay_config:     data.overlay_config     as OverlayValue | null,
+    card_width:         data.card_width         as number | null,
+    card_height:        data.card_height        as number | null,
+    web_width:          data.web_width          as number | null,
   }
 }
 
@@ -53,7 +59,7 @@ export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLay
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('templates')
-    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config')
+    .select('id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width')
     .order('sort_order', { ascending: true })
 
   if (error) {
@@ -75,6 +81,9 @@ export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLay
         form_sections:      row.form_sections      as FormSection[] | null,
         orientation_scales: row.orientation_scales as { card: OrientationScales; web: OrientationScales } | null,
         overlay_config:     row.overlay_config     as OverlayValue | null,
+        card_width:         row.card_width         as number | null,
+        card_height:        row.card_height        as number | null,
+        web_width:          row.web_width          as number | null,
       },
     ])
   )

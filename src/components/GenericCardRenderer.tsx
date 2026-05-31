@@ -228,7 +228,7 @@ function renderNode(
       ...(node.justify ? { justifyContent: node.justify } : {}),
       ...(node.alignItems ? { alignItems: node.alignItems } : {}),
       ...(node.minW !== undefined && !hasFlex ? { width: cellsToPixels(node.minW, cellSize) } : {}),
-      ...(node.minH !== undefined && !hasFlex ? { minHeight: cellsToPixels(node.minH, cellSize) } : {}),
+      ...((node as { minH?: number }).minH !== undefined && !hasFlex ? { minHeight: cellsToPixels((node as { minH?: number }).minH!, cellSize) } : {}),
       ...highlight,
     }
     return (

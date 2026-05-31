@@ -33,6 +33,7 @@ type Card = {
   image_url: string | null
   visibility: string
   created_at: string
+  templates?: { community_templates?: { community_slug: string }[] } | null
 }
 
 function cardBg(background: BackgroundValue | null): string | null {
@@ -120,7 +121,7 @@ function detectService(url: string) {
 }
 
 function newLink(): ProfileLink & { _id: number } {
-  return { url: '', label: '', _id: Date.now() + Math.random() }
+  return { id: '', url: '', label: '', sort_order: 0, _id: Date.now() + Math.random() }
 }
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{2,29}$/

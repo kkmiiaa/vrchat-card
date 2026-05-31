@@ -5,7 +5,7 @@ import { useSearchParams, usePathname } from 'next/navigation'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
 
-import type { CardTemplate, BlockValues, BackgroundValue, GalleryValue, TemplateSectionBlock, FormSection } from '@/blocks/types'
+import type { CardTemplate, BlockValues, BackgroundValue, GalleryValue, TemplateSectionBlock, FormSection, ComponentDef } from '@/blocks/types'
 import { createCard, updateCard } from '@/lib/saveCard'
 import { createClient } from '@/lib/supabase/client'
 import { uploadCardImage, ImageTooLargeError } from '@/lib/uploadImage'
@@ -466,11 +466,12 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
                         : JSON.stringify(values[item.dataKey]) === JSON.stringify(block.defaultValue)
                       if (isEmpty) return null
                     }
-                    const formLabel = item.formLabel ?? block.formLabel
+                    const blockExt = block as ComponentDef<unknown> & { formLabel?: string; blockConfig?: Record<string, unknown> }
+                    const formLabel = item.formLabel ?? blockExt.formLabel
                     return (
                       <div key={ii} className="pt-4 first:pt-2 pb-4">
                         {formLabel && <p className="text-sm font-semibold text-gray-700 mb-1">{formLabel}</p>}
-                        <block.FormItem value={values[item.dataKey]} onChange={v => updateValue(item.dataKey, v)} t={t} blockConfig={block.blockConfig} formLabel={formLabel} />
+                        <block.FormItem value={values[item.dataKey]} onChange={v => updateValue(item.dataKey, v)} t={t} blockConfig={blockExt.blockConfig} formLabel={formLabel} />
                       </div>
                     )
                   })}
@@ -506,11 +507,12 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
                         : JSON.stringify(values[key]) === JSON.stringify(block.defaultValue)
                       if (isEmpty) return null
                     }
-                    const formLabel = sectionBlock?.formLabel ?? blockMap[key]?.formLabel
+                    const blockExtB = blockMap[key] as (ComponentDef<unknown> & { formLabel?: string; blockConfig?: Record<string, unknown> }) | undefined
+                    const formLabel = sectionBlock?.formLabel ?? blockExtB?.formLabel
                     return (
                       <div key={key} className="pt-4 first:pt-2 pb-4">
                         {formLabel && <p className="text-sm font-semibold text-gray-700 mb-1">{formLabel}</p>}
-                        <block.FormItem value={values[key]} onChange={v => updateValue(key, v)} t={t} blockConfig={blockMap[key]?.blockConfig} formLabel={formLabel} />
+                        <block.FormItem value={values[key]} onChange={v => updateValue(key, v)} t={t} blockConfig={blockExtB?.blockConfig} formLabel={formLabel} />
                       </div>
                     )
                   })}

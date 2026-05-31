@@ -586,10 +586,10 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
     : CARD_BG_FALLBACK
 
   function fmtW(cells: number) {
-    return `${cells}セル / ${cellsToPixels(cells, grid.cellSize)}px`
+    return `${cells}セル / ${cellsToPixels(cells, grid.cellSize ?? 8)}px`
   }
   function fmtH(cells: number) {
-    return `${cells}セル / ${cellsToPixels(cells, grid.cellSize)}px`
+    return `${cells}セル / ${cellsToPixels(cells, grid.cellSize ?? 8)}px`
   }
 
   // ドロップゾーン（常時レンダリング・ドラッグ中のみ可視・インタラクティブ）

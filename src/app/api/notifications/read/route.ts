@@ -12,27 +12,19 @@ export async function POST(request: NextRequest) {
     activityIds?: string[]
   }
 
-  const ops: Promise<unknown>[] = []
-
   if (systemIds?.length) {
-    ops.push(
-      supabase.from('system_notification_reads').upsert(
-        systemIds.map(id => ({ user_id: user.id, notification_id: id })),
-        { onConflict: 'user_id,notification_id' }
-      )
+    await supabase.from('system_notification_reads').upsert(
+      systemIds.map(id => ({ user_id: user.id, notification_id: id })),
+      { onConflict: 'user_id,notification_id' }
     )
   }
 
   if (activityIds?.length) {
-    ops.push(
-      supabase.from('user_notifications')
-        .update({ read_at: new Date().toISOString() })
-        .in('id', activityIds)
-        .eq('user_id', user.id)
-        .is('read_at', null)
-    )
+    await supabase.from('user_notifications')
+      .update({ read_at: new Date().toISOString() })
+      .in('id', activityIds)
+      .eq('user_id', user.id)
+      .is('read_at', null)
   }
-
-  await Promise.all(ops)
   return NextResponse.json({ ok: true })
 }

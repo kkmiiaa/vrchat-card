@@ -36,7 +36,7 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
 
   if (loading) return <div className="w-8 h-8" />
 
-  if (user && !hideMyPage) {
+  if (user?.slug && !hideMyPage) {
     const initials = (user.displayName || user.slug).slice(0, 2).toUpperCase()
     return (
       <div className="flex items-center gap-2">
@@ -59,7 +59,7 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
     )
   }
 
-  if (user) return <NotificationBell />
+  if (user?.slug) return <NotificationBell />
 
   return (
     <Link

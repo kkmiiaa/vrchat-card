@@ -508,13 +508,13 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
 
             {cards.length > 0 ? (
               <div className="grid gap-x-4 gap-y-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))' }}>
-                {cards.map(card => {
+                {cards.map((card, i) => {
                   const isPortrait = orientations[card.id] === 'web'
                   const colSpan = 'col-span-1'
                   return (
-                    <div key={card.id} className={`group ${colSpan}`}>
+                    <div key={card.id} className={`group ${colSpan} stagger-item`} style={{ animationDelay: `${Math.min(i * 80, 400)}ms` }}>
                       {/* カードプレビュー本体 */}
-                      <div className="relative" style={{ padding: '32px 16px' }}>
+                      <div className="relative tap-scale" style={{ padding: '32px 16px' }}>
                         {(() => {
                           const bg = cardBg(card.background) ?? 'linear-gradient(135deg, #c7d2fe, #bae6fd)'
                           const hasCustomBg = !!cardBg(card.background)
@@ -545,7 +545,7 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
                             }} />
                           </>)
                         })()}
-                        <Link href={`/card/${card.id}`} className="profile-card-hover block cursor-pointer relative" style={{ zIndex: 1 }}>
+                        <Link href={`/card/${card.id}`} className="profile-card-hover block cursor-pointer relative" style={{ zIndex: 1, WebkitTapHighlightColor: 'transparent' }}>
                           <div style={{ borderRadius: 16, overflow: 'hidden', isolation: 'isolate' }}>
                             <LiveCardPreview
                               templateId={card.template_id}

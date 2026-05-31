@@ -102,6 +102,9 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
   const dragOrigin = useRef({ mx: 0, my: 0, ox: 0, oy: 0 })
+  const [cardEntered, setCardEntered] = useState(false)
+  const [shimmer, setShimmer] = useState(false)
+  const [likeBurst, setLikeBurst] = useState(false)
 
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -134,6 +137,17 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     window.addEventListener('vaacard:copied', handler)
     return () => window.removeEventListener('vaacard:copied', handler)
   }, [showToast])
+
+  // カードが表示されたら入場アニメ＆shimmerを起動
+  useEffect(() => {
+    if (!template || cardData === null) return
+    const t = setTimeout(() => {
+      setCardEntered(true)
+      setShimmer(true)
+      setTimeout(() => setShimmer(false), 1500)
+    }, 50)
+    return () => clearTimeout(t)
+  }, [template, cardData])
 
   const cardW = template ? (orientation === 'web' && template.webWidth ? template.webWidth : template.cardWidth) : 900
   const cardH = template ? (orientation === 'web' && template.webHeight ? template.webHeight : template.cardHeight) : 506
@@ -203,7 +217,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     const cy = rect.top + rect.height / 2
     const dx = (clientX - cx) / (rect.width / 2)
     const dy = (clientY - cy) / (rect.height / 2)
-    setTilt({ x: -dy * 6, y: dx * 6 })
+    setTilt({ x: -dy * 10, y: dx * 10 })
   }
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
@@ -249,6 +263,8 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   async function handleLike() {
     if (liking) return
     setLiking(true)
+    setLikeBurst(true)
+    setTimeout(() => setLikeBurst(false), 400)
     const delta = liked ? -1 : 1
     const res = await fetch(`/api/cards/${cardId}/like`, {
       method: 'POST',
@@ -453,7 +469,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
         <div className="w-full flex justify-center" style={{ maxWidth: cardW }}>
           <div
             ref={tiltWrapRef}
-            className="w-full"
+            className={['w-full', cardEntered ? 'card-enter' : 'opacity-0', shimmer ? 'card-shimmer' : ''].join(' ')}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             onMouseDown={handleMouseDown}
@@ -461,7 +477,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
             onTouchMove={handleTouchMove}
             style={{
               transform: `translate(${offset.x}px, ${offset.y}px) perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-              transition: dragging ? 'none' : 'transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              transition: dragging ? 'none' : 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)',
               willChange: 'transform',
               cursor: dragging ? 'grabbing' : 'grab',
               position: 'relative',
@@ -541,7 +557,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
             }`}
           >
             <svg
-              className={`w-4 h-4 transition-transform ${liking ? 'scale-125' : ''}`}
+              className={`w-4 h-4 transition-transform ${likeBurst ? 'like-burst' : ''}`}
               fill={liked ? 'currentColor' : 'none'}
               viewBox="0 0 24 24"
               stroke="currentColor"

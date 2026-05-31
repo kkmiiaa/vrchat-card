@@ -62,10 +62,8 @@ export async function GET(request: NextRequest) {
     } catch {
       return NextResponse.redirect(`${origin}/auth/login?error=signup_failed`)
     }
-    // 新規ユーザーは自分のプロフィールページへ
-    const { data: newUser } = await admin.from('users').select('username_slug').eq('id', userId).single()
-    const profileUrl = newUser ? `${origin}/u/${newUser.username_slug}?new=1` : `${origin}/`
-    return NextResponse.redirect(profileUrl)
+    // 新規ユーザーはオンボーディングへ
+    return NextResponse.redirect(`${origin}/onboarding`)
   }
 
   return NextResponse.redirect(`${origin}${next}`)

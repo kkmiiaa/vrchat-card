@@ -1,29 +1,56 @@
 import { describe, it, expect } from 'vitest'
 
 /**
- * HeaderAuth のリンク先 URL ロジックをテスト。
- * コンポーネント自体は Supabase に依存するため、URL 生成ロジックだけを切り出して検証する。
+ * HeaderAuth の表示ロジックをテスト。
+ * コンポーネントは Supabase に依存するため、状態ごとの表示ルールを純粋関数で検証する。
  */
 
-function buildMyPageHref(slug: string | null | undefined): string | null {
+type AuthState =
+  | { status: 'loading' }
+  | { status: 'guest' }
+  | { status: 'loggedIn'; slug: string; avatarUrl: string | null; displayName: string | null }
+
+function getDisplayMode(auth: AuthState, hideMyPage: boolean): 'loading' | 'login' | 'avatar' | 'avatar-no-slug' | 'bell-only' {
+  if (auth.status === 'loading') return 'loading'
+  if (auth.status === 'guest') return 'login'
+  if (hideMyPage) return 'bell-only'
+  if (auth.slug) return 'avatar'
+  return 'avatar-no-slug'
+}
+
+function getMyPageHref(slug: string): string | null {
   if (!slug) return null
   return `/u/${slug}`
 }
 
+describe('HeaderAuth 表示ロジック', () => {
+  it('loading 中はローディング状態', () => {
+    expect(getDisplayMode({ status: 'loading' }, false)).toBe('loading')
+  })
+
+  it('未ログインは「ログイン」リンクを表示', () => {
+    expect(getDisplayMode({ status: 'guest' }, false)).toBe('login')
+  })
+
+  it('ログイン済み・slug あり → アバターアイコン表示', () => {
+    expect(getDisplayMode({ status: 'loggedIn', slug: 'yota3d', avatarUrl: null, displayName: null }, false)).toBe('avatar')
+  })
+
+  it('ログイン済み・slug なし → 「ログイン」を表示しない（オンボーディング誘導）', () => {
+    expect(getDisplayMode({ status: 'loggedIn', slug: '', avatarUrl: null, displayName: null }, false)).toBe('avatar-no-slug')
+  })
+
+  it('hideMyPage=true のときはベルのみ', () => {
+    expect(getDisplayMode({ status: 'loggedIn', slug: 'yota3d', avatarUrl: null, displayName: null }, true)).toBe('bell-only')
+  })
+})
+
 describe('HeaderAuth マイページリンク', () => {
-  it('slug が有効な場合は /u/[slug] を返す', () => {
-    expect(buildMyPageHref('yota3d')).toBe('/u/yota3d')
+  it('slug が有効なら /u/[slug]', () => {
+    expect(getMyPageHref('yota3d')).toBe('/u/yota3d')
   })
 
-  it('slug が空文字の場合は null を返す（/u/ に飛ばさない）', () => {
-    expect(buildMyPageHref('')).toBeNull()
-  })
-
-  it('slug が null の場合は null を返す', () => {
-    expect(buildMyPageHref(null)).toBeNull()
-  })
-
-  it('slug が undefined の場合は null を返す', () => {
-    expect(buildMyPageHref(undefined)).toBeNull()
+  it('slug が空文字なら null（/u/ に飛ばさない）', () => {
+    expect(getMyPageHref('')).toBeNull()
   })
 })

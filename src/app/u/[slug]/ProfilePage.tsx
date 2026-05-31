@@ -565,7 +565,7 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
                                 </span>
                               ))}
                             </div>
-                          )}
+                          ) : null}
 
                           {/* 下書きバッジ：image_url未保存のカードにオーナーのみ表示 */}
                           {isOwner && !card.image_url && (

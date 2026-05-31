@@ -43,17 +43,6 @@ begin
 end;
 $$;
 
-create or replace function increment_view_count(card_id text)
-returns void language sql as $$
-  update public.cards set view_count = view_count + 1 where id = card_id;
-$$;
-
-create or replace function increment_like_count(card_id text, delta int)
-returns int language sql as $$
-  update public.cards set like_count = greatest(0, like_count + delta) where id = card_id
-  returning like_count;
-$$;
-
 create or replace function handle_new_user()
 returns trigger language plpgsql security definer
 set search_path = public as $$
@@ -197,6 +186,18 @@ create trigger cards_updated_at
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function handle_new_user();
+
+-- cards テーブルに依存する関数（テーブル作成後に定義）
+create or replace function increment_view_count(card_id text)
+returns void language sql as $$
+  update public.cards set view_count = view_count + 1 where id = card_id;
+$$;
+
+create or replace function increment_like_count(card_id text, delta int)
+returns int language sql as $$
+  update public.cards set like_count = greatest(0, like_count + delta) where id = card_id
+  returning like_count;
+$$;
 
 -- ─── Indexes ──────────────────────────────────────────────
 

@@ -29,6 +29,7 @@ export type TemplateLayoutRow = {
     backgroundKey?: string
     overlayKey?: string
     fontFamily?: string
+    fixedBackground?: import('@/blocks/types').BackgroundValue
     card?: { grid?: { cellSize?: number; gap?: number } }
     web?:  { grid?: { cellSize?: number; gap?: number }; autoHeight?: boolean }
   } | null

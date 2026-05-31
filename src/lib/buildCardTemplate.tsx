@@ -34,9 +34,10 @@ export function buildCardTemplateFromDefinition(
 
   // ── card_config（grid・borderRadius 等） ─────────────────────────────────
   const cfg = dbRow?.card_config
-  const borderRadius  = cfg?.borderRadius  ?? definition?.borderRadius  ?? 20
-  const backgroundKey = cfg?.backgroundKey ?? definition?.backgroundKey ?? 'background'
-  const overlayKey    = cfg?.overlayKey    ?? definition?.overlayKey    ?? 'overlay'
+  const borderRadius   = cfg?.borderRadius   ?? definition?.borderRadius  ?? 20
+  const backgroundKey  = cfg?.backgroundKey  ?? definition?.backgroundKey ?? 'background'
+  const overlayKey     = cfg?.overlayKey     ?? definition?.overlayKey    ?? 'overlay'
+  const fixedBackground = cfg?.fixedBackground ?? undefined
   const cardGrid      = cfg?.card?.grid    ?? definition?.card.grid     ?? { cellSize: 8, gap: 4 }
   const webGrid       = cfg?.web?.grid     ?? definition?.web.grid      ?? { cellSize: 8, gap: 4 }
   const webAutoHeight = cfg?.web?.autoHeight ?? definition?.web.autoHeight ?? true
@@ -120,6 +121,7 @@ export function buildCardTemplateFromDefinition(
         values,
         fontFamily,
         noBackground,
+        background: fixedBackground,
         cardUrl,
         userUrl,
       })
@@ -131,6 +133,7 @@ export function buildCardTemplateFromDefinition(
         orientation: 'card',
         values:      dbRow?.sample_card_data ?? {},
         fontFamily:  resolvedDefinition.fontFamily,
+        background:  fixedBackground,
       })
     },
   }

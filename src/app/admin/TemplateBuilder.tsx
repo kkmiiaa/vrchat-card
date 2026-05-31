@@ -403,6 +403,29 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
   const [editingLabel, setEditingLabel] = useState(false)
   const [labelDraft, setLabelDraft] = useState('')
 
+  type BackgroundMode = 'custom' | 'fixed'
+  const [backgroundModes, setBackgroundModes] = useState<Record<string, BackgroundMode>>(
+    () => Object.fromEntries(rowList.map(row => [
+      row.id,
+      row.card_config?.fixedBackground ? 'fixed' : 'custom',
+    ]))
+  )
+  const currentBgMode = backgroundModes[currentRow.id] ?? 'custom'
+  const setCurrentBgMode = useCallback((mode: BackgroundMode) => {
+    setBackgroundModes(prev => ({ ...prev, [currentRow.id]: mode }))
+  }, [currentRow.id])
+
+  const [fixedBackgrounds, setFixedBackgrounds] = useState<Record<string, BackgroundValue | null>>(
+    () => Object.fromEntries(rowList.map(row => [
+      row.id,
+      (row.card_config?.fixedBackground as BackgroundValue | undefined) ?? null,
+    ]))
+  )
+  const currentFixedBg = fixedBackgrounds[currentRow.id] ?? backgroundComponent.defaultValue
+  const setCurrentFixedBg = useCallback((v: BackgroundValue) => {
+    setFixedBackgrounds(prev => ({ ...prev, [currentRow.id]: v }))
+  }, [currentRow.id])
+
   const handleSave = useCallback(async () => {
     setSaveState('saving')
     const cfg = currentRow.card_config ?? {}
@@ -417,11 +440,17 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
         web:  orientationScales[currentRow.id]?.web  ?? {},
       },
       overlay_config: overlayConfigs[currentRow.id] ?? null,
-      card_config: { ...cfg, fontFamily: localFontFamily },
+      card_config: {
+        ...cfg,
+        fontFamily: localFontFamily,
+        ...(currentBgMode === 'fixed'
+          ? { fixedBackground: currentFixedBg }
+          : { fixedBackground: undefined }),
+      },
     })
     setSaveState(error ? 'error' : 'saved')
     setTimeout(() => setSaveState('idle'), 2000)
-  }, [currentRow, cardLayout, webLayout, currentFormSections, orientationScales, overlayConfigs, currentPool, localFontFamily])
+  }, [currentRow, cardLayout, webLayout, currentFormSections, orientationScales, overlayConfigs, currentPool, localFontFamily, currentBgMode, currentFixedBg])
 
   const [sampleState, setSampleState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const handleSaveSample = useCallback(async () => {
@@ -1261,6 +1290,11 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
     currentPool,
     currentOverlayConfig,
   )
+  // 固定背景モードではプレビューの backgroundKey を外す（固定値を background prop で渡す）
+  const previewDefinition = currentBgMode === 'fixed'
+    ? { ...resolvedDefinition, backgroundKey: undefined }
+    : resolvedDefinition
+  const previewBackground = currentBgMode === 'fixed' ? currentFixedBg : undefined
 
   return (
     <div className="flex h-full w-full overflow-hidden">
@@ -1528,11 +1562,12 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
               flexShrink: 0,
             }}>
               <GenericCardRenderer
-                definition={resolvedDefinition}
+                definition={previewDefinition}
                 orientation={orientation}
                 values={localValues}
                 fontFamily={localFontFamily}
-                noBackground
+                noBackground={currentBgMode !== 'fixed'}
+                background={previewBackground ?? undefined}
                 highlightPath={selectedPath ?? undefined}
                 cardUrl="https://vaacard.com/card/preview"
                 userUrl="https://vaacard.com/u/preview"
@@ -1549,11 +1584,12 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
             }}>
               <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: o.cardWidth, height: o.cardHeight }}>
                 <GenericCardRenderer
-                  definition={resolvedDefinition}
+                  definition={previewDefinition}
                   orientation={orientation}
                   values={localValues}
                   fontFamily={localFontFamily}
-                  noBackground
+                  noBackground={currentBgMode !== 'fixed'}
+                  background={previewBackground ?? undefined}
                   highlightPath={selectedPath ?? undefined}
                   cardUrl="https://vaacard.com/card/preview"
                   userUrl="https://vaacard.com/u/preview"
@@ -1592,6 +1628,39 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
           onDragOver={e => isDraggingActive && e.preventDefault()}
           onDragEnd={() => { dragPathRef.current = null; setIsDraggingActive(false); setDropTarget(null) }}
         >
+          {/* 背景モード — 固定ノード */}
+          <div className="border-b">
+            <div className="flex items-center gap-2 px-3 py-1.5">
+              <span className="text-[10px] text-orange-400">■</span>
+              <span className="font-mono font-medium text-gray-600 text-xs">background</span>
+              <span className="ml-auto text-[10px] text-gray-300 select-none" title="削除不可">🔒</span>
+            </div>
+            <div className="flex items-center gap-1 px-3 pb-1.5">
+              {(['custom', 'fixed'] as const).map(mode => (
+                <button
+                  key={mode}
+                  onClick={() => setCurrentBgMode(mode)}
+                  className={`px-2 py-0.5 text-[10px] rounded border transition-colors ${
+                    currentBgMode === mode
+                      ? 'border-orange-300 bg-orange-50 text-orange-700 font-medium'
+                      : 'border-gray-200 text-gray-400 hover:border-gray-300'
+                  }`}
+                >
+                  {mode === 'custom' ? 'カスタム' : '固定'}
+                </button>
+              ))}
+            </div>
+            {currentBgMode === 'fixed' && (
+              <div className="px-3 pb-2">
+                <backgroundComponent.FormItem
+                  value={currentFixedBg}
+                  onChange={v => setCurrentFixedBg(v as import('@/blocks/types').BackgroundValue)}
+                  t={translations.ja}
+                />
+              </div>
+            )}
+          </div>
+
           {/* オーバーレイ — 削除不可の固定ノード */}
           <div
             onClick={() => { setSelectedOverlay(true); setSelectedPath(null) }}

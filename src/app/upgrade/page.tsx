@@ -29,7 +29,7 @@ export default function UpgradePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-sky-50 to-white flex items-center justify-center px-4">
+    <main className="min-h-screen bg-gradient-to-br from-sky-50 to-white flex items-center justify-center px-4 py-12 sm:py-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <a href="/" className="text-2xl font-black tracking-tight text-[#00AADB]">vaacard</a>

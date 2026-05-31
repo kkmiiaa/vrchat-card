@@ -104,8 +104,9 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const [dragging, setDragging] = useState(false)
   const dragOrigin = useRef({ mx: 0, my: 0, ox: 0, oy: 0 })
   const [cardEntered, setCardEntered] = useState(false)
-  const [shimmer, setShimmer] = useState(false)
   const [likeBurst, setLikeBurst] = useState(false)
+  const [fabExpanded, setFabExpanded] = useState(false)
+  const fabCollapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -139,14 +140,10 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     return () => window.removeEventListener('vaacard:copied', handler)
   }, [showToast])
 
-  // カードが表示されたら入場アニメ＆shimmerを起動
+  // カードが表示されたら入場アニメを起動
   useEffect(() => {
     if (!template || cardData === null) return
-    const t = setTimeout(() => {
-      setCardEntered(true)
-      setShimmer(true)
-      setTimeout(() => setShimmer(false), 1500)
-    }, 50)
+    const t = setTimeout(() => { setCardEntered(true) }, 50)
     return () => clearTimeout(t)
   }, [template, cardData])
 
@@ -193,6 +190,19 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
       window.removeEventListener('touchend', onEnd)
     }
   }, [dragging])
+
+  // モバイル: デバイス傾きでtilt
+  useEffect(() => {
+    const isMobile = () => window.matchMedia('(pointer: coarse)').matches
+    if (!isMobile()) return
+    function onOrientation(e: DeviceOrientationEvent) {
+      const beta = Math.max(-30, Math.min(30, (e.beta ?? 0) - 20))
+      const gamma = Math.max(-30, Math.min(30, e.gamma ?? 0))
+      setTilt({ x: beta * 0.3, y: gamma * 0.3 })
+    }
+    window.addEventListener('deviceorientation', onOrientation)
+    return () => window.removeEventListener('deviceorientation', onOrientation)
+  }, [])
 
   if (!template || cardData === null) {
     return (
@@ -470,7 +480,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
         <div className="w-full flex justify-center" style={{ maxWidth: cardW }}>
           <div
             ref={tiltWrapRef}
-            className={['w-full', cardEntered ? 'card-enter' : 'opacity-0', shimmer ? 'card-shimmer' : ''].join(' ')}
+            className={['w-full', cardEntered ? 'card-enter' : 'opacity-0'].join(' ')}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             onMouseDown={handleMouseDown}
@@ -656,6 +666,18 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
           by <span className="font-bold text-white/80">vaacard</span>
         </p>
 
+        {!isOwner && templateId && (
+          <Link
+            href={`/c/vrchat/${templateId}`}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white text-sm font-bold shadow-md shadow-sky-200 hover:opacity-90 transition-opacity"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            このテンプレートで作る
+          </Link>
+        )}
+
         <Link
           href="/c/vrchat"
           className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/70 backdrop-blur-sm border border-white/80 hover:bg-white/90 hover:border-sky-200 transition-all shadow-sm group"
@@ -673,33 +695,52 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
       </main>
 
       {isOwner && (
-        <div className="sm:hidden fixed bottom-6 right-4 flex flex-col gap-2 z-50">
-          <Link
-            href={`/card/${cardId}/edit`}
-            className="flex items-center gap-2 bg-white/80 backdrop-blur-sm text-gray-600 border border-white/80 rounded-full px-4 py-3 shadow-lg text-sm font-semibold"
+        <div className="sm:hidden fixed bottom-6 right-4 flex flex-col items-end gap-2 z-50">
+          {/* 展開時のボタン群 */}
+          <div
+            className="flex flex-col items-end gap-2 overflow-hidden transition-all duration-300"
+            style={{ maxHeight: fabExpanded ? 200 : 0, opacity: fabExpanded ? 1 : 0 }}
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            編集
-          </Link>
+            <Link
+              href={`/card/${cardId}/edit`}
+              className="flex items-center gap-2 bg-white/90 backdrop-blur-sm text-gray-600 border border-white/80 rounded-full px-4 py-2.5 shadow-lg text-sm font-semibold"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              編集
+            </Link>
+            <button
+              onClick={handleDownload}
+              disabled={downloading}
+              className="flex items-center gap-2 bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white rounded-full px-4 py-2.5 shadow-lg shadow-sky-200 text-sm font-semibold disabled:opacity-50"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              {downloading ? '保存中...' : '画像で保存'}
+            </button>
+            <button
+              onClick={handleXShare}
+              disabled={sharing}
+              className="flex items-center gap-2 bg-black text-white rounded-full px-4 py-2.5 shadow-lg text-sm font-semibold disabled:opacity-50"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              {sharing ? '...' : 'Xで共有'}
+            </button>
+          </div>
+          {/* トグルボタン */}
           <button
-            onClick={handleDownload}
-            disabled={downloading}
-            className="flex items-center gap-2 bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white rounded-full px-4 py-3 shadow-lg shadow-sky-200 text-sm font-semibold disabled:opacity-50"
+            onClick={() => {
+              setFabExpanded(v => !v)
+              if (fabCollapseTimer.current) clearTimeout(fabCollapseTimer.current)
+            }}
+            className="w-12 h-12 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white shadow-lg shadow-sky-200 flex items-center justify-center transition-transform duration-300"
+            style={{ transform: fabExpanded ? 'rotate(45deg)' : 'rotate(0deg)' }}
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            {downloading ? '保存中...' : '画像で保存'}
-          </button>
-          <button
-            onClick={handleXShare}
-            disabled={sharing}
-            className="flex items-center gap-2 bg-black text-white rounded-full px-4 py-3 shadow-lg text-sm font-semibold disabled:opacity-50"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            {sharing ? '...' : 'Xで共有'}
           </button>
         </div>
       )}

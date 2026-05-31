@@ -57,11 +57,17 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, user_id, display_name, avatar_url, bio, created_at, updated_at, profile_links(id, url, label, sort_order)')
+    .select('id, user_id, display_name, avatar_url, bio, created_at, updated_at')
     .eq('user_id', userRow.id)
     .single()
 
   if (!profile) notFound()
+
+  const { data: profileLinks } = await supabase
+    .from('profile_links')
+    .select('id, url, label, sort_order')
+    .eq('user_id', userRow.id)
+    .order('sort_order')
 
   const { data: { user } } = await supabase.auth.getUser()
   const isOwner = user?.id === userRow.id
@@ -79,21 +85,19 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const isPro = plan === 'pro' &&
     (userRow.plan_expires_at == null || new Date(userRow.plan_expires_at) > new Date())
 
-  const [{ data: announcements }, templateLayouts] = await Promise.all([
-    supabase
-      .from('announcements')
-      .select('id, title, body, published_at')
-      .eq('is_active', true)
-      .order('published_at', { ascending: false }),
+  const [templateLayouts] = await Promise.all([
     fetchTemplateLayouts(),
   ])
+  const announcements: { id: string; title: string; body: string; published_at: string }[] = []
 
   // templateId → TemplateLayoutRow のマップ（ProfilePage に渡して LiveCardPreview で使用）
   const templateDbRows = templateLayouts ?? {}
 
+  const profileWithLinks = { ...profile, profile_links: profileLinks ?? [] }
+
   return (
     <ProfilePage
-      profile={profile}
+      profile={profileWithLinks}
       slug={slug}
       userRowId={userRow.id}
       cards={cards ?? []}

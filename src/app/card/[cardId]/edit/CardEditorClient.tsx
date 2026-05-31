@@ -7,17 +7,14 @@ import type { CardRow } from '@/lib/types'
 import type { TemplateLayoutRow } from '@/lib/templateLayout'
 import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
 
-type Announcement = { id: string; title: string; body: string; published_at: string }
-
 type Props = {
   card: CardRow
   templateId: string
   templateDbRow?: TemplateLayoutRow | null
   isOwner: boolean
-  announcements: Announcement[]
 }
 
-export default function CardEditorClient({ card, templateId, templateDbRow, isOwner, announcements }: Props) {
+export default function CardEditorClient({ card, templateId, templateDbRow, isOwner }: Props) {
   const [template, setTemplate] = useState<CardTemplate | null>(null)
   const [formSections, setFormSections] = useState<FormSection[]>([])
 
@@ -43,7 +40,6 @@ export default function CardEditorClient({ card, templateId, templateDbRow, isOw
         initialValues={card.card_data}
         initialBackground={card.background}
         readOnly={!isOwner}
-        announcements={announcements}
         formSections={formSections.length ? formSections : undefined}
       />
     </Suspense>

@@ -29,12 +29,6 @@ export default async function CardPage({ params }: { params: Promise<{ cardId: s
 
   const isOwner = user?.id === card.user_id
 
-  const { data: announcements } = await supabase
-    .from('announcements')
-    .select('id, title, body, published_at')
-    .eq('is_active', true)
-    .order('published_at', { ascending: false })
-
   const templateId = card.template_id as string
 
   if (!definitionTemplateIds.has(templateId)) notFound()
@@ -49,7 +43,6 @@ export default async function CardPage({ params }: { params: Promise<{ cardId: s
       templateId={templateId}
       templateDbRow={templateDbRow}
       isOwner={isOwner}
-      announcements={announcements ?? []}
     />
   )
 }

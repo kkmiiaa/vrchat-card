@@ -13,18 +13,19 @@
 
 ### 品質・テスト（優先度：中）
 
-- [ ] **探索フィルター結合テスト** — `gender`/`env`/`lang`/`friendPolicy` が DB クエリに効いているか
-  - 対象: `src/app/api/cards/explore/route.ts`
-  - Pro アカウントが必要なため `explore-search.spec.ts` は vacuous になる可能性あり
-- [ ] **`/upgrade` ページ E2E** — `tests/e2e/upgrade.spec.ts` を新規作成
+- [ ] **探索フィルター実装 + 結合テスト** — `gender`/`env`/`lang`/`friendPolicy` フィルターが API・DB クエリに未実装
+  - 対象: `src/app/api/cards/explore/route.ts`（現状フリーテキスト検索のみ）
+  - `tests/e2e/explore-search.spec.ts` はすでに存在。実装後にテストが通ることを確認
+  - Pro アカウントが必要なため vacuous になる可能性あり
+- [ ] **`/upgrade` ページ E2E** — ページ自体は存在（`src/app/upgrade/`）。`tests/e2e/upgrade.spec.ts` を新規作成
 - [ ] **自動マイグレーション発動条件のユニットテスト**
-  - `src/components/CardEditor.tsx` `handleShareByUrl`
-  - `isLoggedIn && !cardId && localStorage にデータあり` の分岐
+  - データ変換テストは `migrateV1Patterns.test.ts` でカバー済み
+  - 未テスト: `CardEditor.tsx` の `isLoggedIn && !cardId && localStorage にデータあり` 分岐（line 327〜335）
 - [ ] **`/card/vrchat` の後方互換性テスト強化** — あらゆる旧データパターンを網羅
 
 ### DB・インフラ（優先度：中）
 
-- [ ] **`announcements` テーブルの廃止** — 通知システムに移行済みにつき削除
+- [x] **`announcements` テーブルの廃止** — `AnnouncementBanner` 削除・全参照除去完了。DB テーブル自体は残存（手動で DROP TABLE 可）
 - [ ] **Supabase プロジェクト作り直し**
   - 目的: availability zone の設定ミス修正
   - 手順: DB スキーマ確定 → マイグレーションを 1 ファイルに集約 → 新プロジェクトに適用
@@ -32,7 +33,7 @@
 ### デザイン（随時）
 
 - [ ] **デザイン修正** — 気になる箇所を随時修正
-- [ ] **ProfilePage.tsx の構文エラー修正**（line 568 既存バグ）
+- ~~**ProfilePage.tsx の構文エラー修正**（line 568 既存バグ）~~ → 確認済み：構文エラーなし（正常なコード）
 
 ---
 

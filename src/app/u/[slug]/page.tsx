@@ -88,8 +88,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const [templateLayouts] = await Promise.all([
     fetchTemplateLayouts(),
   ])
-  const announcements: { id: string; title: string; body: string; published_at: string }[] = []
-
   // templateId → TemplateLayoutRow のマップ（ProfilePage に渡して LiveCardPreview で使用）
   const templateDbRows = templateLayouts ?? {}
 
@@ -103,7 +101,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       cards={cards ?? []}
       isOwner={isOwner}
       plan={isPro ? 'pro' : 'free'}
-      announcements={announcements ?? []}
       templateDbRows={templateDbRows}
     />
   )

@@ -23,13 +23,10 @@ import OnboardingBanner from '@/components/OnboardingBanne'
 import FloatingButtons from '@/components/FloatingButtons'
 import PostTimeline from '@/components/PostTimeline'
 import CardScaledView from '@/components/CardScaledView'
-import AnnouncementBanner from '@/components/AnnouncementBanner'
 import { trackEvent } from '@/lib/gtag'
 import { migrateLegacyCardData } from '@/lib/legacyCardDataMigration'
 
 const STORAGE_KEY = 'vrchat-card-cache'
-
-type Announcement = { id: string; title: string; body: string; published_at: string }
 
 type Props = {
   template: CardTemplate
@@ -37,11 +34,10 @@ type Props = {
   initialValues?: Record<string, unknown>
   initialBackground?: BackgroundValue | null
   readOnly?: boolean
-  announcements?: Announcement[]
   formSections?: FormSection[]
 }
 
-export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, announcements = [], formSections: propFormSections }: Props) {
+export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, formSections: propFormSections }: Props) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -449,9 +445,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
           <OnboardingBanner t={t} />
 
-          <AnnouncementBanner announcements={announcements} />
-
-          {/* formSections がある場合はそちらを優先、なければ template.sections にフォールバック */}
+{/* formSections がある場合はそちらを優先、なければ template.sections にフォールバック */}
           {propFormSections && propFormSections.length > 0 ? (
             propFormSections.map((section, si) => (
               <AccordionSection key={si} title={section.title} defaultOpen={section.defaultOpen} t={t}>

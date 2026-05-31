@@ -12,7 +12,6 @@ import { migrateLegacyCardData } from '@/lib/legacyCardDataMigration'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import HeaderAuth from '@/components/HeaderAuth'
-import AnnouncementBanner from '@/components/AnnouncementBanner'
 import { trackEvent } from '@/lib/gtag'
 import { deleteCard } from '@/lib/saveCard'
 import { FREE_CARD_LIMIT } from '@/lib/plans'
@@ -126,8 +125,6 @@ function newLink(): ProfileLink & { _id: number } {
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{2,29}$/
 
-type Announcement = { id: string; title: string; body: string; published_at: string }
-
 type Props = {
   profile: ProfileRow
   slug: string
@@ -135,11 +132,10 @@ type Props = {
   cards: Card[]
   isOwner: boolean
   plan?: 'free' | 'pro'
-  announcements?: Announcement[]
   templateDbRows?: Record<string, TemplateLayoutRow>
 }
 
-export default function ProfilePage({ profile, slug, userRowId, cards: initialCards, isOwner, plan = 'free', announcements = [], templateDbRows = {} }: Props) {
+export default function ProfilePage({ profile, slug, userRowId, cards: initialCards, isOwner, plan = 'free', templateDbRows = {} }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -317,10 +313,6 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
 
       <main className="relative z-10 flex-1 w-full pt-[calc(3.5rem+3rem)] pb-12">
-        <div className="max-w-xl mx-auto px-2 sm:px-4">
-          <AnnouncementBanner announcements={announcements} />
-        </div>
-
         {/* 編集モード全体ラッパー（プロフィール＋カード一覧を1つの枠で囲む） */}
         <div className={`transition-all ${editMode ? 'bg-sky-50/40 border-2 border-sky-200 rounded-2xl mx-4 py-4' : ''}`}>
         <div className={`max-w-xl mx-auto px-2 sm:px-4 mb-4`}>

@@ -76,6 +76,8 @@ export type CardRenderContext = {
   userUrl?: string
   /** カード閲覧画面でのインタラクティブ表示（クリック可能）かどうか */
   isInteractive?: boolean
+  /** ブロックの bgVariant 未指定時のフォールバック。デザインプリセットから注入される */
+  defaultBgVariant?: BgVariant
 }
 
 export const DEFAULT_CARD_RENDER_CONTEXT: CardRenderContext = {
@@ -98,10 +100,11 @@ export type BlockVariant = string
  * 背景・コンテナの見た目バリアント
  * - default:     白背景ボックス（rgba(255,255,255,0.85)）
  * - glass:       すりガラス（rgba(255,255,255,0.55) + border）
+ * - flat:        不透明白 + 細いボーダー（フラットデザイン向け）
  * - transparent: 背景なし
  * - outline:     枠線のみ
  */
-export type BgVariant = 'default' | 'glass' | 'transparent' | 'outline'
+export type BgVariant = 'default' | 'glass' | 'flat' | 'transparent' | 'outline'
 
 /** ラベル定義。外ラベル・insetLabel 共通で使用 */
 export type LabelDef = {
@@ -120,6 +123,7 @@ export type LabelDef = {
 export const BG_VARIANT_STYLE = {
   default:     { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined },
   glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)',        boxShadow: '0 0 12px rgba(0,0,0,0.08)' },
+  flat:        { background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(0,0,0,0.07)',              boxShadow: undefined },
   transparent: { background: 'transparent',            border: 'none',                                   boxShadow: undefined },
   outline:     { background: 'transparent',            border: '1px solid rgba(255,255,255,0.6)',         boxShadow: undefined },
 } satisfies Record<BgVariant, { background: string; border: string; boxShadow?: string }>

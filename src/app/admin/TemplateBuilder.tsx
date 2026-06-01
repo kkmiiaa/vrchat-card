@@ -404,6 +404,18 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
   const [editingLabel, setEditingLabel] = useState(false)
   const [labelDraft, setLabelDraft] = useState('')
 
+  type DesignPreset = 'default' | 'glass' | 'flat'
+  const [designPresets, setDesignPresets] = useState<Record<string, DesignPreset>>(
+    () => Object.fromEntries(rowList.map(row => [
+      row.id,
+      (row.card_config?.defaultBgVariant as DesignPreset | undefined) ?? 'default',
+    ]))
+  )
+  const currentDesignPreset = designPresets[currentRow.id] ?? 'default'
+  const setCurrentDesignPreset = useCallback((p: DesignPreset) => {
+    setDesignPresets(prev => ({ ...prev, [currentRow.id]: p }))
+  }, [currentRow.id])
+
   type BackgroundMode = 'custom' | 'fixed'
   const [backgroundModes, setBackgroundModes] = useState<Record<string, BackgroundMode>>(
     () => Object.fromEntries(rowList.map(row => [
@@ -444,6 +456,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
       card_config: {
         ...cfg,
         fontFamily: localFontFamily,
+        defaultBgVariant: currentDesignPreset === 'default' ? undefined : currentDesignPreset,
         ...(currentBgMode === 'fixed'
           ? { fixedBackground: currentFixedBg }
           : { fixedBackground: undefined }),
@@ -451,7 +464,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
     })
     setSaveState(error ? 'error' : 'saved')
     setTimeout(() => setSaveState('idle'), 2000)
-  }, [currentRow, cardLayout, webLayout, currentFormSections, orientationScales, overlayConfigs, currentPool, localFontFamily, currentBgMode, currentFixedBg])
+  }, [currentRow, cardLayout, webLayout, currentFormSections, orientationScales, overlayConfigs, currentPool, localFontFamily, currentDesignPreset, currentBgMode, currentFixedBg])
 
   const [sampleState, setSampleState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const handleSaveSample = useCallback(async () => {
@@ -1632,6 +1645,31 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
           onDragOver={e => isDraggingActive && e.preventDefault()}
           onDragEnd={() => { dragPathRef.current = null; setIsDraggingActive(false); setDropTarget(null) }}
         >
+          {/* デザインプリセット */}
+          <div className="border-b px-3 py-2">
+            <p className="text-[10px] text-gray-400 mb-1.5">デザインプリセット</p>
+            <div className="flex gap-1">
+              {([
+                { key: 'default', label: 'Default', desc: '半透明白' },
+                { key: 'glass',   label: 'Glass',   desc: 'すりガラス' },
+                { key: 'flat',    label: 'Flat',    desc: '不透明白+枠' },
+              ] as const).map(({ key, label, desc }) => (
+                <button
+                  key={key}
+                  onClick={() => setCurrentDesignPreset(key)}
+                  title={desc}
+                  className={`flex-1 py-1 text-[10px] rounded border transition-colors ${
+                    currentDesignPreset === key
+                      ? 'border-sky-400 bg-sky-50 text-sky-700 font-semibold'
+                      : 'border-gray-200 text-gray-400 hover:border-gray-300'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* 背景モード — 固定ノード */}
           <div className="border-b">
             <div className="flex items-center gap-2 px-3 py-1.5">

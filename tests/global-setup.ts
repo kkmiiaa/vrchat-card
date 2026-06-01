@@ -98,11 +98,11 @@ async function ensurePublicCardByOtherUser(publicCardId: string) {
     otherId = (await createRes.json()).id
   }
 
-  // usersテーブルに行を作成（FK制約のため）
+  // usersテーブルに固定スラッグで作成（TEST_PUBLIC_SLUG として使用）
   await fetch(`${restUrl}/users`, {
     method: 'POST',
-    headers: { ...headers, Prefer: 'return=minimal,resolution=ignore-duplicates' },
-    body: JSON.stringify({ id: otherId, plan: 'free' }),
+    headers: { ...headers, Prefer: 'return=minimal,resolution=merge-duplicates' },
+    body: JSON.stringify({ id: otherId, plan: 'free', username_slug: 'other-user' }),
   })
 
   // テストユーザー所有の同IDカードがあれば削除

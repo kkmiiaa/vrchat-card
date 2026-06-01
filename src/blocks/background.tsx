@@ -10,6 +10,14 @@ const PALETTE = [
   '#a78bfa', '#38bdf8', '#34d399', '#facc15', '#fb923c',
 ]
 
+// くすみカラー（flat デザイン向け）
+const MUTED_PALETTE = [
+  '#e8f0e0', '#e8ede4', '#f0e8d8', '#f0e4e4', '#ede4f0',
+  '#e4ecf0', '#e4f0ec', '#f0f0e4', '#e8e4dc', '#f5f0eb',
+  '#b8c4b0', '#c4b8a8', '#c4a8a8', '#b8a8c4', '#a8b8c4',
+  '#a8c4bc', '#c4c4a8', '#c4b8a0', '#9eab96', '#8fa89e',
+]
+
 const PRESET_GRADIENTS = [
   { id: 'blue-purple',   from: '#60a5fa', to: '#a78bfa' },
   { id: 'pink-red',      from: '#f472b6', to: '#ef4444' },
@@ -91,6 +99,40 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
                 onClick={() => set({ type: 'color', value: color, imageFile: null, base64: null })}
               />
             ))}
+          </div>
+          {/* くすみカラー */}
+          <p className="text-[10px] text-gray-400 mt-2 mb-1">くすみ・アース系</p>
+          <div className="grid grid-cols-10 gap-1.5">
+            {MUTED_PALETTE.map(color => (
+              <ColorSwatch
+                key={color}
+                color={color}
+                selected={value.type === 'color' && value.value === color}
+                onClick={() => set({ type: 'color', value: color, imageFile: null, base64: null })}
+              />
+            ))}
+          </div>
+          {/* hex 直接入力 */}
+          <div className="flex items-center gap-2 mt-3">
+            <div
+              className="w-7 h-7 rounded-lg border border-black/10 flex-shrink-0"
+              style={{ backgroundColor: value.type === 'color' && typeof value.value === 'string' ? value.value : '#ffffff' }}
+            />
+            <input
+              type="text"
+              placeholder="#e8f0e0"
+              defaultValue={value.type === 'color' && typeof value.value === 'string' ? value.value : ''}
+              onBlur={e => {
+                const hex = e.target.value.trim()
+                if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
+                  set({ type: 'color', value: hex, imageFile: null, base64: null })
+                }
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+              }}
+              className="flex-1 text-xs px-2 py-1 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-200 font-mono"
+            />
           </div>
         </div>
 

@@ -149,6 +149,13 @@ test.describe('カード閲覧ヘッダー — ログイン済み・オーナー
   test('「マイページ」リンクが白色で表示される', async ({ page }) => {
     await expect(page.locator('header').getByRole('link', { name: 'マイページ' })).toBeVisible();
   });
+
+  // TC-1-3-6: ヘッダーに「マイページに保存」ボタンが存在しない
+  test('「マイページに保存」ボタンがヘッダーに表示されない', async ({ page }) => {
+    await expect(
+      page.locator('header').getByRole('button', { name: /マイページに保存/ })
+    ).not.toBeVisible();
+  });
 });
 
 // ─── マイページ（/u/[slug]） ──────────────────────────────────────────────────

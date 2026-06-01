@@ -253,7 +253,7 @@ function renderNode(
 }
 
 const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCardRenderer(
-  { definition, values, fontFamily, background, isInteractive: _, noBackground, orientation = 'card', highlightPath, cardUrl, userUrl },
+  { definition, values, fontFamily, background, isInteractive, noBackground, orientation = 'card', highlightPath, cardUrl, userUrl },
   ref
 ) {
   const { cardWidth, cardHeight, autoHeight, grid, layout, defaultLabelFontScale, defaultContentFontScale, defaultPaddingScale } = definition[orientation]
@@ -272,6 +272,7 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
     paddingScale: defaultPaddingScale ?? 1,
     cardUrl,
     userUrl,
+    isInteractive,
   }
 
   const bgValue: BackgroundValue | undefined = background ?? undefined

@@ -74,6 +74,8 @@ export type CardRenderContext = {
   cardUrl?: string
   /** ユーザーページの URL（QR コード等に利用） */
   userUrl?: string
+  /** カード閲覧画面でのインタラクティブ表示（クリック可能）かどうか */
+  isInteractive?: boolean
 }
 
 export const DEFAULT_CARD_RENDER_CONTEXT: CardRenderContext = {
@@ -136,6 +138,8 @@ export type ComponentCardProps<T> = {
   label?: LabelDef
   /** ブロック作成時にテンプレート作成者が設定した値（FormItem・CardItem 共通） */
   blockConfig?: Record<string, unknown>
+  /** カード閲覧画面でのインタラクティブ表示（クリック可能）かどうか */
+  isInteractive?: boolean
 }
 
 /** コンポーネント定義: フォームUIとカードUIをセットで持つ単位 */

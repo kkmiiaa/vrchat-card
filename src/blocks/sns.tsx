@@ -13,6 +13,7 @@ export const snsBlock: ComponentDef<any> = {
   defaultValue: { vrchatId: '', twitterId: '', discordId: '' },
   variants: ['default', 'icon'],  // default=テキストラベル+ID, icon=プラットフォームアイコン+ID
   CardItem({ value, ctx, variant = 'default', blockConfig }) {
+    const isInteractive = ctx.isInteractive
     const safe: SnsValue = (value && typeof value === 'object') ? value as SnsValue : { vrchatId: '', twitterId: '', discordId: '' }
     const entries = [
       { key: 'VRC', val: safe.vrchatId },
@@ -26,17 +27,26 @@ export const snsBlock: ComponentDef<any> = {
     const fs = ctx.cardWidth * 0.012
     const iconSize = fs * 1.4
 
+    function wrapInteractive(key: string, val: string, el: React.ReactNode) {
+      if (!isInteractive || !val) return el
+      if (key === 'X') {
+        return <a key={key} href={`https://x.com/${val.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'contents' }}>{el}</a>
+      }
+      return (
+        <div key={key} style={{ display: 'contents', cursor: 'pointer' }} onClick={() => {
+          navigator.clipboard.writeText(val)
+          window.dispatchEvent(new CustomEvent('vaacard:copied', { detail: `${val} をコピーしました` }))
+        }}>{el}</div>
+      )
+    }
+
     // icon: プラットフォームアイコン画像 + テキスト
     if (variant === 'icon') {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {entries.map(({ key, val }) => (
-            <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <img
-                src={SNS_ICONS[key]}
-                alt={key}
-                style={{ width: iconSize, height: iconSize, objectFit: 'contain', flexShrink: 0 }}
-              />
+          {entries.map(({ key, val }) => wrapInteractive(key, val,
+            <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: isInteractive ? 'pointer' : 'default' }}>
+              <img src={SNS_ICONS[key]} alt={key} style={{ width: iconSize, height: iconSize, objectFit: 'contain', flexShrink: 0 }} />
               <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{val}</span>
             </div>
           ))}
@@ -47,8 +57,8 @@ export const snsBlock: ComponentDef<any> = {
     // default: テキストラベル + ID
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {entries.map(({ key, val }) => (
-          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {entries.map(({ key, val }) => wrapInteractive(key, val,
+          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: isInteractive ? 'pointer' : 'default' }}>
             <span style={{ fontSize: fs * 0.85, color: ctx.theme.subText, fontWeight: 600, fontFamily: ctx.fontFamily, minWidth: '2em' }}>{key}</span>
             <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily }}>{val}</span>
           </div>

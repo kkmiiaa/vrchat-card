@@ -29,6 +29,7 @@ export const simpleSnsComponent: ComponentDef<string> = {
   variants: ['default', 'glass'],
   supportsBgVariant: true,
   CardItem({ value, ctx, variant, blockConfig }) {
+    const isInteractive = ctx.isInteractive
     const platform = getPlatform(blockConfig)
     const icon = PLATFORM_ICONS[platform] ?? PLATFORM_ICONS['x']
     const id = typeof value === 'string' ? value : ''
@@ -36,9 +37,20 @@ export const simpleSnsComponent: ComponentDef<string> = {
     const iconSize = ctx.cardWidth * 0.018 * ctx.paddingScale
     const isGlass = variant === 'glass'
 
+    // isInteractive 時のクリック動作を解決
+    const xHref = platform === 'x' && id
+      ? `https://x.com/${id.replace(/^@/, '')}`
+      : null
+    const canCopy = platform !== 'x' && id
+
+    function handleCopy() {
+      navigator.clipboard.writeText(id)
+      window.dispatchEvent(new CustomEvent('vaacard:copied', { detail: `${id} をコピーしました` }))
+    }
+
     if (isGlass) {
-      return (
-        <div style={{ width: '100%', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)', borderRadius: ctx.cardWidth * 0.006, boxShadow: '0 0 12px rgba(0,0,0,0.08)', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+      const inner = (
+        <div style={{ width: '100%', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)', borderRadius: ctx.cardWidth * 0.006, boxShadow: '0 0 12px rgba(0,0,0,0.08)', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 6, cursor: isInteractive && id ? 'pointer' : 'default' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={icon} alt="" style={{ width: iconSize * 0.65, height: iconSize * 0.65, borderRadius: 3, flexShrink: 0 }} />
           <span style={{ fontSize: fs * 0.9, color: id ? ctx.theme.text : 'rgba(0,0,0,0.3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0, fontFamily: ctx.fontFamily }}>
@@ -46,6 +58,9 @@ export const simpleSnsComponent: ComponentDef<string> = {
           </span>
         </div>
       )
+      if (isInteractive && xHref) return <a href={xHref} target="_blank" rel="noopener noreferrer" style={{ display: 'contents' }}>{inner}</a>
+      if (isInteractive && canCopy) return <div style={{ display: 'contents' }} onClick={handleCopy}>{inner}</div>
+      return inner
     }
 
     const actionType = typeof blockConfig?.actionType === 'string' ? blockConfig.actionType : ''
@@ -67,18 +82,17 @@ export const simpleSnsComponent: ComponentDef<string> = {
       </div>
     )
 
-    // default
     const wrapper = (
-      <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, width: '100%', flexGrow: 1, minHeight: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, width: '100%', flexGrow: 1, minHeight: 0, cursor: isInteractive && id ? 'pointer' : 'default' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={icon} alt="" style={{ width: iconSize, height: iconSize, borderRadius: ctx.cardWidth * 0.003, objectFit: 'contain', flexShrink: 0, alignSelf: 'center' }} />
         {innerContent}
       </div>
     )
 
-    if (actionType === 'navigate' && id) {
-      return <a href={id} target="_blank" rel="noopener noreferrer" style={{ display: 'contents' }}>{wrapper}</a>
-    }
+    if (isInteractive && xHref) return <a href={xHref} target="_blank" rel="noopener noreferrer" style={{ display: 'contents' }}>{wrapper}</a>
+    if (isInteractive && canCopy) return <div style={{ display: 'contents' }} onClick={handleCopy}>{wrapper}</div>
+    if (actionType === 'navigate' && id) return <a href={id} target="_blank" rel="noopener noreferrer" style={{ display: 'contents' }}>{wrapper}</a>
     return wrapper
   },
   FormItem({ value, onChange, blockConfig }) {

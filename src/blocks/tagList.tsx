@@ -7,7 +7,7 @@ export const tagListComponent: ComponentDef<string[]> = {
   key: 'tagList',
   defaultValue: [],
   variants: ['simple', 'compact'],
-  CardItem({ value, ctx, variant, surface: _bgVariant, blockConfig }) {
+  CardItem({ value, ctx, variant, _surface, blockConfig }) {
     const tags = Array.isArray(value) ? value : []
     const isCompact = variant === 'compact'
     const fs = isCompact ? ctx.fontSize.xs : ctx.fontSize.sm

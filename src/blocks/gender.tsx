@@ -34,10 +34,10 @@ export const genderComponent: ComponentDef<GenderValue> = {
     const display = isEmpty ? '-' : (isNone ? '-' : (safe.display || option?.label || safe.tag))
     // 非公開: フラットなマイナスアイコン、それ以外: 性別アイコン（未設定はアイコンなし）
     const Icon = isEmpty ? null : (isNone ? TbMinus : option?.Icon)
-    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
+    const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
       : (surface ?? 'transparent')
-    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
+    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
 
     // compact: アイコン + 短縮テキストのみ（ラベルなし・背景なし）
     if (variant === 'compact') {
@@ -64,9 +64,9 @@ export const genderComponent: ComponentDef<GenderValue> = {
     return (
       <div style={{
         width: '100%',
-        background: bgStyle.background,
-        border: bgStyle.border,
-        boxShadow: bgStyle.boxShadow,
+        background: surfaceStyle.background,
+        border: surfaceStyle.border,
+        boxShadow: surfaceStyle.boxShadow,
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',

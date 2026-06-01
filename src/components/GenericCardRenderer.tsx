@@ -122,8 +122,8 @@ function renderNode(
     } : undefined
 
     const resolvedVariant = node.variant
-    const resolvedBgVariant = node.surface ?? ctx.defaultSurface
-    const cardContent = block.CardItem({ value, ctx: blockCtx, variant: resolvedVariant, surface: resolvedBgVariant, label: insetLabelDef, blockConfig: node.blockConfig })
+    const resolvedSurface = node.surface ?? ctx.defaultSurface
+    const cardContent = block.CardItem({ value, ctx: blockCtx, variant: resolvedVariant, surface: resolvedSurface, label: insetLabelDef, blockConfig: node.blockConfig })
     if (cardContent === null || cardContent === undefined) return null
 
     const innerStyle = (flexOverride?: React.CSSProperties): React.CSSProperties => ({ ...style, ...flexOverride })

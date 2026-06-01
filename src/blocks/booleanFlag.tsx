@@ -50,19 +50,19 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
       )
     }
 
-    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
+    const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
       : (surface ?? 'transparent')
-    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
+    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     const iconColor = on ? trueColor : falseColor
 
     return (
       <div style={{
         width: '100%',
         height: '100%',
-        background: bgStyle.background,
-        border: bgStyle.border,
-        boxShadow: bgStyle.boxShadow,
+        background: surfaceStyle.background,
+        border: surfaceStyle.border,
+        boxShadow: surfaceStyle.boxShadow,
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',

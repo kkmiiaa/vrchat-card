@@ -30,7 +30,7 @@ export function defaultBlockDisplaySettings(component: ComponentDef<unknown>): B
   }
 }
 
-const BG_VARIANT_OPTIONS: { value: SurfaceVariant; label: string }[] = [
+const SURFACE_OPTIONS: { value: SurfaceVariant; label: string }[] = [
   { value: 'simple',      label: 'simple' },
   { value: 'glass',       label: 'glass' },
   { value: 'flat',        label: 'flat' },
@@ -39,15 +39,15 @@ const BG_VARIANT_OPTIONS: { value: SurfaceVariant; label: string }[] = [
 ]
 
 /** コンポーネントと現在の variant から surface 選択肢を表示するか判定 */
-export function isBgVariantApplicable(
+export function isSurfaceApplicable(
   component: Pick<ComponentDef<unknown>, 'supportsSurface' | 'surfaceFor'>,
   variant: string,
 ): boolean {
   if (!component.supportsSurface) return false
-  const NO_BG_VARIANTS = ['compact', 'badge']
+  const NO_SURFACE_VARIANTS = ['compact', 'badge']
   return component.surfaceFor
     ? component.surfaceFor.includes(variant)
-    : !NO_BG_VARIANTS.includes(variant)
+    : !NO_SURFACE_VARIANTS.includes(variant)
 }
 
 // ─── 共通ラベル ─────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ export function BlockPropertyEditor({
   extras?: React.ReactNode
 }) {
   const variants = component.variants ?? ['simple']
-  const showBgVariant = isBgVariantApplicable(component, settings.variant)
+  const showSurface = isSurfaceApplicable(component, settings.variant)
 
   return (
     <div className="flex flex-col gap-3">
@@ -105,11 +105,11 @@ export function BlockPropertyEditor({
       )}
 
       {/* surface */}
-      {showBgVariant && (
+      {showSurface && (
         <div className="flex items-center gap-2 flex-wrap">
           <FieldLabel>surface</FieldLabel>
           <div className="flex flex-wrap gap-1">
-            {BG_VARIANT_OPTIONS.map(o => (
+            {SURFACE_OPTIONS.map(o => (
               <button
                 key={o.value}
                 type="button"

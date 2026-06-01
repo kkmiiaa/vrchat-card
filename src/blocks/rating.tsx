@@ -15,10 +15,10 @@ export const ratingComponent: ComponentDef<number> = {
     const rating = typeof value === 'number' ? Math.min(maxValue, Math.max(0, value)) : 0
     const isCompact = variant === 'compact'
     const starSize = isCompact ? ctx.fontSize.sm * 1.2 : ctx.fontSize.lg * 1.2
-    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
+    const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
       : (surface ?? 'transparent')
-    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
+    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     const icon = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '★'
     const activeColor = typeof blockConfig?.color === 'string' ? blockConfig.color : ctx.theme.accent
 
@@ -26,9 +26,9 @@ export const ratingComponent: ComponentDef<number> = {
       <div style={{
         width: '100%',
         height: '100%',
-        background: bgStyle.background,
-        border: bgStyle.border,
-        boxShadow: bgStyle.boxShadow,
+        background: surfaceStyle.background,
+        border: surfaceStyle.border,
+        boxShadow: surfaceStyle.boxShadow,
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',

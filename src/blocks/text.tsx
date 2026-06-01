@@ -10,10 +10,10 @@ export const textComponent: ComponentDef<string> = {
   CardItem({ value, ctx, surface, label, blockConfig }) {
     const fs = ctx.fontSize.lg
     // label（insetLabel）があるときはコンテナが見える必要があるため、transparent は default にフォールバック
-    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
+    const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
       : (surface ?? 'transparent')
-    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
+    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     const multiline = blockConfig?.multiline !== false
     const noPadding = blockConfig?.noPadding === true
     const maxRows = typeof blockConfig?.rows === 'number' ? blockConfig.rows : undefined
@@ -21,9 +21,9 @@ export const textComponent: ComponentDef<string> = {
       <div style={{
         width: '100%',
         flexGrow: 1,
-        background: bgStyle.background,
-        border: bgStyle.border,
-        boxShadow: bgStyle.boxShadow,
+        background: surfaceStyle.background,
+        border: surfaceStyle.border,
+        boxShadow: surfaceStyle.boxShadow,
         borderRadius: ctx.cardWidth * 0.006,
         padding: noPadding ? 0 : `${ctx.cardWidth * 0.007 * ctx.paddingScale}px ${ctx.cardWidth * 0.009 * ctx.paddingScale}px`,
         overflow: 'hidden',

@@ -18,7 +18,7 @@ import { translations } from '@/utils/translations'
 import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
 import type { BackgroundValue } from '@/blocks/types'
 import GenericCardRenderer from '@/components/GenericCardRenderer'
-import { BlockPropertyEditor, isBgVariantApplicable, type BlockDisplaySettings } from './BlockPropertyEditor'
+import { BlockPropertyEditor, isSurfaceApplicable, type BlockDisplaySettings } from './BlockPropertyEditor'
 import { ColorPicker, LABEL_PRESET_COLORS } from '@/blocks/colorPicker'
 import { IconPicker } from '@/blocks/iconRegistry'
 
@@ -928,7 +928,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
           if (patch.label !== undefined)     next.label     = patch.label     || undefined
           if (patch.subLabel !== undefined)  next.subLabel  = patch.subLabel  || undefined
           if (patch.labelIcon !== undefined) next.labelIcon = patch.labelIcon || undefined
-          if (patch.surface !== undefined && !isBgVariantApplicable(comp, next.variant ?? 'simple')) {
+          if (patch.surface !== undefined && !isSurfaceApplicable(comp, next.variant ?? 'simple')) {
             delete (next as Block).surface
           }
           return next
@@ -1063,7 +1063,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
           const poolEntry = currentPool[node.blockId]
           const comp = poolEntry ? getComponent(poolEntry.componentKey) : undefined
           const variants = comp?.variants ?? []
-          const BG_VARIANTS: SurfaceVariant[] = ['simple', 'glass', 'flat', 'transparent', 'outline']
+          const SURFACE_VARIANTS: SurfaceVariant[] = ['simple', 'glass', 'flat', 'transparent', 'outline']
           return (
             <div className="flex flex-col gap-2">
               <div className="flex flex-col gap-1">
@@ -1096,7 +1096,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] text-gray-500">surface <span className="text-[9px] text-indigo-400">（このレイアウトのみ）</span></label>
                   <div className="flex gap-1 flex-wrap">
-                    {BG_VARIANTS.map(v => (
+                    {SURFACE_VARIANTS.map(v => (
                       <button
                         key={v}
                         onClick={() => handleUpdate(path, n => ({ ...n, surface: v } as LayoutNode))}

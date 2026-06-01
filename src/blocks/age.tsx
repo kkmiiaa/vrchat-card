@@ -22,10 +22,10 @@ export const ageComponent: ComponentDef<AgeValue> = {
     const isPrivate = safe.searchTag === '非公開'
     const isEmpty = !safe.searchTag && !safe.display
     const text = (isPrivate || isEmpty) ? '-' : (safe.display || safe.searchTag)
-    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
+    const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
       : (surface ?? 'transparent')
-    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
+    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
 
     // badge: カラーバッジ形式（select/badge・dateItem/badge と同じスタイル）
     if (variant === 'badge') {
@@ -52,7 +52,7 @@ export const ageComponent: ComponentDef<AgeValue> = {
     // default
     const fs = ctx.fontSize.md
     return (
-      <div style={{ width: '100%', background: bgStyle.background, border: bgStyle.border, boxShadow: bgStyle.boxShadow, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: (label?.dir === 'row') ? 'row' : 'column', gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0, alignItems: (label?.dir === 'row') ? 'center' : 'stretch', justifyContent: (label?.dir === 'row') ? undefined : 'center', overflow: 'hidden' }}>
+      <div style={{ width: '100%', background: surfaceStyle.background, border: surfaceStyle.border, boxShadow: surfaceStyle.boxShadow, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: (label?.dir === 'row') ? 'row' : 'column', gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0, alignItems: (label?.dir === 'row') ? 'center' : 'stretch', justifyContent: (label?.dir === 'row') ? undefined : 'center', overflow: 'hidden' }}>
         {label && (
           <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
             <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>

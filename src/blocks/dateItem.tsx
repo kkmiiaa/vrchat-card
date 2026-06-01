@@ -24,14 +24,14 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
 
     if (variant === 'compact') {
       const fs = ctx.fontSize.xs
-      const bgStyle = SURFACE_STYLE[surface ?? 'transparent']
+      const surfaceStyle = SURFACE_STYLE[surface ?? 'transparent']
       return (
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
-          background: bgStyle.background,
-          border: bgStyle.border,
-        boxShadow: bgStyle.boxShadow,
+          background: surfaceStyle.background,
+          border: surfaceStyle.border,
+        boxShadow: surfaceStyle.boxShadow,
           borderRadius: ctx.cardWidth * 0.004,
           padding: `${ctx.cardWidth * 0.003 * ctx.paddingScale}px ${ctx.cardWidth * 0.005 * ctx.paddingScale}px`,
           fontFamily: ctx.fontFamily,
@@ -75,16 +75,16 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
 
     // default
     const fs = ctx.fontSize.md
-    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
+    const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
       : (surface ?? 'transparent')
-    const bgStyleDefault = SURFACE_STYLE[effectiveBgVariant]
+    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (
       <div style={{
         width: '100%',
         height: '100%',
-        background: bgStyleDefault.background,
-        border: bgStyleDefault.border,
+        background: surfaceStyle.background,
+        border: surfaceStyle.border,
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',

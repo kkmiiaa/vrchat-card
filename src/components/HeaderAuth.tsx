@@ -65,7 +65,7 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
   return (
     <div className="flex items-center gap-2">
       <NotificationBell />
-      <Link href={myPageHref} className="block rounded-full hover:opacity-80 transition-opacity" title="マイページ">
+      <Link href={myPageHref} className="block rounded-full hover:opacity-80 transition-opacity" aria-label="マイページ" title="マイページ">
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={avatarUrl} alt={initials ?? 'マイページ'} className="w-8 h-8 rounded-full object-cover border-2 border-sky-100" />

@@ -345,6 +345,7 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
               <button
                 onClick={() => setSettingsOpen(true)}
                 className="w-7 h-7 rounded-full border border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all shadow-sm bg-white flex items-center justify-center"
+                aria-label="設定"
                 title="設定"
               >
                 <IoSettingsOutline size={13} />

@@ -235,8 +235,8 @@ test.describe('マイページヘッダー — ログイン済み・自分のペ
     await page.goto('/');
     await page.locator('header').getByRole('link', { name: 'マイページ' }).click();
     await page.waitForURL(/\/u\//);
-    await expect(page.getByRole('button', { name: /編集/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /設定/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /編集/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /設定/ }).first()).toBeVisible();
   });
 });
 

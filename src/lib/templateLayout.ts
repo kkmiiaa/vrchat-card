@@ -37,75 +37,68 @@ export type TemplateLayoutRow = {
   sample_card_data: Record<string, unknown> | null
 }
 
+const TEMPLATE_SELECT = 'id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data'
+
+function buildRow(row: Record<string, unknown>, slugs: string[]): TemplateLayoutRow {
+  return {
+    id:                 row.id                 as string,
+    label:              row.label              as string,
+    description:        row.description        as string | null,
+    is_published:       false,
+    card_layout:        row.card_layout        as LayoutNode | null,
+    web_layout:         row.web_layout         as LayoutNode | null,
+    block_pool:         row.block_pool         as Record<string, unknown> | null,
+    form_sections:      row.form_sections      as FormSection[] | null,
+    orientation_scales: row.orientation_scales as { card: OrientationScales; web: OrientationScales } | null,
+    overlay_config:     row.overlay_config     as OverlayValue | null,
+    card_width:         row.card_width         as number | null,
+    card_height:        row.card_height        as number | null,
+    web_width:          row.web_width          as number | null,
+    card_config:        row.card_config        as TemplateLayoutRow['card_config'],
+    community_slugs:    slugs,
+    sample_card_data:   row.sample_card_data   as Record<string, unknown> | null,
+  }
+}
+
 /** 単一テンプレート行を DB から取得 */
 export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow | null> {
   const supabase = await createClient()
-  const SELECT = 'id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, community_templates(community_slug)'
 
-  const { data, error } = await supabase
-    .from('templates')
-    .select(SELECT)
-    .eq('id', id)
-    .single()
+  const [{ data, error }, { data: ctData }] = await Promise.all([
+    supabase.from('templates').select(TEMPLATE_SELECT).eq('id', id).single(),
+    supabase.from('community_templates').select('community_slug').eq('template_id', id),
+  ])
 
   if (error || !data) return null
-
-  return {
-    id:                 data.id,
-    label:              data.label,
-    description:        data.description,
-    is_published:       false,
-    card_layout:        data.card_layout        as LayoutNode | null,
-    web_layout:         data.web_layout         as LayoutNode | null,
-    block_pool:         data.block_pool         as Record<string, unknown> | null,
-    form_sections:      data.form_sections      as FormSection[] | null,
-    orientation_scales: data.orientation_scales as { card: OrientationScales; web: OrientationScales } | null,
-    overlay_config:     data.overlay_config     as OverlayValue | null,
-    card_width:         data.card_width         as number | null,
-    card_height:        data.card_height        as number | null,
-    web_width:          data.web_width          as number | null,
-    card_config:        data.card_config        as TemplateLayoutRow['card_config'],
-    community_slugs:    ((data.community_templates ?? []) as { community_slug: string }[]).map(r => r.community_slug),
-    sample_card_data:   data.sample_card_data   as Record<string, unknown> | null,
-  }
+  const slugs = (ctData ?? []).map((r: { community_slug: string }) => r.community_slug)
+  return buildRow(data as Record<string, unknown>, slugs)
 }
 
 /** 全テンプレート行を DB から取得 */
 export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLayoutRow>> {
   const supabase = await createClient()
-  const SELECT = 'id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, community_templates(community_slug)'
 
-  const { data, error } = await supabase
-    .from('templates')
-    .select(SELECT)
-    .order('sort_order', { ascending: true })
+  const [{ data, error }, { data: ctData }] = await Promise.all([
+    supabase.from('templates').select(TEMPLATE_SELECT).order('sort_order', { ascending: true }),
+    supabase.from('community_templates').select('template_id, community_slug'),
+  ])
 
   if (error) {
     console.error('fetchTemplateLayouts error:', error)
     return {}
   }
 
+  const slugsByTemplate = new Map<string, string[]>()
+  for (const row of (ctData ?? []) as { template_id: string; community_slug: string }[]) {
+    const arr = slugsByTemplate.get(row.template_id) ?? []
+    arr.push(row.community_slug)
+    slugsByTemplate.set(row.template_id, arr)
+  }
+
   return Object.fromEntries(
     (data ?? []).map(row => [
       row.id,
-      {
-        id:                 row.id,
-        label:              row.label,
-        description:        row.description,
-        is_published:       false,
-        card_layout:        row.card_layout        as LayoutNode | null,
-        web_layout:         row.web_layout         as LayoutNode | null,
-        block_pool:         row.block_pool         as Record<string, unknown> | null,
-        form_sections:      row.form_sections      as FormSection[] | null,
-        orientation_scales: row.orientation_scales as { card: OrientationScales; web: OrientationScales } | null,
-        overlay_config:     row.overlay_config     as OverlayValue | null,
-        card_width:         row.card_width         as number | null,
-        card_height:        row.card_height        as number | null,
-        web_width:          row.web_width          as number | null,
-        card_config:        row.card_config        as TemplateLayoutRow['card_config'],
-        community_slugs:    ((row.community_templates ?? []) as { community_slug: string }[]).map(r => r.community_slug),
-        sample_card_data:   row.sample_card_data   as Record<string, unknown> | null,
-      },
+      buildRow(row as Record<string, unknown>, slugsByTemplate.get(row.id) ?? []),
     ])
   )
 }

@@ -267,7 +267,8 @@ test.describe('E. 画像保存・Xシェア', () => {
     await expect(page.locator('body')).not.toContainText('500');
   });
 
-  test('「Xでシェア」を押すと Twitter/X の URL が開く（新しいタブ）', async ({ page, context }) => {
+  // TC-6-E-2: Xへ共有はログイン不要でそのままXを開く
+  test('「Xでシェア」を押すとログインリダイレクトなしで Twitter/X の URL が開く', async ({ page, context }) => {
     await page.goto('/card/vrchat');
     await page.waitForLoadState('networkidle');
     const btn = page.getByRole('button', { name: /Xでシェア|シェア/ });
@@ -278,19 +279,36 @@ test.describe('E. 画像保存・Xシェア', () => {
       btn.click(),
     ]).catch(() => [null]);
 
+    // ログインページへ飛んでいないこと
+    await expect(page).not.toHaveURL(/auth\/login/);
+
     if (newPage) {
       await expect(newPage).toHaveURL(/twitter\.com|x\.com/);
       await newPage.close();
     }
   });
 
-  test('「画像で保存」後にトーストが表示される', async ({ page }) => {
+  // TC-6-E-3: 画像保存後にnudgeが表示される
+  test('「画像で保存」後にマイページ保存を促すnudgeが表示される', async ({ page }) => {
     await page.goto('/card/vrchat');
     await page.waitForLoadState('networkidle');
     page.on('download', download => download.cancel());
     await page.getByRole('button', { name: /画像で保存/ }).click();
-    // トーストのspan要素で文言を確認（ボタンと区別するため span を限定）
-    await expect(page.locator('span').filter({ hasText: /マイページに保存して公開しませんか/ })).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('マイページに保存して、URLで共有できるようにしませんか？')).toBeVisible({ timeout: 8000 });
+  });
+
+  // TC-6-E-4: Xへ共有後にnudgeが表示される
+  test('「Xでシェア」後にマイページ保存を促すnudgeが表示される', async ({ page, context }) => {
+    await page.goto('/card/vrchat');
+    await page.waitForLoadState('networkidle');
+    const btn = page.getByRole('button', { name: /Xでシェア|シェア/ });
+
+    await Promise.all([
+      context.waitForEvent('page').then(p => p.close()).catch(() => {}),
+      btn.click(),
+    ]);
+
+    await expect(page.getByText('マイページに保存して、URLで共有できるようにしませんか？')).toBeVisible({ timeout: 5000 });
   });
 });
 

@@ -356,8 +356,10 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
   const handlePostToX = async () => {
     if (!cardId) {
-      // 未保存なら先にマイページに保存フローへ
-      handleShareByUrl()
+      // 未保存でもXシェア可能（テキストのみ）。ログイン不要。
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(t.tweetText)}`, '_blank')
+      setShowSaveNudge(true)
+      setTimeout(() => setShowSaveNudge(false), 8000)
       return
     }
     const newVersion = currentOgpVersion + 1

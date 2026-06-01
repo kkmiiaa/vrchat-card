@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
@@ -14,27 +14,29 @@ type AuthState =
 export default function HeaderAuth({ variant = 'default', hideMyPage = false }: { variant?: 'default' | 'white'; hideMyPage?: boolean }) {
   const [auth, setAuth] = useState<AuthState>({ status: 'loading' })
   const pathname = usePathname()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) { setAuth({ status: 'guest' }); return }
-      supabase
-        .from('users')
-        .select('username_slug, profiles(avatar_url, display_name)')
-        .eq('id', data.user.id)
-        .single()
-        .then(({ data: u }) => {
-          const profile = Array.isArray(u?.profiles) ? u.profiles[0] : u?.profiles
-          setAuth({
-            status: 'loggedIn',
-            slug: u?.username_slug ?? '',
-            avatarUrl: profile?.avatar_url ?? null,
-            displayName: profile?.display_name ?? null,
+    supabase.auth.getUser()
+      .then(({ data, error }) => {
+        if (error || !data.user) { setAuth({ status: 'guest' }); return }
+        return supabase
+          .from('users')
+          .select('username_slug, profiles(avatar_url, display_name)')
+          .eq('id', data.user.id)
+          .single()
+          .then(({ data: u }) => {
+            const profile = Array.isArray(u?.profiles) ? u.profiles[0] : u?.profiles
+            setAuth({
+              status: 'loggedIn',
+              slug: u?.username_slug ?? '',
+              avatarUrl: profile?.avatar_url ?? null,
+              displayName: profile?.display_name ?? null,
+            })
           })
-        })
-    })
-  }, [pathname])
+      })
+      .catch(() => setAuth({ status: 'guest' }))
+  }, [pathname, supabase])
 
   if (auth.status === 'loading') return <div className="w-8 h-8" />
 

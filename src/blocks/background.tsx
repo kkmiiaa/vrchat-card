@@ -36,16 +36,16 @@ const COLOR_THEMES: { id: string; label: string; colors: string[] }[] = [
 ]
 
 const PRESET_GRADIENTS = [
-  { id: 'blue-purple',   from: '#60a5fa', to: '#a78bfa' },
-  { id: 'pink-red',      from: '#f472b6', to: '#ef4444' },
-  { id: 'pastel-sky',    from: '#fcd5ce', to: '#e0f7fa' },
-  { id: 'mint-lavender', from: '#34d399', to: '#e6e6fa' },
-  { id: 'sunset',        from: '#fb923c', to: '#f472b6' },
-  { id: 'ocean',         from: '#38bdf8', to: '#34d399' },
-  { id: 'yellow-green',  from: '#facc15', to: '#4ade80' },
-  { id: 'purple-pink',   from: '#a78bfa', to: '#f472b6' },
-  { id: 'red-orange',    from: '#f87171', to: '#fb923c' },
-  { id: 'sky-white',     from: '#38bdf8', to: '#ffffff' },
+  { id: 'pastel-sky',      from: '#fcd5ce', to: '#e0f7fa' }, // ピンク→ミント（人気）
+  { id: 'rose-lavender',   from: '#f5d5e8', to: '#ddd5f5' }, // ローズ→ラベンダー
+  { id: 'peach-cream',     from: '#fde8cc', to: '#fef5e8' }, // ピーチ→クリーム
+  { id: 'sage-mist',       from: '#d5e8d8', to: '#e8f0e4' }, // セージ→霧
+  { id: 'periwinkle',      from: '#d5ddf5', to: '#e8d5f5' }, // ペリウィンクル
+  { id: 'cotton-candy',    from: '#f5d8ec', to: '#d8e8f8' }, // コットンキャンディ
+  { id: 'matcha-milk',     from: '#d8ecd5', to: '#f5f0d5' }, // 抹茶ミルク
+  { id: 'twilight',        from: '#c8b0ec', to: '#f0c8e0' }, // トワイライト
+  { id: 'sky-peach',       from: '#d5e8f8', to: '#f8d5e0' }, // スカイ→ピーチ
+  { id: 'aurora',          from: '#c8e8d8', to: '#d8c8f0' }, // オーロラ
 ]
 
 const PRESET_IMAGES = [

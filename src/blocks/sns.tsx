@@ -45,7 +45,7 @@ export const snsBlock: ComponentDef<any> = {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {entries.map(({ key, val }) => wrapInteractive(key, val,
-            <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: isInteractive ? 'pointer' : 'default' }}>
+            <div key={key} className={isInteractive ? 'vaacard-sns-item' : undefined} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: isInteractive ? 'pointer' : 'default' }}>
               <img src={SNS_ICONS[key]} alt={key} style={{ width: iconSize, height: iconSize, objectFit: 'contain', flexShrink: 0 }} />
               <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{val}</span>
             </div>
@@ -58,7 +58,7 @@ export const snsBlock: ComponentDef<any> = {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {entries.map(({ key, val }) => wrapInteractive(key, val,
-          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: isInteractive ? 'pointer' : 'default' }}>
+          <div key={key} className={isInteractive ? 'vaacard-sns-item' : undefined} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: isInteractive ? 'pointer' : 'default' }}>
             <span style={{ fontSize: fs * 0.85, color: ctx.theme.subText, fontWeight: 600, fontFamily: ctx.fontFamily, minWidth: '2em' }}>{key}</span>
             <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily }}>{val}</span>
           </div>

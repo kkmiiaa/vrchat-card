@@ -15,7 +15,6 @@ export const badgeComponent: ComponentDef<BadgeValue> = {
   key: 'badge',
   defaultValue: DEFAULT_BADGE_VALUE,
   variants: ['simple', 'outline', 'subtle'],
-  supportsSurface: true,
 
   CardItem({ value, ctx, variant, surface, blockConfig }) {
     const safe: BadgeValue = (value && typeof value === 'object' && 'label' in value)

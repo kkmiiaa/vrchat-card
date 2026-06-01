@@ -163,77 +163,100 @@ type ComponentDef<T = unknown> = {
 
 ---
 
-#### glass variant 統一仕様
+#### surface（コンテナ背景スタイル）
 
-`glass` variant を持つコンポーネントは以下のスタイルを**固定値**で適用する。比率スケールは使用しない。
+`surface` は **ブロックのコンテナ背景スタイル**を制御するプロパティ。`SURFACE_STYLE` テーブル（`src/blocks/types.ts`）で定義されており、`supportsSurface: true` なコンポーネントのみ有効。
 
-| プロパティ | 値 |
-|---|---|
-| `background` | `rgba(255,255,255,0.55)` |
-| `border` | `1px solid rgba(255,255,255,0.75)` |
-| `boxShadow` | `0 0 12px rgba(0,0,0,0.08)` |
+```typescript
+// SurfaceVariant の定義
+type SurfaceVariant = 'simple' | 'default' | 'glass' | 'flat' | 'transparent' | 'outline'
 
-> `borderRadius` のみ `ctx.cardWidth` 比率で計算してよい（カード全体との視覚的整合性のため）。
+// 各 surface の視覚スタイル
+const SURFACE_STYLE = {
+  simple:      { background: 'rgba(255,255,255,0.7)',  border: '1px solid rgba(255,255,255,0.6)' },
+  default:     { background: 'rgba(255,255,255,0.85)', border: 'none' },          // 後方互換
+  glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)', boxShadow: '0 0 12px rgba(0,0,0,0.08)' },
+  flat:        { background: 'rgba(255,255,255,0.95)', border: '1.5px solid rgba(0,0,0,0.18)' },
+  transparent: { background: 'transparent',            border: 'none' },
+  outline:     { background: 'transparent',            border: '1.5px solid rgba(255,255,255,0.6)' },
+}
+```
 
-**glass variant を持つコンポーネント一覧**
+| surface 値 | 視覚的特徴 | 用途 |
+|---|---|---|
+| `simple` | 半透明白 + 薄い白枠 | 汎用・デフォルト |
+| `glass` | 半透明白(0.55) + 白枠 + 影 | ガラスデザイン（v2 テンプレート） |
+| `flat` | 不透明白(0.95) + 濃いグレー枠 | フラットデザイン |
+| `transparent` | 背景・枠なし | 背景に溶け込ませる |
+| `outline` | 背景透明 + 白枠のみ | 軽量なフレーム |
+| `default` | 半透明白(0.85) + 枠なし | 旧仕様・後方互換用 |
 
-| コンポーネント | glass variant の特徴 |
-|---|---|
-| `profileImage` | 画像を角丸でクリップ + glass 枠・影 |
-| `gallery` | 各サムネイルに glass 枠・影を付与 |
-| `simpleSns` | 横並びアイコン+テキストを glass ボックスに包む |
-| `snsWithFriendPolicy` | SNS ID と友達申請ポリシーを glass ボックスに包む |
-| `qrCode` | QR コードを glass ボックスに包む（`backdropFilter: blur` を追加） |
+`defaultSurface`（テンプレートレベルの fallback）はテンプレートの `card_config.defaultSurface` で設定し、ブロックに `surface` が未指定のときに使われる。
 
 ---
 
-#### コンポーネント variant 対応表
+#### glass variant と surface の関係
 
-全コンポーネントの variant 一覧。`bgVariant` 列は `supportsBgVariant: true` のとき ✅。
-⚠️ 列は **variant を宣言しているが CardItem 内に分岐実装がない**（宣言のみ）コンポーネントを示す。
+一部コンポーネントでは `variant='glass'` と `surface='glass'` が**別の概念**として共存する。
 
-| コンポーネント key | variants | bgVariant | ⚠️ 未実装 variant | 備考 |
+| コンポーネント | `variant='glass'` の意味 | `surface` 有効か |
+|---|---|---|
+| `simple-sns` | `glass` variant = コンテナを surface コンテナとして表示。`surface` prop で見た目を変更可能（デフォルト: `glass`） | ✅ `surfaceFor: ['glass']` |
+| `sns-with-friend-policy` | 同上 | ✅ `surfaceFor: ['glass']` |
+| `activity` | `v2` variant のみ surface コンテナ表示（デフォルト: `glass`） | ✅ `surfaceFor: ['v2']` |
+| `profileImage` | 画像を glass 枠でフレーミング（コンテナではなく画像フレーム） | ❌ surface 非対応 |
+| `gallery` | 各サムネイルに glass フレームを付与（コンテナではなくサムネイルフレーム） | ❌ surface 非対応 |
+| `qr-code` | QR を glass ボックスに包む + backdropFilter blur | ❌ surface 非対応 |
+| `overlay` | カード全体を覆う glass オーバーレイ | ❌ surface 非対応 |
+
+> `profileImage` / `gallery` / `qr-code` / `overlay` の `glass` variant は **コンテナ surface ではなく内部要素のフレームスタイル**として固定値（`rgba(255,255,255,0.55)` 等）を使用する。surface prop の影響を受けない。
+
+---
+
+#### コンポーネント variant / surface 対応表
+
+`surface` 列 = `supportsSurface: true` のとき ✅。`surfaceFor` が設定されている場合は有効 variant を括弧で明示。
+
+| コンポーネント key | variants | surface | surface が有効な variant | 備考 |
 |---|---|---|---|---|
-| `text` | `default` | ✅ | — | multiline false 時は縦中央揃え |
-| `select` | `default` / `badge` / `compact` | ✅ | — | — |
-| `multi-select` | `default` / `slash` / `icon` / `icon-slash` | ✅ | — | slash・icon-slash は labelInset 対応・縦中央揃え |
-| `gauge` | `default` | ✅ | — | — |
-| `expressive-select` | `default` | ✅ | — | — |
-| `badge` | `default` / `outline` / `subtle` | ❌ | — | value に color を持つ |
-| `badge-list` | `default` | ❌ | — | — |
-| `booleanFlag` | `default` / `badge` | ✅ | — | — |
-| `rating` | `default` / `compact` | ❌ | — | compact は星アイコンサイズ縮小 |
-| `linkItem` | `default` / `compact` | ❌ | — | — |
-| `dateItem` | `default` / `compact` / `badge` | ✅ | — | — |
-| `colorPalette` | `default` / `compact` | ❌ | — | — |
-| `tagList` | `default` / `compact` | ❌ | — | — |
-| `mark-list` | `default` | ❌ | — | — |
-| `mark-grid` | `default` / `white` | ❌ | — | white は全セル白背景・gap 1px |
-| `color-status` | `default` / `compact` / `cards` | ❌ | — | — |
-| `colorLabeledList` | `default` / `compact` | ❌ | — | compact はドットサイズ・フォント縮小 |
-| `interactions` | `default` / `grid` | ❌ | — | default=横長タグ、grid=ラベル上・マーク下のカード形式 |
-| `activity` | `default` / `v2` | ❌ | — | — |
-| `micOnRate` | `default` / `gradient` | ❌ | — | — |
-| `playEnv` | `default` / `slash` / `icon` | ❌ | — | default=バッジ並び、slash=スラッシュ区切り、icon=アイコン付きバッジ |
-| `sns` | `default` / `icon` | ❌ | — | default=テキストラベル+ID、icon=プラットフォームアイコン画像+ID |
-| `simple-sns` | `default` / `glass` | ✅ | — | glass は glass 統一仕様を適用 |
-| `sns-with-friend-policy` | `default` / `glass` | ❌ | — | glass は glass 統一仕様を適用 |
-| `trustRank` | `default` | ❌ | — | カラーバッジ固定 |
-| `status` | `default` | ❌ | — | カラードット+テキスト固定 |
-| `gender` | `default` / `compact` | ✅ | — | compact=アイコン+テキストのみ（背景・枠なし）、縦中央揃え |
-| `language` | `default` / `slash` | ✅ | — | slash は labelInset 対応・縦中央揃え |
-| `age` | `default` / `badge` | ✅ | — | badge=アクセントカラーのバッジ形式（白文字） |
-| `profileImage` | `default` / `circle` / `glass` | ❌ | — | circle=50%、glass は glass 統一仕様を適用 |
-| `gallery` | `default` / `glass` | ❌ | — | glass は glass 統一仕様を適用。入力枚数に応じてレイアウト変化 |
-| `qr-code` | `default` / `glass` | ❌ | — | glass は glass 統一仕様 + backdropFilter blur |
-| `selfIntro` | `default` | ❌ | — | — |
+| `text` | `simple` | ✅ | 全 variant | — |
+| `select` | `simple` / `badge` / `compact` / `chips` | ✅ | `badge`・`compact` 除く（label あり時のみコンテナ適用） | — |
+| `multiSelect` | `simple` / `slash` / `icon` / `icon-slash` / `chips` | ✅ | `slash` のみ | — |
+| `gauge` | `simple` | ✅ | 全 variant | — |
+| `expressiveSelect` | `simple` | ✅ | 全 variant | — |
+| `badge` | `simple` / `outline` / `subtle` | ❌ | — | 自前のカラーバッジスタイルを持つ |
+| `badgeList` | `simple` | ❌ | — | — |
+| `booleanFlag` | `simple` / `badge` | ✅ | `badge` 除く | — |
+| `rating` | `simple` / `compact` | ✅ | `simple` のみ | compact は surface なし |
+| `linkItem` | `simple` / `compact` | ✅ | `compact` 除く | — |
+| `dateItem` | `simple` / `compact` / `badge` | ✅ | `compact`・`badge` 除く | — |
+| `colorPalette` | `simple` / `compact` | ❌ | — | surface prop 受け取るが未使用 |
+| `tagList` | `simple` / `compact` | ❌ | — | surface prop 受け取るが未使用 |
+| `markList` | `simple` | ❌ | — | — |
+| `markGrid` | `simple` / `white` | ❌ | — | — |
+| `colorStatus` | `simple` / `compact` / `cards` | ✅ | `compact` 除く | — |
+| `colorLabeledList` | `simple` / `compact` | ❌ | — | — |
+| `interactions` | `simple` / `grid` | ❌ | — | — |
+| `activity` | `simple` / `v2` | ✅ | `v2` のみ（デフォルト `glass`） | simple は surface なし |
+| `micOnRate` | `simple` / `gradient` | ❌ | — | — |
+| `playEnv` | `simple` / `slash` / `icon` | ❌ | — | — |
+| `sns` | `simple` / `icon` | ❌ | — | — |
+| `simpleSns` | `simple` / `glass` | ✅ | `glass` のみ（デフォルト `glass`） | — |
+| `snsWithFriendPolicy` | `simple` / `glass` | ✅ | `glass` のみ（デフォルト `glass`） | — |
+| `trustRank` | `simple` | ❌ | — | — |
+| `status` | `simple` | ❌ | — | — |
+| `gender` | `simple` / `compact` | ✅ | `compact` 除く | — |
+| `language` | `simple` / `slash` | ✅ | 全 variant | — |
+| `age` | `simple` / `badge` | ✅ | `badge` 除く | — |
+| `profileImage` | `simple` / `circle` / `glass` | ❌ | — | glass は画像フレーム（surface コンテナではない） |
+| `gallery` | `simple` / `glass` | ❌ | — | glass はサムネイルフレーム（surface コンテナではない） |
+| `qrCode` | `simple` / `glass` | ❌ | — | glass は QR フレーム + backdropFilter |
+| `selfIntro` | `simple` | ❌ | — | — |
+| `showBalloon` | — | ❌ | — | variants なし |
 | `divider` | `horizontal` / `vertical` | ❌ | — | variants が方向指定を兼ねる |
-| `overlay` | `glass` / `solid` | ❌ | — | カード全体のオーバーレイ |
+| `overlay` | `glass` / `solid` | ❌ | — | カード全体オーバーレイ専用 |
 | `background` | — | ❌ | — | variants なし |
 | `font` | — | ❌ | — | variants なし |
-| `showBalloon` | — | ❌ | — | variants なし |
-
-> ⚠️ 列が「—」のコンポーネントは全 variant が実装済み。
 
 ---
 
@@ -243,44 +266,35 @@ variant key ごとに「何がどう変わるか」を定義した一覧。複�
 
 | variant key | 視覚的な意味 | 採用コンポーネント |
 |---|---|---|
-| `default` | そのコンポーネントの標準表示。他 variant のベースライン | 全コンポーネント |
-| `compact` | フォント・ドット・余白を縮小したコンパクト版。スペース効率を優先 | `select`, `dateItem`, `rating`, `linkItem`, `colorPalette`, `tagList`, `colorLabeledList`, `color-status`, `gender` |
+| `simple` | そのコンポーネントの標準表示。他 variant のベースライン | 全コンポーネント |
+| `compact` | フォント・ドット・余白を縮小したコンパクト版。スペース効率を優先 | `select`, `dateItem`, `rating`, `linkItem`, `colorPalette`, `tagList`, `colorLabeledList`, `colorStatus`, `gender` |
 | `badge` | 色付き丸角バッジ形式で値を表示 | `select`, `dateItem`, `booleanFlag`, `age` |
 | `outline` | 背景透明・枠線のみのバッジ（`badge` コンポーネント専用） | `badge` |
 | `subtle` | 色の薄いfill（`color + '22'`）のバッジ（`badge` コンポーネント専用） | `badge` |
-| `slash` | 値を「/」で区切って横並びテキスト表示。labelInset・縦中央揃え対応 | `multi-select`, `language`, `playEnv` |
-| `icon` | アイコンを先頭に追加（SVG アイコンまたはプラットフォームアイコン画像） | `multi-select`, `playEnv`, `sns` |
-| `icon-slash` | アイコン+テキストを「/」区切りで表示（`multi-select` 専用） | `multi-select` |
-| `glass` | 半透明白背景 + 白枠線 + 影のガラス質カード表示。統一仕様を適用 | `profileImage`, `gallery`, `simple-sns`, `sns-with-friend-policy`, `qr-code`, `overlay` |
+| `slash` | 値を「/」で区切って横並びテキスト表示。labelInset・縦中央揃え対応 | `multiSelect`, `language`, `playEnv` |
+| `icon` | アイコンを先頭に追加（SVG アイコンまたはプラットフォームアイコン画像） | `multiSelect`, `playEnv`, `sns` |
+| `icon-slash` | アイコン+テキストを「/」区切りで表示（`multiSelect` 専用） | `multiSelect` |
+| `chips` | 全選択肢をチップ形式で並べ、選択済みをハイライト | `multiSelect`, `select` |
+| `glass` | コンポーネントにより意味が異なる（上表「glass variant と surface の関係」参照） | `profileImage`, `gallery`, `simpleSns`, `snsWithFriendPolicy`, `qrCode`, `overlay` |
 | `solid` | 不透明な塗りつぶしオーバーレイ（`overlay` 専用） | `overlay` |
 | `circle` | 50% border-radius による円形クリップ（`profileImage` 専用） | `profileImage` |
-| `white` | 全セルに白背景を強制適用し gap を縮小（`mark-grid` 専用） | `mark-grid` |
+| `white` | 全セルに白背景を強制適用し gap を縮小（`markGrid` 専用） | `markGrid` |
 | `gradient` | 単色バーをグラデーションバーに置き換え（`micOnRate` 専用） | `micOnRate` |
-| `cards` | 左ボーダー付きカード形式に変更（`color-status` 専用） | `color-status` |
+| `cards` | 左ボーダー付きカード形式に変更（`colorStatus` 専用） | `colorStatus` |
 | `grid` | グリッドカード形式（ラベル上・マーク下）に変更（`interactions` 専用） | `interactions` |
-| `v2` | 第2世代の視覚デザイン（タイムバー+サークル）。`default` の完全リデザイン（`activity` 専用） | `activity` |
-| `horizontal` | 水平方向の区切り線（`divider` 専用。default を持たず方向が variant） | `divider` |
+| `v2` | 第2世代の視覚デザイン（タイムバー+サークル）。`simple` の完全リデザイン（`activity` 専用） | `activity` |
+| `horizontal` | 水平方向の区切り線（`divider` 専用。simple を持たず方向が variant） | `divider` |
 | `vertical` | 垂直方向の区切り線（`divider` 専用） | `divider` |
 
 **variant key の命名ルール**
 
 | ルール | 内容 |
 |---|---|
-| `default` は常にある | 全コンポーネントの基本 variant。他 variant との比較基準 |
-| 汎用 key は意味を統一する | `compact`=縮小、`badge`=丸角バッジ、`slash`=スラッシュ区切り、`icon`=アイコン化、`glass`=ガラス質 |
-| コンポーネント専用 key は末尾に注記 | `white`（mark-grid）・`v2`（activity）・`cards`（color-status）など意味が汎化しない key |
-| `divider` は例外 | `horizontal`/`vertical` が方向指定を兼ねるため `default` が存在しない |
-
-**glass variant を持つコンポーネント**（統一仕様: `border: 1px solid rgba(255,255,255,0.75)` / `boxShadow: 0 0 12px rgba(0,0,0,0.08)`）
-
-| コンポーネント | background | 備考 |
-|---|---|---|
-| `profileImage` | `#e5e7eb`（画像なし時） | 角丸画像を glass 枠・影でラップ |
-| `gallery` | 各サムネイルに個別適用 | 入力枚数に応じてレイアウト変化 |
-| `simple-sns` | `rgba(255,255,255,0.55)` | アイコン+ID を glass ボックスに包む |
-| `sns-with-friend-policy` | `rgba(255,255,255,0.55)` | SNS ID と友達申請ポリシーを glass ボックスに包む |
-| `qr-code` | `rgba(255,255,255,0.45)` | `backdropFilter: blur(8px)` を追加。背景透過度が他より低い |
-| `overlay` | `rgba(255,255,255,0.55)` | カード全体を覆うオーバーレイ |
+| `simple` は常にある | 全コンポーネントの基本 variant。他 variant との比較基準 |
+| 汎用 key は意味を統一する | `compact`=縮小、`badge`=丸角バッジ、`slash`=スラッシュ区切り、`icon`=アイコン化 |
+| コンポーネント専用 key は末尾に注記 | `white`（markGrid）・`v2`（activity）・`cards`（colorStatus）など意味が汎化しない key |
+| `divider` は例外 | `horizontal`/`vertical` が方向指定を兼ねるため `simple` が存在しない |
+| `glass` は variant と surface の両方で存在する | variant の `glass` は表示形式の切り替え、surface の `glass` はコンテナ背景スタイル。**surface 対応コンポーネントでは `surface='glass'` を使い、variant の `glass` は内部で `surface ?? 'glass'` にフォールバックする** |
 
 ---
 
@@ -303,8 +317,8 @@ type Block = {
   type: 'block'
   componentKey: string          // 使用するコンポーネントの key
   dataKey: string               // card_data に保存・参照するキー
-  variant?: string              // コンテンツ表示バリアント（省略時は blockVariants → 'default' にフォールバック）
-  bgVariant?: BgVariant         // コンテナ背景バリアント
+  variant?: string              // コンテンツ表示バリアント（省略時は 'simple' にフォールバック）
+  surface?: SurfaceVariant      // コンテナ背景スタイル（supportsSurface: true のコンポーネントのみ有効）
   label?: string                // ブロック上部のラベル
   subLabel?: string             // ラベル右のサブテキスト
   labelColor?: string

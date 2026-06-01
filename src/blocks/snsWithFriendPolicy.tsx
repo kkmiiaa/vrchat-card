@@ -1,5 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
+import { SURFACE_STYLE } from './types'
 import { SiInstagram, SiYoutube, SiTiktok } from 'react-icons/si'
 import { renderIcon, IconPicker } from './iconRegistry'
 
@@ -61,7 +62,9 @@ export const snsWithFriendPolicyComponent: ComponentDef<SnsWithFriendPolicyValue
   key: 'sns-with-friend-policy',
   defaultValue: DEFAULT_VALUE,
   variants: ['simple', 'glass'],
-  CardItem({ value, ctx, variant, blockConfig }) {
+  supportsSurface: true,
+  surfaceFor: ['glass'],
+  CardItem({ value, ctx, variant, surface, blockConfig }) {
     const isInteractive = ctx.isInteractive
     const safe: SnsWithFriendPolicyValue =
       (value && typeof value === 'object' && 'id' in value)
@@ -105,9 +108,10 @@ export const snsWithFriendPolicyComponent: ComponentDef<SnsWithFriendPolicyValue
       : null
 
     if (isGlass) {
+      const surfaceStyle = SURFACE_STYLE[surface ?? 'glass']
       const iconColW = snsSize + 6  // アイコン幅 + gap 分で列幅を固定
       const glassEl = (
-        <div className={isInteractive && id ? 'vaacard-sns-item' : undefined} style={{ width: '100%', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)', borderRadius: ctx.cardWidth * 0.006, boxShadow: '0 0 12px rgba(0,0,0,0.08)', padding: '4px 8px', display: 'flex', flexDirection: 'column', cursor: isInteractive && id ? 'pointer' : 'default' }}>
+        <div className={isInteractive && id ? 'vaacard-sns-item' : undefined} style={{ width: '100%', background: surfaceStyle.background, border: surfaceStyle.border, boxShadow: surfaceStyle.boxShadow ?? '0 0 12px rgba(0,0,0,0.08)', borderRadius: ctx.cardWidth * 0.006, padding: '4px 8px', display: 'flex', flexDirection: 'column', cursor: isInteractive && id ? 'pointer' : 'default' }}>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
             <div style={{ width: iconColW, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
               {snsIconEl}

@@ -19,7 +19,7 @@ const BASE_CARD_DATA = {
   genderTag: 'male',
   gender: '男性',
   playEnv: ['PCVR'],
-  language: ['日本語'],
+  language: { preset: ['日本語'], custom: [] },
   friendPolicy: 'frPolicyAnyone',
   selfIntro: `e2eテスト用データ ${UNIQUE_TAG}`,
 }

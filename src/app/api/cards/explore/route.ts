@@ -19,9 +19,13 @@ export async function GET(request: NextRequest) {
       (userRow.plan_expires_at == null || new Date(userRow.plan_expires_at) > new Date())
   }
 
-  const communitySlug = searchParams.get('community') ?? 'vrchat'
-  const q      = isPro ? (searchParams.get('q') ?? '') : ''
-  const cursor = searchParams.get('cursor') ?? null
+  const communitySlug  = searchParams.get('community') ?? 'vrchat'
+  const q              = isPro ? (searchParams.get('q') ?? '') : ''
+  const gender         = isPro ? (searchParams.get('gender') ?? '') : ''
+  const env            = isPro ? (searchParams.get('env') ?? '') : ''
+  const lang           = isPro ? (searchParams.get('lang') ?? '') : ''
+  const friendPolicy   = isPro ? (searchParams.get('friendPolicy') ?? '') : ''
+  const cursor         = searchParams.get('cursor') ?? null
 
   // カードはテンプレート経由で界隈に属する（card → template → community_templates）
   let query = supabase
@@ -37,6 +41,11 @@ export async function GET(request: NextRequest) {
     query = query.limit(PAGE_SIZE)
     if (cursor) query = query.lt('created_at', cursor)
   }
+
+  if (gender) query = query.filter('card_data->>genderTag', 'eq', gender)
+  if (env) query = query.filter('card_data->playEnv', 'cs', JSON.stringify([env]))
+  if (lang) query = query.filter('card_data->language->preset', 'cs', JSON.stringify([lang]))
+  if (friendPolicy) query = query.filter('card_data->>friendPolicy', 'eq', friendPolicy)
 
   if (q) {
     const { data: matchedProfiles } = await supabase

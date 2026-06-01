@@ -1,6 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 import { renderIcon, IconPicker } from './iconRegistry'
 import { ColorPicker } from './colorPicker'
 
@@ -8,9 +8,9 @@ export const multiSelectComponent: ComponentDef<string[]> = {
   key: 'multi-select',
   defaultValue: [],
   variants: ['simple', 'slash', 'icon', 'icon-slash'],
-  supportsBgVariant: true,
-  bgVariantFor: ['slash'],
-  CardItem({ value, ctx, variant = 'simple', bgVariant, blockConfig, label }) {
+  supportsSurface: true,
+  surfaceFor: ['slash'],
+  CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
     const items = Array.isArray(value) ? value : []
     const fs = ctx.fontSize.sm
     type OptionRow = { value: string; label: string; color?: string; icon?: string }
@@ -18,10 +18,10 @@ export const multiSelectComponent: ComponentDef<string[]> = {
     const getOption = (v: string) => options.find(o => o.value === v)
 
     if (variant === 'slash') {
-      const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
          ? 'simple'
-        : (bgVariant ?? 'transparent')
-      const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+        : (surface ?? 'transparent')
+      const bgStyle = SURFACE_STYLE[effectiveBgVariant]
       return (
         <div style={{
           width: '100%',
@@ -55,10 +55,10 @@ export const multiSelectComponent: ComponentDef<string[]> = {
 
     // icon-slash: [icon] text / [icon] text 形式でスラッシュ区切り
     if (variant === 'icon-slash') {
-      const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+      const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
          ? 'simple'
-        : (bgVariant ?? 'transparent')
-      const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+        : (surface ?? 'transparent')
+      const bgStyle = SURFACE_STYLE[effectiveBgVariant]
       const selectedOpts = items.map(v => getOption(v) ?? { value: v, label: v, icon: undefined, color: undefined })
       return (
         <div style={{

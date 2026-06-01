@@ -38,7 +38,7 @@ export function buildCardTemplateFromDefinition(
   const backgroundKey  = cfg?.backgroundKey  ?? definition?.backgroundKey ?? 'background'
   const overlayKey     = cfg?.overlayKey     ?? definition?.overlayKey    ?? 'overlay'
   const fixedBackground   = cfg?.fixedBackground   ?? undefined
-  const defaultBgVariant  = (cfg?.defaultBgVariant as import('@/blocks/types').BgVariant | undefined) ?? undefined
+  const defaultSurface  = (cfg?.defaultSurface as import('@/blocks/types').SurfaceVariant | undefined) ?? undefined
   const cardGrid      = cfg?.card?.grid    ?? definition?.card.grid     ?? { cellSize: 8, gap: 4 }
   const webGrid       = cfg?.web?.grid     ?? definition?.web.grid      ?? { cellSize: 8, gap: 4 }
   const webAutoHeight = cfg?.web?.autoHeight ?? definition?.web.autoHeight ?? true
@@ -124,7 +124,7 @@ export function buildCardTemplateFromDefinition(
         noBackground: true,
         background: fixedBackground ?? background,
         isInteractive,
-        defaultBgVariant,
+        defaultSurface,
         cardUrl,
         userUrl,
       })

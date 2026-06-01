@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import type { ComponentDef, ComponentCardProps, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 
 export type LanguageValue = {
   preset: string[]
@@ -12,17 +12,17 @@ const PRESET_LANGUAGES = [
   '日本語', 'English', '한국어', '中文',
 ]
 
-function LanguageCard({ value, ctx, variant = 'simple', bgVariant, label, blockConfig }: ComponentCardProps<LanguageValue>) {
+function LanguageCard({ value, ctx, variant = 'simple', surface, label, blockConfig }: ComponentCardProps<LanguageValue>) {
   const preset = Array.isArray(value?.preset) ? value.preset : []
   const custom = Array.isArray(value?.custom) ? value.custom : []
   const all = [...preset, ...custom]
   const fs = ctx.fontSize.sm
 
   if (variant === 'slash') {
-    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
-      : (bgVariant ?? 'transparent')
-    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+      : (surface ?? 'transparent')
+    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
     return (
       <div style={{
         width: '100%',
@@ -89,7 +89,7 @@ export const languageComponent: ComponentDef<LanguageValue> = {
   global: true,
   defaultValue: { preset: [], custom: [] },
   variants: ['simple', 'slash'],
-  supportsBgVariant: true,
+  supportsSurface: true,
   CardItem: LanguageCard,
   FormItem({ value, onChange, t, blockConfig }) {
     const preset = Array.isArray(value?.preset) ? value.preset : []

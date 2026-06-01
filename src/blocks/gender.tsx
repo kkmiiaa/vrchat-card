@@ -1,6 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 import { TbGenderMale, TbGenderFemale, TbGenderBigender, TbEyeOff, TbMinus } from 'react-icons/tb'
 
 export type GenderValue = {
@@ -22,8 +22,8 @@ export const genderComponent: ComponentDef<GenderValue> = {
   global: true,
   defaultValue: DEFAULT_GENDER_VALUE,
   variants: ['simple', 'compact'],
-  supportsBgVariant: true,
-  CardItem({ value, ctx, variant = 'simple', bgVariant, label }) {
+  supportsSurface: true,
+  CardItem({ value, ctx, variant = 'simple', surface, label }) {
     const safe: GenderValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as GenderValue
       : DEFAULT_GENDER_VALUE
@@ -34,10 +34,10 @@ export const genderComponent: ComponentDef<GenderValue> = {
     const display = isEmpty ? '-' : (isNone ? '-' : (safe.display || option?.label || safe.tag))
     // 非公開: フラットなマイナスアイコン、それ以外: 性別アイコン（未設定はアイコンなし）
     const Icon = isEmpty ? null : (isNone ? TbMinus : option?.Icon)
-    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
-      : (bgVariant ?? 'transparent')
-    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+      : (surface ?? 'transparent')
+    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
 
     // compact: アイコン + 短縮テキストのみ（ラベルなし・背景なし）
     if (variant === 'compact') {

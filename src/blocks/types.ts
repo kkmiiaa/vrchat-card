@@ -76,8 +76,8 @@ export type CardRenderContext = {
   userUrl?: string
   /** カード閲覧画面でのインタラクティブ表示（クリック可能）かどうか */
   isInteractive?: boolean
-  /** ブロックの bgVariant 未指定時のフォールバック。デザインプリセットから注入される */
-  defaultBgVariant?: BgVariant
+  /** ブロックの surface 未指定時のフォールバック。デザインプリセットから注入される */
+  defaultSurface?: SurfaceVariant
 }
 
 export const DEFAULT_CARD_RENDER_CONTEXT: CardRenderContext = {
@@ -105,7 +105,7 @@ export type BlockVariant = string
  * - outline:     枠線のみ
  * - default:     'simple' の後方互換エイリアス（DB保存済みデータ向け）
  */
-export type BgVariant = 'simple' | 'default' | 'glass' | 'flat' | 'transparent' | 'outline'
+export type SurfaceVariant = 'simple' | 'default' | 'glass' | 'flat' | 'transparent' | 'outline'
 
 /** ラベル定義。外ラベル・insetLabel 共通で使用 */
 export type LabelDef = {
@@ -121,7 +121,7 @@ export type LabelDef = {
   icon?: string
 }
 
-export const BG_VARIANT_STYLE: Record<BgVariant, { background: string; border: string; boxShadow?: string }> = {
+export const SURFACE_STYLE: Record<SurfaceVariant, { background: string; border: string; boxShadow?: string }> = {
   simple:      { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined },
   default:     { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined }, // 後方互換
   glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)',        boxShadow: '0 0 12px rgba(0,0,0,0.08)' },
@@ -136,10 +136,10 @@ export type ComponentCardProps<T> = {
   /** コンテンツの表示方法バリアント。未指定時は 'simple' */
   variant?: BlockVariant
   /** 背景・コンテナの見た目バリアント。未指定時は 'simple' */
-  bgVariant?: BgVariant
+  surface?: SurfaceVariant
   /**
    * labelInset が有効なとき渡されるラベル定義。
-   * コンポーネント自身の bgVariant コンテナ内に描画する。
+   * コンポーネント自身の surface コンテナ内に描画する。
    */
   label?: LabelDef
   /** ブロック作成時にテンプレート作成者が設定した値（FormItem・CardItem 共通） */
@@ -162,10 +162,10 @@ export type ComponentDef<T = unknown> = {
   CardItem?: (props: ComponentCardProps<T>) => ReactNode
   /** テンプレート作成者向けのブロック設定UI */
   blockConfigForm?: (props: BlockConfigFormProps) => ReactNode
-  /** CardItem が bgVariant を解釈する場合 true */
-  supportsBgVariant?: boolean
-  /** bgVariant が有効なバリアント一覧。未指定かつ supportsBgVariant=true なら compact/badge 以外で有効 */
-  bgVariantFor?: string[]
+  /** CardItem が surface を解釈する場合 true */
+  supportsSurface?: boolean
+  /** surface が有効なバリアント一覧。未指定かつ supportsSurface=true なら compact/badge 以外で有効 */
+  surfaceFor?: string[]
   /** 値が「空」かどうかを判定する関数。未定義なら defaultValue と深い比較でフォールバック */
   isEmpty?: (value: T) => boolean
 }
@@ -204,7 +204,7 @@ export type Block = {
   /** コンテンツの表示方法バリアント */
   variant: BlockVariant
   /** 背景・コンテナの見た目バリアント */
-  bgVariant?: BgVariant
+  surface?: SurfaceVariant
   /** 最小幅（セル数）。親が row のとき有効 */
   minW?: number
   /** 最小高（セル数）。親が col のとき有効 */
@@ -288,13 +288,13 @@ export type LayoutNodeCol = {
 /**
  * blockPool のエントリ。
  * 「何を表示するか」を定義する共有プロパティのみ持つ。
- * variant / bgVariant / label 系はプールで一度だけ定義し、レイアウト側では上書きしない。
+ * variant / surface / label 系はプールで一度だけ定義し、レイアウト側では上書きしない。
  */
 export type BlockPoolEntry = {
   componentKey: string
   dataKey: string
   variant?: BlockVariant
-  bgVariant?: BgVariant
+  surface?: SurfaceVariant
   blockConfig?: Record<string, unknown>
   label?: string
   subLabel?: string
@@ -309,7 +309,7 @@ export type BlockPoolEntry = {
 /**
  * blockPool に定義したブロックをレイアウト内で参照するノード。
  * サイズ・配置・フォントスケールなどレイアウト固有のプロパティを指定する。
- * variant / bgVariant はレイアウトごとに異なる値を指定でき、pool 側の値を上書きする。
+ * variant / surface はレイアウトごとに異なる値を指定でき、pool 側の値を上書きする。
  */
 export type LayoutNodeRef = {
   type: 'ref'
@@ -324,8 +324,8 @@ export type LayoutNodeRef = {
   labelFontScale?: number
   /** このレイアウト専用の variant。pool 側の variant を上書きする */
   variant?: BlockVariant
-  /** このレイアウト専用の bgVariant。pool 側の bgVariant を上書きする */
-  bgVariant?: BgVariant
+  /** このレイアウト専用の surface。pool 側の surface を上書きする */
+  surface?: SurfaceVariant
   /** このレイアウト専用の label 上書き */
   label?: string
   /** このレイアウト専用の subLabel 上書き */

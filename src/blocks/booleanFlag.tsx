@@ -1,6 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 import { renderIcon, IconPicker } from './iconRegistry'
 import { ColorPicker } from './colorPicker'
 
@@ -8,8 +8,8 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
   key: 'booleanFlag',
   defaultValue: false,
   variants: ['simple', 'badge'],
-  supportsBgVariant: true,
-  CardItem({ value, ctx, variant, bgVariant, blockConfig, label }) {
+  supportsSurface: true,
+  CardItem({ value, ctx, variant, surface, blockConfig, label }) {
     const on = typeof value === 'boolean' ? value : false
     const fs = ctx.fontSize.md
     const trueIcon = typeof blockConfig?.trueIcon === 'string' ? blockConfig.trueIcon : null
@@ -50,10 +50,10 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
       )
     }
 
-    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
-      : (bgVariant ?? 'transparent')
-    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+      : (surface ?? 'transparent')
+    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
     const iconColor = on ? trueColor : falseColor
 
     return (

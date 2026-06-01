@@ -1,6 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 import { renderIcon, IconPicker } from './iconRegistry'
 import { ColorPicker } from './colorPicker'
 
@@ -8,15 +8,15 @@ export const ratingComponent: ComponentDef<number> = {
   key: 'rating',
   defaultValue: 0,
   variants: ['simple', 'compact'],
-  CardItem({ value, ctx, variant = 'simple', bgVariant, blockConfig, label }) {
+  CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
     const maxValue = typeof blockConfig?.maxValue === 'number' ? blockConfig.maxValue : 5
     const rating = typeof value === 'number' ? Math.min(maxValue, Math.max(0, value)) : 0
     const isCompact = variant === 'compact'
     const starSize = isCompact ? ctx.fontSize.sm * 1.2 : ctx.fontSize.lg * 1.2
-    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
-      : (bgVariant ?? 'transparent')
-    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+      : (surface ?? 'transparent')
+    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
     const icon = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '★'
     const activeColor = typeof blockConfig?.color === 'string' ? blockConfig.color : ctx.theme.accent
 

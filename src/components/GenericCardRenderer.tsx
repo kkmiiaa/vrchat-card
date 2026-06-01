@@ -30,8 +30,8 @@ type Props = {
   cardUrl?: string
   /** ユーザーページ URL（QR コード用） */
   userUrl?: string
-  /** ブロックの bgVariant 未指定時のフォールバック（デザインプリセット） */
-  defaultBgVariant?: import('@/blocks/types').BgVariant
+  /** ブロックの surface 未指定時のフォールバック（デザインプリセット） */
+  defaultSurface?: import('@/blocks/types').SurfaceVariant
 }
 
 type Inset = { top: number; right: number; bottom: number; left: number }
@@ -122,8 +122,8 @@ function renderNode(
     } : undefined
 
     const resolvedVariant = node.variant
-    const resolvedBgVariant = node.bgVariant ?? ctx.defaultBgVariant
-    const cardContent = block.CardItem({ value, ctx: blockCtx, variant: resolvedVariant, bgVariant: resolvedBgVariant, label: insetLabelDef, blockConfig: node.blockConfig })
+    const resolvedBgVariant = node.surface ?? ctx.defaultSurface
+    const cardContent = block.CardItem({ value, ctx: blockCtx, variant: resolvedVariant, surface: resolvedBgVariant, label: insetLabelDef, blockConfig: node.blockConfig })
     if (cardContent === null || cardContent === undefined) return null
 
     const innerStyle = (flexOverride?: React.CSSProperties): React.CSSProperties => ({ ...style, ...flexOverride })
@@ -256,7 +256,7 @@ function renderNode(
 }
 
 const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCardRenderer(
-  { definition, values, fontFamily, background, isInteractive, noBackground, orientation = 'card', highlightPath, cardUrl, userUrl, defaultBgVariant },
+  { definition, values, fontFamily, background, isInteractive, noBackground, orientation = 'card', highlightPath, cardUrl, userUrl, defaultSurface },
   ref
 ) {
   const { cardWidth, cardHeight, autoHeight, grid, layout, defaultLabelFontScale, defaultContentFontScale, defaultPaddingScale } = definition[orientation]
@@ -276,7 +276,7 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
     cardUrl,
     userUrl,
     isInteractive,
-    defaultBgVariant,
+    defaultSurface,
   }
 
   const bgValue: BackgroundValue | undefined = background ?? undefined

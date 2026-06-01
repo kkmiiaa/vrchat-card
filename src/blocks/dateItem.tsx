@@ -1,6 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 
 export type DateItemValue = { display: string; iso?: string }
 
@@ -15,8 +15,8 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
   key: 'dateItem',
   defaultValue: { display: '', iso: '' },
   variants: ['simple', 'compact', 'badge'],
-  supportsBgVariant: true,
-  CardItem({ value, ctx, variant = 'simple', bgVariant, label }) {
+  supportsSurface: true,
+  CardItem({ value, ctx, variant = 'simple', surface, label }) {
     const safe: DateItemValue = (value && typeof value === 'object' && 'display' in value)
       ? value as DateItemValue
       : { display: '', iso: '' }
@@ -24,7 +24,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
 
     if (variant === 'compact') {
       const fs = ctx.fontSize.xs
-      const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'transparent']
+      const bgStyle = SURFACE_STYLE[surface ?? 'transparent']
       return (
         <div style={{
           display: 'inline-flex',
@@ -75,10 +75,10 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
 
     // default
     const fs = ctx.fontSize.md
-    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
-      : (bgVariant ?? 'transparent')
-    const bgStyleDefault = BG_VARIANT_STYLE[effectiveBgVariant]
+      : (surface ?? 'transparent')
+    const bgStyleDefault = SURFACE_STYLE[effectiveBgVariant]
     return (
       <div style={{
         width: '100%',

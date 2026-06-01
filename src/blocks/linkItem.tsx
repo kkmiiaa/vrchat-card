@@ -1,6 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 import { renderIcon, IconPicker } from './iconRegistry'
 
 export type LinkItemValue = { label: string; url: string }
@@ -9,8 +9,8 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
   key: 'linkItem',
   defaultValue: { label: '', url: '' },
   variants: ['simple', 'compact'],
-  supportsBgVariant: true,
-  CardItem({ value, ctx, variant = 'simple', bgVariant, blockConfig, label }) {
+  supportsSurface: true,
+  CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
     const safe: LinkItemValue = (value && typeof value === 'object' && 'label' in value)
       ? value as LinkItemValue
       : { label: '', url: '' }
@@ -38,10 +38,10 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
     }
 
     const fs = ctx.fontSize.md
-    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
-      : (bgVariant ?? 'transparent')
-    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+      : (surface ?? 'transparent')
+    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
     return (
       <div style={{
         width: '100%',

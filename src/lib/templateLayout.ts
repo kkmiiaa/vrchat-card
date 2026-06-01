@@ -30,7 +30,7 @@ export type TemplateLayoutRow = {
     overlayKey?: string
     fontFamily?: string
     fixedBackground?: import('@/blocks/types').BackgroundValue
-    defaultBgVariant?: import('@/blocks/types').BgVariant
+    defaultSurface?: import('@/blocks/types').SurfaceVariant
     card?: { grid?: { cellSize?: number; gap?: number } }
     web?:  { grid?: { cellSize?: number; gap?: number }; autoHeight?: boolean }
   } | null

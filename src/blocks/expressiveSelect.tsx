@@ -1,6 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 import { IconPicker } from './iconRegistry'
 import { ColorPicker } from './colorPicker'
 
@@ -15,8 +15,8 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
   key: 'expressive-select',
   defaultValue: DEFAULT_EXPRESSIVE_SELECT_VALUE,
   variants: ['simple'],
-  supportsBgVariant: true,
-  CardItem({ value, ctx, bgVariant, blockConfig, label }) {
+  supportsSurface: true,
+  CardItem({ value, ctx, surface, blockConfig, label }) {
     const safe: ExpressiveSelectValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as ExpressiveSelectValue
       : DEFAULT_EXPRESSIVE_SELECT_VALUE
@@ -26,10 +26,10 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
     const optionLabel = options.find(o => o.value === safe.tag)?.label
     const display = safe.display || optionLabel
     const fs = ctx.fontSize.md
-    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
-      : (bgVariant ?? 'transparent')
-    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+      : (surface ?? 'transparent')
+    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
 
     return (
       <div style={{

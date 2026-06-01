@@ -2,13 +2,13 @@
 
 import { ColorPicker, LABEL_PRESET_COLORS } from '@/blocks/colorPicker'
 import { IconPicker } from '@/blocks/iconRegistry'
-import type { ComponentDef, BgVariant } from '@/blocks/types'
+import type { ComponentDef, SurfaceVariant } from '@/blocks/types'
 
 // ─── 型定義 ─────────────────────────────────────────────────────────
 
 export type BlockDisplaySettings = {
   variant: string
-  bgVariant: BgVariant
+  surface: SurfaceVariant
   label: string
   subLabel: string
   labelColor: string
@@ -20,7 +20,7 @@ export type BlockDisplaySettings = {
 export function defaultBlockDisplaySettings(component: ComponentDef<unknown>): BlockDisplaySettings {
   return {
     variant: component.variants?.[0] ?? 'simple',
-    bgVariant: 'transparent',
+    surface: 'transparent',
     label: '',
     subLabel: '',
     labelColor: '',
@@ -30,22 +30,22 @@ export function defaultBlockDisplaySettings(component: ComponentDef<unknown>): B
   }
 }
 
-const BG_VARIANT_OPTIONS: { value: BgVariant; label: string }[] = [
+const BG_VARIANT_OPTIONS: { value: SurfaceVariant; label: string }[] = [
   { value: 'simple', label: 'simple' },
   { value: 'glass',       label: 'glass' },
   { value: 'transparent', label: 'transparent' },
   { value: 'outline',     label: 'outline' },
 ]
 
-/** コンポーネントと現在の variant から bgVariant 選択肢を表示するか判定 */
+/** コンポーネントと現在の variant から surface 選択肢を表示するか判定 */
 export function isBgVariantApplicable(
-  component: Pick<ComponentDef<unknown>, 'supportsBgVariant' | 'bgVariantFor'>,
+  component: Pick<ComponentDef<unknown>, 'supportsSurface' | 'surfaceFor'>,
   variant: string,
 ): boolean {
-  if (!component.supportsBgVariant) return false
+  if (!component.supportsSurface) return false
   const NO_BG_VARIANTS = ['compact', 'badge']
-  return component.bgVariantFor
-    ? component.bgVariantFor.includes(variant)
+  return component.surfaceFor
+    ? component.surfaceFor.includes(variant)
     : !NO_BG_VARIANTS.includes(variant)
 }
 
@@ -58,7 +58,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 // ─── BlockPropertyEditor ────────────────────────────────────────────
 
 /**
- * variant / bgVariant / label / labelInset / blockConfigForm を一括編集する共通 UI。
+ * variant / surface / label / labelInset / blockConfigForm を一括編集する共通 UI。
  * TemplateBuilder と ComponentPreview の両方から使い、どちらかに新しい設定を追加したら
  * ここだけ直せば両画面に反映される。
  *
@@ -103,18 +103,18 @@ export function BlockPropertyEditor({
         </div>
       )}
 
-      {/* bgVariant */}
+      {/* surface */}
       {showBgVariant && (
         <div className="flex items-center gap-2 flex-wrap">
-          <FieldLabel>bgVariant</FieldLabel>
+          <FieldLabel>surface</FieldLabel>
           <div className="flex flex-wrap gap-1">
             {BG_VARIANT_OPTIONS.map(o => (
               <button
                 key={o.value}
                 type="button"
-                onClick={() => onChange({ bgVariant: o.value })}
+                onClick={() => onChange({ surface: o.value })}
                 className={`text-xs px-2 py-0.5 rounded border font-mono transition-colors ${
-                  settings.bgVariant === o.value
+                  settings.surface === o.value
                     ? 'bg-gray-800 text-white border-gray-800'
                     : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
                 }`}

@@ -1,6 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 import { ColorPicker } from './colorPicker'
 import { renderIcon } from './iconRegistry'
 
@@ -16,9 +16,9 @@ export const gaugeComponent: ComponentDef<number> = {
   key: 'gauge',
   defaultValue: 0,
   variants: ['simple'],
-  supportsBgVariant: true,
+  supportsSurface: true,
 
-  CardItem({ value, ctx, bgVariant, blockConfig, label }) {
+  CardItem({ value, ctx, surface, blockConfig, label }) {
     const cfg = (blockConfig ?? {}) as GaugeConfig
     const rate = typeof value === 'number' ? value : 0
     const fs = ctx.fontSize.sm
@@ -31,10 +31,10 @@ export const gaugeComponent: ComponentDef<number> = {
       ? `linear-gradient(to right, ${cfg.barGradient.join(', ')})`
       : cfg.barColor ?? ctx.theme.accent
 
-    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
-      : (bgVariant ?? 'transparent')
-    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+      : (surface ?? 'transparent')
+    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
 
     return (
       <div style={{

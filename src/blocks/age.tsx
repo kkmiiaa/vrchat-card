@@ -1,6 +1,6 @@
 'use client'
 import type { ComponentDef, AgeValue } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 
 const BUTTONS: { label: string; searchTag: AgeValue['searchTag'] }[] = [
   { label: '18歳未満', searchTag: '18歳未満' },
@@ -14,18 +14,18 @@ export const ageComponent: ComponentDef<AgeValue> = {
   global: true,
   defaultValue: { searchTag: '', display: '' },
   variants: ['simple', 'badge'],
-  supportsBgVariant: true,
-  CardItem({ value, ctx, variant = 'simple', bgVariant, label }) {
+  supportsSurface: true,
+  CardItem({ value, ctx, variant = 'simple', surface, label }) {
     const safe: AgeValue = (value && typeof value === 'object' && 'searchTag' in value)
       ? value as AgeValue
       : { searchTag: '', display: '' }
     const isPrivate = safe.searchTag === '非公開'
     const isEmpty = !safe.searchTag && !safe.display
     const text = (isPrivate || isEmpty) ? '-' : (safe.display || safe.searchTag)
-    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
-      : (bgVariant ?? 'transparent')
-    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+      : (surface ?? 'transparent')
+    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
 
     // badge: カラーバッジ形式（select/badge・dateItem/badge と同じスタイル）
     if (variant === 'badge') {

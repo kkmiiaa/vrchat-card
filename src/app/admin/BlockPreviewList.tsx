@@ -28,7 +28,7 @@ import { colorPaletteComponent } from '@/blocks/colorPalette'
 import { dateItemComponent } from '@/blocks/dateItem'
 import { qrCodeComponent } from '@/blocks/qrCode'
 import { translations } from '@/utils/translations'
-import type { ComponentDef, BgVariant } from '@/blocks/types'
+import type { ComponentDef, SurfaceVariant } from '@/blocks/types'
 import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
 import { BlockPropertyEditor, defaultBlockDisplaySettings, type BlockDisplaySettings } from './BlockPropertyEditor'
 
@@ -539,12 +539,12 @@ function RowDivider() {
 // ─── ラベル付き CardItem プレビュー ──────────────────────────────
 
 function LabeledCardItemPreview({
-  component, value, variant, bgVariant, labelConfig, config,
+  component, value, variant, surface, labelConfig, config,
 }: {
   component: ComponentDef<unknown>
   value: unknown
   variant: string
-  bgVariant: BgVariant
+  surface: SurfaceVariant
   labelConfig: Pick<BlockDisplaySettings, 'label' | 'subLabel' | 'labelColor' | 'labelInset' | 'labelInsetDir'>
   config?: Record<string, unknown>
 }) {
@@ -554,7 +554,7 @@ function LabeledCardItemPreview({
   const color = labelColor || ctx.theme.text
 
   const cardContent = component.CardItem
-    ? <component.CardItem value={value} ctx={ctx} variant={variant} bgVariant={bgVariant} blockConfig={config} />
+    ? <component.CardItem value={value} ctx={ctx} variant={variant} surface={surface} blockConfig={config} />
     : <span className="text-xs text-gray-300 italic">未実装</span>
 
   const labelEl = hasLabel ? (
@@ -797,7 +797,7 @@ function ComponentPreview({ name, category, inputType, format, description, exam
                 component={component}
                 value={value}
                 variant={displaySettings.variant}
-                bgVariant={displaySettings.bgVariant}
+                surface={displaySettings.surface}
                 labelConfig={displaySettings}
                 config={Object.keys(blockConfig).length > 0 ? blockConfig : undefined}
               />

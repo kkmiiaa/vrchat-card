@@ -1,19 +1,19 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 
 export const textComponent: ComponentDef<string> = {
   key: 'text',
   defaultValue: '',
   variants: ['simple'],
-  supportsBgVariant: true,
-  CardItem({ value, ctx, bgVariant, label, blockConfig }) {
+  supportsSurface: true,
+  CardItem({ value, ctx, surface, label, blockConfig }) {
     const fs = ctx.fontSize.lg
     // label（insetLabel）があるときはコンテナが見える必要があるため、transparent は default にフォールバック
-    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
-      : (bgVariant ?? 'transparent')
-    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+      : (surface ?? 'transparent')
+    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
     const multiline = blockConfig?.multiline !== false
     const noPadding = blockConfig?.noPadding === true
     const maxRows = typeof blockConfig?.rows === 'number' ? blockConfig.rows : undefined

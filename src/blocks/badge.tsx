@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 import { ColorPicker } from './colorPicker'
 
 export type BadgeValue = {
@@ -16,7 +16,7 @@ export const badgeComponent: ComponentDef<BadgeValue> = {
   defaultValue: DEFAULT_BADGE_VALUE,
   variants: ['simple', 'outline', 'subtle'],
 
-  CardItem({ value, ctx, variant, bgVariant, blockConfig }) {
+  CardItem({ value, ctx, variant, surface, blockConfig }) {
     const safe: BadgeValue = (value && typeof value === 'object' && 'label' in value)
       ? value as BadgeValue
       : DEFAULT_BADGE_VALUE
@@ -59,7 +59,7 @@ export const badgeComponent: ComponentDef<BadgeValue> = {
       )
     }
 
-    // default: 塗りつぶし（bgVariant が glass/transparent/outline の場合も適用）
+    // default: 塗りつぶし（surface が glass/transparent/outline の場合も適用）
     return (
       <div style={{
         display: 'inline-flex', alignItems: 'center',

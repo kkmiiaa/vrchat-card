@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import type { TemplateDefinition, BlockValues, LayoutNode, Block, LayoutNodeRow, LayoutNodeCol, LayoutNodeRef, TemplateGridDef, FormSection, FormNode, FormNodeBlock, FormNodeFont, BgVariant } from '@/blocks/types'
+import type { TemplateDefinition, BlockValues, LayoutNode, Block, LayoutNodeRow, LayoutNodeCol, LayoutNodeRef, TemplateGridDef, FormSection, FormNode, FormNodeBlock, FormNodeFont, SurfaceVariant } from '@/blocks/types'
 import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
 import { saveTemplateLayout, saveSampleCardData } from '@/lib/templateLayout'
 import { compressSampleData } from '@/lib/compressSampleData'
@@ -159,7 +159,7 @@ type PoolEntry = {
   componentKey: string
   dataKey: string
   variant?: string
-  bgVariant?: string
+  surface?: string
   blockConfig?: Record<string, unknown>
   label?: string
   subLabel?: string
@@ -408,7 +408,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
   const [designPresets, setDesignPresets] = useState<Record<string, DesignPreset>>(
     () => Object.fromEntries(rowList.map(row => [
       row.id,
-      (row.card_config?.defaultBgVariant as DesignPreset | undefined) ?? 'simple',
+      (row.card_config?.defaultSurface as DesignPreset | undefined) ?? 'simple',
     ]))
   )
   const currentDesignPreset = designPresets[currentRow.id] ?? 'simple'
@@ -456,7 +456,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
       card_config: {
         ...cfg,
         fontFamily: localFontFamily,
-        defaultBgVariant: currentDesignPreset,
+        defaultSurface: currentDesignPreset,
         ...(currentBgMode === 'fixed'
           ? { fixedBackground: currentFixedBg }
           : { fixedBackground: undefined }),
@@ -909,7 +909,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
       const path = selectedPath!
       const displaySettings: BlockDisplaySettings = {
         variant:        node.variant ?? 'simple',
-        bgVariant:      (node as Block).bgVariant ?? 'transparent',
+        surface:      (node as Block).surface ?? 'transparent',
         label:          node.label ?? '',
         subLabel:       node.subLabel ?? '',
         labelColor:     (node as Block).labelColor ?? '',
@@ -923,8 +923,8 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
           if (patch.label !== undefined)     next.label     = patch.label     || undefined
           if (patch.subLabel !== undefined)  next.subLabel  = patch.subLabel  || undefined
           if (patch.labelIcon !== undefined) next.labelIcon = patch.labelIcon || undefined
-          if (patch.bgVariant !== undefined && !isBgVariantApplicable(comp, next.variant ?? 'simple')) {
-            delete (next as Block).bgVariant
+          if (patch.surface !== undefined && !isBgVariantApplicable(comp, next.variant ?? 'simple')) {
+            delete (next as Block).surface
           }
           return next
         })
@@ -1053,12 +1053,12 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
           </div>
         )}
 
-        {/* ref のみ: レイアウト固有設定 (variant / bgVariant / alignSelf / contentAlign / fontScale) */}
+        {/* ref のみ: レイアウト固有設定 (variant / surface / alignSelf / contentAlign / fontScale) */}
         {node.type === 'ref' && (() => {
           const poolEntry = currentPool[node.blockId]
           const comp = poolEntry ? getComponent(poolEntry.componentKey) : undefined
           const variants = comp?.variants ?? []
-          const BG_VARIANTS: BgVariant[] = ['simple', 'glass', 'flat', 'transparent', 'outline']
+          const BG_VARIANTS: SurfaceVariant[] = ['simple', 'glass', 'flat', 'transparent', 'outline']
           return (
             <div className="flex flex-col gap-2">
               <div className="flex flex-col gap-1">
@@ -1086,21 +1086,21 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
                   </div>
                 </div>
               )}
-              {/* bgVariant */}
-              {comp?.supportsBgVariant && (
+              {/* surface */}
+              {comp?.supportsSurface && (
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] text-gray-500">bgVariant <span className="text-[9px] text-indigo-400">（このレイアウトのみ）</span></label>
+                  <label className="text-[10px] text-gray-500">surface <span className="text-[9px] text-indigo-400">（このレイアウトのみ）</span></label>
                   <div className="flex gap-1 flex-wrap">
                     {BG_VARIANTS.map(v => (
                       <button
                         key={v}
-                        onClick={() => handleUpdate(path, n => ({ ...n, bgVariant: v } as LayoutNode))}
-                        className={`px-2 py-1 text-xs border rounded transition-colors ${(node.bgVariant ?? poolEntry?.bgVariant) === v ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50 bg-white'}`}
-                      >{v}{node.bgVariant === v ? ' ✓' : ''}</button>
+                        onClick={() => handleUpdate(path, n => ({ ...n, surface: v } as LayoutNode))}
+                        className={`px-2 py-1 text-xs border rounded transition-colors ${(node.surface ?? poolEntry?.surface) === v ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50 bg-white'}`}
+                      >{v}{node.surface === v ? ' ✓' : ''}</button>
                     ))}
-                    {node.bgVariant !== undefined && (
+                    {node.surface !== undefined && (
                       <button
-                        onClick={() => handleUpdate(path, n => { const { bgVariant: _, ...rest } = n as LayoutNodeRef; return rest as LayoutNode })}
+                        onClick={() => handleUpdate(path, n => { const { surface: _, ...rest } = n as LayoutNodeRef; return rest as LayoutNode })}
                         className="px-2 py-1 text-xs border rounded border-red-200 text-red-400 hover:bg-red-50 bg-white"
                       >クリア</button>
                     )}

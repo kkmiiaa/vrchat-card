@@ -65,7 +65,7 @@ export const qrCodeComponent: ComponentDef<QrCodeValue> = {
   key: 'qr-code',
   defaultValue: {},
   variants: ['simple', 'glass'],
-  supportsBgVariant: false,
+  supportsSurface: false,
   isEmpty: () => true,
   CardItem({ value, ctx, variant = 'simple', blockConfig, label }) {
     const urlType: UrlType = (blockConfig?.urlType as UrlType | undefined) ?? 'card'

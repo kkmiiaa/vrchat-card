@@ -1,6 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 import { ColorPicker } from './colorPicker'
 
 type ColorStatusField = { key: string; label: string; color: string }
@@ -23,15 +23,15 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
   key: 'color-status',
   defaultValue: {},
   variants: ['simple', 'compact', 'cards'],
-  supportsBgVariant: true,
-  CardItem({ value, ctx, variant = 'simple', bgVariant, blockConfig, label }) {
+  supportsSurface: true,
+  CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
     const safe = (value && typeof value === 'object') ? value as Record<string, string> : {}
     const fields = getFields(blockConfig)
 
     if (variant === 'cards') {
       const fs = ctx.fontSize.sm
       const dotSize = ctx.cardWidth * 0.006
-      const cardBgStyle = BG_VARIANT_STYLE[bgVariant ?? 'glass']
+      const cardBgStyle = SURFACE_STYLE[surface ?? 'glass']
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
           {fields.map((f, i) => (
@@ -41,7 +41,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
               borderLeft: `3px solid ${f.color}`,
               borderRadius: ctx.cardWidth * 0.006,
               background: cardBgStyle.background,
-              boxShadow: (bgVariant ?? 'glass') === 'glass' ? '0 1px 4px rgba(0,0,0,0.08)' : undefined,
+              boxShadow: (surface ?? 'glass') === 'glass' ? '0 1px 4px rgba(0,0,0,0.08)' : undefined,
               padding: `${ctx.cardWidth * 0.002 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px ${ctx.cardWidth * 0.002 * ctx.paddingScale}px ${ctx.cardWidth * 0.005 * ctx.paddingScale}px`,
               flex: 1, minHeight: 0, overflow: 'hidden',
             }}>
@@ -83,10 +83,10 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
 
     // default
     const fs = ctx.fontSize.sm
-    const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
+    const effectiveBgVariant = (label && (surface === 'transparent' || surface === undefined))
        ? 'simple'
-      : (bgVariant ?? 'transparent')
-    const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
+      : (surface ?? 'transparent')
+    const bgStyle = SURFACE_STYLE[effectiveBgVariant]
     return (
       <div style={{ display: 'flex', flexDirection: label?.dir === 'row' ? 'row' : 'column', gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 4, width: '100%', alignItems: label?.dir === 'row' ? 'center' : 'stretch' }}>
         {label && (

@@ -1,6 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { BG_VARIANT_STYLE } from './types'
+import { SURFACE_STYLE } from './types'
 import { renderIcon, IconPicker } from './iconRegistry'
 import { ColorPicker } from './colorPicker'
 
@@ -8,7 +8,7 @@ export const selectComponent: ComponentDef<string> = {
   key: 'select',
   defaultValue: '',
   variants: ['simple', 'badge', 'compact'],
-  CardItem({ value, ctx, variant = 'simple', bgVariant, label, blockConfig }) {
+  CardItem({ value, ctx, variant = 'simple', surface, label, blockConfig }) {
     if (!value) {
       if (blockConfig?.hideWhenEmpty) return null
       return (
@@ -25,9 +25,9 @@ export const selectComponent: ComponentDef<string> = {
     const color = optionColor ?? ctx.theme.subText
     const icon = matchedOption?.icon
 
-    // label があるとき: bgVariant コンテナの中にラベル＋値を描く
+    // label があるとき: surface コンテナの中にラベル＋値を描く
     if (label) {
-      const bgStyle = BG_VARIANT_STYLE[bgVariant ?? 'simple']
+      const bgStyle = SURFACE_STYLE[surface ?? 'simple']
       const fs = ctx.fontSize.md
       return (
         <div style={{ width: '100%', background: bgStyle.background, border: bgStyle.border, boxShadow: bgStyle.boxShadow, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: label.dir === 'row' ? 'row' : 'column', gap: label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003, alignItems: label.dir === 'row' ? 'center' : 'stretch', justifyContent: label.dir === 'row' ? undefined : 'center', overflow: 'hidden' }}>

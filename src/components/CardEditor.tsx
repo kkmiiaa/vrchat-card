@@ -149,7 +149,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       setDraftStatus('saved')
     }, 1500)
     return () => clearTimeout(timer)
-  }, [values, cardId, isLoggedIn, initialized])
+  }, [values, background, cardId, isLoggedIn, initialized])
 
   // ギャラリー画像が変わったら Storage にアップロード
   const prevGalleryImages = useRef<(File | null)[]>([null, null, null])
@@ -337,7 +337,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     setSaveModalLoading(false)
     window.location.href = `/card/${currentCardId}?created=1`
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cardId, values, template.id, supabase])
+  }, [cardId, values, background, template.id, supabase])
 
 
   // V1ログイン後の自動マイグレーション

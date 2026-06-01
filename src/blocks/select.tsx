@@ -7,7 +7,7 @@ import { ColorPicker } from './colorPicker'
 export const selectComponent: ComponentDef<string> = {
   key: 'select',
   defaultValue: '',
-  variants: ['simple', 'badge', 'compact'],
+  variants: ['simple', 'badge', 'compact', 'chips'],
   CardItem({ value, ctx, variant = 'simple', surface, label, blockConfig }) {
     if (!value) {
       if (blockConfig?.hideWhenEmpty) return null
@@ -36,6 +36,41 @@ export const selectComponent: ComponentDef<string> = {
             {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
           </div>
           <span style={{ fontSize: fs, lineHeight: 1, color, fontWeight: 700, fontFamily: ctx.fontFamily }}>{icon && renderIcon(icon, fs)}{displayValue}</span>
+        </div>
+      )
+    }
+
+    // chips: 全選択肢を並べ、選択済みをハイライト（単一選択版）
+    if (variant === 'chips') {
+      const accentColor = blockConfig?.accentColor as string | undefined ?? ctx.theme.accent
+      return (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.004}px 0` }}>
+          {options.map(opt => {
+            const selected = value === opt.value
+            const color = opt.color ?? accentColor
+            return (
+              <span
+                key={opt.value}
+                style={{
+                  fontSize: ctx.fontSize.sm,
+                  fontFamily: ctx.fontFamily,
+                  fontWeight: selected ? 700 : 400,
+                  padding: `${ctx.cardWidth * 0.004}px ${ctx.cardWidth * 0.012}px`,
+                  borderRadius: 999,
+                  border: `1.5px solid ${selected ? color : 'rgba(0,0,0,0.18)'}`,
+                  background: selected ? color : 'rgba(255,255,255,0.0)',
+                  color: selected ? '#fff' : ctx.theme.text,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {opt.icon && <span style={{ display: 'inline-flex', alignItems: 'center' }}>{renderIcon(opt.icon, ctx.fontSize.sm)}</span>}
+                {opt.label || opt.value}
+              </span>
+            )
+          })}
         </div>
       )
     }

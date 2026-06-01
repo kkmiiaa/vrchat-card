@@ -25,10 +25,8 @@
 
 ### DB・インフラ（優先度：中）
 
-- [ ] **`announcements` テーブル DROP** — コード側参照は全削除済み。Supabase ダッシュボードまたは `DROP TABLE announcements;` で DB テーブルを削除
-- [ ] **Supabase プロジェクト作り直し**
-  - 目的: availability zone の設定ミス修正
-  - 手順: DB スキーマ確定 → マイグレーションを 1 ファイルに集約 → 新プロジェクトに適用
+- ✅ **`announcements` テーブル DROP** — テーブルは存在しないことを確認済み
+- ✅ **Supabase プロジェクト作り直し** — 完了済み（vaacard プロジェクト、ap-northeast-1）
 
 ### デザイン（随時）
 

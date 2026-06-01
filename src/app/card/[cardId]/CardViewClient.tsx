@@ -618,16 +618,6 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
                 <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                 {publishState === 'saving' ? '...' : 'Xで共有'}
               </button>
-              <button
-                onClick={handlePublish}
-                disabled={publishState === 'saving'}
-                className="flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] rounded-full px-4 py-1.5 hover:opacity-90 transition-opacity shadow-sm shadow-sky-200 disabled:opacity-50"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-                マイページに保存
-              </button>
             </div>
           )}
           <HeaderAuth variant="white" />
@@ -858,7 +848,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
           {/* 展開時のボタン群 */}
           <div
             className="flex flex-col items-end gap-2 overflow-hidden transition-all duration-300"
-            style={{ maxHeight: fabExpanded ? 280 : 0, opacity: fabExpanded ? 1 : 0 }}
+            style={{ maxHeight: fabExpanded ? 200 : 0, opacity: fabExpanded ? 1 : 0 }}
           >
             <Link
               href={`/card/${cardId}/edit`}
@@ -886,16 +876,6 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               Xで共有
-            </button>
-            <button
-              onClick={handlePublish}
-              disabled={publishState === 'saving'}
-              className="flex items-center gap-2 bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white rounded-full px-4 py-2.5 shadow-lg shadow-sky-200 text-sm font-semibold disabled:opacity-50"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
-              マイページに保存
             </button>
           </div>
           {/* トグルボタン */}

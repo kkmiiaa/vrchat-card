@@ -7,7 +7,7 @@ import { ColorPicker } from './colorPicker'
 export const multiSelectComponent: ComponentDef<string[]> = {
   key: 'multi-select',
   defaultValue: [],
-  variants: ['simple', 'slash', 'icon', 'icon-slash'],
+  variants: ['simple', 'slash', 'icon', 'icon-slash', 'chips'],
   supportsSurface: true,
   surfaceFor: ['slash'],
   CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
@@ -97,7 +97,42 @@ export const multiSelectComponent: ComponentDef<string[]> = {
       )
     }
 
-    // default & icon: badges with option colors
+    // chips: 全選択肢を並べ、選択済みをハイライト
+    if (variant === 'chips') {
+      const accentColor = blockConfig?.accentColor as string | undefined ?? ctx.theme.accent
+      return (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.004}px 0` }}>
+          {options.map(opt => {
+            const selected = items.includes(opt.value)
+            const color = opt.color ?? accentColor
+            return (
+              <span
+                key={opt.value}
+                style={{
+                  fontSize: fs,
+                  fontFamily: ctx.fontFamily,
+                  fontWeight: selected ? 700 : 400,
+                  padding: `${ctx.cardWidth * 0.004}px ${ctx.cardWidth * 0.012}px`,
+                  borderRadius: 999,
+                  border: `1.5px solid ${selected ? color : 'rgba(0,0,0,0.18)'}`,
+                  background: selected ? color : 'rgba(255,255,255,0.0)',
+                  color: selected ? '#fff' : ctx.theme.text,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {opt.icon && <span style={{ display: 'inline-flex', alignItems: 'center' }}>{renderIcon(opt.icon, fs)}</span>}
+                {opt.label || opt.value}
+              </span>
+            )
+          })}
+        </div>
+      )
+    }
+
+    // simple & icon: selected items only as badges
     if (!items.length) {
       if (blockConfig?.hideWhenEmpty) return null
       return <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: ctx.fontSize.sm, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>-</span></div>

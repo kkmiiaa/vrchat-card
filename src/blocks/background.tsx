@@ -1,21 +1,46 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ComponentDef, BackgroundValue } from './types'
 
-// 上段: 薄色、下段: 同色相の濃色 (10列ペア)
-const PALETTE = [
-  '#ffffff', '#f3f4f6', '#dbeafe', '#fcd5ce', '#fce7f3',
-  '#ede9fe', '#e0f7fa', '#d1fae5', '#fef9c3', '#ffedd5',
-  '#333333', '#6b7280', '#60a5fa', '#f87171', '#f472b6',
-  '#a78bfa', '#38bdf8', '#34d399', '#facc15', '#fb923c',
-]
-
-// くすみカラー（flat デザイン向け）
-const MUTED_PALETTE = [
-  '#e8f0e0', '#e8ede4', '#f0e8d8', '#f0e4e4', '#ede4f0',
-  '#e4ecf0', '#e4f0ec', '#f0f0e4', '#e8e4dc', '#f5f0eb',
-  '#b8c4b0', '#c4b8a8', '#c4a8a8', '#b8a8c4', '#a8b8c4',
-  '#a8c4bc', '#c4c4a8', '#c4b8a0', '#9eab96', '#8fa89e',
+const COLOR_THEMES: { id: string; label: string; colors: string[] }[] = [
+  {
+    id: 'basic',
+    label: 'ベーシック',
+    colors: [
+      '#ffffff', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af',
+      '#6b7280', '#4b5563', '#374151', '#1f2937', '#111827',
+    ],
+  },
+  {
+    id: 'cute-muted',
+    label: 'くすみ・かわいい',
+    colors: [
+      '#fde8ec', '#fde8d8', '#fef4d8', '#e8f5e0', '#d8eef8',
+      '#e8d8f8', '#f8d8f0', '#d8f0ee', '#f0e8d8', '#e8e0f8',
+      '#f0b8c8', '#f0cdb8', '#f0e0b8', '#b8d8b0', '#b0ccec',
+      '#c4b0ec', '#ecb0d8', '#b0e0d8', '#e0cdb8', '#c8b8ec',
+    ],
+  },
+  {
+    id: 'earth',
+    label: 'アース・ナチュラル',
+    colors: [
+      '#e8f0e0', '#edf0e4', '#f0e8d8', '#f0e4e0', '#ece4f0',
+      '#e0ecf0', '#e0f0e8', '#f0f0e0', '#ece8e0', '#f4efe8',
+      '#9eab96', '#a8a090', '#a89888', '#a89090', '#9890a8',
+      '#8898a8', '#8aa89a', '#a8a888', '#a89878', '#8a9e96',
+    ],
+  },
+  {
+    id: 'vivid',
+    label: 'ビビッド',
+    colors: [
+      '#dbeafe', '#fcd5ce', '#fce7f3', '#ede9fe', '#e0f7fa',
+      '#d1fae5', '#fef9c3', '#ffedd5', '#fee2e2', '#fef3c7',
+      '#60a5fa', '#f87171', '#f472b6', '#a78bfa', '#38bdf8',
+      '#34d399', '#facc15', '#fb923c', '#ef4444', '#f59e0b',
+    ],
+  },
 ]
 
 const PRESET_GRADIENTS = [
@@ -75,6 +100,8 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
     }, [])
 
     const set = (patch: Partial<BackgroundValue>) => onChange({ ...value, ...patch })
+    const [openTheme, setOpenTheme] = useState<string | null>(null)
+    const hexRef = useRef<HTMLInputElement>(null)
 
     function applyGradient(from: string, to: string) {
       set({ type: 'gradient', value: [from, to], imageFile: null, base64: null })
@@ -90,35 +117,54 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
         {/* 単色 */}
         <div>
           <span className="text-xs font-medium text-gray-500">{t.solidColorBg}</span>
-          <div className="grid grid-cols-10 gap-1.5 mt-2">
-            {PALETTE.map(color => (
-              <ColorSwatch
-                key={color}
-                color={color}
-                selected={value.type === 'color' && value.value === color}
-                onClick={() => set({ type: 'color', value: color, imageFile: null, base64: null })}
-              />
-            ))}
-          </div>
-          {/* くすみカラー */}
-          <p className="text-[10px] text-gray-400 mt-2 mb-1">くすみ・アース系</p>
-          <div className="grid grid-cols-10 gap-1.5">
-            {MUTED_PALETTE.map(color => (
-              <ColorSwatch
-                key={color}
-                color={color}
-                selected={value.type === 'color' && value.value === color}
-                onClick={() => set({ type: 'color', value: color, imageFile: null, base64: null })}
-              />
-            ))}
+          <div className="flex flex-col gap-1 mt-2">
+            {COLOR_THEMES.map(theme => {
+              const isOpen = openTheme === theme.id
+              return (
+                <div key={theme.id} className="border border-gray-100 rounded-lg overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setOpenTheme(isOpen ? null : theme.id)}
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      {/* テーマのカラーチップ3つをプレビュー */}
+                      <span className="flex gap-0.5">
+                        {theme.colors.slice(0, 5).map(c => (
+                          <span key={c} className="w-3 h-3 rounded-sm border border-black/5" style={{ background: c }} />
+                        ))}
+                      </span>
+                      {theme.label}
+                    </span>
+                    <span className="text-gray-300 text-[10px]">{isOpen ? '▲' : '▼'}</span>
+                  </button>
+                  {isOpen && (
+                    <div className="px-2.5 pb-2.5 grid grid-cols-10 gap-1.5">
+                      {theme.colors.map(color => (
+                        <ColorSwatch
+                          key={color}
+                          color={color}
+                          selected={value.type === 'color' && value.value === color}
+                          onClick={() => {
+                            set({ type: 'color', value: color, imageFile: null, base64: null })
+                            if (hexRef.current) hexRef.current.value = color
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
           {/* hex 直接入力 */}
-          <div className="flex items-center gap-2 mt-3">
+          <div className="flex items-center gap-2 mt-2">
             <div
               className="w-7 h-7 rounded-lg border border-black/10 flex-shrink-0"
               style={{ backgroundColor: value.type === 'color' && typeof value.value === 'string' ? value.value : '#ffffff' }}
             />
             <input
+              ref={hexRef}
               type="text"
               placeholder="#e8f0e0"
               defaultValue={value.type === 'color' && typeof value.value === 'string' ? value.value : ''}
@@ -181,7 +227,7 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
             </div>
             {/* 選択中の側のパレット */}
             <div className="mt-2 grid grid-cols-10 gap-1.5">
-              {PALETTE.map(color => (
+              {COLOR_THEMES.flatMap(t => t.colors).map(color => (
                 <ColorSwatch
                   key={color}
                   color={color}

@@ -4,7 +4,6 @@ import { type Metadata } from 'next'
 import CardViewWrapper from './CardViewWrapper'
 import { fetchTemplateLayout } from '@/lib/templateLayout'
 
-const validTemplates = ['vrchat-simple', 'vrchat-glass']
 
 export async function generateMetadata({ params }: { params: Promise<{ cardId: string }> }): Promise<Metadata> {
   const { cardId } = await params
@@ -66,8 +65,6 @@ export default async function CardViewPage({ params }: { params: Promise<{ cardI
   if (card.visibility === 'private' && card.user_id !== user?.id) {
     redirect('/auth/login')
   }
-
-  if (!validTemplates.includes(card.template_id)) notFound()
 
   const isOwner = user?.id === card.user_id
 

@@ -303,7 +303,8 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     // background は card_data から分離したカラムで管理するため除外
     const { background: migratedBg, ...migratedValues } = migratedRaw as Record<string, unknown> & { background?: BackgroundValue }
     // localStorage に background があれば background state より優先（初期化が間に合わない場合の保険）
-    const saveBackground = migratedBg ?? background
+    // background は card_data 分離カラムで管理するため、migratedBg（values 由来）は使わず background state を使う
+    const saveBackground = background
 
     if (!currentCardId) {
       const result = await createCard({

@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { fetchTemplateLayout } from '@/lib/templateLayout'
 import VrchatCardEditorClient from './VrchatCardEditorClient'
 
@@ -8,8 +10,26 @@ export const metadata: Metadata = {
 }
 
 export default async function VrchatCardPage() {
-  // dbRow（JSON シリアライズ可能）をサーバーで取得し、
-  // template 構築（React 関数を含む）はクライアント側で行う
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) {
+    // ログイン済み: V1 カードを created_at 昇順で取得
+    const { data: v1Cards } = await supabase
+      .from('cards')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('template_id', 'v1')
+      .order('created_at', { ascending: true })
+      .limit(1)
+
+    if (v1Cards && v1Cards.length > 0) {
+      redirect(`/card/${v1Cards[0].id}/edit`)
+    } else {
+      redirect('/card/new')
+    }
+  }
+
   const templateDbRow = await fetchTemplateLayout('v1')
   return <VrchatCardEditorClient templateDbRow={templateDbRow} />
 }

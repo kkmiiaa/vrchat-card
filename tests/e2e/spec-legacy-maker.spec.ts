@@ -44,17 +44,9 @@ test.describe('A. アクセス・リダイレクト', () => {
     await ctx.close();
   });
 
-  // このテストはログイン済みセッションが必要。authenticated プロジェクトで実行すること
-  test('ログイン済みの場合は /card/new にリダイレクトされる', async ({ page, context }) => {
-    // storageState が空（未ログイン）ならスキップ
-    const cookies = await context.cookies();
-    if (!cookies.some(c => c.name.includes('auth') || c.name.includes('sb-'))) {
-      test.skip();
-      return;
-    }
-    await page.goto('/card/vrchat');
-    await expect(page).toHaveURL('/card/new');
-  });
+  // TC-6-A-4: ログイン済み・V1カードなし → /card/new にリダイレクト
+  // TC-6-A-5: ログイン済み・V1カードあり → 最古のV1カード編集画面にリダイレクト
+  // → TC-6-I に詳細テストあり
 });
 
 // ─── B. 表示（エラーなし・主要 UI） ─────────────────────────────────────────
@@ -360,11 +352,12 @@ test.describe('G. ログイン訴求 UI', () => {
     await expect(page.getByRole('button', { name: /マイページに保存|マイページを作成/ })).toBeVisible();
   });
 
-  test('「マイページに保存」を押すとログイン画面に遷移する', async ({ page }) => {
+  test('「マイページに保存」を押すと /auth/login?next=/card/vrchat に遷移する', async ({ page }) => {
     await page.goto('/card/vrchat');
     await page.waitForLoadState('networkidle');
     await page.getByRole('button', { name: /マイページに保存|マイページを作成/ }).click();
     await expect(page).toHaveURL(/auth\/login/, { timeout: 5000 });
+    await expect(page).toHaveURL(/next=.*card.*vrchat/, { timeout: 5000 });
   });
 });
 
@@ -393,5 +386,69 @@ test.describe('H. 自動マイグレーション（ログイン済み）', () =>
     await page.goto('/card/new');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('body')).not.toContainText('500');
+  });
+});
+
+// ─── I. ログイン済みリダイレクト（TC-6-I） ───────────────────────────────────
+// ログイン済みセッションが必須。[authenticated] プロジェクトのみ有効。
+
+// 直列実行: V1カードの状態をテスト間で干渉させない
+test.describe.serial('I. ログイン済みリダイレクト', () => {
+  test.use({ storageState: 'tests/.auth/user.json' });
+
+  // 各テスト前に既存 V1 カードをすべて削除してクリーンな状態にする
+  test.beforeEach(async ({ request }, testInfo) => {
+    if (testInfo.project.name !== 'authenticated') return;
+    const cardsRes = await request.get('/api/cards');
+    if (!cardsRes.ok()) return;
+    const cards = await cardsRes.json();
+    const v1Cards = (cards as Array<{ id: string; template_id: string }>).filter(c => c.template_id === 'v1');
+    for (const card of v1Cards) {
+      await request.delete(`/api/cards/${card.id}`);
+    }
+  });
+
+  test('TC-6-I-1: V1カードなしで /card/vrchat にアクセスすると /card/new にリダイレクト', async ({ page }, testInfo) => {
+    if (testInfo.project.name !== 'authenticated') test.skip();
+    await page.goto('/card/vrchat');
+    await expect(page).toHaveURL('/card/new', { timeout: 5000 });
+  });
+
+  test('TC-6-I-2: V1カード1枚ありで /card/vrchat にアクセスすると /card/{id}/edit にリダイレクト', async ({ page, request }, testInfo) => {
+    if (testInfo.project.name !== 'authenticated') test.skip();
+    const createRes = await request.post('/api/cards', {
+      data: { templateId: 'v1', cardData: { name: 'リダイレクトテスト' }, visibility: 'private' },
+    });
+    expect(createRes.ok()).toBeTruthy();
+    const { cardId } = await createRes.json();
+
+    try {
+      await page.goto('/card/vrchat');
+      await expect(page).toHaveURL(new RegExp(`/card/${cardId}/edit`), { timeout: 5000 });
+    } finally {
+      await request.delete(`/api/cards/${cardId}`);
+    }
+  });
+
+  test('TC-6-I-3: V1カード複数ありで /card/vrchat にアクセスすると最古のカード編集画面にリダイレクト', async ({ page, request }, testInfo) => {
+    if (testInfo.project.name !== 'authenticated') test.skip();
+    const res1 = await request.post('/api/cards', {
+      data: { templateId: 'v1', cardData: { name: '古いカード' }, visibility: 'private' },
+    });
+    const res2 = await request.post('/api/cards', {
+      data: { templateId: 'v1', cardData: { name: '新しいカード' }, visibility: 'private' },
+    });
+    expect(res1.ok()).toBeTruthy();
+    expect(res2.ok()).toBeTruthy();
+    const { cardId: oldCardId } = await res1.json();
+    const { cardId: newCardId } = await res2.json();
+
+    try {
+      await page.goto('/card/vrchat');
+      await expect(page).toHaveURL(new RegExp(`/card/${oldCardId}/edit`), { timeout: 5000 });
+    } finally {
+      await request.delete(`/api/cards/${oldCardId}`);
+      await request.delete(`/api/cards/${newCardId}`);
+    }
   });
 });

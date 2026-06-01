@@ -14,6 +14,7 @@
 ### 機能追加（優先度：中）
 
 - ✅ **探索フィルター実装** — `gender`/`env`/`lang`/`friendPolicy` フィルターを `src/app/api/cards/explore/route.ts` に実装。Pro プランのみ有効。E2E 11/11 通過。
+- ✅ **`/card/vrchat` 挙動整備** — ログイン済みリダイレクト（V1カードあり→最古へ、なし→`/card/new`）、Xシェアをログイン不要化、nudge を画像保存・Xシェア後に表示。TC-6-E/I E2E 追加・全パス。
 
 ### 品質・テスト（優先度：中）
 

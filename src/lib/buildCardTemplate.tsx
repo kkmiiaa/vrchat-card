@@ -100,7 +100,7 @@ export function buildCardTemplateFromDefinition(
     })
 
   const template: CardTemplate = {
-    id:           resolvedDefinition.id as 'v1' | 'v2',
+    id:           resolvedDefinition.id as string,
     title:        dbRow?.label ?? definition?.label ?? '',
     desc:         dbRow?.description ?? '',
     badge:        '',

@@ -19,7 +19,7 @@ export default async function VrchatCardPage() {
       .from('cards')
       .select('id')
       .eq('user_id', user.id)
-      .eq('template_id', 'v1')
+      .eq('template_id', 'vrchat-simple')
       .order('created_at', { ascending: true })
       .limit(1)
 
@@ -30,6 +30,6 @@ export default async function VrchatCardPage() {
     }
   }
 
-  const templateDbRow = await fetchTemplateLayout('v1')
+  const templateDbRow = await fetchTemplateLayout('vrchat-simple')
   return <VrchatCardEditorClient templateDbRow={templateDbRow} />
 }

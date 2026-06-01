@@ -63,7 +63,7 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
     const raw = localStorage.getItem(localStorageKey)
     const cardData = raw ? JSON.parse(raw) : {}
 
-    const created = await createCard({ templateId: 'v2', cardData, title: 'VRChat Card', visibility })
+    const created = await createCard({ templateId: 'vrchat-glass', cardData, title: 'VRChat Card', visibility })
 
     if ('error' in created) {
       setLoading(false)

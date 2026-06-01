@@ -433,7 +433,7 @@ export type TemplateSection = {
 
 /** テンプレート定義 */
 export type CardTemplate = {
-  id: 'v1' | 'v2'
+  id: string
   title: string
   desc: string
   badge: string

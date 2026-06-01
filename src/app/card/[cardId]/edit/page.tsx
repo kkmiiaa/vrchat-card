@@ -5,7 +5,7 @@ import { migrateLegacyCardData } from '@/lib/legacyCardDataMigration'
 import CardEditorClient from './CardEditorClient'
 
 /** DB 定義が存在するテンプレート ID（クライアント側でテンプレートを構築する） */
-const definitionTemplateIds = new Set(['v1', 'v2'])
+const definitionTemplateIds = new Set(['vrchat-simple', 'vrchat-glass'])
 
 export default async function CardPage({ params }: { params: Promise<{ cardId: string }> }) {
   const { cardId } = await params

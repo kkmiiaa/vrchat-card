@@ -8,7 +8,7 @@ import { CARD_LANDSCAPE_WIDTH, CARD_LANDSCAPE_HEIGHT, CARD_PORTRAIT_WIDTH } from
  * variant / surface はレイアウト固有のため ref 側で指定する。
  */
 export const cardV1Definition: TemplateDefinition = {
-  id: 'v1',
+  id: 'vrchat-simple',
   label: 'VRChat 自己紹介カード v1',
   theme: {
     accent:  '#00AADB',

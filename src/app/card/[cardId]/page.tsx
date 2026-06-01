@@ -4,7 +4,7 @@ import { type Metadata } from 'next'
 import CardViewWrapper from './CardViewWrapper'
 import { fetchTemplateLayout } from '@/lib/templateLayout'
 
-const validTemplates = ['v1', 'v2']
+const validTemplates = ['vrchat-simple', 'vrchat-glass']
 
 export async function generateMetadata({ params }: { params: Promise<{ cardId: string }> }): Promise<Metadata> {
   const { cardId } = await params

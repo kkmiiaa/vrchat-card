@@ -13,8 +13,8 @@ type Props = {
 type Tab = 'edit' | 'new'
 
 const BASE_OPTIONS = [
-  { value: 'v2', label: 'v2（Glass Card）' },
-  { value: 'v1', label: 'v1（Standard）' },
+  { value: 'vrchat-glass', label: 'vrchat-glass（Glass Card）' },
+  { value: 'vrchat-simple', label: 'vrchat-simple（Standard）' },
 ]
 
 export default function TemplateBuilderClient({ savedLayouts: initialLayouts, communities }: Props) {
@@ -102,7 +102,7 @@ export default function TemplateBuilderClient({ savedLayouts: initialLayouts, co
       },
     }))
 
-    setNewId(''); setNewLabel(''); setNewDescription(''); setBaseId('v2')
+    setNewId(''); setNewLabel(''); setNewDescription(''); setBaseId('vrchat-glass')
     setSelectedCommunities(communities.length === 1 ? [communities[0].slug] : [])
     setCreating(false)
     setTab('edit')

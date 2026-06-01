@@ -60,6 +60,35 @@
 
 ## 作業ログ
 
+### 2026-06-01（続き 4）
+
+#### カードエディタの「マイページに保存」フロー実装
+
+- `saveCard.ts`: `UpdateCardParams` に `ogp_version` を追加
+- `page.tsx` → `CardEditorClient` → `CardEditor` に `ogpVersion` prop を伝達
+- `handleShareByUrl`: 空フィールド確認モーダル（soft check）追加、保存時に `ogp_version` インクリメント
+- `handlePostToX`: `cardId` 未保存時は保存フローへ誘導、保存済み時は `?v=N` 付き URL で X 投稿
+
+#### ヘッダーテストの整備
+
+- `spec-header.spec.ts`: 全ページ×全ログイン状態のボタン存在・不在テストを網羅（TC-1-2-5, TC-1-3-2〜14）
+- `HeaderAuth.tsx`: アバターリンクに `aria-label="マイページ"` 追加（アクセシビリティ改善）
+- `ProfilePage.tsx`: 設定ボタンに `aria-label="設定"` 追加
+- `global-setup.ts`: `TEST_PUBLIC_CARD_ID` / `TEST_PUBLIC_SLUG` に対応する別ユーザーデータを自動生成
+- ローカル Supabase スキーマ未適用が原因のテスト全滅を `supabase db reset` で解消
+
+#### SNSブロックのインタラクティブ対応
+
+- `CardRenderContext` に `isInteractive` を追加
+- `GenericCardRenderer`: `ctx` に `isInteractive` を設定
+- `buildCardTemplate.tsx`: `CardRenderer` の `isInteractive` を `GenericCardRenderer` に渡すよう修正（欠落していた）
+- `simpleSns` / `snsWithFriendPolicy` / `sns`: `ctx.isInteractive` が `true` のとき
+  - X プラットフォーム → `x.com` リンク
+  - その他 → クリップボードコピー + `vaacard:copied` イベント
+  - `vaacard-sns-item` クラス付与でホバー時のscale+青い影エフェクトを復元
+
+---
+
 ### 2026-06-01（続き 3）
 
 #### 「Xで共有」「画像で保存」「マイページに保存」の導線再設計

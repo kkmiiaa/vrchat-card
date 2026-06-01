@@ -13,9 +13,9 @@ export const ageComponent: ComponentDef<AgeValue> = {
   key: 'age',
   global: true,
   defaultValue: { searchTag: '', display: '' },
-  variants: ['default', 'badge'],
+  variants: ['simple', 'badge'],
   supportsBgVariant: true,
-  CardItem({ value, ctx, variant = 'default', bgVariant, label }) {
+  CardItem({ value, ctx, variant = 'simple', bgVariant, label }) {
     const safe: AgeValue = (value && typeof value === 'object' && 'searchTag' in value)
       ? value as AgeValue
       : { searchTag: '', display: '' }
@@ -23,7 +23,7 @@ export const ageComponent: ComponentDef<AgeValue> = {
     const isEmpty = !safe.searchTag && !safe.display
     const text = (isPrivate || isEmpty) ? '-' : (safe.display || safe.searchTag)
     const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-      ? 'default'
+       ? 'simple'
       : (bgVariant ?? 'transparent')
     const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
 

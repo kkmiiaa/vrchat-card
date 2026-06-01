@@ -14,7 +14,7 @@ type CustomItem = { label: string; mark: string }
 export const markListComponent: ComponentDef<{ marks: MarkMap; custom: CustomItem[] }> = {
   key: 'mark-list',
   defaultValue: { marks: {}, custom: [] },
-  variants: ['default'],
+  variants: ['simple'],
   CardItem({ value, ctx, blockConfig }) {
     const markDefs = (blockConfig?.marks as MarkDefinition[] | undefined) ?? DEFAULT_MARKS
     const configItems: ConfigItem[] = Array.isArray(blockConfig?.items) ? blockConfig!.items as ConfigItem[] : []

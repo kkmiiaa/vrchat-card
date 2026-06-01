@@ -8,9 +8,9 @@ export type LinkItemValue = { label: string; url: string }
 export const linkItemComponent: ComponentDef<LinkItemValue> = {
   key: 'linkItem',
   defaultValue: { label: '', url: '' },
-  variants: ['default', 'compact'],
+  variants: ['simple', 'compact'],
   supportsBgVariant: true,
-  CardItem({ value, ctx, variant = 'default', bgVariant, blockConfig, label }) {
+  CardItem({ value, ctx, variant = 'simple', bgVariant, blockConfig, label }) {
     const safe: LinkItemValue = (value && typeof value === 'object' && 'label' in value)
       ? value as LinkItemValue
       : { label: '', url: '' }
@@ -39,7 +39,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
 
     const fs = ctx.fontSize.md
     const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-      ? 'default'
+       ? 'simple'
       : (bgVariant ?? 'transparent')
     const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
     return (

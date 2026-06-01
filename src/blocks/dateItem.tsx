@@ -14,9 +14,9 @@ function formatIso(iso: string): string {
 export const dateItemComponent: ComponentDef<DateItemValue> = {
   key: 'dateItem',
   defaultValue: { display: '', iso: '' },
-  variants: ['default', 'compact', 'badge'],
+  variants: ['simple', 'compact', 'badge'],
   supportsBgVariant: true,
-  CardItem({ value, ctx, variant = 'default', bgVariant, label }) {
+  CardItem({ value, ctx, variant = 'simple', bgVariant, label }) {
     const safe: DateItemValue = (value && typeof value === 'object' && 'display' in value)
       ? value as DateItemValue
       : { display: '', iso: '' }
@@ -76,7 +76,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
     // default
     const fs = ctx.fontSize.md
     const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-      ? 'default'
+       ? 'simple'
       : (bgVariant ?? 'transparent')
     const bgStyleDefault = BG_VARIANT_STYLE[effectiveBgVariant]
     return (

@@ -64,10 +64,10 @@ function RoundedQR({ url, size, color }: { url: string; size: number; color: str
 export const qrCodeComponent: ComponentDef<QrCodeValue> = {
   key: 'qr-code',
   defaultValue: {},
-  variants: ['default', 'glass'],
+  variants: ['simple', 'glass'],
   supportsBgVariant: false,
   isEmpty: () => true,
-  CardItem({ value, ctx, variant = 'default', blockConfig, label }) {
+  CardItem({ value, ctx, variant = 'simple', blockConfig, label }) {
     const urlType: UrlType = (blockConfig?.urlType as UrlType | undefined) ?? 'card'
     const resolvedUrl =
       urlType === 'card'   ? (ctx.cardUrl ?? DEMO_URL) :

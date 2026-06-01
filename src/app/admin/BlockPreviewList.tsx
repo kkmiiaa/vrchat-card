@@ -714,7 +714,7 @@ function ComponentPreview({ name, category, inputType, format, description, exam
               componentKey: component.key,
               dataKey: dataKey || `(未設定)`,
               ...(formLabel ? { label: formLabel } : {}),
-              variant: 'default',
+              variant: 'simple',
               ...(Object.keys(blockConfig).length > 0 ? { blockConfig } : {}),
             }, null, 2)}
           </pre>

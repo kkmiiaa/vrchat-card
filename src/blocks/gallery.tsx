@@ -5,7 +5,7 @@ export const galleryComponent: ComponentDef<GalleryValue> = {
   key: 'gallery',
   defaultValue: { enabled: false, images: [null, null, null], base64: [null, null, null] },
   isEmpty: (v) => !v?.base64?.some(Boolean),
-  variants: ['default', 'glass'],
+  variants: ['simple', 'glass'],
   CardItem({ value, ctx, variant }) {
     if (!value?.base64?.some(Boolean)) return null
     const isGlass = variant === 'glass'

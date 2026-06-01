@@ -15,8 +15,8 @@ const ICONS: Record<string, React.ComponentType<{ style?: React.CSSProperties }>
 export const playEnvBlock: ComponentDef<any> = {
   key: 'playEnv',
   defaultValue: [],
-  variants: ['default', 'slash', 'icon'],  // default=バッジ, slash=スラッシュ区切り, icon=アイコン付きバッジ
-  CardItem({ value, ctx, variant = 'default', blockConfig }) {
+  variants: ['simple', 'slash', 'icon'],  // default=バッジ, slash=スラッシュ区切り, icon=アイコン付きバッジ
+  CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     const items = Array.isArray(value) ? value : []
     if (!items.length) {
       if (blockConfig?.hideWhenEmpty) return null

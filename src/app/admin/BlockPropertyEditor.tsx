@@ -19,7 +19,7 @@ export type BlockDisplaySettings = {
 
 export function defaultBlockDisplaySettings(component: ComponentDef<unknown>): BlockDisplaySettings {
   return {
-    variant: component.variants?.[0] ?? 'default',
+    variant: component.variants?.[0] ?? 'simple',
     bgVariant: 'transparent',
     label: '',
     subLabel: '',
@@ -31,7 +31,7 @@ export function defaultBlockDisplaySettings(component: ComponentDef<unknown>): B
 }
 
 const BG_VARIANT_OPTIONS: { value: BgVariant; label: string }[] = [
-  { value: 'default',     label: 'default' },
+  { value: 'simple', label: 'simple' },
   { value: 'glass',       label: 'glass' },
   { value: 'transparent', label: 'transparent' },
   { value: 'outline',     label: 'outline' },
@@ -75,7 +75,7 @@ export function BlockPropertyEditor({
   onChange: (patch: Partial<BlockDisplaySettings>) => void
   extras?: React.ReactNode
 }) {
-  const variants = component.variants ?? ['default']
+  const variants = component.variants ?? ['simple']
   const showBgVariant = isBgVariantApplicable(component, settings.variant)
 
   return (

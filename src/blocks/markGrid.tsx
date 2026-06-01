@@ -13,7 +13,7 @@ type ConfigItem = { label: string; required?: boolean }
 export const markGridComponent: ComponentDef<MarkGridValue> = {
   key: 'mark-grid',
   defaultValue: { marks: {}, custom: [] },
-  variants: ['default', 'white'],
+  variants: ['simple', 'white'],
   CardItem({ value, ctx, variant, blockConfig }) {
     const markDefs = (blockConfig?.marks as MarkDefinition[] | undefined) ?? DEFAULT_MARKS
     const cols = typeof blockConfig?.cols === 'number' ? blockConfig.cols : 3

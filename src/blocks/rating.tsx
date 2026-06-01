@@ -7,14 +7,14 @@ import { ColorPicker } from './colorPicker'
 export const ratingComponent: ComponentDef<number> = {
   key: 'rating',
   defaultValue: 0,
-  variants: ['default', 'compact'],
-  CardItem({ value, ctx, variant = 'default', bgVariant, blockConfig, label }) {
+  variants: ['simple', 'compact'],
+  CardItem({ value, ctx, variant = 'simple', bgVariant, blockConfig, label }) {
     const maxValue = typeof blockConfig?.maxValue === 'number' ? blockConfig.maxValue : 5
     const rating = typeof value === 'number' ? Math.min(maxValue, Math.max(0, value)) : 0
     const isCompact = variant === 'compact'
     const starSize = isCompact ? ctx.fontSize.sm * 1.2 : ctx.fontSize.lg * 1.2
     const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-      ? 'default'
+       ? 'simple'
       : (bgVariant ?? 'transparent')
     const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
     const icon = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '★'

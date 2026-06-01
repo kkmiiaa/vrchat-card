@@ -5,13 +5,13 @@ import { BG_VARIANT_STYLE } from './types'
 export const textComponent: ComponentDef<string> = {
   key: 'text',
   defaultValue: '',
-  variants: ['default'],
+  variants: ['simple'],
   supportsBgVariant: true,
   CardItem({ value, ctx, bgVariant, label, blockConfig }) {
     const fs = ctx.fontSize.lg
     // label（insetLabel）があるときはコンテナが見える必要があるため、transparent は default にフォールバック
     const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-      ? 'default'
+       ? 'simple'
       : (bgVariant ?? 'transparent')
     const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
     const multiline = blockConfig?.multiline !== false

@@ -14,7 +14,7 @@ export const DEFAULT_EXPRESSIVE_SELECT_VALUE: ExpressiveSelectValue = { tag: '',
 export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
   key: 'expressive-select',
   defaultValue: DEFAULT_EXPRESSIVE_SELECT_VALUE,
-  variants: ['default'],
+  variants: ['simple'],
   supportsBgVariant: true,
   CardItem({ value, ctx, bgVariant, blockConfig, label }) {
     const safe: ExpressiveSelectValue = (value && typeof value === 'object' && 'tag' in value)
@@ -27,7 +27,7 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
     const display = safe.display || optionLabel
     const fs = ctx.fontSize.md
     const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-      ? 'default'
+       ? 'simple'
       : (bgVariant ?? 'transparent')
     const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
 

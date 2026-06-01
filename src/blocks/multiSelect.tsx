@@ -7,10 +7,10 @@ import { ColorPicker } from './colorPicker'
 export const multiSelectComponent: ComponentDef<string[]> = {
   key: 'multi-select',
   defaultValue: [],
-  variants: ['default', 'slash', 'icon', 'icon-slash'],
+  variants: ['simple', 'slash', 'icon', 'icon-slash'],
   supportsBgVariant: true,
   bgVariantFor: ['slash'],
-  CardItem({ value, ctx, variant = 'default', bgVariant, blockConfig, label }) {
+  CardItem({ value, ctx, variant = 'simple', bgVariant, blockConfig, label }) {
     const items = Array.isArray(value) ? value : []
     const fs = ctx.fontSize.sm
     type OptionRow = { value: string; label: string; color?: string; icon?: string }
@@ -19,7 +19,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
 
     if (variant === 'slash') {
       const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-        ? 'default'
+         ? 'simple'
         : (bgVariant ?? 'transparent')
       const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
       return (
@@ -56,7 +56,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
     // icon-slash: [icon] text / [icon] text 形式でスラッシュ区切り
     if (variant === 'icon-slash') {
       const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-        ? 'default'
+         ? 'simple'
         : (bgVariant ?? 'transparent')
       const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
       const selectedOpts = items.map(v => getOption(v) ?? { value: v, label: v, icon: undefined, color: undefined })

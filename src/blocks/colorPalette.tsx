@@ -5,7 +5,7 @@ import { ColorPicker } from './colorPicker'
 export const colorPaletteComponent: ComponentDef<string[]> = {
   key: 'colorPalette',
   defaultValue: ['#60a5fa', '#4ade80', '#fbbf24', '#f87171'],
-  variants: ['default', 'compact'],
+  variants: ['simple', 'compact'],
   CardItem({ value, ctx, variant, bgVariant: _bgVariant, blockConfig }) {
     const maxCount = typeof blockConfig?.maxCount === 'number' ? blockConfig.maxCount : undefined
     const allColors = Array.isArray(value) ? value : []

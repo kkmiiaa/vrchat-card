@@ -17,8 +17,8 @@ const DEFAULT_MAX_ITEMS = 4
 export const colorLabeledListComponent: ComponentDef<ColorLabeledListValue> = {
   key: 'colorLabeledList',
   defaultValue: { items: [] },
-  variants: ['default', 'compact'],
-  CardItem({ value, ctx, blockConfig, variant = 'default' }) {
+  variants: ['simple', 'compact'],
+  CardItem({ value, ctx, blockConfig, variant = 'simple' }) {
     const palette = (blockConfig?.palette as string[] | undefined) ?? DEFAULT_PALETTE
     const maxItems = (blockConfig?.maxItems as number | undefined) ?? DEFAULT_MAX_ITEMS
     const items = (value?.items ?? []).slice(0, maxItems)

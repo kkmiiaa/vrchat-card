@@ -6,7 +6,7 @@ import { ColorPicker } from './colorPicker'
 export const tagListComponent: ComponentDef<string[]> = {
   key: 'tagList',
   defaultValue: [],
-  variants: ['default', 'compact'],
+  variants: ['simple', 'compact'],
   CardItem({ value, ctx, variant, bgVariant: _bgVariant, blockConfig }) {
     const tags = Array.isArray(value) ? value : []
     const isCompact = variant === 'compact'

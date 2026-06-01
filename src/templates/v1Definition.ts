@@ -87,9 +87,9 @@ export const cardV1Definition: TemplateDefinition = {
           justify: 'space-between',
           children: [
             { type: 'ref', blockId: 'profileImage', minH: 24 },
-            { type: 'ref', blockId: 'language',     minH: 3,  contentFontScale: 0.9, bgVariant: 'default' },
-            { type: 'ref', blockId: 'micOnRate',    minH: 3,  contentFontScale: 0.9, bgVariant: 'default' },
-            { type: 'ref', blockId: 'status',       minH: 12, bgVariant: 'default',  subLabel: 'status description' },
+            { type: 'ref', blockId: 'language',     minH: 3,  contentFontScale: 0.9, bgVariant: 'simple' },
+            { type: 'ref', blockId: 'micOnRate',    minH: 3,  contentFontScale: 0.9, bgVariant: 'simple' },
+            { type: 'ref', blockId: 'status',       minH: 12, bgVariant: 'simple',  subLabel: 'status description' },
           ],
         },
         {
@@ -98,14 +98,14 @@ export const cardV1Definition: TemplateDefinition = {
           gap: 2,
           justify: 'space-between',
           children: [
-            { type: 'ref', blockId: 'name', minH: 5, contentFontScale: 1.4, bgVariant: 'default' },
+            { type: 'ref', blockId: 'name', minH: 5, contentFontScale: 1.4, bgVariant: 'simple' },
             {
               type: 'row',
               minH: 6,
               gap: 2,
               children: [
-                { type: 'ref', blockId: 'gender',  minW: 12, minH: 2, contentFontScale: 0.9, bgVariant: 'default' },
-                { type: 'ref', blockId: 'playEnv', flex: 1,                                  bgVariant: 'default' },
+                { type: 'ref', blockId: 'gender',  minW: 12, minH: 2, contentFontScale: 0.9, bgVariant: 'simple' },
+                { type: 'ref', blockId: 'playEnv', flex: 1,                                  bgVariant: 'simple' },
               ],
             },
             {
@@ -114,11 +114,11 @@ export const cardV1Definition: TemplateDefinition = {
               justify: 'center',
               children: [
                 { type: 'ref', blockId: 'vrchat',  minH: 3, contentFontScale: 1 },
-                { type: 'ref', blockId: 'x',       minH: 3, contentFontScale: 1, bgVariant: 'default' },
-                { type: 'ref', blockId: 'discord', minH: 3, contentFontScale: 1, bgVariant: 'default' },
+                { type: 'ref', blockId: 'x',       minH: 3, contentFontScale: 1, bgVariant: 'simple' },
+                { type: 'ref', blockId: 'discord', minH: 3, contentFontScale: 1, bgVariant: 'simple' },
               ],
             },
-            { type: 'ref', blockId: 'friendPolicy', minH: 4,  contentFontScale: 1,   bgVariant: 'default' },
+            { type: 'ref', blockId: 'friendPolicy', minH: 4,  contentFontScale: 1,   bgVariant: 'simple' },
             { type: 'ref', blockId: 'mark-grid1',   minH: 15, contentFontScale: 0.9 },
           ],
         },
@@ -127,8 +127,8 @@ export const cardV1Definition: TemplateDefinition = {
           flex: 1,
           gap: 1,
           children: [
-            { type: 'ref', blockId: 'selfIntro', flex: 1, contentFontScale: 0.75, bgVariant: 'default' },
-            { type: 'ref', blockId: 'gallery',   minH: 12,                        bgVariant: 'default' },
+            { type: 'ref', blockId: 'selfIntro', flex: 1, contentFontScale: 0.75, bgVariant: 'simple' },
+            { type: 'ref', blockId: 'gallery',   minH: 12,                        bgVariant: 'simple' },
           ],
         },
       ],
@@ -158,13 +158,13 @@ export const cardV1Definition: TemplateDefinition = {
               gap: 2,
               justify: 'space-between',
               children: [
-                { type: 'ref', blockId: 'name', minH: 6, contentFontScale: 1.3, bgVariant: 'default' },
+                { type: 'ref', blockId: 'name', minH: 6, contentFontScale: 1.3, bgVariant: 'simple' },
                 {
                   type: 'row',
                   gap: 2,
                   children: [
-                    { type: 'ref', blockId: 'gender',  flex: 1, minH: 3, contentFontScale: 0.8, bgVariant: 'default' },
-                    { type: 'ref', blockId: 'playEnv', flex: 2, minH: 3,                        bgVariant: 'default', subLabel: 'env' },
+                    { type: 'ref', blockId: 'gender',  flex: 1, minH: 3, contentFontScale: 0.8, bgVariant: 'simple' },
+                    { type: 'ref', blockId: 'playEnv', flex: 2, minH: 3,                        bgVariant: 'simple', subLabel: 'env' },
                   ],
                 },
                 {
@@ -188,10 +188,10 @@ export const cardV1Definition: TemplateDefinition = {
               type: 'col',
               flex: 2,
               children: [
-                { type: 'ref', blockId: 'language',     minH: 4,  bgVariant: 'default' },
-                { type: 'ref', blockId: 'micOnRate',    minH: 4,  bgVariant: 'default', variant: 'gradient' },
-                { type: 'ref', blockId: 'status',       minH: 15, bgVariant: 'default', subLabel: 'status' },
-                { type: 'ref', blockId: 'friendPolicy', minH: 4,  bgVariant: 'default', contentFontScale: 0.9 },
+                { type: 'ref', blockId: 'language',     minH: 4,  bgVariant: 'simple' },
+                { type: 'ref', blockId: 'micOnRate',    minH: 4,  bgVariant: 'simple', variant: 'gradient' },
+                { type: 'ref', blockId: 'status',       minH: 15, bgVariant: 'simple', subLabel: 'status' },
+                { type: 'ref', blockId: 'friendPolicy', minH: 4,  bgVariant: 'simple', contentFontScale: 0.9 },
                 { type: 'ref', blockId: 'interactions', minH: 12 },
               ],
             },
@@ -200,7 +200,7 @@ export const cardV1Definition: TemplateDefinition = {
               type: 'col',
               flex: 3,
               children: [
-                { type: 'ref', blockId: 'selfIntro', flex: 1, minH: 10, contentFontScale: 0.7, bgVariant: 'default' },
+                { type: 'ref', blockId: 'selfIntro', flex: 1, minH: 10, contentFontScale: 0.7, bgVariant: 'simple' },
                 { type: 'ref', blockId: 'gallery',   minH: 9 },
               ],
             },

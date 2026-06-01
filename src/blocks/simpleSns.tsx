@@ -26,7 +26,7 @@ function getPlatform(blockConfig?: Record<string, unknown>): string {
 export const simpleSnsComponent: ComponentDef<string> = {
   key: 'simple-sns',
   defaultValue: '',
-  variants: ['default', 'glass'],
+  variants: ['simple', 'glass'],
   supportsBgVariant: true,
   CardItem({ value, ctx, variant, blockConfig }) {
     const isInteractive = ctx.isInteractive

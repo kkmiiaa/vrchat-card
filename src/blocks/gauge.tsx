@@ -15,7 +15,7 @@ type GaugeConfig = {
 export const gaugeComponent: ComponentDef<number> = {
   key: 'gauge',
   defaultValue: 0,
-  variants: ['default'],
+  variants: ['simple'],
   supportsBgVariant: true,
 
   CardItem({ value, ctx, bgVariant, blockConfig, label }) {
@@ -32,7 +32,7 @@ export const gaugeComponent: ComponentDef<number> = {
       : cfg.barColor ?? ctx.theme.accent
 
     const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-      ? 'default'
+       ? 'simple'
       : (bgVariant ?? 'transparent')
     const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
 

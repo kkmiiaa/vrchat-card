@@ -98,13 +98,14 @@ export type BlockVariant = string
 
 /**
  * 背景・コンテナの見た目バリアント
- * - default:     白背景ボックス（rgba(255,255,255,0.85)）
+ * - simple:      半透明白（デフォルトスタイル）
  * - glass:       すりガラス（rgba(255,255,255,0.55) + border）
  * - flat:        不透明白 + 細いボーダー（フラットデザイン向け）
  * - transparent: 背景なし
  * - outline:     枠線のみ
+ * - default:     'simple' の後方互換エイリアス（DB保存済みデータ向け）
  */
-export type BgVariant = 'default' | 'glass' | 'flat' | 'transparent' | 'outline'
+export type BgVariant = 'simple' | 'default' | 'glass' | 'flat' | 'transparent' | 'outline'
 
 /** ラベル定義。外ラベル・insetLabel 共通で使用 */
 export type LabelDef = {
@@ -120,20 +121,21 @@ export type LabelDef = {
   icon?: string
 }
 
-export const BG_VARIANT_STYLE = {
-  default:     { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined },
+export const BG_VARIANT_STYLE: Record<BgVariant, { background: string; border: string; boxShadow?: string }> = {
+  simple:      { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined },
+  default:     { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined }, // 後方互換
   glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)',        boxShadow: '0 0 12px rgba(0,0,0,0.08)' },
   flat:        { background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(0,0,0,0.07)',              boxShadow: undefined },
   transparent: { background: 'transparent',            border: 'none',                                   boxShadow: undefined },
   outline:     { background: 'transparent',            border: '1px solid rgba(255,255,255,0.6)',         boxShadow: undefined },
-} satisfies Record<BgVariant, { background: string; border: string; boxShadow?: string }>
+}
 
 export type ComponentCardProps<T> = {
   value: T
   ctx: CardRenderContext
-  /** コンテンツの表示方法バリアント。未指定時は 'default' */
+  /** コンテンツの表示方法バリアント。未指定時は 'simple' */
   variant?: BlockVariant
-  /** 背景・コンテナの見た目バリアント。未指定時は 'default' */
+  /** 背景・コンテナの見た目バリアント。未指定時は 'simple' */
   bgVariant?: BgVariant
   /**
    * labelInset が有効なとき渡されるラベル定義。
@@ -150,7 +152,7 @@ export type ComponentCardProps<T> = {
 export type ComponentDef<T = unknown> = {
   key: string
   defaultValue: T
-  /** このコンポーネントが対応するデザインバリアント一覧。未定義は ['default'] 扱い */
+  /** このコンポーネントが対応するデザインバリアント一覧。未定義は ['simple'] 扱い */
   variants?: BlockVariant[]
   /** true のとき選択肢・スキーマが全界隈共通で固定（界隈横断検索が可能） */
   global?: boolean

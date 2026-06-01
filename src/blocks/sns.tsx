@@ -11,8 +11,8 @@ const SNS_ICONS: Record<string, string> = {
 export const snsBlock: ComponentDef<any> = {
   key: 'sns',
   defaultValue: { vrchatId: '', twitterId: '', discordId: '' },
-  variants: ['default', 'icon'],  // default=テキストラベル+ID, icon=プラットフォームアイコン+ID
-  CardItem({ value, ctx, variant = 'default', blockConfig }) {
+  variants: ['simple', 'icon'],  // default=テキストラベル+ID, icon=プラットフォームアイコン+ID
+  CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     const isInteractive = ctx.isInteractive
     const safe: SnsValue = (value && typeof value === 'object') ? value as SnsValue : { vrchatId: '', twitterId: '', discordId: '' }
     const entries = [

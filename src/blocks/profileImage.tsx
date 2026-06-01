@@ -55,7 +55,7 @@ function ProfileImageCard({ value, ctx, variant }: ComponentCardProps<ProfileIma
 export const profileImageComponent: ComponentDef<ProfileImageValue> = {
   key: 'profileImage',
   defaultValue: { base64: null, url: null },
-  variants: ['default', 'circle', 'glass'],
+  variants: ['simple', 'circle', 'glass'],
   CardItem: ProfileImageCard,
   FormItem({ value, onChange, t }) {
     const hasImage = !!(value.base64 ?? value.url)

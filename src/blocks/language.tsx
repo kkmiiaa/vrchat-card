@@ -12,7 +12,7 @@ const PRESET_LANGUAGES = [
   '日本語', 'English', '한국어', '中文',
 ]
 
-function LanguageCard({ value, ctx, variant = 'default', bgVariant, label, blockConfig }: ComponentCardProps<LanguageValue>) {
+function LanguageCard({ value, ctx, variant = 'simple', bgVariant, label, blockConfig }: ComponentCardProps<LanguageValue>) {
   const preset = Array.isArray(value?.preset) ? value.preset : []
   const custom = Array.isArray(value?.custom) ? value.custom : []
   const all = [...preset, ...custom]
@@ -20,7 +20,7 @@ function LanguageCard({ value, ctx, variant = 'default', bgVariant, label, block
 
   if (variant === 'slash') {
     const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-      ? 'default'
+       ? 'simple'
       : (bgVariant ?? 'transparent')
     const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
     return (
@@ -88,7 +88,7 @@ export const languageComponent: ComponentDef<LanguageValue> = {
   key: 'language',
   global: true,
   defaultValue: { preset: [], custom: [] },
-  variants: ['default', 'slash'],
+  variants: ['simple', 'slash'],
   supportsBgVariant: true,
   CardItem: LanguageCard,
   FormItem({ value, onChange, t, blockConfig }) {

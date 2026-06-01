@@ -14,7 +14,7 @@ export const DEFAULT_BADGE_VALUE: BadgeValue = { label: '', color: '' }
 export const badgeComponent: ComponentDef<BadgeValue> = {
   key: 'badge',
   defaultValue: DEFAULT_BADGE_VALUE,
-  variants: ['default', 'outline', 'subtle'],
+  variants: ['simple', 'outline', 'subtle'],
 
   CardItem({ value, ctx, variant, bgVariant, blockConfig }) {
     const safe: BadgeValue = (value && typeof value === 'object' && 'label' in value)

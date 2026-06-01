@@ -60,7 +60,7 @@ function getPlatform(blockConfig?: Record<string, unknown>): string {
 export const snsWithFriendPolicyComponent: ComponentDef<SnsWithFriendPolicyValue> = {
   key: 'sns-with-friend-policy',
   defaultValue: DEFAULT_VALUE,
-  variants: ['default', 'glass'],
+  variants: ['simple', 'glass'],
   CardItem({ value, ctx, variant, blockConfig }) {
     const isInteractive = ctx.isInteractive
     const safe: SnsWithFriendPolicyValue =

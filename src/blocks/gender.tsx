@@ -21,9 +21,9 @@ export const genderComponent: ComponentDef<GenderValue> = {
   key: 'gender',
   global: true,
   defaultValue: DEFAULT_GENDER_VALUE,
-  variants: ['default', 'compact'],
+  variants: ['simple', 'compact'],
   supportsBgVariant: true,
-  CardItem({ value, ctx, variant = 'default', bgVariant, label }) {
+  CardItem({ value, ctx, variant = 'simple', bgVariant, label }) {
     const safe: GenderValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as GenderValue
       : DEFAULT_GENDER_VALUE
@@ -35,7 +35,7 @@ export const genderComponent: ComponentDef<GenderValue> = {
     // 非公開: フラットなマイナスアイコン、それ以外: 性別アイコン（未設定はアイコンなし）
     const Icon = isEmpty ? null : (isNone ? TbMinus : option?.Icon)
     const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-      ? 'default'
+       ? 'simple'
       : (bgVariant ?? 'transparent')
     const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
 

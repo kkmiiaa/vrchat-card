@@ -56,7 +56,7 @@ function resolveRef(
 ): LayoutNode {
   if (node.type !== 'ref') return node
   const poolEntry = blockPool?.[node.blockId]
-  if (!poolEntry) return { type: 'block', componentKey: '', dataKey: node.blockId, variant: 'default' }
+  if (!poolEntry) return { type: 'block', componentKey: '', dataKey: node.blockId, variant: 'simple' }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { type: _type, blockId: _blockId, ...refOverrides } = node
   const merged = { type: 'block' as const, ...poolEntry, ...Object.fromEntries(Object.entries(refOverrides).filter(([, v]) => v !== undefined)) }

@@ -5,7 +5,7 @@ import type { ComponentDef } from './types'
 export const micOnRateBlock: ComponentDef<any> = {
   key: 'micOnRate',
   defaultValue: 0,
-  variants: ['default', 'gradient'],  // default=単色バー, gradient=グラデーションバー
+  variants: ['simple', 'gradient'],  // default=単色バー, gradient=グラデーションバー
   CardItem({ value, ctx }) {
     const rate = typeof value === 'number' ? value : 0
     const fs = ctx.cardWidth * 0.012

@@ -37,13 +37,13 @@ export const cardV2Definition: TemplateDefinition = {
     name: {
       componentKey: 'text',
       dataKey: 'name',
-      variant: 'default',
+      variant: 'simple',
       blockConfig: { multiline: false, noPadding: true },
     },
     trustRank: {
       componentKey: 'select',
       dataKey: 'trustRank',
-      variant: 'default',
+      variant: 'simple',
       blockConfig: {
         options: [
           { value: 'visitor',     label: 'Visitor',      icon: 'TbShield' },
@@ -57,12 +57,12 @@ export const cardV2Definition: TemplateDefinition = {
     gender: {
       componentKey: 'gender',
       dataKey: 'gender',
-      variant: 'default',
+      variant: 'simple',
     },
     age: {
       componentKey: 'age',
       dataKey: 'age',
-      variant: 'default',
+      variant: 'simple',
       label: '年齢',
     },
     playEnv: {
@@ -97,7 +97,7 @@ export const cardV2Definition: TemplateDefinition = {
     gauge1: {
       componentKey: 'gauge',
       dataKey: 'gauge1',
-      variant: 'default',
+      variant: 'simple',
       label: 'マイクON率',
       bgVariant: 'glass',
       labelInset: true,
@@ -109,7 +109,7 @@ export const cardV2Definition: TemplateDefinition = {
     selfIntro: {
       componentKey: 'text',
       dataKey: 'selfIntro',
-      variant: 'default',
+      variant: 'simple',
       label: 'ABOUT',
     },
     status: {
@@ -134,7 +134,7 @@ export const cardV2Definition: TemplateDefinition = {
     interactions: {
       componentKey: 'mark-list',
       dataKey: 'interactions',
-      variant: 'default',
+      variant: 'simple',
       label: 'INTERACTION',
       contentFontScale: 0.9,
       blockConfig: {
@@ -241,7 +241,7 @@ export const cardV2Definition: TemplateDefinition = {
                 { type: 'ref', blockId: 'gauge1', minW: 18, minH: 2.3 },
               ],
             },
-            { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'default', minH: 0.5 },
+            { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'simple', minH: 0.5 },
             { type: 'ref', blockId: 'selfIntro', flex: 1, bgVariant: 'glass', contentFontScale: 0.8 },
             {
               type: 'row',
@@ -304,10 +304,10 @@ export const cardV2Definition: TemplateDefinition = {
             },
           ],
         },
-        { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'default' },
+        { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'simple' },
         // 自己紹介
         { type: 'ref', blockId: 'selfIntro', minH: 8 },
-        { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'default' },
+        { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'simple' },
         // プレイ環境・言語・マイク
         {
           type: 'col',
@@ -318,10 +318,10 @@ export const cardV2Definition: TemplateDefinition = {
             { type: 'ref', blockId: 'gauge1',   minH: 3 },
           ],
         },
-        { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'default' },
+        { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'simple' },
         // ステータス
         { type: 'ref', blockId: 'status', variant: 'cards', minH: 8 },
-        { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'default' },
+        { type: 'block', componentKey: 'divider', dataKey: 'divider', variant: 'simple' },
         // アクティビティ・インタラクション
         { type: 'ref', blockId: 'activity',     minH: 12 },
         { type: 'ref', blockId: 'interactions', minH: 8 },

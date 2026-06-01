@@ -7,7 +7,7 @@ import { ColorPicker } from './colorPicker'
 export const booleanFlagComponent: ComponentDef<boolean> = {
   key: 'booleanFlag',
   defaultValue: false,
-  variants: ['default', 'badge'],
+  variants: ['simple', 'badge'],
   supportsBgVariant: true,
   CardItem({ value, ctx, variant, bgVariant, blockConfig, label }) {
     const on = typeof value === 'boolean' ? value : false
@@ -51,7 +51,7 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
     }
 
     const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-      ? 'default'
+       ? 'simple'
       : (bgVariant ?? 'transparent')
     const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
     const iconColor = on ? trueColor : falseColor

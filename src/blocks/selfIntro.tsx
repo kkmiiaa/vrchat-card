@@ -5,7 +5,7 @@ import type { ComponentDef } from './types'
 export const selfIntroBlock: ComponentDef<any> = {
   key: 'selfIntro',
   defaultValue: '',
-  variants: ['default'],
+  variants: ['simple'],
   CardItem({ value, ctx, blockConfig }) {
     if (!value && blockConfig?.hideWhenEmpty) return null
     const fs = ctx.fontSize.md

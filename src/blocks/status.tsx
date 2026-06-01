@@ -12,7 +12,7 @@ const STATUS_COLORS: Record<keyof StatusValue, string> = {
 export const statusBlock: ComponentDef<any> = {
   key: 'status',
   defaultValue: { blue: '', green: '', yellow: '', red: '' },
-  variants: ['default'],  // default=カラードット+テキスト
+  variants: ['simple'],  // default=カラードット+テキスト
   CardItem({ value, ctx, blockConfig }) {
     const safe: StatusValue = (value && typeof value === 'object') ? value as StatusValue : { blue: '', green: '', yellow: '', red: '' }
     const entries = (Object.entries(safe) as [keyof StatusValue, string][]).filter(([, v]) => v)

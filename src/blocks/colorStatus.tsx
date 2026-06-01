@@ -22,9 +22,9 @@ function getFields(blockConfig?: Record<string, unknown>): ColorStatusField[] {
 export const colorStatusComponent: ComponentDef<Record<string, string>> = {
   key: 'color-status',
   defaultValue: {},
-  variants: ['default', 'compact', 'cards'],
+  variants: ['simple', 'compact', 'cards'],
   supportsBgVariant: true,
-  CardItem({ value, ctx, variant = 'default', bgVariant, blockConfig, label }) {
+  CardItem({ value, ctx, variant = 'simple', bgVariant, blockConfig, label }) {
     const safe = (value && typeof value === 'object') ? value as Record<string, string> : {}
     const fields = getFields(blockConfig)
 
@@ -84,7 +84,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
     // default
     const fs = ctx.fontSize.sm
     const effectiveBgVariant = (label && (bgVariant === 'transparent' || bgVariant === undefined))
-      ? 'default'
+       ? 'simple'
       : (bgVariant ?? 'transparent')
     const bgStyle = BG_VARIANT_STYLE[effectiveBgVariant]
     return (

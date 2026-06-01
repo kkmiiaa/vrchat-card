@@ -555,7 +555,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
 
   const handleAddBlockToPool = useCallback((path: NodePath, componentKey: string) => {
     const dataKey = generateDataKey(componentKey, collectAllDataKeys(layout, undefined, currentPool as unknown as TemplateDefinition['blockPool']))
-    const newEntry: PoolEntry = { componentKey, dataKey, variant: 'default' }
+    const newEntry: PoolEntry = { componentKey, dataKey, variant: 'simple' }
     setCurrentPool(prev => ({ ...prev, [dataKey]: newEntry }))
     handleAdd(path, { type: 'ref', blockId: dataKey, flex: 1 })
   }, [currentPool, layout, setCurrentPool, handleAdd])
@@ -908,7 +908,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
       if (!comp) return null
       const path = selectedPath!
       const displaySettings: BlockDisplaySettings = {
-        variant:        node.variant ?? 'default',
+        variant:        node.variant ?? 'simple',
         bgVariant:      (node as Block).bgVariant ?? 'transparent',
         label:          node.label ?? '',
         subLabel:       node.subLabel ?? '',
@@ -923,7 +923,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
           if (patch.label !== undefined)     next.label     = patch.label     || undefined
           if (patch.subLabel !== undefined)  next.subLabel  = patch.subLabel  || undefined
           if (patch.labelIcon !== undefined) next.labelIcon = patch.labelIcon || undefined
-          if (patch.bgVariant !== undefined && !isBgVariantApplicable(comp, next.variant ?? 'default')) {
+          if (patch.bgVariant !== undefined && !isBgVariantApplicable(comp, next.variant ?? 'simple')) {
             delete (next as Block).bgVariant
           }
           return next
@@ -1073,8 +1073,8 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
                     {variants.map(v => (
                       <button
                         key={v}
-                        onClick={() => handleUpdate(path, n => ({ ...n, variant: v === (poolEntry?.variant ?? 'default') && node.variant === undefined ? undefined : v } as LayoutNode))}
-                        className={`px-2 py-1 text-xs border rounded transition-colors ${(node.variant ?? poolEntry?.variant ?? 'default') === v ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50 bg-white'}`}
+                        onClick={() => handleUpdate(path, n => ({ ...n, variant: v === (poolEntry?.variant ?? 'simple') && node.variant === undefined ? undefined : v } as LayoutNode))}
+                        className={`px-2 py-1 text-xs border rounded transition-colors ${(node.variant ?? poolEntry?.variant ?? 'simple') === v ? 'bg-sky-100 border-sky-400 text-sky-700 font-semibold' : 'border-gray-200 text-gray-500 hover:bg-gray-50 bg-white'}`}
                       >{v}{node.variant === v ? ' ✓' : ''}</button>
                     ))}
                     {node.variant !== undefined && (
@@ -1178,7 +1178,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
                     const usedKeys = collectAllDataKeys(layout)
                     usedKeys.delete((n as Block).dataKey)
                     const newDataKey = generateDataKey(newComponentKey, usedKeys)
-                    return { ...n, componentKey: newComponentKey, dataKey: newDataKey, variant: 'default' }
+                    return { ...n, componentKey: newComponentKey, dataKey: newDataKey, variant: 'simple' }
                   })
                 }}
                 className="text-xs border rounded px-2 py-1"

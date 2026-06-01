@@ -395,17 +395,17 @@ function ProfileImageDemo({ variant }: { variant: string }) {
 // 抽象コンポーネント一覧
 // ─────────────────────────────────────────
 const ABSTRACT_COMPONENTS: AbstractComponent[] = [
-  { inputType: 'expressive-select', description: 'タグ（検索用）＋自由テキスト（表示用）の二層構造',   variants: ['default', 'icon'],     Demo: ExpressiveSelectDemo },
-  { inputType: 'multi-select',      description: '複数選択。配列で保存。バッジ or スラッシュ区切り',  variants: ['default', 'slash', 'icon'], Demo: MultiSelectDemo },
-  { inputType: 'select',            description: '単一選択。文字列で保存。',                          variants: ['default', 'badge'],    Demo: SelectDemo },
-  { inputType: 'text',              description: '自由テキスト。multiline で1行/複数行を切替。',      variants: ['default'],             Demo: ({ variant: _ }) => <TextDemo /> },
-  { inputType: 'number',            description: '数値。プログレスバーで表示。unit で単位を設定。',   variants: ['default'],             Demo: NumberDemo },
-  { inputType: 'boolean',           description: 'ON/OFF の二値。trueLabel/falseLabel/color 対応。', variants: ['default', 'badge'],    Demo: ({ variant: _ }) => <BooleanDemo /> },
-  { inputType: 'weekly-activity',   description: '曜日＋時間帯。平日/休日を個別設定可能。',            variants: ['default', 'v2'],       Demo: ({ variant: _ }) => <WeeklyActivityDemo /> },
-  { inputType: 'mark-list',         description: 'ラベル＋記号（◎◯△✗）のバッジ形式リスト。マークされた項目のみ表示。',  variants: ['default'],  Demo: ({ variant: _ }) => <MarkListDemo /> },
-  { inputType: 'mark-grid',         description: 'ラベル＋記号（◎◯△✗）のグリッド表示。全項目を格子状に並べる。',        variants: ['default'],  Demo: ({ variant: _ }) => <MarkGridDemo /> },
-  { inputType: 'gallery',           description: '画像ギャラリー（最大3枚）。',                       variants: ['default'],             Demo: ({ variant: _ }) => <GalleryDemo /> },
-  { inputType: 'profile-image',     description: 'プロフィール画像。正方形トリミング。variant で形状変更。', variants: ['default', 'circle'], Demo: ProfileImageDemo },
+  { inputType: 'expressive-select', description: 'タグ（検索用）＋自由テキスト（表示用）の二層構造',   variants: ['simple', 'icon'],     Demo: ExpressiveSelectDemo },
+  { inputType: 'multi-select',      description: '複数選択。配列で保存。バッジ or スラッシュ区切り',  variants: ['simple', 'slash', 'icon'], Demo: MultiSelectDemo },
+  { inputType: 'select',            description: '単一選択。文字列で保存。',                          variants: ['simple', 'badge'],    Demo: SelectDemo },
+  { inputType: 'text',              description: '自由テキスト。multiline で1行/複数行を切替。',      variants: ['simple'],             Demo: ({ variant: _ }) => <TextDemo /> },
+  { inputType: 'number',            description: '数値。プログレスバーで表示。unit で単位を設定。',   variants: ['simple'],             Demo: NumberDemo },
+  { inputType: 'boolean',           description: 'ON/OFF の二値。trueLabel/falseLabel/color 対応。', variants: ['simple', 'badge'],    Demo: ({ variant: _ }) => <BooleanDemo /> },
+  { inputType: 'weekly-activity',   description: '曜日＋時間帯。平日/休日を個別設定可能。',            variants: ['simple', 'v2'],       Demo: ({ variant: _ }) => <WeeklyActivityDemo /> },
+  { inputType: 'mark-list',         description: 'ラベル＋記号（◎◯△✗）のバッジ形式リスト。マークされた項目のみ表示。',  variants: ['simple'],  Demo: ({ variant: _ }) => <MarkListDemo /> },
+  { inputType: 'mark-grid',         description: 'ラベル＋記号（◎◯△✗）のグリッド表示。全項目を格子状に並べる。',        variants: ['simple'],  Demo: ({ variant: _ }) => <MarkGridDemo /> },
+  { inputType: 'gallery',           description: '画像ギャラリー（最大3枚）。',                       variants: ['simple'],             Demo: ({ variant: _ }) => <GalleryDemo /> },
+  { inputType: 'profile-image',     description: 'プロフィール画像。正方形トリミング。variant で形状変更。', variants: ['simple', 'circle'], Demo: ProfileImageDemo },
 ]
 
 const INPUT_TYPE_COLORS: Record<string, string> = {

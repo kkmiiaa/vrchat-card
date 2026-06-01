@@ -7,7 +7,7 @@ export type BadgeItem = { label: string; color: string }
 export const badgeListComponent: ComponentDef<BadgeItem[]> = {
   key: 'badge-list',
   defaultValue: [],
-  variants: ['default'],
+  variants: ['simple'],
   CardItem({ value, ctx, blockConfig }) {
     const items = Array.isArray(value) ? value as BadgeItem[] : []
     const defaultColor = typeof blockConfig?.defaultColor === 'string' ? blockConfig.defaultColor : '#6b7280'

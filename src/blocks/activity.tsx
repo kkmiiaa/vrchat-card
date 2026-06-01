@@ -5,8 +5,8 @@ const DAYS = ['月', '火', '水', '木', '金', '土', '日']
 
 export const activityComponent: ComponentDef<ActivityValue> = {
   key: 'activity',
-  variants: ['default', 'v2'],  // default=曜日ドット+時間帯テキスト, v2=視覚的タイムバー+曜日サークル
-  CardItem({ value, ctx, variant = 'default', blockConfig }) {
+  variants: ['simple', 'v2'],  // default=曜日ドット+時間帯テキスト, v2=視覚的タイムバー+曜日サークル
+  CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     const safe: ActivityValue = (value && typeof value === 'object' && 'days' in value) ? value as ActivityValue : { days: [], weekdayStart: '', weekdayEnd: '', holidayStart: '', holidayEnd: '' }
     const fs = ctx.fontSize.sm
 

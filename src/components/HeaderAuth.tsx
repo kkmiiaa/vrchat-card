@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
@@ -15,28 +15,42 @@ export default function HeaderAuth({ variant = 'default', hideMyPage = false }: 
   const [auth, setAuth] = useState<AuthState>({ status: 'loading' })
   const pathname = usePathname()
   const supabase = useMemo(() => createClient(), [])
+  const currentUserId = useRef<string | null>(null)
 
+  // プロフィール取得（ユーザーIDが変わったとき、またはpathname変化時）
+  const fetchProfile = useMemo(() => async (userId: string) => {
+    const { data: u } = await supabase
+      .from('users')
+      .select('username_slug, profiles(avatar_url, display_name)')
+      .eq('id', userId)
+      .single()
+    const profile = Array.isArray(u?.profiles) ? u.profiles[0] : u?.profiles
+    setAuth({
+      status: 'loggedIn',
+      slug: u?.username_slug ?? '',
+      avatarUrl: profile?.avatar_url ?? null,
+      displayName: profile?.display_name ?? null,
+    })
+  }, [supabase])
+
+  // onAuthStateChange でローカルセッションを即座に読む（ネットワーク不要）
   useEffect(() => {
-    supabase.auth.getUser()
-      .then(({ data, error }) => {
-        if (error || !data.user) { setAuth({ status: 'guest' }); return }
-        return supabase
-          .from('users')
-          .select('username_slug, profiles(avatar_url, display_name)')
-          .eq('id', data.user.id)
-          .single()
-          .then(({ data: u }) => {
-            const profile = Array.isArray(u?.profiles) ? u.profiles[0] : u?.profiles
-            setAuth({
-              status: 'loggedIn',
-              slug: u?.username_slug ?? '',
-              avatarUrl: profile?.avatar_url ?? null,
-              displayName: profile?.display_name ?? null,
-            })
-          })
-      })
-      .catch(() => setAuth({ status: 'guest' }))
-  }, [pathname, supabase])
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        currentUserId.current = null
+        setAuth({ status: 'guest' })
+      } else {
+        currentUserId.current = session.user.id
+        fetchProfile(session.user.id)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [supabase, fetchProfile])
+
+  // pathname 変化時にプロフィールを再取得（スラッグ設定後などに反映）
+  useEffect(() => {
+    if (currentUserId.current) fetchProfile(currentUserId.current)
+  }, [pathname, fetchProfile])
 
   if (auth.status === 'loading') return <div className="w-8 h-8" />
 

@@ -404,14 +404,14 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
   const [editingLabel, setEditingLabel] = useState(false)
   const [labelDraft, setLabelDraft] = useState('')
 
-  type DesignPreset = 'default' | 'glass' | 'flat'
+  type DesignPreset = 'simple' | 'glass' | 'flat'
   const [designPresets, setDesignPresets] = useState<Record<string, DesignPreset>>(
     () => Object.fromEntries(rowList.map(row => [
       row.id,
-      (row.card_config?.defaultBgVariant as DesignPreset | undefined) ?? 'default',
+      (row.card_config?.defaultBgVariant as DesignPreset | undefined) ?? 'simple',
     ]))
   )
-  const currentDesignPreset = designPresets[currentRow.id] ?? 'default'
+  const currentDesignPreset = designPresets[currentRow.id] ?? 'simple'
   const setCurrentDesignPreset = useCallback((p: DesignPreset) => {
     setDesignPresets(prev => ({ ...prev, [currentRow.id]: p }))
   }, [currentRow.id])
@@ -456,7 +456,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
       card_config: {
         ...cfg,
         fontFamily: localFontFamily,
-        defaultBgVariant: currentDesignPreset === 'default' ? undefined : currentDesignPreset,
+        defaultBgVariant: currentDesignPreset,
         ...(currentBgMode === 'fixed'
           ? { fixedBackground: currentFixedBg }
           : { fixedBackground: undefined }),
@@ -1058,7 +1058,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
           const poolEntry = currentPool[node.blockId]
           const comp = poolEntry ? getComponent(poolEntry.componentKey) : undefined
           const variants = comp?.variants ?? []
-          const BG_VARIANTS: BgVariant[] = ['default', 'glass', 'transparent', 'outline']
+          const BG_VARIANTS: BgVariant[] = ['simple', 'glass', 'flat', 'transparent', 'outline']
           return (
             <div className="flex flex-col gap-2">
               <div className="flex flex-col gap-1">
@@ -1650,7 +1650,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
             <p className="text-[10px] text-gray-400 mb-1.5">デザインプリセット</p>
             <div className="flex gap-1">
               {([
-                { key: 'default', label: 'Default', desc: '半透明白' },
+                { key: 'simple', label: 'Simple', desc: '半透明白' },
                 { key: 'glass',   label: 'Glass',   desc: 'すりガラス' },
                 { key: 'flat',    label: 'Flat',    desc: '不透明白+枠' },
               ] as const).map(({ key, label, desc }) => (

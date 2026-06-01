@@ -58,6 +58,14 @@
 
 ## 作業ログ
 
+### 2026-06-01（続き 5）
+
+#### Vercel Linux ビルド失敗の修正
+
+- `package.json` から `@rolldown/binding-darwin-arm64` の直接依存を削除
+- `package-lock.json` でも同依存をルート依存から除去し、`rolldown` 配下の optional dependency として扱われる状態に修正
+- macOS 専用バイナリを Linux 本番 install で必須化しないよう整理
+
 ### 2026-06-01（続き 4）
 
 #### カードエディタの「マイページに保存」フロー実装

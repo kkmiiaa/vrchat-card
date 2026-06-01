@@ -10,7 +10,7 @@ export default async function NewCardPage() {
   if (!user) redirect('/auth/login?next=/card/new')
 
   const [savedLayouts, communities] = await Promise.all([
-    fetchTemplateLayouts(),
+    fetchTemplateLayouts({ publishedOnly: true }),
     fetchCommunities(),
   ])
   return <TemplateSelector savedLayouts={savedLayouts} communities={communities} />

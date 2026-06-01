@@ -401,6 +401,10 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
   const [selectedOverlay, setSelectedOverlay] = useState(false)
 
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [publishedMap, setPublishedMap] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(rowList.map(row => [row.id, row.is_published]))
+  )
+  const currentPublished = publishedMap[currentRow.id] ?? false
   const [editingLabel, setEditingLabel] = useState(false)
   const [labelDraft, setLabelDraft] = useState('')
 
@@ -461,10 +465,11 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
           ? { fixedBackground: currentFixedBg }
           : { fixedBackground: undefined }),
       },
+      is_published: currentPublished,
     })
     setSaveState(error ? 'error' : 'saved')
     setTimeout(() => setSaveState('idle'), 2000)
-  }, [currentRow, cardLayout, webLayout, currentFormSections, orientationScales, overlayConfigs, currentPool, localFontFamily, currentDesignPreset, currentBgMode, currentFixedBg])
+  }, [currentRow, cardLayout, webLayout, currentFormSections, orientationScales, overlayConfigs, currentPool, localFontFamily, currentDesignPreset, currentBgMode, currentFixedBg, currentPublished])
 
   const [sampleState, setSampleState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const handleSaveSample = useCallback(async () => {
@@ -1521,6 +1526,16 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
             }`}
           >
             {sampleState === 'saving' ? '保存中…' : sampleState === 'saved' ? '✓ サンプル保存' : sampleState === 'error' ? 'エラー' : 'サンプルに設定'}
+          </button>
+          <button
+            onClick={() => setPublishedMap(prev => ({ ...prev, [currentRow.id]: !currentPublished }))}
+            className={`flex-shrink-0 px-3 py-1 text-xs rounded border font-medium transition-colors ${
+              currentPublished
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
+            }`}
+          >
+            {currentPublished ? '● 公開中' : '○ 非公開'}
           </button>
           <button
             onClick={handleSave}

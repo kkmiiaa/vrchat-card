@@ -41,7 +41,7 @@ export type TemplateLayoutRow = {
 /** 単一テンプレート行を DB から取得 */
 export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow | null> {
   const supabase = await createClient()
-  const SELECT = 'id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, community_templates(community_slug)'
+  const SELECT = 'id, label, description, is_published, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, community_templates(community_slug)'
 
   const { data, error } = await supabase
     .from('templates')
@@ -55,7 +55,7 @@ export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow
     id:                 data.id,
     label:              data.label,
     description:        data.description,
-    is_published:       false,
+    is_published: (data.is_published as boolean) ?? false,
     card_layout:        data.card_layout        as LayoutNode | null,
     web_layout:         data.web_layout         as LayoutNode | null,
     block_pool:         data.block_pool         as Record<string, unknown> | null,
@@ -72,14 +72,18 @@ export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow
 }
 
 /** 全テンプレート行を DB から取得 */
-export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLayoutRow>> {
+export async function fetchTemplateLayouts(options?: { publishedOnly?: boolean }): Promise<Record<string, TemplateLayoutRow>> {
   const supabase = await createClient()
-  const SELECT = 'id, label, description, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, community_templates(community_slug)'
+  const SELECT = 'id, label, description, is_published, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, community_templates(community_slug)'
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('templates')
     .select(SELECT)
     .order('sort_order', { ascending: true })
+
+  if (options?.publishedOnly) query = query.eq('is_published', true)
+
+  const { data, error } = await query
 
   if (error) {
     console.error('fetchTemplateLayouts error:', error)
@@ -93,7 +97,7 @@ export async function fetchTemplateLayouts(): Promise<Record<string, TemplateLay
         id:                 row.id,
         label:              row.label,
         description:        row.description,
-        is_published:       false,
+        is_published: (row.is_published as boolean) ?? false,
         card_layout:        row.card_layout        as LayoutNode | null,
         web_layout:         row.web_layout         as LayoutNode | null,
         block_pool:         row.block_pool         as Record<string, unknown> | null,
@@ -195,6 +199,7 @@ export async function saveTemplateLayout(
     overlay_config?:    OverlayValue | null
     block_pool?:        Record<string, unknown>
     card_config?:       Record<string, unknown>
+    is_published?:      boolean
   }
 ): Promise<{ error: string | null }> {
   const supabase = createAdminClient()
@@ -212,6 +217,7 @@ export async function saveTemplateLayout(
   if ('overlay_config' in data) payload.overlay_config = data.overlay_config ?? null
   if (data.block_pool !== undefined) payload.block_pool = data.block_pool
   if (data.card_config !== undefined) payload.card_config = data.card_config
+  if (data.is_published !== undefined) payload.is_published = data.is_published
 
   const { error } = await supabase
     .from('templates')

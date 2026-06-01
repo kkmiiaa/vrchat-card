@@ -43,6 +43,7 @@ export default async function CardPage({ params }: { params: Promise<{ cardId: s
       templateId={templateId}
       templateDbRow={templateDbRow}
       isOwner={isOwner}
+      ogpVersion={(card as { ogp_version?: number }).ogp_version ?? 0}
     />
   )
 }

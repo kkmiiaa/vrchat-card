@@ -35,9 +35,10 @@ type Props = {
   initialBackground?: BackgroundValue | null
   readOnly?: boolean
   formSections?: FormSection[]
+  ogpVersion?: number
 }
 
-export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, formSections: propFormSections }: Props) {
+export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, formSections: propFormSections, ogpVersion: initialOgpVersion = 0 }: Props) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -84,6 +85,8 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   const { exportRef: cardExportRef, downloading, generatePng: getCardDataUrl, downloadPng: _downloadPng } = useCardExport()
 
   const [showSaveNudge, setShowSaveNudge] = useState(false)
+  const [currentOgpVersion, setCurrentOgpVersion] = useState(initialOgpVersion)
+  const [publishConfirming, setPublishConfirming] = useState(false)
 
   const handleDownload = async () => {
     const dataUrl = await getCardDataUrl()
@@ -264,11 +267,29 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     })
   }
 
-  const handleShareByUrl = useCallback(async () => {
+  function hasEmptyFields(): boolean {
+    for (const [k, v] of Object.entries(values as Record<string, unknown>)) {
+      if (k === 'font') continue
+      if (typeof v === 'string' && v.trim() === '') return true
+      if (v && typeof v === 'object' && !Array.isArray(v)) {
+        for (const v2 of Object.values(v as object)) {
+          if (typeof v2 === 'string' && v2.trim() === '') return true
+        }
+      }
+    }
+    return false
+  }
+
+  const handleShareByUrl = useCallback(async (skipEmptyCheck = false) => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       const currentUrl = window.location.pathname + window.location.search
       window.location.href = `/auth/login?next=${encodeURIComponent(currentUrl)}`
+      return
+    }
+
+    if (!skipEmptyCheck && hasEmptyFields()) {
+      setPublishConfirming(true)
       return
     }
 
@@ -305,8 +326,10 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       trackEvent('card_created', { template_id: template.id })
     }
 
+    const newVersion = currentOgpVersion + 1
     if (dataUrl) {
-      await updateCard({ cardId: currentCardId, imageBase64: dataUrl, cardData: migratedValues as BlockValues, background: saveBackground })
+      await updateCard({ cardId: currentCardId, imageBase64: dataUrl, cardData: migratedValues as BlockValues, background: saveBackground, ogp_version: newVersion })
+      setCurrentOgpVersion(newVersion)
     }
 
     await updateCard({ cardId: currentCardId, visibility: 'public' })
@@ -331,12 +354,21 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   }, [isLoggedIn, initialized])
 
   const handlePostToX = async () => {
-    const shareUrl = isLoggedIn && cardId ? `${window.location.origin}/card/${cardId}` : ''
-    const tweetText = shareUrl ? `${t.tweetText}\n${shareUrl}` : t.tweetText
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`
+    if (!cardId) {
+      // 未保存なら先にマイページに保存フローへ
+      handleShareByUrl()
+      return
+    }
+    const newVersion = currentOgpVersion + 1
     const dataUrl = await getCardDataUrl()
-    if (dataUrl && cardId) await updateCard({ cardId, imageBase64: dataUrl })
-    window.open(tweetUrl, '_blank')
+    if (dataUrl) {
+      await updateCard({ cardId, imageBase64: dataUrl, ogp_version: newVersion })
+      setCurrentOgpVersion(newVersion)
+    }
+    const base = `${window.location.origin}/card/${cardId}`
+    const shareUrl = newVersion > 0 ? `${base}?v=${newVersion}` : base
+    const tweetText = `${t.tweetText}\n${shareUrl}`
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank')
   }
 
   const handlePreviewOpen = async () => {
@@ -381,7 +413,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
               </svg>
               {t.share}
             </button>
-            <button onClick={handleShareByUrl}
+            <button onClick={() => handleShareByUrl()}
               style={{ WebkitTapHighlightColor: 'transparent' }}
               className="flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] rounded-full px-4 py-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm shadow-sky-200">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -551,7 +583,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         </aside>
       </div>
 
-      <FloatingButtons onSave={handleShareByUrl} onShare={handlePostToX} onDownload={handleDownload} t={t} />
+      <FloatingButtons onSave={() => handleShareByUrl()} onShare={handlePostToX} onDownload={handleDownload} t={t} />
 
       {/* ダウンロード後の保存誘導トースト */}
       {showSaveNudge && (
@@ -573,6 +605,35 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       )}
 
       {/* 保存中オーバーレイ */}
+      {publishConfirming && (
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" onClick={() => setPublishConfirming(false)} />
+          <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-50 flex justify-center px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="px-6 pt-6 pb-4 text-center">
+                <div className="text-2xl mb-2">⚠️</div>
+                <h2 className="text-base font-bold text-gray-900 mb-1">未入力の項目があります</h2>
+                <p className="text-xs text-gray-400">このまま保存しますか？</p>
+              </div>
+              <div className="px-6 pb-5 flex flex-col gap-2">
+                <button
+                  onClick={() => { setPublishConfirming(false); handleShareByUrl(true) }}
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                >
+                  このまま保存する
+                </button>
+                <button
+                  onClick={() => setPublishConfirming(false)}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors py-1"
+                >
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       {saveModalLoading && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl px-8 py-6 text-sm text-gray-600 font-medium shadow-xl">

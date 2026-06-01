@@ -12,9 +12,10 @@ type Props = {
   templateId: string
   templateDbRow?: TemplateLayoutRow | null
   isOwner: boolean
+  ogpVersion: number
 }
 
-export default function CardEditorClient({ card, templateId, templateDbRow, isOwner }: Props) {
+export default function CardEditorClient({ card, templateId, templateDbRow, isOwner, ogpVersion }: Props) {
   const [template, setTemplate] = useState<CardTemplate | null>(null)
   const [formSections, setFormSections] = useState<FormSection[]>([])
 
@@ -41,6 +42,7 @@ export default function CardEditorClient({ card, templateId, templateDbRow, isOw
         initialBackground={card.background}
         readOnly={!isOwner}
         formSections={formSections.length ? formSections : undefined}
+        ogpVersion={ogpVersion}
       />
     </Suspense>
   )

@@ -15,6 +15,7 @@ type UpdateCardParams = {
   imageBase64?: string
   title?: string
   visibility?: 'public' | 'limited' | 'private'
+  ogp_version?: number
 }
 
 type SaveResult = { cardId: string } | { error: string }

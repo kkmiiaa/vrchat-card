@@ -125,7 +125,7 @@ export const BG_VARIANT_STYLE: Record<BgVariant, { background: string; border: s
   simple:      { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined },
   default:     { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined }, // 後方互換
   glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)',        boxShadow: '0 0 12px rgba(0,0,0,0.08)' },
-  flat:        { background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(0,0,0,0.07)',              boxShadow: undefined },
+  flat:        { background: 'rgba(255,255,255,0.95)', border: '1.5px solid rgba(0,0,0,0.18)',              boxShadow: undefined },
   transparent: { background: 'transparent',            border: 'none',                                   boxShadow: undefined },
   outline:     { background: 'transparent',            border: '1px solid rgba(255,255,255,0.6)',         boxShadow: undefined },
 }

@@ -554,7 +554,7 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
                               background: bg,
                               borderRadius: 16,
                               filter: isImage ? 'blur(18px)' : 'blur(14px)',
-                              opacity: hasCustomBg ? 0.25 : 0.12,
+                              opacity: 0,
                               transition: 'opacity 0.35s ease, filter 0.35s ease',
                               pointerEvents: 'none',
                               zIndex: 0,

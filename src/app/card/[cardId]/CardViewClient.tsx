@@ -896,7 +896,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
 
       <div style={{ position: 'fixed', top: -9999, left: -9999, pointerEvents: 'none' }}>
         <div ref={exportRef}>
-          <template.CardRenderer values={values} fontFamily={fontFamily} t={translations.ja} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
+          <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
         </div>
       </div>
     </div>

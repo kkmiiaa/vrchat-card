@@ -31,8 +31,9 @@ export function defaultBlockDisplaySettings(component: ComponentDef<unknown>): B
 }
 
 const BG_VARIANT_OPTIONS: { value: SurfaceVariant; label: string }[] = [
-  { value: 'simple', label: 'simple' },
+  { value: 'simple',      label: 'simple' },
   { value: 'glass',       label: 'glass' },
+  { value: 'flat',        label: 'flat' },
   { value: 'transparent', label: 'transparent' },
   { value: 'outline',     label: 'outline' },
 ]

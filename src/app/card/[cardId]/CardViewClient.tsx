@@ -24,6 +24,7 @@ export type CardViewWrapperProps = {
   ownerAvatar: string | null
   createdAt: string | null
   imageUrl: string | null
+  ogpVersion: number
   templateDbRow?: TemplateLayoutRow | null
   background?: import('@/blocks/types').BackgroundValue | null
 }
@@ -74,7 +75,7 @@ function LinkChip({ label, value, href, icon }: { label: string; value: string; 
   )
 }
 
-export default function CardViewClient({ cardId, templateId, isOwner, likeCount: initialLikeCount, viewCount, ownerSlug, ownerName, ownerAvatar, createdAt, imageUrl: initialImageUrl, templateDbRow, background: initialBackground }: Props) {
+export default function CardViewClient({ cardId, templateId, isOwner, likeCount: initialLikeCount, viewCount, ownerSlug, ownerName, ownerAvatar, createdAt, imageUrl: initialImageUrl, ogpVersion: initialOgpVersion, templateDbRow, background: initialBackground }: Props) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [showCreatedModal, setShowCreatedModal] = useState(false)
@@ -97,7 +98,9 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const [likeCount, setLikeCount] = useState(initialLikeCount)
   const [liked, setLiked] = useState(false)
   const [liking, setLiking] = useState(false)
-  const [sharing, setSharing] = useState(false)
+  const [currentOgpVersion, setCurrentOgpVersion] = useState(initialOgpVersion)
+  // null=非表示 confirming=空フィールド確認 saving=保存中 done=保存完了
+  const [publishState, setPublishState] = useState<null | 'confirming' | 'saving' | 'done'>(null)
 
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const [offset, setOffset] = useState({ x: 0, y: 0 })
@@ -303,9 +306,16 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const fontKey = (values.font as string) ?? 'rounded'
   const fontFamily = (fontMap as Record<string, { style: { fontFamily: string } }>)[fontKey]?.style?.fontFamily ?? 'sans-serif'
 
-  const tweetUrl = typeof window !== 'undefined' ? window.location.href : ''
   const tweetText = encodeURIComponent('VRChatの自己紹介カードを作りました！\n#VRChat自己紹介カード #vaacard')
-  const xShareHref = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(tweetUrl)}`
+  function buildXShareHref(version: number) {
+    const base = typeof window !== 'undefined' ? window.location.origin + `/card/${cardId}` : ''
+    const url = version > 0 ? `${base}?v=${version}` : base
+    return `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(url)}`
+  }
+  function versionedShareUrl(version: number) {
+    const base = typeof window !== 'undefined' ? window.location.origin + `/card/${cardId}` : ''
+    return version > 0 ? `${base}?v=${version}` : base
+  }
 
   const displayName = ownerName || ownerSlug || 'vaacard ユーザー'
   const initials = displayName.slice(0, 2).toUpperCase()
@@ -315,29 +325,66 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const twitterId = sns?.twitterId?.trim().replace(/^@/, '')
   const discordId = sns?.discordId?.trim()
 
-  async function saveImageIfNeeded(): Promise<void> {
-    if (!isOwner || !exportRef.current) return
+  function hasEmptyFields(): boolean {
+    if (!cardData) return false
+    for (const [k, v] of Object.entries(cardData)) {
+      if (k === 'font') continue
+      if (typeof v === 'string' && v.trim() === '') return true
+      if (v && typeof v === 'object' && !Array.isArray(v)) {
+        for (const v2 of Object.values(v as object)) {
+          if (typeof v2 === 'string' && v2.trim() === '') return true
+        }
+      }
+    }
+    return false
+  }
+
+  // OGP画像をStorageに保存してogp_versionをインクリメント
+  // 成功時は新しいversionを返す、失敗時はnullを返す
+  async function doPublish(): Promise<number | null> {
+    if (!exportRef.current) return null
     try {
       const { toPng } = await import('html-to-image')
       const dataUrl = await toPng(exportRef.current, { pixelRatio: 2 })
-      await fetch(`/api/cards/${cardId}`, {
+      const newVersion = currentOgpVersion + 1
+      const res = await fetch(`/api/cards/${cardId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: dataUrl }),
+        body: JSON.stringify({ imageBase64: dataUrl, ogp_version: newVersion }),
       })
+      if (!res.ok) return null
       savedImageUrlRef.current = dataUrl
+      setCurrentOgpVersion(newVersion)
+      return newVersion
     } catch {
-      // 保存失敗してもシェアは続行
+      return null
     }
   }
 
-  async function handleXShare() {
-    setSharing(true)
-    if (!savedImageUrlRef.current) {
-      await saveImageIfNeeded()
+  // 「マイページに保存」ボタン
+  async function handlePublish() {
+    if (hasEmptyFields()) {
+      setPublishState('confirming')
+      return
     }
-    setSharing(false)
-    window.open(xShareHref, '_blank', 'noopener,noreferrer')
+    setPublishState('saving')
+    const newVersion = await doPublish()
+    setPublishState(newVersion !== null ? 'done' : null)
+  }
+
+  // 「Xで共有」ボタン
+  async function handleXShare() {
+    if (savedImageUrlRef.current) {
+      window.open(buildXShareHref(currentOgpVersion), '_blank', 'noopener,noreferrer')
+      return
+    }
+    // image_urlがない場合は自動でマイページ保存してからXへ
+    setPublishState('saving')
+    const newVersion = await doPublish()
+    setPublishState(null)
+    if (newVersion !== null) {
+      window.open(buildXShareHref(newVersion), '_blank', 'noopener,noreferrer')
+    }
   }
 
   async function handleDownload() {
@@ -346,14 +393,6 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     try {
       const { toPng } = await import('html-to-image')
       const dataUrl = await toPng(exportRef.current, { pixelRatio: 2 })
-      if (isOwner && !savedImageUrlRef.current) {
-        await fetch(`/api/cards/${cardId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: dataUrl }),
-        })
-        savedImageUrlRef.current = dataUrl
-      }
       const link = document.createElement('a')
       link.href = dataUrl
       link.download = 'vaacard.png'
@@ -378,6 +417,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const cardShadow = `${shadowX}px ${shadowY + 16}px ${shadowBlur}px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.12)`
 
   const shareUrl = typeof window !== 'undefined' ? window.location.origin + `/card/${cardId}` : ''
+  const publishedShareUrl = versionedShareUrl(currentOgpVersion)
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden" style={{ background: pageBg }}>
@@ -413,11 +453,11 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               <div className="px-6 pb-4 flex flex-col gap-2 mt-2">
                 <button
                   onClick={handleXShare}
-                  disabled={sharing}
+                  disabled={publishState === 'saving'}
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-black text-white text-sm font-semibold hover:opacity-80 transition-opacity disabled:opacity-50"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                  {sharing ? '準備中...' : 'Xでシェアする'}
+                  {publishState === 'saving' ? '準備中...' : 'Xでシェアする'}
                 </button>
                 {ownerSlug && (
                   <Link
@@ -430,6 +470,109 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
                 )}
                 <button
                   onClick={() => setShowCreatedModal(false)}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors py-1"
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 空フィールド確認モーダル */}
+      {publishState === 'confirming' && (
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" onClick={() => setPublishState(null)} />
+          <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-50 flex justify-center px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="px-6 pt-6 pb-4 text-center">
+                <div className="text-2xl mb-2">⚠️</div>
+                <h2 className="text-base font-bold text-gray-900 mb-1">未入力の項目があります</h2>
+                <p className="text-xs text-gray-400">このまま保存しますか？</p>
+              </div>
+              <div className="px-6 pb-5 flex flex-col gap-2">
+                <button
+                  onClick={async () => {
+                    setPublishState('saving')
+                    const newVersion = await doPublish()
+                    setPublishState(newVersion !== null ? 'done' : null)
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                >
+                  このまま保存する
+                </button>
+                <button
+                  onClick={() => setPublishState(null)}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors py-1"
+                >
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 保存中モーダル */}
+      {publishState === 'saving' && (
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
+          <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-50 flex justify-center px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="px-6 py-8 flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-4 border-sky-200 border-t-[#00AADB] rounded-full animate-spin" />
+                <p className="text-sm font-semibold text-gray-700">保存中...</p>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 保存完了モーダル */}
+      {publishState === 'done' && (
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" onClick={() => setPublishState(null)} />
+          <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-50 flex justify-center px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="px-6 pt-6 pb-4 text-center">
+                <div className="text-3xl mb-2">✅</div>
+                <h2 className="text-base font-bold text-gray-900 mb-1">マイページに保存しました！</h2>
+                <p className="text-xs text-gray-400">このURLをシェアしよう</p>
+              </div>
+              <div className="px-6 pb-2">
+                <button
+                  onClick={() => navigator.clipboard.writeText(publishedShareUrl)}
+                  className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-500 hover:border-sky-200 hover:bg-sky-50 transition-colors"
+                >
+                  <span className="truncate">{publishedShareUrl}</span>
+                  <svg className="w-4 h-4 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+              <div className="px-6 pb-5 flex flex-col gap-2 mt-2">
+                <button
+                  onClick={() => {
+                    setPublishState(null)
+                    window.open(buildXShareHref(currentOgpVersion), '_blank', 'noopener,noreferrer')
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-black text-white text-sm font-semibold hover:opacity-80 transition-opacity"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  Xでシェアする
+                </button>
+                {ownerSlug && (
+                  <Link
+                    href={`/u/${ownerSlug}`}
+                    onClick={() => setPublishState(null)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-sky-200 text-[#00AADB] text-sm font-semibold hover:bg-sky-50 transition-colors"
+                  >
+                    マイページを見る
+                  </Link>
+                )}
+                <button
+                  onClick={() => setPublishState(null)}
                   className="text-xs text-gray-400 hover:text-gray-600 transition-colors py-1"
                 >
                   閉じる
@@ -469,11 +612,21 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               </button>
               <button
                 onClick={handleXShare}
-                disabled={sharing}
+                disabled={publishState === 'saving'}
                 className="flex items-center gap-1.5 text-xs font-semibold text-white bg-black rounded-full px-4 py-1.5 hover:opacity-80 transition-opacity shadow-sm disabled:opacity-50"
               >
                 <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                {sharing ? '...' : 'Xで共有'}
+                {publishState === 'saving' ? '...' : 'Xで共有'}
+              </button>
+              <button
+                onClick={handlePublish}
+                disabled={publishState === 'saving'}
+                className="flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] rounded-full px-4 py-1.5 hover:opacity-90 transition-opacity shadow-sm shadow-sky-200 disabled:opacity-50"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                マイページに保存
               </button>
             </div>
           )}
@@ -705,7 +858,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
           {/* 展開時のボタン群 */}
           <div
             className="flex flex-col items-end gap-2 overflow-hidden transition-all duration-300"
-            style={{ maxHeight: fabExpanded ? 200 : 0, opacity: fabExpanded ? 1 : 0 }}
+            style={{ maxHeight: fabExpanded ? 280 : 0, opacity: fabExpanded ? 1 : 0 }}
           >
             <Link
               href={`/card/${cardId}/edit`}
@@ -728,11 +881,21 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
             </button>
             <button
               onClick={handleXShare}
-              disabled={sharing}
+              disabled={publishState === 'saving'}
               className="flex items-center gap-2 bg-black text-white rounded-full px-4 py-2.5 shadow-lg text-sm font-semibold disabled:opacity-50"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              {sharing ? '...' : 'Xで共有'}
+              Xで共有
+            </button>
+            <button
+              onClick={handlePublish}
+              disabled={publishState === 'saving'}
+              className="flex items-center gap-2 bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white rounded-full px-4 py-2.5 shadow-lg shadow-sky-200 text-sm font-semibold disabled:opacity-50"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              マイページに保存
             </button>
           </div>
           {/* トグルボタン */}

@@ -57,7 +57,7 @@ export default async function CardViewPage({ params }: { params: Promise<{ cardI
   // card_data (base64画像等) は含めず軽量なメタデータのみ取得
   const { data: card } = await supabase
     .from('cards')
-    .select('id, user_id, template_id, title, image_url, visibility, view_count, like_count, created_at, updated_at, background')
+    .select('id, user_id, template_id, title, image_url, visibility, view_count, like_count, created_at, updated_at, background, ogp_version')
     .eq('id', cardId)
     .single()
 
@@ -77,5 +77,5 @@ export default async function CardViewPage({ params }: { params: Promise<{ cardI
     fetchTemplateLayout(card.template_id),
   ])
 
-  return <CardViewWrapper cardId={cardId} templateId={card.template_id} isOwner={isOwner} likeCount={card.like_count ?? 0} viewCount={card.view_count ?? 0} ownerSlug={userRow?.username_slug ?? null} ownerName={profile?.display_name ?? null} ownerAvatar={profile?.avatar_url ?? null} createdAt={card.created_at ?? null} imageUrl={card.image_url ?? null} templateDbRow={templateDbRow} background={card.background} />
+  return <CardViewWrapper cardId={cardId} templateId={card.template_id} isOwner={isOwner} likeCount={card.like_count ?? 0} viewCount={card.view_count ?? 0} ownerSlug={userRow?.username_slug ?? null} ownerName={profile?.display_name ?? null} ownerAvatar={profile?.avatar_url ?? null} createdAt={card.created_at ?? null} imageUrl={card.image_url ?? null} ogpVersion={(card as { ogp_version?: number }).ogp_version ?? 0} templateDbRow={templateDbRow} background={card.background} />
 }

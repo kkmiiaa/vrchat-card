@@ -60,6 +60,31 @@
 
 ## 作業ログ
 
+### 2026-06-01（続き 3）
+
+#### 「Xで共有」「画像で保存」「マイページに保存」の導線再設計
+
+**設計方針**
+- OGPキャッシュ問題対策として `ogp_version` カラムを追加し、シェアURLを `/card/[id]?v=N` 形式に
+- 「マイページに保存」= OGP画像生成 + `image_url` / `ogp_version` 更新の明示的操作
+- 「Xで共有」= `image_url` 未保存なら自動でマイページ保存フローを経由してからXへ
+- 「画像で保存」= マイページ保存と独立したPNGダウンロード
+
+**実装内容**
+- `supabase/migrations/003_add_ogp_version.sql`: `cards.ogp_version int default 0` カラム追加・Supabase に適用済み
+- `PATCH /api/cards/[cardId]`: `ogp_version` パラメータ対応追加
+- `CardViewClient`: `publishState` 状態機械（null/confirming/saving/done）で保存フローを管理
+  - 「マイページに保存」: 空フィールド確認 → OGP画像生成 → PATCH → 完了モーダル（URLコピー + Xシェア）
+  - 「Xで共有」: `image_url` あり → `?v=N` 付きURLでX投稿；なし → 自動保存してからX投稿
+  - 「画像で保存」: 単純なPNGダウンロード（マイページ保存不要）
+- PC ヘッダー・モバイルFAB 両方に「マイページに保存」ボタンを追加
+
+**確定済み設計方針（追記）**
+- `ogp_version` はオーナーが「マイページに保存」するたびにインクリメント
+- シェアURLの `?v=N` はSNS側OGPキャッシュのバスティング目的（サーバー側はv値を無視して同一OGPを返す）
+
+---
+
 ### 2026-06-01（続き 2）
 
 #### FAB UX改善

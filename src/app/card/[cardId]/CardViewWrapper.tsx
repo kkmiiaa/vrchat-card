@@ -16,6 +16,7 @@ export type CardViewWrapperProps = {
   ownerAvatar: string | null
   createdAt: string | null
   imageUrl: string | null
+  ogpVersion: number
   templateDbRow?: TemplateLayoutRow | null
   background?: BackgroundValue | null
 }

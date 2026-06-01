@@ -48,11 +48,9 @@ export default function TemplateSelector({ savedLayouts, communities }: Props) {
   const [loading, setLoading] = useState<string | null>(null)
   const [activeTag, setActiveTag] = useState<string | null>(null)
 
-  // DB から取得した savedLayouts を CardTemplate に変換（v2→v1 の順）
+  // DB から取得した公開済み savedLayouts を CardTemplate に変換（sort_order 順）
   const TEMPLATES = useMemo(() => {
-    const order = ['vrchat-glass', 'vrchat-simple']
-    return order
-      .filter(id => savedLayouts[id])
+    return Object.keys(savedLayouts)
       .map(id => buildCardTemplateFromDefinition(null, savedLayouts[id]).template)
   }, [savedLayouts])
 

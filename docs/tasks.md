@@ -23,7 +23,7 @@
   - データ変換テスト（`migrateV1Patterns.test.ts` 等）はカバー済み・685 件全パス
   - 未テスト: `CardEditor.tsx` の `isLoggedIn && !cardId && localStorage にデータあり` 分岐
 - [ ] **`/card/vrchat` の後方互換性テスト強化** — あらゆる旧データパターンを網羅
-- [ ] **auto-save の card_data から background を除外** — `CardEditor.tsx` の auto-save `useEffect` が `cardData: values` をそのまま送るため、`values.background`（blockPool の defaultValue）が card_data に書き込まれるデータ汚染。`handleShareByUrl` と同様に `const { background: _bg, ...cardDataWithoutBg } = values` で除外する。表示への影響はないが中長期的なデータ品質のために対処推奨。
+- ✅ **auto-save の card_data から background を除外** — `CardEditor.tsx` auto-save で `const { background: _bg, ...cardDataWithoutBg } = values` により除外済み。
 
 ### DB・インフラ（優先度：中）
 

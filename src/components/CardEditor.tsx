@@ -145,7 +145,8 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     if (!isLoggedIn || !cardId || !initialized) return
     setDraftStatus('saving')
     const timer = setTimeout(async () => {
-      await updateCard({ cardId, cardData: values as Record<string, unknown>, background })
+      const { background: _bg, ...cardDataWithoutBg } = values as Record<string, unknown>
+      await updateCard({ cardId, cardData: cardDataWithoutBg, background })
       setDraftStatus('saved')
     }, 1500)
     return () => clearTimeout(timer)

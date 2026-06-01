@@ -87,6 +87,11 @@ test.describe('カード編集ヘッダー — ログイン済み・新規（car
   test('「マイページ」リンクがヘッダーに表示される', async ({ page }) => {
     await expect(page.locator('header').getByRole('link', { name: 'マイページ' })).toBeVisible();
   });
+
+  // TC-1-2-5
+  test('「マイページに保存」ボタンがヘッダーに表示される', async ({ page }) => {
+    await expect(page.locator('header').getByRole('button', { name: /マイページに保存/ })).toBeVisible();
+  });
 });
 
 // ─── カード閲覧（/card/[cardId]） ────────────────────────────────────────────
@@ -94,27 +99,62 @@ test.describe('カード編集ヘッダー — ログイン済み・新規（car
 test.describe('カード閲覧ヘッダー — 未ログイン', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
-  test('公開カードに直接アクセスできる', async ({ page }) => {
-    // 固定の公開カード ID が必要。なければスキップ
+  test.beforeEach(async ({ page }) => {
     const cardId = process.env.TEST_PUBLIC_CARD_ID;
     if (!cardId) test.skip();
     await page.goto(`/card/${cardId}`);
     await page.waitForLoadState('networkidle');
+  });
+
+  test('公開カードに直接アクセスできる', async ({ page }) => {
     await expect(page.locator('body')).not.toContainText('500');
   });
 
-  test('「ログイン」リンクが白色テキストで表示される', async ({ page }) => {
-    const cardId = process.env.TEST_PUBLIC_CARD_ID;
-    if (!cardId) test.skip();
-    await page.goto(`/card/${cardId}`);
+  test('「ログイン」リンクが表示される', async ({ page }) => {
     await expect(page.locator('header').getByRole('link', { name: 'ログイン' })).toBeVisible();
   });
 
-  test('編集・Xで共有・画像で保存ボタンは非表示', async ({ page }) => {
+  // TC-1-3-2〜5: オーナー向けボタンが全て非表示
+  test('「編集」ボタンがヘッダーに表示されない', async ({ page }) => {
+    await expect(page.locator('header').getByRole('link', { name: /編集/ })).not.toBeVisible();
+  });
+
+  test('「画像で保存」ボタンがヘッダーに表示されない', async ({ page }) => {
+    await expect(page.locator('header').getByRole('button', { name: /画像で保存/ })).not.toBeVisible();
+  });
+
+  test('「Xで共有」ボタンがヘッダーに表示されない', async ({ page }) => {
+    await expect(page.locator('header').getByRole('button', { name: /Xで共有/ })).not.toBeVisible();
+  });
+
+  test('「マイページに保存」ボタンがヘッダーに表示されない', async ({ page }) => {
+    await expect(page.locator('header').getByRole('button', { name: /マイページに保存/ })).not.toBeVisible();
+  });
+});
+
+test.describe('カード閲覧ヘッダー — ログイン済み・非オーナー', () => {
+  test.beforeEach(async ({ page }) => {
     const cardId = process.env.TEST_PUBLIC_CARD_ID;
     if (!cardId) test.skip();
     await page.goto(`/card/${cardId}`);
-    await expect(page.locator('header').getByRole('button', { name: /編集/ })).not.toBeVisible();
+    await page.waitForLoadState('networkidle');
+  });
+
+  // TC-1-3-6〜9: オーナー向けボタンが全て非表示
+  test('「編集」ボタンがヘッダーに表示されない', async ({ page }) => {
+    await expect(page.locator('header').getByRole('link', { name: /編集/ })).not.toBeVisible();
+  });
+
+  test('「画像で保存」ボタンがヘッダーに表示されない', async ({ page }) => {
+    await expect(page.locator('header').getByRole('button', { name: /画像で保存/ })).not.toBeVisible();
+  });
+
+  test('「Xで共有」ボタンがヘッダーに表示されない', async ({ page }) => {
+    await expect(page.locator('header').getByRole('button', { name: /Xで共有/ })).not.toBeVisible();
+  });
+
+  test('「マイページに保存」ボタンがヘッダーに表示されない', async ({ page }) => {
+    await expect(page.locator('header').getByRole('button', { name: /マイページに保存/ })).not.toBeVisible();
   });
 });
 
@@ -129,10 +169,20 @@ test.describe('カード閲覧ヘッダー — ログイン済み・オーナー
     await page.waitForLoadState('networkidle');
   });
 
-  test('「編集」ボタンが表示される', async ({ page }) => {
+  // TC-1-3-10〜12: オーナー向けボタンの存在確認
+  test('「編集」ボタンがヘッダーに表示される', async ({ page }) => {
     await expect(page.locator('header').getByRole('link', { name: /編集/ })).toBeVisible();
   });
 
+  test('「画像で保存」ボタンがヘッダーに表示される', async ({ page }) => {
+    await expect(page.locator('header').getByRole('button', { name: /画像で保存/ })).toBeVisible();
+  });
+
+  test('「Xで共有」ボタンがヘッダーに表示される', async ({ page }) => {
+    await expect(page.locator('header').getByRole('button', { name: /Xで共有/ })).toBeVisible();
+  });
+
+  // TC-1-3-13: ボタン順
   test('「画像で保存」ボタンが「Xで共有」の左に表示される', async ({ page }) => {
     const saveBtn = page.locator('header').getByRole('button', { name: /画像で保存/ });
     const xBtn = page.locator('header').getByRole('button', { name: /Xで共有|シェア/ });

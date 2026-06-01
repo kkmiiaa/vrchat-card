@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ComponentDef, BackgroundValue } from './types'
 
 const COLOR_THEMES: { id: string; label: string; colors: string[] }[] = [
@@ -101,7 +101,6 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
 
     const set = (patch: Partial<BackgroundValue>) => onChange({ ...value, ...patch })
     const [openTheme, setOpenTheme] = useState<string | null>(null)
-    const hexRef = useRef<HTMLInputElement>(null)
 
     function applyGradient(from: string, to: string) {
       set({ type: 'gradient', value: [from, to], imageFile: null, base64: null })
@@ -145,10 +144,7 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
                           key={color}
                           color={color}
                           selected={value.type === 'color' && value.value === color}
-                          onClick={() => {
-                            set({ type: 'color', value: color, imageFile: null, base64: null })
-                            if (hexRef.current) hexRef.current.value = color
-                          }}
+                          onClick={() => set({ type: 'color', value: color, imageFile: null, base64: null })}
                         />
                       ))}
                     </div>
@@ -156,29 +152,6 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
                 </div>
               )
             })}
-          </div>
-          {/* hex 直接入力 */}
-          <div className="flex items-center gap-2 mt-2">
-            <div
-              className="w-7 h-7 rounded-lg border border-black/10 flex-shrink-0"
-              style={{ backgroundColor: value.type === 'color' && typeof value.value === 'string' ? value.value : '#ffffff' }}
-            />
-            <input
-              ref={hexRef}
-              type="text"
-              placeholder="#e8f0e0"
-              defaultValue={value.type === 'color' && typeof value.value === 'string' ? value.value : ''}
-              onBlur={e => {
-                const hex = e.target.value.trim()
-                if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
-                  set({ type: 'color', value: hex, imageFile: null, base64: null })
-                }
-              }}
-              onKeyDown={e => {
-                if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
-              }}
-              className="flex-1 text-xs px-2 py-1 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-200 font-mono"
-            />
           </div>
         </div>
 
@@ -227,7 +200,7 @@ export const backgroundComponent: ComponentDef<BackgroundValue> = {
             </div>
             {/* 選択中の側のパレット */}
             <div className="mt-2 grid grid-cols-10 gap-1.5">
-              {COLOR_THEMES.flatMap(t => t.colors).map(color => (
+              {COLOR_THEMES.find(t => t.id === 'vivid')!.colors.map(color => (
                 <ColorSwatch
                   key={color}
                   color={color}

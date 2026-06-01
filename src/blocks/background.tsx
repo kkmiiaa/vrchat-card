@@ -4,14 +4,6 @@ import type { ComponentDef, BackgroundValue } from './types'
 
 const COLOR_THEMES: { id: string; label: string; colors: string[] }[] = [
   {
-    id: 'basic',
-    label: 'ベーシック',
-    colors: [
-      '#ffffff', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af',
-      '#6b7280', '#4b5563', '#374151', '#1f2937', '#111827',
-    ],
-  },
-  {
     id: 'cute-muted',
     label: 'くすみ・かわいい',
     colors: [
@@ -33,7 +25,7 @@ const COLOR_THEMES: { id: string; label: string; colors: string[] }[] = [
   },
   {
     id: 'vivid',
-    label: 'ビビッド',
+    label: 'カラフル',
     colors: [
       '#dbeafe', '#fcd5ce', '#fce7f3', '#ede9fe', '#e0f7fa',
       '#d1fae5', '#fef9c3', '#ffedd5', '#fee2e2', '#fef3c7',

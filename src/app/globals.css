@@ -75,11 +75,58 @@ a {
 }
 
 .profile-card-hover {
-  transition: transform 0.3s ease-out;
+  transition: transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+  will-change: transform;
 }
 
 .profile-card-hover:hover {
-  transform: translateY(-5px);
+  transform: translateY(-10px) scale(1.025) rotate(-0.4deg);
+}
+
+/* カードホバー時の halo を強調 */
+.profile-card-wrap {
+  transition: filter 0.35s ease;
+}
+.profile-card-wrap:hover .profile-card-halo {
+  opacity: 0.45 !important;
+  filter: blur(22px) !important;
+}
+
+/* アバターホバー */
+.profile-avatar-wrap {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.profile-avatar-wrap:hover {
+  transform: scale(1.08);
+}
+.profile-avatar-wrap img,
+.profile-avatar-wrap > div:first-child {
+  transition: box-shadow 0.3s ease;
+}
+.profile-avatar-wrap:hover img,
+.profile-avatar-wrap:hover > div:first-child {
+  box-shadow: 0 0 0 3px rgba(0, 170, 219, 0.4), 0 0 20px rgba(0, 201, 184, 0.25);
+}
+
+/* アクションボタン（カードホバー時にフェードイン） */
+.profile-card-actions {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.group:hover .profile-card-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* モバイルタップ後バウンス */
+@keyframes tap-bounce {
+  0%   { transform: scale(0.95); }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.tap-bounce {
+  animation: tap-bounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ─── カード入場アニメ ─────────────────────────────── */

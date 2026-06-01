@@ -296,11 +296,13 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#f8fafc' }}>
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-10 -right-10 w-64 h-64 rounded-full border-2 border-sky-100 opacity-50" />
-        <div className="absolute bottom-20 -left-10 w-56 h-56 rounded-full border border-cyan-100 opacity-40" />
-        <div className="absolute top-1/3 right-[6%] w-4 h-4 rounded-full bg-sky-200/50" />
-        <div className="absolute bottom-1/3 left-[8%] w-3 h-3 rounded-full bg-cyan-200/60" />
-        <div className="absolute top-0 right-0 w-96 h-60 bg-sky-50 rounded-full blur-[80px] opacity-50" />
+        <div className="lp-float-a absolute -top-10 -right-10 w-64 h-64 rounded-full border-2 border-sky-100 opacity-40" />
+        <div className="lp-float-b absolute bottom-20 -left-10 w-56 h-56 rounded-full border border-cyan-100 opacity-35" />
+        <div className="lp-float-c absolute top-1/3 right-[6%] w-5 h-5 rounded-full bg-sky-200/60" />
+        <div className="lp-float-d absolute bottom-1/3 left-[8%] w-3.5 h-3.5 rounded-full bg-cyan-300/50" />
+        <div className="lp-float-e absolute top-2/3 right-[20%] w-2.5 h-2.5 rounded-full bg-pink-200/60" />
+        <div className="lp-drift absolute top-0 right-0 w-[500px] h-72 bg-gradient-to-bl from-sky-100 to-cyan-50 rounded-full blur-[90px] opacity-60" />
+        <div className="lp-float-f absolute bottom-10 left-[30%] w-80 h-48 bg-gradient-to-tr from-purple-50 to-pink-50 rounded-full blur-[70px] opacity-40" />
       </div>
 
       <header className="fixed top-0 left-0 right-0 z-20 border-b border-sky-100 shadow-sm h-14 px-6 flex items-center justify-between bg-white/80 backdrop-blur-md">
@@ -352,7 +354,7 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
               </button>
             </div>
           )}
-          <div className={`relative mb-4 group ${isOwner && !editMode ? 'mt-8' : ''}`}>
+          <div className={`profile-avatar-wrap relative mb-4 group ${isOwner && !editMode ? 'mt-8' : ''}`}>
             {avatarUrl ? (
               <img src={avatarUrl} alt={displayName || currentSlug}
                 className="w-20 h-20 rounded-full object-cover border-2 border-sky-100 shadow-md shadow-sky-100" />
@@ -521,7 +523,13 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
                   return (
                     <div key={card.id} className={`group ${colSpan} stagger-item`} style={{ animationDelay: `${Math.min(i * 80, 400)}ms` }}>
                       {/* カードプレビュー本体 */}
-                      <div className="relative tap-scale" style={{ padding: '32px 16px' }}>
+                      <div className="profile-card-wrap relative tap-scale" style={{ padding: '32px 16px' }}
+                        onTouchEnd={e => {
+                          const el = e.currentTarget
+                          el.classList.add('tap-bounce')
+                          setTimeout(() => el.classList.remove('tap-bounce'), 300)
+                        }}
+                      >
                         {(() => {
                           const bg = cardBg(card.background) ?? 'linear-gradient(135deg, #c7d2fe, #bae6fd)'
                           const hasCustomBg = !!cardBg(card.background)
@@ -540,13 +548,14 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
                               zIndex: 0,
                             }} />
                             {/* halo：カード輪郭から外側にぼかして広がる */}
-                            <div aria-hidden style={{
+                            <div aria-hidden className="profile-card-halo" style={{
                               position: 'absolute',
                               inset: '10px 0px -18px',
                               background: bg,
                               borderRadius: 16,
                               filter: isImage ? 'blur(18px)' : 'blur(14px)',
                               opacity: hasCustomBg ? 0.25 : 0.12,
+                              transition: 'opacity 0.35s ease, filter 0.35s ease',
                               pointerEvents: 'none',
                               zIndex: 0,
                             }} />
@@ -583,9 +592,9 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
                             </div>
                           )}
 
-                          {/* オーナー操作：右下に重ねる */}
+                          {/* オーナー操作：右下に重ねる（ホバーでフェードイン） */}
                           {isOwner && (
-                            <div className="absolute bottom-1 right-2 flex gap-1.5 z-10" onClick={e => e.preventDefault()}>
+                            <div className="profile-card-actions absolute bottom-1 right-2 flex gap-1.5 z-10" onClick={e => e.preventDefault()}>
                             <button
                               onClick={() => handleCopyUrl(card.id)}
                               title="URLをコピー"

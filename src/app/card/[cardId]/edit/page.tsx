@@ -4,8 +4,6 @@ import { fetchTemplateLayout } from '@/lib/templateLayout'
 import { migrateLegacyCardData } from '@/lib/legacyCardDataMigration'
 import CardEditorClient from './CardEditorClient'
 
-/** DB 定義が存在するテンプレート ID（クライアント側でテンプレートを構築する） */
-const definitionTemplateIds = new Set(['vrchat-simple', 'vrchat-glass'])
 
 export default async function CardPage({ params }: { params: Promise<{ cardId: string }> }) {
   const { cardId } = await params
@@ -30,8 +28,6 @@ export default async function CardPage({ params }: { params: Promise<{ cardId: s
   const isOwner = user?.id === card.user_id
 
   const templateId = card.template_id as string
-
-  if (!definitionTemplateIds.has(templateId)) notFound()
 
   // DB からテンプレート定義を取得（シリアライズ可能な TemplateLayoutRow のみサーバーで取得）
   const templateDbRow = await fetchTemplateLayout(templateId)

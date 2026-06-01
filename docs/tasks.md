@@ -13,9 +13,7 @@
 
 ### 機能追加（優先度：中）
 
-- [ ] **探索フィルター実装** — `gender`/`env`/`lang`/`friendPolicy` フィルターが `src/app/api/cards/explore/route.ts` に未実装（現状フリーテキスト検索のみ）
-  - `tests/e2e/explore-search.spec.ts` は存在。実装後にテストが通ることを確認
-  - Pro プランのみ有効にする（既存の `isPro` フラグを流用）
+- ✅ **探索フィルター実装** — `gender`/`env`/`lang`/`friendPolicy` フィルターを `src/app/api/cards/explore/route.ts` に実装。Pro プランのみ有効。E2E 11/11 通過。
 
 ### 品質・テスト（優先度：中）
 

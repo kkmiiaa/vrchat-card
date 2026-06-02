@@ -23,7 +23,7 @@ export const genderComponent: ComponentDef<GenderValue> = {
   defaultValue: DEFAULT_GENDER_VALUE,
   variants: ['simple', 'compact'],
   supportsSurface: true,
-  surfaceFor: ['simple'],
+  surfaceFor: ['contained'],
   CardItem({ value, ctx, variant = 'simple', surface, label }) {
     const safe: GenderValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as GenderValue
@@ -36,7 +36,7 @@ export const genderComponent: ComponentDef<GenderValue> = {
     // 非公開: フラットなマイナスアイコン、それ以外: 性別アイコン（未設定はアイコンなし）
     const Icon = isEmpty ? null : (isNone ? TbMinus : option?.Icon)
     const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'simple'
+       ? 'contained'
       : (surface ?? 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
 

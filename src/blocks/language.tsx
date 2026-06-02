@@ -20,7 +20,7 @@ function LanguageCard({ value, ctx, variant = 'simple', surface, label, blockCon
 
   if (variant === 'slash') {
     const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'simple'
+       ? 'contained'
       : (surface ?? 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (
@@ -90,7 +90,7 @@ export const languageComponent: ComponentDef<LanguageValue> = {
   defaultValue: { preset: [], custom: [] },
   variants: ['simple', 'slash'],
   supportsSurface: true,
-  surfaceFor: ['simple', 'slash'],
+  surfaceFor: ['contained', 'slash'],
   CardItem: LanguageCard,
   FormItem({ value, onChange, t, blockConfig }) {
     const preset = Array.isArray(value?.preset) ? value.preset : []

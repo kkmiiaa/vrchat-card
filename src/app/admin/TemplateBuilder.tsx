@@ -408,14 +408,14 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
   const [editingLabel, setEditingLabel] = useState(false)
   const [labelDraft, setLabelDraft] = useState('')
 
-  type DesignPreset = 'simple' | 'glass' | 'flat'
+  type DesignPreset = 'contained' | 'glass' | 'flat'
   const [designPresets, setDesignPresets] = useState<Record<string, DesignPreset>>(
     () => Object.fromEntries(rowList.map(row => [
       row.id,
-      (row.card_config?.defaultSurface as DesignPreset | undefined) ?? 'simple',
+      (row.card_config?.defaultSurface as DesignPreset | undefined) ?? 'contained',
     ]))
   )
-  const currentDesignPreset = designPresets[currentRow.id] ?? 'simple'
+  const currentDesignPreset = designPresets[currentRow.id] ?? 'contained'
   const setCurrentDesignPreset = useCallback((p: DesignPreset) => {
     setDesignPresets(prev => ({ ...prev, [currentRow.id]: p }))
   }, [currentRow.id])
@@ -1063,7 +1063,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
           const poolEntry = currentPool[node.blockId]
           const comp = poolEntry ? getComponent(poolEntry.componentKey) : undefined
           const variants = comp?.variants ?? []
-          const SURFACE_VARIANTS: SurfaceVariant[] = ['simple', 'glass', 'flat', 'transparent', 'outline']
+          const SURFACE_VARIANTS: SurfaceVariant[] = ['contained', 'glass', 'flat', 'transparent', 'outline']
           return (
             <div className="flex flex-col gap-2">
               <div className="flex flex-col gap-1">
@@ -1665,7 +1665,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
             <p className="text-[10px] text-gray-400 mb-1.5">デザインプリセット</p>
             <div className="flex gap-1">
               {([
-                { key: 'simple', label: 'Simple', desc: '半透明白' },
+                { key: 'contained', label: 'Contained', desc: '半透明白' },
                 { key: 'glass',   label: 'Glass',   desc: 'すりガラス' },
                 { key: 'flat',    label: 'Flat',    desc: '不透明白+枠' },
               ] as const).map(({ key, label, desc }) => (

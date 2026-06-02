@@ -17,7 +17,7 @@ export const gaugeComponent: ComponentDef<number> = {
   defaultValue: 0,
   variants: ['simple'],
   supportsSurface: true,
-  surfaceFor: ['simple'],
+  surfaceFor: ['contained'],
 
   CardItem({ value, ctx, surface, blockConfig, label }) {
     const cfg = (blockConfig ?? {}) as GaugeConfig
@@ -33,7 +33,7 @@ export const gaugeComponent: ComponentDef<number> = {
       : cfg.barColor ?? ctx.theme.accent
 
     const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'simple'
+       ? 'contained'
       : (surface ?? 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
 

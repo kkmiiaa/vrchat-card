@@ -98,14 +98,14 @@ export type BlockVariant = string
 
 /**
  * 背景・コンテナの見た目バリアント
- * - simple:      半透明白（デフォルトスタイル）
+ * - contained:   半透明白の基本コンテナ
  * - glass:       すりガラス（rgba(255,255,255,0.55) + border）
  * - flat:        不透明白 + 細いボーダー（フラットデザイン向け）
  * - transparent: 背景なし
  * - outline:     枠線のみ
- * - default:     'simple' の後方互換エイリアス（DB保存済みデータ向け）
+ * - default:     後方互換エイリアス（DB保存済みデータ向け）
  */
-export type SurfaceVariant = 'simple' | 'default' | 'glass' | 'flat' | 'transparent' | 'outline'
+export type SurfaceVariant = 'contained' | 'default' | 'glass' | 'flat' | 'transparent' | 'outline'
 
 /** ラベル定義。外ラベル・insetLabel 共通で使用 */
 export type LabelDef = {
@@ -121,11 +121,12 @@ export type LabelDef = {
   icon?: string
 }
 
-export const SURFACE_STYLE: Record<SurfaceVariant, { background: string; border: string; boxShadow?: string }> = {
-  simple:      { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined },
-  default:     { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined }, // 後方互換
+export const SURFACE_STYLE: Record<SurfaceVariant | 'simple', { background: string; border: string; boxShadow?: string }> = {
+  contained:   { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined },
+  simple:      { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined }, // 後方互換エイリアス
+  default:     { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined }, // 後方互換エイリアス
   glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)',        boxShadow: '0 0 12px rgba(0,0,0,0.08)' },
-  flat:        { background: 'rgba(255,255,255,0.95)', border: '1.5px solid rgba(0,0,0,0.18)',              boxShadow: undefined },
+  flat:        { background: 'rgba(255,255,255,0.95)', border: '1.5px solid rgba(0,0,0,0.18)',            boxShadow: undefined },
   transparent: { background: 'transparent',            border: 'none',                                   boxShadow: undefined },
   outline:     { background: 'transparent',            border: '1px solid rgba(255,255,255,0.6)',         boxShadow: undefined },
 }
@@ -133,9 +134,9 @@ export const SURFACE_STYLE: Record<SurfaceVariant, { background: string; border:
 export type ComponentCardProps<T> = {
   value: T
   ctx: CardRenderContext
-  /** コンテンツの表示方法バリアント。未指定時は 'simple' */
+  /** コンテンツの表示方法バリアント。未指定時は 'contained' */
   variant?: BlockVariant
-  /** 背景・コンテナの見た目バリアント。未指定時は 'simple' */
+  /** 背景・コンテナの見た目バリアント。未指定時は 'contained' */
   surface?: SurfaceVariant
   /**
    * labelInset が有効なとき渡されるラベル定義。

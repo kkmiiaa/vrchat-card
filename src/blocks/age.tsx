@@ -15,7 +15,7 @@ export const ageComponent: ComponentDef<AgeValue> = {
   defaultValue: { searchTag: '', display: '' },
   variants: ['simple', 'badge'],
   supportsSurface: true,
-  surfaceFor: ['simple'],
+  surfaceFor: ['contained'],
   CardItem({ value, ctx, variant = 'simple', surface, label }) {
     const safe: AgeValue = (value && typeof value === 'object' && 'searchTag' in value)
       ? value as AgeValue
@@ -24,7 +24,7 @@ export const ageComponent: ComponentDef<AgeValue> = {
     const isEmpty = !safe.searchTag && !safe.display
     const text = (isPrivate || isEmpty) ? '-' : (safe.display || safe.searchTag)
     const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'simple'
+       ? 'contained'
       : (surface ?? 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
 

@@ -9,7 +9,7 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
   defaultValue: false,
   variants: ['simple', 'badge'],
   supportsSurface: true,
-  surfaceFor: ['simple'],
+  surfaceFor: ['contained'],
   CardItem({ value, ctx, variant, surface, blockConfig, label }) {
     const on = typeof value === 'boolean' ? value : false
     const fs = ctx.fontSize.md
@@ -52,7 +52,7 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
     }
 
     const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'simple'
+       ? 'contained'
       : (surface ?? 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     const iconColor = on ? trueColor : falseColor

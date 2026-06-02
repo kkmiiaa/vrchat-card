@@ -19,7 +19,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
 
     if (variant === 'slash') {
       const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-         ? 'simple'
+         ? 'contained'
         : (surface ?? 'transparent')
       const surfaceStyle = SURFACE_STYLE[effectiveSurface]
       return (
@@ -56,7 +56,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
     // icon-slash: [icon] text / [icon] text 形式でスラッシュ区切り
     if (variant === 'icon-slash') {
       const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-         ? 'simple'
+         ? 'contained'
         : (surface ?? 'transparent')
       const surfaceStyle = SURFACE_STYLE[effectiveSurface]
       const selectedOpts = items.map(v => getOption(v) ?? { value: v, label: v, icon: undefined, color: undefined })

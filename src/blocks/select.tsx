@@ -9,7 +9,7 @@ export const selectComponent: ComponentDef<string> = {
   defaultValue: '',
   variants: ['simple', 'badge', 'compact', 'chips'],
   supportsSurface: true,
-  surfaceFor: ['simple', 'chips'],
+  surfaceFor: ['contained', 'chips'],
   CardItem({ value, ctx, variant = 'simple', surface, label, blockConfig }) {
     if (!value) {
       if (blockConfig?.hideWhenEmpty) return null
@@ -29,7 +29,7 @@ export const selectComponent: ComponentDef<string> = {
 
     // label があるとき: surface コンテナの中にラベル＋値を描く
     if (label) {
-      const bgStyle = SURFACE_STYLE[surface ?? 'simple']
+      const bgStyle = SURFACE_STYLE[surface ?? 'contained']
       const fs = ctx.fontSize.md
       return (
         <div style={{ width: '100%', background: bgStyle.background, border: bgStyle.border, boxShadow: bgStyle.boxShadow, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: label.dir === 'row' ? 'row' : 'column', gap: label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003, alignItems: label.dir === 'row' ? 'center' : 'stretch', justifyContent: label.dir === 'row' ? undefined : 'center', overflow: 'hidden' }}>

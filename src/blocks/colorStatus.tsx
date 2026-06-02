@@ -24,7 +24,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
   defaultValue: {},
   variants: ['simple', 'compact', 'cards'],
   supportsSurface: true,
-  surfaceFor: ['simple', 'cards'],
+  surfaceFor: ['contained', 'cards'],
   CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
     const safe = (value && typeof value === 'object') ? value as Record<string, string> : {}
     const fields = getFields(blockConfig)
@@ -85,7 +85,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
     // default
     const fs = ctx.fontSize.sm
     const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'simple'
+       ? 'contained'
       : (surface ?? 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (

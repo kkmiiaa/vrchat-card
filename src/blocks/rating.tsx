@@ -9,14 +9,14 @@ export const ratingComponent: ComponentDef<number> = {
   defaultValue: 0,
   variants: ['simple', 'compact'],
   supportsSurface: true,
-  surfaceFor: ['simple'],
+  surfaceFor: ['contained'],
   CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
     const maxValue = typeof blockConfig?.maxValue === 'number' ? blockConfig.maxValue : 5
     const rating = typeof value === 'number' ? Math.min(maxValue, Math.max(0, value)) : 0
     const isCompact = variant === 'compact'
     const starSize = isCompact ? ctx.fontSize.sm * 1.2 : ctx.fontSize.lg * 1.2
     const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'simple'
+       ? 'contained'
       : (surface ?? 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     const icon = typeof blockConfig?.icon === 'string' ? blockConfig.icon : '★'

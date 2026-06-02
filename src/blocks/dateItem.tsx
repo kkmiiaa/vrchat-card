@@ -16,7 +16,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
   defaultValue: { display: '', iso: '' },
   variants: ['simple', 'compact', 'badge'],
   supportsSurface: true,
-  surfaceFor: ['simple'],
+  surfaceFor: ['contained'],
   CardItem({ value, ctx, variant = 'simple', surface, label }) {
     const safe: DateItemValue = (value && typeof value === 'object' && 'display' in value)
       ? value as DateItemValue
@@ -77,7 +77,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
     // default
     const fs = ctx.fontSize.md
     const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'simple'
+       ? 'contained'
       : (surface ?? 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (

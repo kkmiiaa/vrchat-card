@@ -16,7 +16,7 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
   defaultValue: DEFAULT_EXPRESSIVE_SELECT_VALUE,
   variants: ['simple'],
   supportsSurface: true,
-  surfaceFor: ['simple'],
+  surfaceFor: ['contained'],
   CardItem({ value, ctx, surface, blockConfig, label }) {
     const safe: ExpressiveSelectValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as ExpressiveSelectValue
@@ -28,7 +28,7 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
     const display = safe.display || optionLabel
     const fs = ctx.fontSize.md
     const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'simple'
+       ? 'contained'
       : (surface ?? 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
 

@@ -7,12 +7,12 @@ export const textComponent: ComponentDef<string> = {
   defaultValue: '',
   variants: ['simple'],
   supportsSurface: true,
-  surfaceFor: ['simple'],
+  surfaceFor: ['contained'],
   CardItem({ value, ctx, surface, label, blockConfig }) {
     const fs = ctx.fontSize.lg
     // label（insetLabel）があるときはコンテナが見える必要があるため、transparent は default にフォールバック
     const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'simple'
+       ? 'contained'
       : (surface ?? 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     const multiline = blockConfig?.multiline !== false

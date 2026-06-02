@@ -31,11 +31,11 @@ export function defaultBlockDisplaySettings(component: ComponentDef<unknown>): B
 }
 
 const SURFACE_OPTIONS: { value: SurfaceVariant; label: string }[] = [
-  { value: 'simple',      label: 'simple' },
-  { value: 'glass',       label: 'glass' },
-  { value: 'flat',        label: 'flat' },
-  { value: 'transparent', label: 'transparent' },
-  { value: 'outline',     label: 'outline' },
+  { value: 'contained',  label: 'contained' },
+  { value: 'glass',      label: 'glass' },
+  { value: 'flat',       label: 'flat' },
+  { value: 'transparent',label: 'transparent' },
+  { value: 'outline',    label: 'outline' },
 ]
 
 /** コンポーネントと現在の variant から surface 選択肢を表示するか判定 */

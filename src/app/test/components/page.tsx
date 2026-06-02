@@ -34,7 +34,7 @@ const ctx: CardRenderContext = {
   cardWidth: 600,
 }
 
-const SURFACES: SurfaceVariant[] = ['transparent', 'simple', 'glass', 'flat', 'outline']
+const SURFACES: SurfaceVariant[] = ['transparent', 'contained', 'glass', 'flat', 'outline']
 
 type ComponentSpec = {
   name: string

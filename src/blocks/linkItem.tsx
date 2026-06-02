@@ -10,7 +10,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
   defaultValue: { label: '', url: '' },
   variants: ['simple', 'compact'],
   supportsSurface: true,
-  surfaceFor: ['simple'],
+  surfaceFor: ['contained'],
   CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
     const safe: LinkItemValue = (value && typeof value === 'object' && 'label' in value)
       ? value as LinkItemValue
@@ -40,7 +40,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
 
     const fs = ctx.fontSize.md
     const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'simple'
+       ? 'contained'
       : (surface ?? 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (

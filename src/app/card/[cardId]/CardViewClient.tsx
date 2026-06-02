@@ -700,8 +700,17 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               >
                 {orientation === 'web' ? (
                   // Web モード: transform: scale でiOSのテキスト自動拡大を回避
-                  <div style={{ width: cardW * scale, height: webContentHeight != null ? webContentHeight * scale : undefined, position: 'relative', overflow: 'hidden' }}>
-                    <div ref={webContentRef} style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: cardW, position: 'absolute', top: 0, left: 0 }}>
+                  // 高さ計測前(webContentHeight=null)は通常フローで表示、計測後にabsoluteに切替
+                  <div style={{
+                    width: cardW * scale,
+                    ...(webContentHeight != null ? { height: webContentHeight * scale, position: 'relative', overflow: 'hidden' } : {}),
+                  }}>
+                    <div ref={webContentRef} style={{
+                      transform: `scale(${scale})`,
+                      transformOrigin: 'top left',
+                      width: cardW,
+                      ...(webContentHeight != null ? { position: 'absolute', top: 0, left: 0 } : {}),
+                    }}>
                       <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} isInteractive orientation="web" cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
                     </div>
                   </div>

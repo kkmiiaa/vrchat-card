@@ -446,7 +446,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
       {/* プレビューモーダル（スマホ用拡大表示） */}
       {previewOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center" onClick={() => setPreviewOpen(false)}>
+        <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center" onClick={() => setPreviewOpen(false)}>
           {(() => {
             const maxW = window.innerWidth * 0.9
             const maxH = window.innerHeight * 0.9

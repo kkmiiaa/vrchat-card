@@ -104,6 +104,9 @@ function renderNode(
     const cardContent = block.CardItem({ value, ctx: blockCtx, variant: node.variant, blockConfig: node.blockConfig, isInteractive: ctx.isInteractive })
     if (cardContent === null || cardContent === undefined) return null
 
+    // interactiveSurface: surface コンテナにホバークラスを付与するか
+    const surfaceClassName = (block.interactiveSurface && ctx.isInteractive) ? 'vaacard-sns-item' : undefined
+
     // surface コンテナスタイル（surfaceMode:'internal' のブロックは外側コンテナを適用しない）
     const hasSurface = !isInternalSurface && !!resolvedSurface && resolvedSurface !== 'transparent'
     const ss = hasSurface ? SURFACE_STYLE[resolvedSurface!] : null
@@ -142,7 +145,7 @@ function renderNode(
     if (node.labelInset && node.label) {
       const isRow = node.labelInsetDir === 'row'
       return (
-        <div style={{
+        <div className={surfaceClassName} style={{
           ...baseStyle,
           display: 'flex',
           flexDirection: isRow ? 'row' : 'column',
@@ -163,7 +166,7 @@ function renderNode(
     // ラベル外置き: label → surface コンテナ → content の縦並び
     if (node.label) {
       return (
-        <div style={{ ...baseStyle, display: 'flex', flexDirection: 'column', gap: ctx.cardWidth * 0.004, minWidth: 0 }}>
+        <div className={surfaceClassName} style={{ ...baseStyle, display: 'flex', flexDirection: 'column', gap: ctx.cardWidth * 0.004, minWidth: 0 }}>
           {labelEl}
           <div style={{
             flexGrow: 1, flexShrink: 1, flexBasis: 'auto', minWidth: 0,
@@ -179,7 +182,7 @@ function renderNode(
 
     // ラベルなし: surface コンテナのみ
     return (
-      <div style={{
+      <div className={surfaceClassName} style={{
         ...baseStyle,
         display: 'flex',
         alignItems: hasFlex || node.minH !== undefined ? 'stretch' : 'flex-start',

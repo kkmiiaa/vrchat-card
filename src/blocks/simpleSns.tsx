@@ -24,6 +24,7 @@ function getPlatform(blockConfig?: Record<string, unknown>): string {
 }
 
 export const simpleSnsComponent: ComponentDef<string> = {
+  interactiveSurface: true,
   key: 'simple-sns',
   defaultValue: '',
   variants: ['simple'],
@@ -66,7 +67,7 @@ export const simpleSnsComponent: ComponentDef<string> = {
     )
 
     const wrapper = (
-      <div className={isInteractive && id ? 'vaacard-sns-item' : undefined} style={{ display: 'flex', alignItems: 'stretch', gap: 6, width: '100%', flexGrow: 1, minHeight: 0, cursor: isInteractive && id ? 'pointer' : 'default' }}>
+      <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, width: '100%', flexGrow: 1, minHeight: 0, cursor: isInteractive && id ? 'pointer' : 'default' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={icon} alt="" style={{ width: iconSize, height: iconSize, borderRadius: ctx.cardWidth * 0.003, objectFit: 'contain', flexShrink: 0, alignSelf: 'center' }} />
         {innerContent}

@@ -162,6 +162,8 @@ export type ComponentDef<T = unknown> = {
   isEmpty?: (value: T) => boolean
   /** 'internal': GenericCardRenderer が外側 surface コンテナを描画せず、ctx.surface でコンポーネント内部に伝播する */
   surfaceMode?: 'internal'
+  /** true のとき、isInteractive な共有画面で surface コンテナにホバークラスを付与する */
+  interactiveSurface?: boolean
 }
 
 // --- テンプレート定義型 ---

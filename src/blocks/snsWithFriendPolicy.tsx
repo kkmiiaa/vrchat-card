@@ -58,6 +58,7 @@ function getPlatform(blockConfig?: Record<string, unknown>): string {
 }
 
 export const snsWithFriendPolicyComponent: ComponentDef<SnsWithFriendPolicyValue> = {
+  interactiveSurface: true,
   key: 'sns-with-friend-policy',
   defaultValue: DEFAULT_VALUE,
   variants: ['simple'],
@@ -104,7 +105,7 @@ export const snsWithFriendPolicyComponent: ComponentDef<SnsWithFriendPolicyValue
 
     const iconColW = snsSize + 6
     const el = (
-      <div className={isInteractive && id ? 'vaacard-sns-item' : undefined} style={{ width: '100%', display: 'flex', flexDirection: 'column', cursor: isInteractive && id ? 'pointer' : 'default' }}>
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', cursor: isInteractive && id ? 'pointer' : 'default' }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
           <div style={{ width: iconColW, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
             {snsIconEl}

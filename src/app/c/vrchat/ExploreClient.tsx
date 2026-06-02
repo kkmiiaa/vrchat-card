@@ -307,7 +307,10 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
                   className="group block bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-sky-200 hover:shadow-md transition-all"
                 >
                   {card.image_url ? (
-                    <div className="aspect-video overflow-hidden bg-gray-100">
+                    <div
+                      className="aspect-video overflow-hidden"
+                      style={{ background: cardBgStyle(card.background) }}
+                    >
                       <img
                         src={card.image_url}
                         alt={getName(card)}

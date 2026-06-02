@@ -144,6 +144,13 @@ function moveNode(root: LayoutNode, path: NodePath, dir: -1 | 1): LayoutNode {
   })
 }
 
+// 指定 blockId の ref ノードの blockId を newId にリネーム
+function renameRefById(node: LayoutNode, oldId: string, newId: string): LayoutNode {
+  if (node.type === 'ref') return node.blockId === oldId ? { ...node, blockId: newId } : node
+  if (node.type === 'block') return node.dataKey === oldId ? { ...node, dataKey: newId } : node
+  return { ...node, children: node.children.map(c => renameRefById(c, oldId, newId)) }
+}
+
 // 指定 blockId の ref ノード・および同 dataKey の block ノードをツリーから除去
 function removeRefsById(node: LayoutNode, blockId: string): LayoutNode {
   if (node.type === 'ref' || node.type === 'block') return node
@@ -817,8 +824,43 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
       setCurrentPool(prev => ({ ...prev, [blockId]: { ...prev[blockId], ...patch } }))
     return (
       <div className="px-3 py-3 flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-200 rounded px-2 py-0.5">{blockId}</span>
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] text-gray-500">ブロックID（dataKey）</label>
+          <input
+            type="text"
+            defaultValue={blockId}
+            key={blockId}
+            onBlur={e => {
+              const newId = e.target.value.trim()
+              if (!newId || newId === blockId) return
+              setCurrentPool(prev => {
+                const next = { ...prev }
+                next[newId] = { ...next[blockId], dataKey: newId }
+                delete next[blockId]
+                return next
+              })
+              setLayouts(prev => {
+                const cur = prev[currentRow.id]
+                return {
+                  ...prev,
+                  [currentRow.id]: {
+                    card: renameRefById(cur.card, blockId, newId),
+                    web:  renameRefById(cur.web,  blockId, newId),
+                  },
+                }
+              })
+              setCurrentFormSections(prev => prev.map(s => ({
+                ...s,
+                items: s.items.map(it =>
+                  it.type === 'block' && (it as import('@/blocks/types').FormNodeBlock).dataKey === blockId
+                    ? { ...it, dataKey: newId }
+                    : it
+                ),
+              })))
+              setSelectedPoolBlockId(newId)
+            }}
+            className="text-xs border rounded px-2 py-1 font-mono bg-white"
+          />
           <span className="text-[10px] text-gray-400">{entry.componentKey}</span>
         </div>
         <div className="flex flex-col gap-1">
@@ -1411,6 +1453,10 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
                           },
                         }
                       })
+                      setCurrentFormSections(prev => prev.map(s => ({
+                        ...s,
+                        items: s.items.filter(it => !(it.type === 'block' && (it as import('@/blocks/types').FormNodeBlock).dataKey === blockId)),
+                      })))
                       setSelectedPath(null)
                     }}
                   >✕</button>

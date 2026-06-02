@@ -65,7 +65,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
     if (variant === 'chips') {
       const accentColor = blockConfig?.accentColor as string | undefined ?? ctx.theme.accent
       return (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.004}px 0` }}>
+        <div style={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.004}px 0` }}>
           {options.map(opt => {
             const selected = items.includes(opt.value)
             const color = opt.color ?? accentColor

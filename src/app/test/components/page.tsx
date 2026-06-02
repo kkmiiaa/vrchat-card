@@ -213,30 +213,95 @@ const SPECS: ComponentSpec[] = [
   },
 ]
 
+// ─── ラベルモード ───────────────────────────────────────────────────────────
+type LabelMode = 'none' | 'outside' | 'inset-col' | 'inset-row'
+
+const LABEL_MODES: { value: LabelMode; label: string; desc: string }[] = [
+  { value: 'none',      label: 'ラベルなし',        desc: 'surface コンテナのみ' },
+  { value: 'outside',   label: '外ラベル',          desc: 'ラベル → コンテナ（縦並び）' },
+  { value: 'inset-col', label: 'inset col',        desc: 'コンテナ内 ラベル上・値下' },
+  { value: 'inset-row', label: 'inset row',        desc: 'コンテナ内 ラベル左・値右' },
+]
+
+const LABEL_TEXT = 'ラベル'
+const LABEL_FS = ctx.fontSize.sm
+
 /**
- * surface コンテナを renderer と同様に wrapper で適用し、コンポーネント自体には渡さない。
+ * GenericCardRenderer と同じロジックで surface コンテナ＋ラベルを描画する。
+ * paddingScale を正しく適用し、実際のカード描画に近い状態を確認できる。
  */
 function VariantPreview({
-  spec,
-  variant,
-  surface,
+  spec, variant, surface, labelMode,
 }: {
   spec: ComponentSpec
   variant: string
   surface: SurfaceVariant
+  labelMode: LabelMode
 }) {
   const { component, value, blockConfig } = spec
   if (!component.CardItem) return null
 
   const hasSurface = surface !== 'transparent'
   const ss = hasSurface ? SURFACE_STYLE[surface] : null
-  const containerStyle: React.CSSProperties = ss ? {
+  const pad = hasSurface
+    ? `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`
+    : undefined
+  const surfaceProps: React.CSSProperties = ss ? {
     background: ss.background,
     border: ss.border,
     boxShadow: ss.boxShadow,
     borderRadius: ctx.cardWidth * 0.006,
-    padding: `${ctx.cardWidth * 0.006}px ${ctx.cardWidth * 0.008}px`,
+    padding: pad,
   } : {}
+
+  const content = (
+    <component.CardItem value={value} ctx={ctx} variant={variant} blockConfig={blockConfig} />
+  )
+
+  const labelEl = (
+    <span style={{ fontSize: LABEL_FS, fontWeight: 700, color: ctx.theme.text, fontFamily: ctx.fontFamily, flexShrink: 0 }}>
+      {LABEL_TEXT}
+    </span>
+  )
+
+  let inner: React.ReactNode
+  if (labelMode === 'none') {
+    inner = (
+      <div style={{ width: '100%', display: 'flex', overflow: 'hidden', ...surfaceProps }}>
+        {content}
+      </div>
+    )
+  } else if (labelMode === 'outside') {
+    // ラベル → surface コンテナ（縦並び）
+    inner = (
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: ctx.cardWidth * 0.004 }}>
+        {labelEl}
+        <div style={{ display: 'flex', overflow: 'hidden', ...surfaceProps }}>
+          {content}
+        </div>
+      </div>
+    )
+  } else if (labelMode === 'inset-col') {
+    // surface コンテナ内で縦並び
+    inner = (
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: ctx.cardWidth * 0.003, overflow: 'hidden', ...surfaceProps }}>
+        {labelEl}
+        <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 'auto', minWidth: 0, display: 'flex', alignItems: 'stretch' }}>
+          {content}
+        </div>
+      </div>
+    )
+  } else {
+    // inset-row: surface コンテナ内で横並び
+    inner = (
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'row', gap: ctx.cardWidth * 0.005, alignItems: 'center', overflow: 'hidden', ...surfaceProps }}>
+        {labelEl}
+        <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 'auto', minWidth: 0, display: 'flex', alignItems: 'stretch' }}>
+          {content}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-1">
@@ -244,30 +309,17 @@ function VariantPreview({
         <span className="text-[9px] font-mono bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100">{variant}</span>
         <span className="text-[9px] font-mono bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded border border-gray-100">{surface}</span>
       </div>
-      <div
-        style={{
-          background: 'linear-gradient(135deg, #fcd5ce 0%, #e0f7fa 100%)',
-          borderRadius: 8,
-          padding: 8,
-          minHeight: 40,
-          display: 'flex',
-          alignItems: 'stretch',
-        }}
-      >
-        <div style={{ width: '100%', display: 'flex', overflow: 'hidden', ...containerStyle }}>
-          <component.CardItem
-            value={value}
-            ctx={ctx}
-            variant={variant}
-            blockConfig={blockConfig}
-          />
-        </div>
+      <div style={{
+        background: 'linear-gradient(135deg, #fcd5ce 0%, #e0f7fa 100%)',
+        borderRadius: 8, padding: 8, minHeight: 40, display: 'flex', alignItems: 'stretch',
+      }}>
+        {inner}
       </div>
     </div>
   )
 }
 
-function ComponentSection({ spec }: { spec: ComponentSpec }) {
+function ComponentSection({ spec, labelMode }: { spec: ComponentSpec; labelMode: LabelMode }) {
   const { component, name } = spec
   const variants = component.variants ?? ['simple']
 
@@ -280,9 +332,7 @@ function ComponentSection({ spec }: { spec: ComponentSpec }) {
             <span key={v} className="text-[10px] font-mono bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">{v}</span>
           ))}
         </div>
-        <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded border border-emerald-100">surface ✓ (all)</span>
       </div>
-
       <div className="px-5 py-4">
         {variants.map(variant => (
           <div key={variant} className="mb-6 last:mb-0">
@@ -291,7 +341,7 @@ function ComponentSection({ spec }: { spec: ComponentSpec }) {
             </p>
             <div className="grid grid-cols-3 gap-3">
               {SURFACES.map(surface => (
-                <VariantPreview key={surface} spec={spec} variant={variant} surface={surface} />
+                <VariantPreview key={surface} spec={spec} variant={variant} surface={surface} labelMode={labelMode} />
               ))}
             </div>
           </div>
@@ -302,17 +352,40 @@ function ComponentSection({ spec }: { spec: ComponentSpec }) {
 }
 
 export default function ComponentsTestPage() {
+  const [labelMode, setLabelMode] = React.useState<LabelMode>('none')
+
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-8">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-xl font-bold text-gray-800 mb-2">コンポーネント variant × surface 一覧</h1>
-        <p className="text-sm text-gray-500 mb-8">
+        <p className="text-sm text-gray-500 mb-4">
           各コンポーネントの全 variant と surface の組み合わせを確認するためのビューワー。
-          背景はグラデーションにして surface の見た目の違いがわかるようにしています。
+          ラベルモードを切り替えて labelInset や外ラベルの見た目を確認できます。
         </p>
+
+        {/* ラベルモード選択 */}
+        <div className="bg-white rounded-xl border border-gray-100 p-4 mb-6 flex items-center gap-4 flex-wrap">
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">ラベルモード</span>
+          {LABEL_MODES.map(m => (
+            <button
+              key={m.value}
+              type="button"
+              onClick={() => setLabelMode(m.value)}
+              className={`flex flex-col items-start px-3 py-2 rounded-lg border text-left transition-all ${
+                labelMode === m.value
+                  ? 'border-sky-400 bg-sky-50 text-sky-700'
+                  : 'border-gray-200 text-gray-500 hover:border-gray-300'
+              }`}
+            >
+              <span className="text-xs font-semibold">{m.label}</span>
+              <span className="text-[10px] text-gray-400">{m.desc}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="space-y-6">
           {SPECS.map(spec => (
-            <ComponentSection key={spec.name} spec={spec} />
+            <ComponentSection key={spec.name} spec={spec} labelMode={labelMode} />
           ))}
         </div>
       </div>

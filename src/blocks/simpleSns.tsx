@@ -69,8 +69,9 @@ export const simpleSnsComponent: ComponentDef<string> = {
 
     const actionType = typeof blockConfig?.actionType === 'string' ? blockConfig.actionType : ''
     const idText = id || '-'
+    const simpleStyle = SURFACE_STYLE[surface ?? 'transparent']
     const innerContent = (
-      <div style={{ flex: 1, background: 'rgba(255,255,255,0.85)', borderRadius: ctx.cardWidth * 0.005, padding: `${ctx.cardWidth * 0.004 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px`, overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 4 }}>
+      <div style={{ flex: 1, background: simpleStyle.background, border: simpleStyle.border, boxShadow: simpleStyle.boxShadow, borderRadius: ctx.cardWidth * 0.005, padding: `${ctx.cardWidth * 0.004 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px`, overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 4 }}>
         <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', flex: 1 }}>
           {idText}
         </span>

@@ -51,7 +51,7 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
       )
     }
 
-    const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
+    const effectiveSurface = surface ?? 'transparent'
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     const iconColor = on ? trueColor : falseColor
 

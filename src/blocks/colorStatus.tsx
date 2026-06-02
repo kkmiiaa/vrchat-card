@@ -84,7 +84,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
 
     // default
     const fs = ctx.fontSize.sm
-    const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
+    const effectiveSurface = surface ?? 'transparent'
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (
       <div style={{ display: 'flex', flexDirection: label?.dir === 'row' ? 'row' : 'column', gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 4, width: '100%', alignItems: label?.dir === 'row' ? 'center' : 'stretch' }}>

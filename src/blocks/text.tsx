@@ -10,7 +10,7 @@ export const textComponent: ComponentDef<string> = {
   surfaceFor: ['simple'],
   CardItem({ value, ctx, surface, label, blockConfig }) {
     const fs = ctx.fontSize.lg
-    const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
+    const effectiveSurface = surface ?? 'transparent'
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     const multiline = blockConfig?.multiline !== false
     const noPadding = blockConfig?.noPadding === true

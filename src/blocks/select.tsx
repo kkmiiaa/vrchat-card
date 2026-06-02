@@ -27,21 +27,6 @@ export const selectComponent: ComponentDef<string> = {
     const color = optionColor ?? ctx.theme.subText
     const icon = matchedOption?.icon
 
-    // label があるとき: surface コンテナの中にラベル＋値を描く
-    if (label) {
-      const bgStyle = SURFACE_STYLE[surface ?? 'contained']
-      const fs = ctx.fontSize.md
-      return (
-        <div style={{ width: '100%', background: bgStyle.background, border: bgStyle.border, boxShadow: bgStyle.boxShadow, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: label.dir === 'row' ? 'row' : 'column', gap: label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003, alignItems: label.dir === 'row' ? 'center' : 'stretch', justifyContent: label.dir === 'row' ? undefined : 'center', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-          </div>
-          <span style={{ fontSize: fs, lineHeight: 1, color, fontWeight: 700, fontFamily: ctx.fontFamily }}>{icon && renderIcon(icon, fs)}{displayValue}</span>
-        </div>
-      )
-    }
-
     // chips: 全選択肢を並べ、選択済みをハイライト（単一選択版）
     if (variant === 'chips') {
       const accentColor = blockConfig?.accentColor as string | undefined ?? ctx.theme.accent
@@ -125,13 +110,22 @@ export const selectComponent: ComponentDef<string> = {
       )
     }
 
-    // default
-    const fs = ctx.fontSize.sm
+    // simple: surface コンテナ内に値を表示
+    const bgStyle = SURFACE_STYLE[surface ?? 'transparent']
+    const fs = ctx.fontSize.md
     return (
-      <span style={{ fontSize: fs, lineHeight: 1, color, fontWeight: 700, background: color + '20', padding: '2px 10px', borderRadius: 999, border: `1px solid ${color}60`, fontFamily: ctx.fontFamily, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-        {icon && renderIcon(icon, fs)}
-        {displayValue}
-      </span>
+      <div style={{ width: '100%', background: bgStyle.background, border: bgStyle.border, boxShadow: bgStyle.boxShadow, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: label?.dir === 'row' ? 'row' : 'column', gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0, alignItems: label?.dir === 'row' ? 'center' : 'stretch', justifyContent: label?.dir === 'row' ? undefined : 'center', overflow: 'hidden' }}>
+        {label && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
+            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
+            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
+          </div>
+        )}
+        <span style={{ fontSize: fs, lineHeight: 1, color, fontWeight: 700, fontFamily: ctx.fontFamily, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          {icon && renderIcon(icon, fs)}
+          {displayValue}
+        </span>
+      </div>
     )
   },
   FormItem({ value, onChange, blockConfig }) {

@@ -32,7 +32,7 @@ export const gaugeComponent: ComponentDef<number> = {
       ? `linear-gradient(to right, ${cfg.barGradient.join(', ')})`
       : cfg.barColor ?? ctx.theme.accent
 
-    const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
+    const effectiveSurface = surface ?? 'transparent'
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
 
     return (

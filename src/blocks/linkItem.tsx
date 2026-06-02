@@ -20,12 +20,15 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
 
     if (variant === 'compact') {
       const fs = ctx.fontSize.xs
+      const compactStyle = SURFACE_STYLE[surface ?? 'transparent']
       return (
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: 4,
-          background: 'rgba(255,255,255,0.85)',
+          background: compactStyle.background,
+          border: compactStyle.border,
+          boxShadow: compactStyle.boxShadow,
           borderRadius: ctx.cardWidth * 0.004,
           padding: `${ctx.cardWidth * 0.003 * ctx.paddingScale}px ${ctx.cardWidth * 0.005 * ctx.paddingScale}px`,
           fontFamily: ctx.fontFamily,
@@ -39,7 +42,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
     }
 
     const fs = ctx.fontSize.md
-    const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
+    const effectiveSurface = surface ?? 'transparent'
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (
       <div style={{

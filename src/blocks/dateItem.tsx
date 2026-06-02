@@ -76,7 +76,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
 
     // default
     const fs = ctx.fontSize.md
-    const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
+    const effectiveSurface = surface ?? 'transparent'
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (
       <div style={{

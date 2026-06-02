@@ -87,7 +87,7 @@ export const snsWithFriendPolicyComponent: ComponentDef<SnsWithFriendPolicyValue
     const iconSize = ctx.cardWidth * 0.018 * ctx.paddingScale
     const snsSize = iconSize * 0.65
     const snsIconEl = (
-      <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+      <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: ctx.theme.text }}>
         {imgIcon ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={imgIcon} alt="" style={{ width: snsSize, height: snsSize, borderRadius: 3, objectFit: 'contain', display: 'block' }} />

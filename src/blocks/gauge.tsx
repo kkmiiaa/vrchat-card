@@ -17,6 +17,7 @@ export const gaugeComponent: ComponentDef<number> = {
   defaultValue: 0,
   variants: ['simple'],
   supportsSurface: true,
+  surfaceFor: ['simple'],
 
   CardItem({ value, ctx, surface, blockConfig, label }) {
     const cfg = (blockConfig ?? {}) as GaugeConfig

@@ -24,6 +24,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
   defaultValue: {},
   variants: ['simple', 'compact', 'cards'],
   supportsSurface: true,
+  surfaceFor: ['simple', 'cards'],
   CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
     const safe = (value && typeof value === 'object') ? value as Record<string, string> : {}
     const fields = getFields(blockConfig)

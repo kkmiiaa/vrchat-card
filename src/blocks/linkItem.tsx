@@ -10,6 +10,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
   defaultValue: { label: '', url: '' },
   variants: ['simple', 'compact'],
   supportsSurface: true,
+  surfaceFor: ['simple'],
   CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
     const safe: LinkItemValue = (value && typeof value === 'object' && 'label' in value)
       ? value as LinkItemValue

@@ -44,10 +44,7 @@ export function isSurfaceApplicable(
   variant: string,
 ): boolean {
   if (!component.supportsSurface) return false
-  const NO_SURFACE_VARIANTS = ['compact', 'badge']
-  return component.surfaceFor
-    ? component.surfaceFor.includes(variant)
-    : !NO_SURFACE_VARIANTS.includes(variant)
+  return (component.surfaceFor ?? []).includes(variant)
 }
 
 // ─── 共通ラベル ─────────────────────────────────────────────────────

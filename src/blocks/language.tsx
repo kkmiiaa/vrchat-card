@@ -90,6 +90,7 @@ export const languageComponent: ComponentDef<LanguageValue> = {
   defaultValue: { preset: [], custom: [] },
   variants: ['simple', 'slash'],
   supportsSurface: true,
+  surfaceFor: ['simple', 'slash'],
   CardItem: LanguageCard,
   FormItem({ value, onChange, t, blockConfig }) {
     const preset = Array.isArray(value?.preset) ? value.preset : []

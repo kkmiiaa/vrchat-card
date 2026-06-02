@@ -148,8 +148,8 @@ export type ComponentCardProps<T> = {
   isInteractive?: boolean
 }
 
-/** コンポーネント定義: フォームUIとカードUIをセットで持つ単位 */
-export type ComponentDef<T = unknown> = {
+/** コンポーネント定義の共通フィールド */
+type ComponentDefBase<T> = {
   key: string
   defaultValue: T
   /** このコンポーネントが対応するデザインバリアント一覧。未定義は ['simple'] 扱い */
@@ -162,13 +162,21 @@ export type ComponentDef<T = unknown> = {
   CardItem?: (props: ComponentCardProps<T>) => ReactNode
   /** テンプレート作成者向けのブロック設定UI */
   blockConfigForm?: (props: BlockConfigFormProps) => ReactNode
-  /** CardItem が surface を解釈する場合 true */
-  supportsSurface?: boolean
-  /** surface が有効なバリアント一覧。未指定かつ supportsSurface=true なら compact/badge 以外で有効 */
-  surfaceFor?: string[]
   /** 値が「空」かどうかを判定する関数。未定義なら defaultValue と深い比較でフォールバック */
   isEmpty?: (value: T) => boolean
 }
+
+/**
+ * コンポーネント定義: フォームUIとカードUIをセットで持つ単位
+ *
+ * surface サポートは discriminated union で型安全に定義する:
+ * - supportsSurface: true のとき surfaceFor（有効な variant 一覧）が必須
+ * - supportsSurface なし/false のとき surfaceFor は指定不可
+ */
+export type ComponentDef<T = unknown> = ComponentDefBase<T> & (
+  | { supportsSurface: true; surfaceFor: string[] }
+  | { supportsSurface?: false; surfaceFor?: never }
+)
 
 // --- テンプレート定義型 ---
 

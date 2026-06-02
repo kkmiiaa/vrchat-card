@@ -6,7 +6,7 @@ export const colorPaletteComponent: ComponentDef<string[]> = {
   key: 'colorPalette',
   defaultValue: ['#60a5fa', '#4ade80', '#fbbf24', '#f87171'],
   variants: ['simple', 'compact'],
-  CardItem({ value, ctx, variant, _surface, blockConfig }) {
+  CardItem({ value, ctx, variant, blockConfig }) {
     const maxCount = typeof blockConfig?.maxCount === 'number' ? blockConfig.maxCount : undefined
     const allColors = Array.isArray(value) ? value : []
     const colors = maxCount !== undefined ? allColors.slice(0, maxCount) : allColors

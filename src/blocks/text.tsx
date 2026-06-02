@@ -7,6 +7,7 @@ export const textComponent: ComponentDef<string> = {
   defaultValue: '',
   variants: ['simple'],
   supportsSurface: true,
+  surfaceFor: ['simple'],
   CardItem({ value, ctx, surface, label, blockConfig }) {
     const fs = ctx.fontSize.lg
     // label（insetLabel）があるときはコンテナが見える必要があるため、transparent は default にフォールバック

@@ -9,6 +9,7 @@ export const selectComponent: ComponentDef<string> = {
   defaultValue: '',
   variants: ['simple', 'badge', 'compact', 'chips'],
   supportsSurface: true,
+  surfaceFor: ['simple', 'chips'],
   CardItem({ value, ctx, variant = 'simple', surface, label, blockConfig }) {
     if (!value) {
       if (blockConfig?.hideWhenEmpty) return null

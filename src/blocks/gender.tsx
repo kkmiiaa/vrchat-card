@@ -23,6 +23,7 @@ export const genderComponent: ComponentDef<GenderValue> = {
   defaultValue: DEFAULT_GENDER_VALUE,
   variants: ['simple', 'compact'],
   supportsSurface: true,
+  surfaceFor: ['simple'],
   CardItem({ value, ctx, variant = 'simple', surface, label }) {
     const safe: GenderValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as GenderValue

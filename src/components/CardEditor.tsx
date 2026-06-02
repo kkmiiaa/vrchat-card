@@ -451,7 +451,15 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
             const maxW = window.innerWidth * 0.9
             const maxH = window.innerHeight * 0.9
             const scale = Math.min(maxW / template.cardWidth, maxH / template.cardHeight)
-            return <CardScaledView template={template} values={values} background={background} scale={scale} fontFamily={fontFamily} t={t} className="rounded shadow-lg" />
+            const bgStyle = getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK)
+            return (
+              <div
+                className="rounded shadow-lg overflow-hidden"
+                style={{ background: bgStyle ?? undefined, width: template.cardWidth * scale, height: template.cardHeight * scale, flexShrink: 0 }}
+              >
+                <CardScaledView template={template} values={values} background={background} scale={scale} fontFamily={fontFamily} t={t} />
+              </div>
+            )
           })()}
         </div>
       )}

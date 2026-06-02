@@ -86,6 +86,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
         height: '100%',
         background: surfaceStyle.background,
         border: surfaceStyle.border,
+        boxShadow: surfaceStyle.boxShadow,
         borderRadius: ctx.cardWidth * 0.006,
         padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',

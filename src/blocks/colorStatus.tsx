@@ -1,5 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
+import { SURFACE_STYLE } from './types'
 import { ColorPicker } from './colorPicker'
 
 type ColorStatusField = { key: string; label: string; color: string }
@@ -22,6 +23,7 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
   key: 'color-status',
   defaultValue: {},
   variants: ['simple', 'compact', 'cards'],
+  surfaceMode: 'internal',
   CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     const safe = (value && typeof value === 'object') ? value as Record<string, string> : {}
     const fields = getFields(blockConfig)
@@ -78,19 +80,16 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
 
     // default
     const fs = ctx.fontSize.sm
+    const ss = ctx.surface && ctx.surface !== 'transparent' ? SURFACE_STYLE[ctx.surface] : null
+    const rowStyle: React.CSSProperties = ss
+      ? { background: ss.background, border: ss.border, boxShadow: ss.boxShadow, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.003 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px` }
+      : { borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.003 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px` }
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', alignItems: 'stretch' }}>
         {fields.map((f, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'stretch', gap: 6, flex: 1, minHeight: 0 }}>
             <span style={{ width: 9, height: 9, borderRadius: '50%', background: f.color, flexShrink: 0, alignSelf: 'center' }} />
-            <div style={{
-              flex: 1,
-              borderRadius: ctx.cardWidth * 0.006,
-              padding: `${ctx.cardWidth * 0.003 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px`,
-              overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-            }}>
+            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', alignItems: 'center', ...rowStyle }}>
               <span style={{ fontSize: fs, color: safe[f.key] ? ctx.theme.text : ctx.theme.subText, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', width: '100%' }}>
                 {safe[f.key] || '-'}
               </span>

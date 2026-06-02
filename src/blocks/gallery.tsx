@@ -1,19 +1,21 @@
 'use client'
 import type { ComponentDef, GalleryValue } from './types'
+import { SURFACE_STYLE } from './types'
 
 export const galleryComponent: ComponentDef<GalleryValue> = {
   key: 'gallery',
   defaultValue: { enabled: false, images: [null, null, null], base64: [null, null, null] },
   isEmpty: (v) => !v?.base64?.some(Boolean),
-  variants: ['simple', 'glass'],
-  CardItem({ value, ctx, variant }) {
+  variants: ['simple'],
+  surfaceMode: 'internal',
+  CardItem({ value, ctx }) {
     if (!value?.base64?.some(Boolean)) return null
-    const isGlass = variant === 'glass'
+    const ss = ctx.surface && ctx.surface !== 'transparent' ? SURFACE_STYLE[ctx.surface] : null
     // 入力済みのスロットだけ表示し、全体を埋める
     const filledSlots = [0, 1, 2].filter(i => value.base64[i])
-    const thumbStyle = isGlass
-      ? { flex: 1, height: '100%', borderRadius: ctx.cardWidth * 0.008, overflow: 'hidden' as const, background: '#e5e7eb', border: '1px solid rgba(255,255,255,0.75)', boxShadow: '0 0 12px rgba(0,0,0,0.08)' }
-      : { flex: 1, height: '100%', borderRadius: 6, overflow: 'hidden' as const, background: '#e5e7eb' }
+    const thumbStyle = ss
+      ? { flex: 1, height: '100%', borderRadius: ctx.cardWidth * 0.008, overflow: 'hidden' as const, background: '#e5e7eb', border: ss.border, boxShadow: ss.boxShadow }
+      : { flex: 1, height: '100%', borderRadius: ctx.cardWidth * 0.006, overflow: 'hidden' as const, background: '#e5e7eb' }
     return (
       <div style={{ display: 'flex', gap: 4, width: '100%', height: '100%' }}>
         {filledSlots.map(i => {

@@ -1,5 +1,6 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
+import { SURFACE_STYLE } from './types'
 import { type MarkListItem, type MarkDefinition, DEFAULT_MARKS, defaultItems, getMarkStyle } from './markListShared'
 import { ColorPicker } from './colorPicker'
 
@@ -14,7 +15,8 @@ export const markGridComponent: ComponentDef<MarkGridValue> = {
   key: 'mark-grid',
   defaultValue: { marks: {}, custom: [] },
   variants: ['simple'],
-  CardItem({ value, ctx, variant, blockConfig }) {
+  surfaceMode: 'internal',
+  CardItem({ value, ctx, blockConfig }) {
     const markDefs = (blockConfig?.marks as MarkDefinition[] | undefined) ?? DEFAULT_MARKS
     const cols = typeof blockConfig?.cols === 'number' ? blockConfig.cols : 3
     const configItems = Array.isArray(blockConfig?.items) ? blockConfig!.items as ConfigItem[] : []
@@ -39,13 +41,14 @@ export const markGridComponent: ComponentDef<MarkGridValue> = {
 
     const fs = ctx.fontSize.xs
     const markFs = ctx.fontSize.md
+    const ss = ctx.surface && ctx.surface !== 'transparent' ? SURFACE_STYLE[ctx.surface] : null
     const gridRows = rows !== undefined ? `repeat(${rows}, 1fr)` : undefined
     return (
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, ...(gridRows ? { gridTemplateRows: gridRows } : {}), gap: 4, width: '100%' }}>
         {allItems.map((slot, i) => {
           const isDash = slot.mark === '-'
           const style = getMarkStyle(slot.mark, markDefs)
-          const cellBg = slot.label ? 'rgba(255,255,255,0.85)' : 'transparent'
+          const cellBg = ss ? ss.background : slot.label ? 'rgba(255,255,255,0.85)' : 'transparent'
           return (
             <div key={i} style={{
               background: cellBg,
@@ -56,6 +59,7 @@ export const markGridComponent: ComponentDef<MarkGridValue> = {
               alignItems: 'center',
               justifyContent: 'center',
               gap: 2,
+              ...(ss && slot.label ? { border: ss.border, boxShadow: ss.boxShadow } : {}),
             }}>
               {slot.label && <>
                 <div style={{ fontSize: fs, color: '#6b7280', fontFamily: ctx.fontFamily, textAlign: 'center', wordBreak: 'break-all', lineHeight: 1.2 }}>{slot.label}</div>

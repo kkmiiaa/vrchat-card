@@ -87,22 +87,25 @@ function renderNode(
 
     const hasFlex = node.flex !== undefined
     const contentScale = (node.contentFontScale ?? 1) * (ctx.defaultContentFontScale ?? 1)
-    const blockCtx = contentScale !== 1
-      ? { ...ctx, fontSize: {
-          xs: ctx.fontSize.xs * contentScale,
-          sm: ctx.fontSize.sm * contentScale,
-          md: ctx.fontSize.md * contentScale,
-          lg: ctx.fontSize.lg * contentScale,
-          xl: ctx.fontSize.xl * contentScale,
-        }}
-      : ctx
+    const resolvedSurface = node.surface ?? ctx.defaultSurface
+    const isInternalSurface = block.surfaceMode === 'internal'
+
+    const blockCtx = {
+      ...(contentScale !== 1 ? { ...ctx, fontSize: {
+        xs: ctx.fontSize.xs * contentScale,
+        sm: ctx.fontSize.sm * contentScale,
+        md: ctx.fontSize.md * contentScale,
+        lg: ctx.fontSize.lg * contentScale,
+        xl: ctx.fontSize.xl * contentScale,
+      }} : ctx),
+      ...(isInternalSurface ? { surface: resolvedSurface } : {}),
+    }
 
     const cardContent = block.CardItem({ value, ctx: blockCtx, variant: node.variant, blockConfig: node.blockConfig, isInteractive: ctx.isInteractive })
     if (cardContent === null || cardContent === undefined) return null
 
-    // surface コンテナスタイル（GenericCardRenderer が一元管理）
-    const resolvedSurface = node.surface ?? ctx.defaultSurface
-    const hasSurface = !!resolvedSurface && resolvedSurface !== 'transparent'
+    // surface コンテナスタイル（surfaceMode:'internal' のブロックは外側コンテナを適用しない）
+    const hasSurface = !isInternalSurface && !!resolvedSurface && resolvedSurface !== 'transparent'
     const ss = hasSurface ? SURFACE_STYLE[resolvedSurface!] : null
     const surfaceProps: React.CSSProperties = ss ? {
       background: ss.background,

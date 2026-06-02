@@ -1,5 +1,6 @@
 'use client'
 import type { ComponentDef, ComponentCardProps, ComponentFormProps } from './types'
+import { SURFACE_STYLE } from './types'
 
 type ProfileImageValue = {
   base64: string | null
@@ -9,10 +10,10 @@ type ProfileImageValue = {
 function ProfileImageCard({ value, ctx, variant }: ComponentCardProps<ProfileImageValue>) {
   const src = value.url ?? value.base64 ?? null
   const isCircle = variant === 'circle'
-  const isGlass = variant === 'glass'
   const borderRadius = isCircle ? '50%' : ctx.cardWidth * 0.018
+  const ss = ctx.surface && ctx.surface !== 'transparent' ? SURFACE_STYLE[ctx.surface] : null
 
-  const img = (
+  return (
     <div style={{
       width: '100%',
       aspectRatio: '1',
@@ -20,6 +21,7 @@ function ProfileImageCard({ value, ctx, variant }: ComponentCardProps<ProfileIma
       overflow: 'hidden',
       background: '#e5e7eb',
       flexShrink: 0,
+      ...(ss ? { border: ss.border, boxShadow: ss.boxShadow } : {}),
     }}>
       {src
         ? <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
@@ -27,35 +29,13 @@ function ProfileImageCard({ value, ctx, variant }: ComponentCardProps<ProfileIma
       }
     </div>
   )
-
-  if (isGlass) {
-    const glassRadius = ctx.cardWidth * 0.018
-    return (
-      <div style={{
-        width: '100%',
-        aspectRatio: '1',
-        borderRadius: glassRadius,
-        overflow: 'hidden',
-        background: '#e5e7eb',
-        border: '1px solid rgba(255,255,255,0.75)',
-        boxShadow: '0 0 12px rgba(0,0,0,0.08)',
-        flexShrink: 0,
-      }}>
-        {src
-          ? <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: ctx.cardWidth * 0.022, fontFamily: ctx.fontFamily }}>Photo</div>
-        }
-      </div>
-    )
-  }
-
-  return img
 }
 
 export const profileImageComponent: ComponentDef<ProfileImageValue> = {
   key: 'profileImage',
   defaultValue: { base64: null, url: null },
-  variants: ['simple', 'circle', 'glass'],
+  variants: ['simple', 'circle'],
+  surfaceMode: 'internal',
   CardItem: ProfileImageCard,
   FormItem({ value, onChange, t }) {
     const hasImage = !!(value.base64 ?? value.url)

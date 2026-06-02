@@ -78,6 +78,8 @@ export type CardRenderContext = {
   isInteractive?: boolean
   /** ブロックの surface 未指定時のフォールバック。デザインプリセットから注入される */
   defaultSurface?: SurfaceVariant
+  /** surfaceMode='internal' のブロックに注入される surface 値 */
+  surface?: SurfaceVariant
 }
 
 export const DEFAULT_CARD_RENDER_CONTEXT: CardRenderContext = {
@@ -158,6 +160,8 @@ export type ComponentDef<T = unknown> = {
   blockConfigForm?: (props: BlockConfigFormProps) => ReactNode
   /** 値が「空」かどうかを判定する関数。未定義なら defaultValue と深い比較でフォールバック */
   isEmpty?: (value: T) => boolean
+  /** 'internal': GenericCardRenderer が外側 surface コンテナを描画せず、ctx.surface でコンポーネント内部に伝播する */
+  surfaceMode?: 'internal'
 }
 
 // --- テンプレート定義型 ---

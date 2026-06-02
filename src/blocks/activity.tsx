@@ -5,12 +5,12 @@ const DAYS = ['月', '火', '水', '木', '金', '土', '日']
 
 export const activityComponent: ComponentDef<ActivityValue> = {
   key: 'activity',
-  variants: ['simple', 'v2'],  // default=曜日ドット+時間帯テキスト, v2=視覚的タイムバー+曜日サークル
+  variants: ['simple', 'bar'],  // default=曜日ドット+時間帯テキスト, bar=視覚的タイムバー+曜日サークル
   CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     const safe: ActivityValue = (value && typeof value === 'object' && 'days' in value) ? value as ActivityValue : { days: [], weekdayStart: '', weekdayEnd: '', holidayStart: '', holidayEnd: '' }
     const fs = ctx.fontSize.sm
 
-    if (variant === 'v2') {
+    if (variant === 'bar') {
       const timeToRatio = (t: string) => { const [h, m] = t.split(':').map(Number); return (h * 60 + m) / 1440 }
       const segments = (start: string, end: string) => {
         const s = timeToRatio(start), e = timeToRatio(end)

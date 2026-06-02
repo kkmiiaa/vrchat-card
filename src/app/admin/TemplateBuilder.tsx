@@ -194,6 +194,7 @@ function collectUsedKeys(node: LayoutNode): Set<string> {
 type Props = {
   savedLayouts: Record<string, TemplateLayoutRow>
   onLabelChange?: (id: string, label: string) => void
+  onDelete?: (id: string, label: string) => void
 }
 
 function rowToDefinition(
@@ -233,7 +234,7 @@ function rowToDefinition(
   } as unknown as TemplateDefinition
 }
 
-export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) {
+export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete }: Props) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -1600,6 +1601,14 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
           >
             {saveState === 'saving' ? '保存中…' : saveState === 'saved' ? '✓ 保存済み' : saveState === 'error' ? 'エラー' : '保存'}
           </button>
+          {onDelete && (
+            <button
+              onClick={() => onDelete(currentRow.id, currentRow.label)}
+              className="flex-shrink-0 px-3 py-1 text-xs rounded border font-medium border-red-200 text-red-500 hover:bg-red-50 transition-colors"
+            >
+              削除
+            </button>
+          )}
         </div>
 
         {/* フォント・パディングスケール */}

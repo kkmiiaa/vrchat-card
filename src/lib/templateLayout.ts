@@ -237,3 +237,31 @@ export async function saveSampleCardData(
     .eq('id', templateId)
   return { error: error?.message ?? null }
 }
+
+/** テンプレートに紐づくカード数を返す */
+export async function getCardCountByTemplate(
+  templateId: string,
+): Promise<{ count: number | null; error: string | null }> {
+  const supabase = createAdminClient()
+  const { count, error } = await supabase
+    .from('cards')
+    .select('id', { count: 'exact', head: true })
+    .eq('template_id', templateId)
+  return { count: count ?? null, error: error?.message ?? null }
+}
+
+/** テンプレートを削除する（カードが紐づいている場合はエラーを返す） */
+export async function deleteTemplate(
+  templateId: string,
+): Promise<{ error: string | null }> {
+  const { count, error: countError } = await getCardCountByTemplate(templateId)
+  if (countError) return { error: countError }
+  if (count && count > 0) return { error: `このテンプレートには ${count} 件のカードが紐づいています。カードを削除してから再度お試しください。` }
+
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('templates')
+    .delete()
+    .eq('id', templateId)
+  return { error: error?.message ?? null }
+}

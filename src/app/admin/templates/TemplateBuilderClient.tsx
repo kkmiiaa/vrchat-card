@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import TemplateBuilder from '../TemplateBuilder'
 import type { TemplateLayoutRow, CommunityRow } from '@/lib/templateLayout'
-import { saveTemplateLayout, linkTemplateToCommunity } from '@/lib/templateLayout'
+import { saveTemplateLayout, linkTemplateToCommunity, deleteTemplate } from '@/lib/templateLayout'
 
 type Props = {
   savedLayouts: Record<string, TemplateLayoutRow>
@@ -114,6 +114,27 @@ export default function TemplateBuilderClient({ savedLayouts: initialLayouts, co
     setTab('edit')
   }
 
+  const [deleteError, setDeleteError] = useState('')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const handleDelete = async (id: string, label: string) => {
+    if (!confirm(`「${label}」を削除しますか？この操作は元に戻せません。`)) return
+    setDeletingId(id)
+    setDeleteError('')
+    const { error } = await deleteTemplate(id)
+    if (error) {
+      setDeleteError(error)
+      setDeletingId(null)
+      return
+    }
+    setSavedLayouts(prev => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+    setDeletingId(null)
+  }
+
   const handleLabelChange = (id: string, label: string) => {
     setSavedLayouts(prev => {
       const saved = prev[id]
@@ -152,8 +173,18 @@ export default function TemplateBuilderClient({ savedLayouts: initialLayouts, co
       </div>
 
       {tab === 'edit' && (
-        <div className="flex flex-1 overflow-hidden">
-          <TemplateBuilder savedLayouts={savedLayouts} onLabelChange={handleLabelChange} />
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {deleteError && (
+            <div className="px-4 py-2 bg-red-50 border-b border-red-200 text-xs text-red-600 flex items-center justify-between flex-shrink-0">
+              <span>{deleteError}</span>
+              <button onClick={() => setDeleteError('')} className="ml-2 text-red-400 hover:text-red-600">✕</button>
+            </div>
+          )}
+          <TemplateBuilder
+            savedLayouts={savedLayouts}
+            onLabelChange={handleLabelChange}
+            onDelete={handleDelete}
+          />
         </div>
       )}
 

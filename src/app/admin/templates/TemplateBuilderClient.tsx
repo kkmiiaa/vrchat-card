@@ -51,18 +51,24 @@ export default function TemplateBuilderClient({ savedLayouts: initialLayouts, co
     setCreating(true)
     setCreateError('')
 
-    const cardLayout = baseLayout?.card_layout ?? { type: 'row' as const, children: [] }
-    const webLayout  = baseLayout?.web_layout  ?? { type: 'row' as const, children: [] }
-    const formSections    = baseLayout?.form_sections    ?? []
+    const cardLayout        = baseLayout?.card_layout        ?? { type: 'row' as const, children: [] }
+    const webLayout         = baseLayout?.web_layout         ?? { type: 'row' as const, children: [] }
+    const formSections      = baseLayout?.form_sections      ?? []
     const orientationScales = baseLayout?.orientation_scales ?? { card: {}, web: {} }
+    const blockPool         = baseLayout?.block_pool         ?? null
+    const overlayConfig     = baseLayout?.overlay_config     ?? null
+    const cardConfig        = baseLayout?.card_config        ?? null
 
     const { error: saveError } = await saveTemplateLayout(id, {
       label,
       description: newDescription.trim() || undefined,
       card_layout:        cardLayout,
       web_layout:         webLayout,
+      block_pool:         blockPool as Record<string, unknown> | null ?? undefined,
       form_sections:      formSections,
       orientation_scales: orientationScales,
+      overlay_config:     overlayConfig,
+      card_config:        cardConfig ?? undefined,
     })
 
     if (saveError) {
@@ -89,10 +95,10 @@ export default function TemplateBuilderClient({ savedLayouts: initialLayouts, co
         is_published: false,
         card_layout:        cardLayout,
         web_layout:         webLayout,
-        block_pool:         baseLayout?.block_pool ?? null,
+        block_pool:         blockPool,
         form_sections:      formSections,
         orientation_scales: orientationScales,
-        overlay_config:     null,
+        overlay_config:     overlayConfig,
         card_width:         baseLayout?.card_width  ?? null,
         card_height:        baseLayout?.card_height ?? null,
         web_width:          baseLayout?.web_width   ?? null,

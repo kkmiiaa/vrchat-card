@@ -145,7 +145,7 @@ export const cardV2Definition: TemplateDefinition = {
     snsWithFriendPolicy: {
       componentKey: 'sns-with-friend-policy',
       dataKey: 'sns-with-friend-policy1',
-      variant: 'glass',
+      variant: 'contained',
       surface: 'glass',
       blockConfig: {
         platform: 'vrchat',
@@ -161,13 +161,13 @@ export const cardV2Definition: TemplateDefinition = {
     snsX: {
       componentKey: 'simple-sns',
       dataKey: 'x',
-      variant: 'glass',
+      variant: 'contained',
       blockConfig: { platform: 'x' },
     },
     snsDiscord: {
       componentKey: 'simple-sns',
       dataKey: 'discord',
-      variant: 'glass',
+      variant: 'contained',
       blockConfig: { platform: 'discord' },
     },
     gallery: {

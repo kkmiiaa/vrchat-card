@@ -61,9 +61,9 @@ function getPlatform(blockConfig?: Record<string, unknown>): string {
 export const snsWithFriendPolicyComponent: ComponentDef<SnsWithFriendPolicyValue> = {
   key: 'sns-with-friend-policy',
   defaultValue: DEFAULT_VALUE,
-  variants: ['simple', 'glass'],
+  variants: ['simple', 'contained'],
   supportsSurface: true,
-  surfaceFor: ['glass'],
+  surfaceFor: ['contained'],
   CardItem({ value, ctx, variant, surface, blockConfig }) {
     const isInteractive = ctx.isInteractive
     const safe: SnsWithFriendPolicyValue =
@@ -88,7 +88,8 @@ export const snsWithFriendPolicyComponent: ComponentDef<SnsWithFriendPolicyValue
     const fs = ctx.fontSize.md
     const fsSmall = ctx.fontSize.sm
     const iconSize = ctx.cardWidth * 0.018 * ctx.paddingScale
-    const isGlass = variant === 'glass'
+    // 'glass' は後方互換エイリアス
+    const isGlass = variant === 'contained' || variant === 'glass'
 
     const snsSize = iconSize * (isGlass ? 0.65 : 1)
     const snsIconEl = (

@@ -171,14 +171,14 @@ const SPECS: ComponentSpec[] = [
     component: simpleSnsComponent as ComponentDef<unknown>,
     value: '@vrcuser_example',
     blockConfig: { platform: 'x', policies: [] },
-    surfaceVariants: ['glass'],
+    surfaceVariants: ['contained'],
   },
   {
     name: 'snsWithFriendPolicy',
     component: snsWithFriendPolicyComponent as ComponentDef<unknown>,
     value: { id: '@vrcuser_example', friendPolicy: 'frPolicyAnyone' },
     blockConfig: { platform: 'x' },
-    surfaceVariants: ['glass'],
+    surfaceVariants: ['contained'],
   },
   {
     name: 'gender',

@@ -27,9 +27,9 @@ function getPlatform(blockConfig?: Record<string, unknown>): string {
 export const simpleSnsComponent: ComponentDef<string> = {
   key: 'simple-sns',
   defaultValue: '',
-  variants: ['simple', 'glass'],
+  variants: ['simple', 'contained'],
   supportsSurface: true,
-  surfaceFor: ['glass'],
+  surfaceFor: ['contained'],
   CardItem({ value, ctx, variant, surface, blockConfig }) {
     const isInteractive = ctx.isInteractive
     const platform = getPlatform(blockConfig)
@@ -37,7 +37,8 @@ export const simpleSnsComponent: ComponentDef<string> = {
     const id = typeof value === 'string' ? value : ''
     const fs = ctx.fontSize.md
     const iconSize = ctx.cardWidth * 0.018 * ctx.paddingScale
-    const isGlass = variant === 'glass'
+    // 'glass' は後方互換エイリアス
+    const isGlass = variant === 'contained' || variant === 'glass'
 
     // isInteractive 時のクリック動作を解決
     const xHref = platform === 'x' && id

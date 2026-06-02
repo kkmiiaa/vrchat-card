@@ -90,6 +90,8 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const [template, setTemplate] = useState<CardTemplate | null>(null)
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const webContentRef = useRef<HTMLDivElement>(null)
+  const [webContentHeight, setWebContentHeight] = useState<number | null>(null)
   const tiltWrapRef = useRef<HTMLDivElement>(null)
   const exportRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
@@ -174,6 +176,18 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     observer.observe(el)
     return () => observer.disconnect()
   }, [cardW, orientation, template])
+
+  // Webモード: コンテンツの自然な高さを計測してコンテナ高さを決定
+  useEffect(() => {
+    if (orientation !== 'web') return
+    const el = webContentRef.current
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.height > 0) setWebContentHeight(entry.contentRect.height)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [orientation])
 
   useEffect(() => {
     if (!template) return
@@ -685,10 +699,11 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
                 style={{ width: '100%', maxWidth: orientation === 'web' ? 620 : undefined, overflow: 'hidden' }}
               >
                 {orientation === 'web' ? (
-                  // Web モード: zoom でレイアウトに影響させる（autoHeight 対応・コンテンツが下まで表示される）
-                  // WebkitTextSizeAdjust: iOS がズーム時にフォントを自動拡大するのを抑制
-                  <div style={{ zoom: scale, width: cardW, WebkitTextSizeAdjust: '100%' } as React.CSSProperties}>
-                    <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} isInteractive orientation="web" cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
+                  // Web モード: transform: scale でiOSのテキスト自動拡大を回避
+                  <div style={{ width: cardW * scale, height: webContentHeight != null ? webContentHeight * scale : undefined, position: 'relative', overflow: 'hidden' }}>
+                    <div ref={webContentRef} style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: cardW, position: 'absolute', top: 0, left: 0 }}>
+                      <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} isInteractive orientation="web" cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
+                    </div>
                   </div>
                 ) : (
                   // カードモード: transform scale + fixed height

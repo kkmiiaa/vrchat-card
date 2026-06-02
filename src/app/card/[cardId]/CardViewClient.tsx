@@ -106,6 +106,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
   const dragOrigin = useRef({ mx: 0, my: 0, ox: 0, oy: 0 })
+  const gyroPermissionAsked = useRef(false)
   const [cardEntered, setCardEntered] = useState<'hidden' | 'entering' | 'done'>('hidden')
   const [likeBurst, setLikeBurst] = useState(false)
   const [fabExpanded, setFabExpanded] = useState(true)
@@ -202,8 +203,8 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
 
   // モバイル: デバイス傾きでtilt
   useEffect(() => {
-    const isMobile = () => window.matchMedia('(pointer: coarse)').matches
-    if (!isMobile()) return
+    const isMobile = window.matchMedia('(pointer: coarse)').matches
+    if (!isMobile) return
     function onOrientation(e: DeviceOrientationEvent) {
       const beta = Math.max(-30, Math.min(30, (e.beta ?? 0) - 20))
       const gamma = Math.max(-30, Math.min(30, e.gamma ?? 0))
@@ -262,10 +263,19 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     dragOrigin.current = { mx: e.clientX, my: e.clientY, ox: offset.x, oy: offset.y }
   }
 
-  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+  async function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
     const t = e.touches[0]
     setDragging(true)
     dragOrigin.current = { mx: t.clientX, my: t.clientY, ox: offset.x, oy: offset.y }
+
+    // iOS 13+: ユーザーのタップを起点にジャイロ許可を要求（一度だけ）
+    if (!gyroPermissionAsked.current) {
+      gyroPermissionAsked.current = true
+      const DevOri = DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }
+      if (typeof DevOri.requestPermission === 'function') {
+        await DevOri.requestPermission().catch(() => {})
+      }
+    }
   }
 
   function handleTouchMove(e: React.TouchEvent<HTMLDivElement>) {
@@ -275,9 +285,8 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
         x: t.clientX - dragOrigin.current.mx + dragOrigin.current.ox,
         y: t.clientY - dragOrigin.current.my + dragOrigin.current.oy,
       })
-    } else {
-      applyTilt(t.clientX, t.clientY)
     }
+    // モバイルではタッチ位置による傾きは行わない（ジャイロのみ）
   }
 
   async function handleLike() {

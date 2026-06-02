@@ -27,9 +27,7 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
     const optionLabel = options.find(o => o.value === safe.tag)?.label
     const display = safe.display || optionLabel
     const fs = ctx.fontSize.md
-    const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'contained'
-      : (surface ?? 'transparent')
+    const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
 
     return (

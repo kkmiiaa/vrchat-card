@@ -39,9 +39,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
     }
 
     const fs = ctx.fontSize.md
-    const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'contained'
-      : (surface ?? 'transparent')
+    const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (
       <div style={{

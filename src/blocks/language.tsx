@@ -19,9 +19,7 @@ function LanguageCard({ value, ctx, variant = 'simple', surface, label, blockCon
   const fs = ctx.fontSize.sm
 
   if (variant === 'slash') {
-    const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'contained'
-      : (surface ?? 'transparent')
+    const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (
       <div style={{

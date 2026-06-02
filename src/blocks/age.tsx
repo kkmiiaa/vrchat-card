@@ -23,9 +23,7 @@ export const ageComponent: ComponentDef<AgeValue> = {
     const isPrivate = safe.searchTag === '非公開'
     const isEmpty = !safe.searchTag && !safe.display
     const text = (isPrivate || isEmpty) ? '-' : (safe.display || safe.searchTag)
-    const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'contained'
-      : (surface ?? 'transparent')
+    const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
 
     // badge: カラーバッジ形式（select/badge・dateItem/badge と同じスタイル）

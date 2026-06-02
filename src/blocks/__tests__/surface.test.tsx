@@ -107,11 +107,9 @@ function findBg(container: HTMLElement, bg: string): HTMLElement | null {
 // renderFn (label あり) と renderFnNoLabel (label なし) を受け取り、
 // 全 surface 値のスタイル検証を it() として登録する。
 //
-// ラベルあり時の挙動:
-//   多くのコンポーネントは label + surface='transparent' のとき
-//   'contained' にフォールバックする（ラベルの視認性を確保するため）。
-//   このフォールバックは意図した設計であり、transparent のテストは
-//   label なしで行う。
+// transparent の仕様:
+//   surface='transparent' は label の有無に関わらず透明であること。
+//   undefined のときのみスマートデフォルト（label あり → contained、なし → transparent）が使われる。
 
 type RenderFn = (surface: SurfaceVariant) => HTMLElement
 
@@ -140,7 +138,14 @@ function surfaceCases(renderFn: RenderFn, renderFnNoLabel: RenderFn) {
     expect(hasBorder(renderFn('flat'), '1.5px solid rgba(0,0,0,0.18)')).toBe(true)
   })
 
-  // transparent: label があると contained にフォールバックするため label なしで検証
+  // transparent は label あり・なし両方で透明であること
+  it("surface='transparent' → 白背景のコンテナが描画されない（label あり）", () => {
+    const container = renderFn('transparent')
+    expect(hasBg(container, 'rgba(255,255,255,0.85)')).toBe(false)
+    expect(hasBg(container, 'rgba(255,255,255,0.55)')).toBe(false)
+    expect(hasBg(container, 'rgba(255,255,255,0.95)')).toBe(false)
+  })
+
   it("surface='transparent' → 白背景のコンテナが描画されない（label なし）", () => {
     const container = renderFnNoLabel('transparent')
     expect(hasBg(container, 'rgba(255,255,255,0.85)')).toBe(false)

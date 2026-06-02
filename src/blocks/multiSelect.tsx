@@ -18,9 +18,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
     const getOption = (v: string) => options.find(o => o.value === v)
 
     if (variant === 'slash') {
-      const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-         ? 'contained'
-        : (surface ?? 'transparent')
+      const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
       const surfaceStyle = SURFACE_STYLE[effectiveSurface]
       return (
         <div style={{
@@ -55,9 +53,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
 
     // icon-slash: [icon] text / [icon] text 形式でスラッシュ区切り
     if (variant === 'icon-slash') {
-      const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-         ? 'contained'
-        : (surface ?? 'transparent')
+      const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
       const surfaceStyle = SURFACE_STYLE[effectiveSurface]
       const selectedOpts = items.map(v => getOption(v) ?? { value: v, label: v, icon: undefined, color: undefined })
       return (

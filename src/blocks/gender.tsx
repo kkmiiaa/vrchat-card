@@ -35,9 +35,7 @@ export const genderComponent: ComponentDef<GenderValue> = {
     const display = isEmpty ? '-' : (isNone ? '-' : (safe.display || option?.label || safe.tag))
     // 非公開: フラットなマイナスアイコン、それ以外: 性別アイコン（未設定はアイコンなし）
     const Icon = isEmpty ? null : (isNone ? TbMinus : option?.Icon)
-    const effectiveSurface = (label && (surface === 'transparent' || surface === undefined))
-       ? 'contained'
-      : (surface ?? 'transparent')
+    const effectiveSurface = surface ?? (label ? 'contained' : 'transparent')
     const surfaceStyle = SURFACE_STYLE[effectiveSurface]
 
     // compact: アイコン + 短縮テキストのみ（ラベルなし・背景なし）

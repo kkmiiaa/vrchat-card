@@ -31,6 +31,7 @@ export const LABEL_PRESET_COLORS = [
 ]
 
 const POPUP_WIDTH = 220
+const POPUP_HEIGHT = 220
 
 export function ColorPicker({
   value,
@@ -53,11 +54,15 @@ export function ColorPicker({
   const openPopup = () => {
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect()
-      const left = Math.min(rect.left, window.innerWidth - POPUP_WIDTH - 8)
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - POPUP_WIDTH - 8))
+      const spaceBelow = window.innerHeight - rect.bottom
+      const top = spaceBelow >= POPUP_HEIGHT + 8
+        ? rect.bottom + 4
+        : rect.top - POPUP_HEIGHT - 4
       setPopupStyle({
         position: 'fixed',
-        top: rect.bottom + 4,
-        left: Math.max(8, left),
+        top: Math.max(8, top),
+        left,
         width: POPUP_WIDTH,
         zIndex: 9999,
       })

@@ -82,7 +82,7 @@ export default function NotificationBell() {
 
       {/* 通知パネル */}
       {open && (
-        <div className="absolute right-0 top-11 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+        <div className="absolute right-0 top-11 w-80 max-w-[calc(100vw-1rem)] bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
           {/* タブ */}
           <div className="flex border-b border-gray-100">
             {(['system', 'activity'] as const).map(t => (

@@ -10,7 +10,7 @@ export type OverlayInset = {
 }
 
 export type OverlayValue = {
-  variant: 'none' | 'glass' | 'solid' | 'border-only'
+  variant: 'none' | 'glass' | 'solid' | 'flat' | 'border-only'
   color?: string      // solid 用
   opacity?: number    // 0-100
   inset?: OverlayInset
@@ -59,6 +59,9 @@ function OverlayCard({ value, ctx }: ComponentCardProps<OverlayValue>) {
     style.background = `rgba(255,255,255,${alpha})`
     style.border = borderColor ? `1px solid ${borderColor}` : '2px solid rgba(200,220,240,0.7)'
     style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'
+  } else if (variant === 'flat') {
+    style.background = `rgba(255,255,255,${alpha})`
+    style.border = borderColor ? `0.75px solid ${borderColor}` : '0.75px solid rgba(0,0,0,0.28)'
   } else if (variant === 'solid') {
     const r = parseInt(color.slice(1, 3), 16)
     const g = parseInt(color.slice(3, 5), 16)
@@ -69,16 +72,17 @@ function OverlayCard({ value, ctx }: ComponentCardProps<OverlayValue>) {
   return <div style={style} />
 }
 
-const VARIANTS = ['glass', 'solid'] as const
+const VARIANTS = ['glass', 'flat', 'solid'] as const
 const VARIANT_LABELS: Record<string, string> = {
   glass: 'ガラス',
+  flat:  'フラット',
   solid: '塗りつぶし',
 }
 
 export const overlayComponent: ComponentDef<OverlayValue> = {
   key: 'overlay',
   defaultValue: DEFAULT,
-  variants: ['glass', 'solid'],
+  variants: ['glass', 'flat', 'solid'],
   CardItem: OverlayCard,
   FormItem({ value, onChange, t }) {
     const set = (patch: Partial<OverlayValue>) => onChange({ ...value, ...patch })
@@ -88,7 +92,7 @@ export const overlayComponent: ComponentDef<OverlayValue> = {
         <h2 className="text-sm font-medium text-gray-500">{t.overlaySettings}</h2>
 
         {/* バリアント選択 */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {VARIANTS.map(v => (
             <button
               key={v}
@@ -112,6 +116,14 @@ export const overlayComponent: ComponentDef<OverlayValue> = {
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-gray-500">色</span>
                 <ColorPicker value={value.color ?? ''} onChange={v => set({ color: v || undefined })} defaultColor="#ffffff" />
+              </div>
+            )}
+
+            {/* flat: ボーダー色 */}
+            {value.variant === 'flat' && (
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-gray-500">ボーダー色</span>
+                <ColorPicker value={value.borderColor ?? ''} onChange={v => set({ borderColor: v || undefined })} defaultColor="#000000" />
               </div>
             )}
 

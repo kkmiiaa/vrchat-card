@@ -62,6 +62,7 @@ type ComponentDef<T = unknown> = {
   defaultValue: T           // 値の初期値
   variants?: BlockVariant[] // 対応するデザインバリアント（コンテンツ表示の切り替え）
   global?: boolean          // true のとき選択肢が全界隈共通で固定（界隈横断検索が可能）
+  surfaceMode?: 'internal'  // 'internal': 外側 surface コンテナをスキップし ctx.surface を注入
   FormItem: (props: ComponentFormProps<T>) => ReactNode
   CardItem?: (props: ComponentCardProps<T>) => ReactNode
   blockConfigForm?: (props: BlockConfigFormProps) => ReactNode
@@ -82,10 +83,12 @@ type ComponentCardProps<T> = {
 
 | 担当 | 責務 |
 |------|------|
-| **コンポーネント（CardItem）** | 値のコンテンツ描画のみ（テキスト・ゲージバー・アイコン等） |
-| **GenericCardRenderer** | surface コンテナ・ラベル・labelInset レイアウトをすべて管理 |
+| **コンポーネント（CardItem）** | 値のコンテンツ描画。`surfaceMode: 'internal'` のときは `ctx.surface` を参照して内部要素にスタイルを適用する |
+| **GenericCardRenderer** | surface コンテナ・ラベル・labelInset レイアウトをすべて管理。`surfaceMode: 'internal'` の場合は外側コンテナをスキップし、`ctx.surface` を注入する |
 
-コンポーネントは `surface` や `label` を受け取らない。レンダラーがコンポーネントの出力を surface コンテナで包み、ラベルを配置する。
+通常、コンポーネントは `surface` を知らない。レンダラーがコンポーネントの出力を surface コンテナで包み、ラベルを配置する。
+
+**`surfaceMode: 'internal'`** を持つコンポーネントは例外で、表示上 surface がコンテナ全体ではなく内部要素（各セル・各行・各サムネイル等）に適用される。gallery / profileImage / colorStatus / mark-grid がこれに該当する。
 
 #### global フラグ
 
@@ -122,7 +125,7 @@ type ComponentCardProps<T> = {
 
 #### surface（コンテナ背景スタイル）
 
-`surface` は **GenericCardRenderer がブロックを包む外側コンテナの背景スタイル**を制御するプロパティ。コンポーネント自体は surface を知らない。
+`surface` は **ブロックの背景スタイル**を制御するプロパティ。通常は GenericCardRenderer がブロックを包む外側コンテナに適用する。`surfaceMode: 'internal'` のコンポーネントでは、代わりに `ctx.surface` として内部に伝播し、各要素が個別に参照する。
 
 ```typescript
 type SurfaceVariant = 'contained' | 'default' | 'glass' | 'flat' | 'transparent' | 'outline'
@@ -138,9 +141,34 @@ type SurfaceVariant = 'contained' | 'default' | 'glass' | 'flat' | 'transparent'
 | `default` | 後方互換エイリアス（= contained） | DB保存済みデータ向け |
 | `simple` | 後方互換エイリアス（= contained） | DB保存済みデータ向け |
 
-**surface とパディング**: `transparent` 以外の surface を設定すると、レンダラーがコンテナに標準パディングを付与する。
+**surface とパディング**: `transparent` 以外の surface を設定すると、レンダラーがコンテナに標準パディングを付与する（`surfaceMode: 'internal'` の場合は外側パディングなし）。
 
 `defaultSurface`（テンプレートレベルの fallback）はテンプレートの `card_config.defaultSurface` で設定し、ブロックに `surface` が未指定のときに使われる。
+
+#### surfaceMode: 'internal'
+
+外側コンテナではなく、コンポーネント内部の各要素に surface スタイルを適用したいコンポーネントに指定する。
+
+```
+通常のブロック:
+  [surface コンテナ（background/border/padding）]
+    └─ component.CardItem() の出力
+
+surfaceMode: 'internal' のブロック:
+  [外側コンテナなし・パディングなし]
+    └─ component.CardItem() ← ctx.surface が注入される
+         └─ 各セル/各行/各サムネイルが ctx.surface を参照してスタイルを決める
+```
+
+| コンポーネント | surfaceMode | 内部での surface 適用対象 |
+|---|---|---|
+| `gallery` | `internal` | 各サムネイル枠（border / boxShadow） |
+| `profileImage` | `internal` | 画像コンテナ（border / boxShadow） |
+| `colorStatus` (simple/cards) | `internal` | 各行コンテナ（background / boxShadow） |
+| `mark-grid` | `internal` | 各セル（background / border / boxShadow） |
+| その他すべて | —（外側コンテナ） | GenericCardRenderer が外側を包む |
+
+`/test/components` の `VariantPreview` も同じロジックを実装しており、`surfaceMode: 'internal'` のコンポーネントは外側ラッパーをスキップして `ctx.surface` を渡す。
 
 ---
 
@@ -181,7 +209,10 @@ type Block = {
 
 ```
 Block ノード
-  ↓ surface コンテナを適用（background/border/boxShadow/padding/borderRadius）
+  ↓ surface を解決（node.surface ?? ctx.defaultSurface）
+  ↓ surfaceMode === 'internal' ?
+      YES → ctx.surface を注入し外側コンテナなし（padding なし）
+      NO  → surface コンテナを適用（background/border/boxShadow/padding/borderRadius）
   ↓ label を描画（labelInset=true → コンテナ内 / false → コンテナ外）
   ↓ component.CardItem を呼び出してコンテンツを描画
 ```

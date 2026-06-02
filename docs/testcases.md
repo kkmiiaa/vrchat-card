@@ -667,32 +667,40 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 
 ---
 
-### `markList` / `markGrid`
-
-> **NOTE**: `mark-list`（タグ表示）と `mark-grid`（グリッド表示）は別コンポーネントとして分割予定。現在は variant で切り替えている。
+### `markList`
 
 | # | テスト内容 | 意味 | 期待値 |
 |---|---|---|---|
-| 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | デフォルト項目を含む配列（空配列ではない） |
+| 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `{ marks: {}, custom: [] }` |
 | 2 | `blockConfig.marks=[{ symbol:'◎', color:'green', bg:'...' }]` | マーク記号の選択肢を設定したとき | そのマーク記号が選択肢として表示される |
-| 3 | `blockConfig.items=[{ label:'ハグOK' }, { label:'なでなでOK' }]` | 行項目（何を評価するか）を設定したとき | 各ラベルが行として描画される |
-| 4 | `blockConfig.items` に `required: true` の項目を含む | 必須項目を設定したとき | 必須マークが表示される |
-| 5 | `blockConfig.maxCustomItems=3` | カスタム項目の最大入力数を設定したとき | 3件超のカスタム項目が追加できない |
-| 6 | 項目のマーク記号をドロップダウンで変更 | 1行のマークを変更したとき | その行だけ mark が更新された配列が `onChange` に渡される |
-| 7 | 別の行のマークを変更 | 別の行を変更したとき | 先に変更した行の値が維持される |
-| 8 | カスタム項目を追加 | 自由入力の行を追加したとき | `isCustom: true` の項目が配列に追加される |
-| 9 | `formLabel='インタラクション'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 10 | `card_data[dataKey]` の型 | 保存される値の型 | `{ label: string, mark: string, isCustom?: boolean }[]` |
-| 11 | `card_data = { [dataKey]: [{ label: 'ハグOK', mark: '◎' }, ...] }` | マーク入力時の card_data 全体 | `{ [dataKey]: [...] }` が保存される |
-| 12 | `card_data = { [dataKey]: [{ label: 'ハグOK', mark: '-' }, ...] }` | 未選択時の card_data 全体 | `{ [dataKey]: [...] }` が保存される |
-| 13 | `cardItem.value = [{ label: 'ハグOK', mark: '◎' }, ...]` | マーク済み値をカードに表示したとき | マーク付き項目がタグとして描画される |
-| 14 | `cardItem.value = [{ label: 'ハグOK', mark: '-' }, ...]` | 全項目未選択値をカードに表示したとき | エラーなく描画される（空表示） |
-| 15 | `CardItem` のルート要素に `alignSelf: flex-start` が設定される | 縦方向への引き伸ばし防止 | 親の flex stretch に引き伸ばされない |
-| 16 | `CardItem` のルート要素に `alignContent: flex-start` が設定される | チップの縦方向整列 | チップが上詰めで並ぶ |
+| 3 | `blockConfig.items=[{ label:'通話' }, { label:'写真' }]` | 行項目を設定したとき | 各ラベルが描画される |
+| 4 | `value.marks = { 0: '◎', 1: '◯' }` | 数値インデックスで marks を設定したとき | 対応する項目にマーク記号が表示される |
+| 5 | `value.custom = [{ label:'カスタム', mark:'◎' }]` | カスタム項目があるとき | カスタム項目も描画される |
+| 6 | `cardItem.value` でマーク `'-'` の項目 | 未選択項目は非表示 | `mark === '-'` の項目はフィルタされ描画されない |
+| 7 | `CardItem` のルート要素に `alignSelf: flex-start` が設定される | 縦方向への引き伸ばし防止 | 親の flex stretch に引き伸ばされない |
+| 8 | `CardItem` のルート要素に `alignContent: flex-start` が設定される | チップの縦方向整列 | チップが上詰めで並ぶ |
+
+### `markGrid`
+
+> `surfaceMode: 'internal'` — surface は外側コンテナではなく各セルに適用される。`white` variant は廃止。
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `{ marks: {}, custom: [] }` |
+| 2 | `blockConfig.items=[{ label:'通話' }, { label:'写真' }]` / `value.marks = { 0: '◎', 1: '◯' }` | 設定済み値をカードに表示 | 各セルにラベルとマーク記号が描画される |
+| 3 | `blockConfig.cols=3` | カラム数を設定したとき | CSS grid が `repeat(3, 1fr)` になる |
+| 4 | `blockConfig.rows=2` / `cols=3` | 行数とカラム数を固定したとき | 6スロット分のセルが描画される（空スロットは transparent） |
+| 5 | `ctx.surface='contained'` | surface を contained で描画 | 各セルに contained の background が適用される |
+| 6 | `ctx.surface='glass'` | surface を glass で描画 | 各セルに glass の border / boxShadow が適用される |
+| 7 | `ctx.surface='transparent'` | surface なし | セルに background/border が付かない |
+| 8 | `variants` 配列 | white variant が含まれないこと | `variants` に `'white'` が含まれない |
+| 9 | `componentDef.surfaceMode` | surfaceMode が 'internal' であること | `surfaceMode === 'internal'` |
 
 ---
 
 ### `colorStatus`
+
+> `surfaceMode: 'internal'` — surface は外側コンテナではなく各行（simple/cards）に適用される。
 
 | # | テスト内容 | 意味 | 期待値 |
 |---|---|---|---|
@@ -708,12 +716,15 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 | 10 | `cardItem.value = { blue: '募集中' }` | 選択済み値をカードに表示したとき | 対応する色とラベルが描画される |
 | 11 | `cardItem.value = {}` | 未選択値をカードに表示したとき | エラーなく描画される（空表示） |
 | 12 | `variant='cards'` でコンテンツが描画される | cards variant の描画 | 入力値がコンテンツとして表示される |
-| 13 | `variant='cards'` の各アイテムに hardcoded な rgba 背景がない | cards variant の背景二重防止 | アイテム div に `rgba(255,255,255,...)` の background が設定されていない |
-| 14 | `cards` が `variants` 配列に含まれる | variant 定義の確認 | `variants` に `'cards'` が含まれる |
+| 13 | `variant='cards'` / `ctx.surface='contained'` | cards variant に surface が効くか | 各行の background に contained のスタイルが適用される |
+| 14 | `variant='cards'` / `ctx.surface='glass'` | cards variant に glass surface | 各行の boxShadow に glass のスタイルが適用される |
+| 15 | `componentDef.surfaceMode` | surfaceMode が 'internal' であること | `surfaceMode === 'internal'` |
 
 ---
 
 ### `activity`（weeklyActivity）
+
+> variant: `simple`（曜日ドット＋時間帯テキスト）、`bar`（視覚的タイムバー＋曜日サークル）
 
 | # | テスト内容 | 意味 | 期待値 |
 |---|---|---|---|
@@ -728,47 +739,49 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 | 9 | `card_data = { [dataKey]: componentDef.defaultValue }` | 未入力時の card_data 全体 | `{ [dataKey]: defaultValue }` が保存される |
 | 10 | `cardItem.value = { days: [...], weekdayStart: '20:00', ... }` | 入力済み値をカードに表示したとき | 曜日と時間帯が描画される |
 | 11 | `cardItem.value = componentDef.defaultValue` | 未入力値をカードに表示したとき | エラーなく描画される |
+| 12 | `variants` 配列に `'bar'` が含まれる | variant 定義の確認 | `'v2'` は含まれず `'bar'` が含まれる |
 
 ---
 
 ### `simpleSns`
 
+> variant: `simple` のみ（`contained` は廃止 — `simple` と同一デザインだったため）
+
 | # | テスト内容 | 意味 | 期待値 |
 |---|---|---|---|
 | 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `''`（空文字） |
 | 2 | 入力欄 | テキスト入力欄が存在するか | input 要素が描画される |
-| 3 | `blockConfig.platform` にプリセット一覧から選択（例：`'X'` / `'Discord'` / `'Instagram'`） | プラットフォームを選択式で設定したとき | 選択したプラットフォームのアイコンとラベルが表示される |
+| 3 | `blockConfig.platform` にプリセット一覧から選択（例：`'x'` / `'discord'` / `'instagram'`） | プラットフォームを選択式で設定したとき | 選択したプラットフォームのアイコンとラベルが表示される |
 | 4 | `blockConfig.actionType='navigate'` | プロフィールページへ遷移する設定にしたとき | CardItem のID文字列がリンクとして描画される |
 | 5 | `blockConfig.actionType='copy'` | ID をコピーする設定にしたとき | CardItem のID文字列にコピーボタンが表示される |
 | 6 | `blockConfig.allowSecret=true` で「秘密」を選択 | 秘密として設定できる設定にしたとき | 「秘密」選択肢が表示され、選択すると非公開として保存される |
-| 7 | `blockConfig.placeholder='@username'` | placeholder を設定したとき | placeholder に設定文字列が表示される |
-| 8 | テキストを入力 | ユーザーが入力したとき | 入力文字列が `onChange` に渡される |
-| 9 | `formLabel='X(Twitter)'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 10 | `card_data[dataKey]` の型 | 保存される値の型 | `string` |
-| 11 | `card_data = { [dataKey]: '@example' }` | 入力時の card_data 全体 | `{ [dataKey]: '@example' }` が保存される |
-| 12 | `card_data = { [dataKey]: '' }` | 未入力時の card_data 全体 | `{ [dataKey]: '' }` が保存される |
-| 13 | `cardItem.value = '@example'` | 入力済み値をカードに表示したとき | ID 文字列が描画される |
-| 14 | `cardItem.value = ''` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 7 | テキストを入力 | ユーザーが入力したとき | 入力文字列が `onChange` に渡される |
+| 8 | `formLabel='X(Twitter)'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
+| 9 | `card_data[dataKey]` の型 | 保存される値の型 | `string` |
+| 10 | `card_data = { [dataKey]: '@example' }` | 入力時の card_data 全体 | `{ [dataKey]: '@example' }` が保存される |
+| 11 | `cardItem.value = '@example'` | 入力済み値をカードに表示したとき | ID 文字列が描画される |
+| 12 | `cardItem.value = ''` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 13 | `variants` 配列に `'contained'` が含まれない | contained 廃止の確認 | `variants` は `['simple']` のみ |
 
 ---
 
 ### `snsWithFriendPolicy`
 
 > SNS ID に加え、フレンド申請ポリシーも同一ブロックで設定できるコンポーネント。
+> variant: `simple` のみ（旧 `contained` デザインを `simple` として統合済み）。コンパクト縦並びレイアウト（アイコン列固定）を採用。
 
 | # | テスト内容 | 意味 | 期待値 |
 |---|---|---|---|
-| 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `{ platforms: {}, friendPolicy: '' }` |
-| 2 | `blockConfig.platforms` にプリセット一覧から選択 | プラットフォームを設定したとき | 入力欄が描画される |
-| 3 | `blockConfig.allowedPolicies=['anyone', 'mutual', 'no']` | 許容するフレンドポリシー選択肢を絞ったとき | 指定した選択肢のみ表示される |
-| 4 | フレンドポリシーを選択 | ポリシーを選択したとき | `{ platforms: {...}, friendPolicy: '選択値' }` が渡される |
-| 5 | SNS ID を入力 | ID を入力したとき | `{ platforms: { x: '入力値' }, friendPolicy: '' }` が渡される |
+| 1 | `componentDef.defaultValue` | コンポーネント定義の初期値が正しいか | `{ id: '', friendPolicy: '' }` |
+| 2 | `blockConfig.platform` にプリセット一覧から選択 | プラットフォームを設定したとき | 対応アイコンが描画される |
+| 3 | `blockConfig.policies` でポリシー選択肢をカスタマイズ | 選択肢を絞ったとき | 指定した選択肢のみ表示される |
+| 4 | フレンドポリシーを選択 | ポリシーを選択したとき | `{ id, friendPolicy: '選択値' }` が渡される |
+| 5 | SNS ID を入力 | ID を入力したとき | `{ id: '入力値', friendPolicy: '' }` が渡される |
 | 6 | `formLabel='SNS & フレンド申請'` | フォームラベルを設定したとき | 指定文字列がラベルとして表示される |
-| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `{ platforms: Record<string, string>, friendPolicy: string }` |
-| 8 | `card_data = { [dataKey]: { platforms: { x: '@foo' }, friendPolicy: 'mutual' } }` | 入力時の card_data 全体 | `{ [dataKey]: { platforms: { x: '@foo' }, friendPolicy: 'mutual' } }` が保存される |
-| 9 | `card_data = { [dataKey]: { platforms: {}, friendPolicy: '' } }` | 未入力時の card_data 全体 | `{ [dataKey]: { platforms: {}, friendPolicy: '' } }` が保存される |
-| 10 | `cardItem.value = { platforms: { x: '@foo' }, friendPolicy: 'mutual' }` | 入力済み値をカードに表示したとき | プラットフォームIDとフレンドポリシーが描画される |
-| 11 | `cardItem.value = { platforms: {}, friendPolicy: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 7 | `card_data[dataKey]` の型 | 保存される値の型 | `{ id: string, friendPolicy: string }` |
+| 8 | `cardItem.value = { id: '@foo', friendPolicy: 'frPolicyAnyone' }` | 入力済み値をカードに表示したとき | ID とフレンドポリシーラベルが縦並びで描画される |
+| 9 | `cardItem.value = { id: '', friendPolicy: '' }` | 未入力値をカードに表示したとき | エラーなく描画される（空表示） |
+| 10 | `variants` 配列 | variant 定義の確認 | `variants` は `['simple']` のみ |
 
 ---
 
@@ -940,19 +953,41 @@ labelInset 機能（`LabelDef.dir`）の横並び・縦並び・センタリン�
 
 ## TC-9: ブロックコンポーネント — profileImage（profileImage.test.tsx）
 
+> `surfaceMode: 'internal'` — surface は外側コンテナではなく画像コンテナ（border / boxShadow）に適用される。`glass` variant は廃止。
+
 | # | テスト内容 | 意味 | 期待値 |
 |---|---|---|---|
 | 1 | defaultValue は `{ base64: null, url: null }` | 初期値の確認 | `{ base64: null, url: null }` |
-| 2 | variants に `glass` が含まれる | glass バリアントの存在確認 | `variants.includes('glass')` |
-| 3 | default variant: 画像なしのとき "Photo" プレースホルダーが表示される | 未設定時の表示 | `screen.getByText('Photo')` |
-| 4 | default variant: base64 画像が設定されているとき img タグが描画される | base64 の反映 | `img.src === base64文字列` |
-| 5 | url が設定されているとき img src に url が使われる | url の反映 | `img.src === url文字列` |
-| 6 | base64 と url が両方あるとき url が優先される | url 優先ルール | `img.src === url文字列` |
-| 7 | circle variant: border-radius が 50% になる | circle 形状 | `borderRadius === '50%'` |
-| 8 | glass variant: border が設定される | glass ボーダー | `border.includes('rgba(255, 255, 255, 0.75)')` |
-| 9 | glass variant: boxShadow が設定される | glass シャドウ | `boxShadow !== ''` |
-| 10 | glass variant: border は 1px 固定 | border 幅 | `border.startsWith('1px')` |
-| 11 | glass variant と default variant でボーダー有無が異なる | バリアント差異 | glass と default の border が異なる |
+| 2 | variants に `glass` が含まれない | glass variant 廃止の確認 | `!variants.includes('glass')` |
+| 3 | variants に `circle` が含まれる | circle variant の存在確認 | `variants.includes('circle')` |
+| 4 | `componentDef.surfaceMode === 'internal'` | surfaceMode の確認 | `surfaceMode === 'internal'` |
+| 5 | 画像なしのとき "Photo" プレースホルダーが表示される | 未設定時の表示 | `screen.getByText('Photo')` |
+| 6 | base64 画像が設定されているとき img タグが描画される | base64 の反映 | `img.src === base64文字列` |
+| 7 | url が設定されているとき img src に url が使われる | url の反映 | `img.src === url文字列` |
+| 8 | base64 と url が両方あるとき url が優先される | url 優先ルール | `img.src === url文字列` |
+| 9 | circle variant: border-radius が 50% になる | circle 形状 | `borderRadius === '50%'` |
+| 10 | `ctx.surface='glass'` のとき border が設定される | surface による border 適用 | `border` に glass の値が含まれる |
+| 11 | `ctx.surface='glass'` のとき boxShadow が設定される | surface による shadow 適用 | `boxShadow !== ''` |
+| 12 | `ctx.surface='transparent'` のとき border が設定されない | surface なし | `border` が未設定 |
+
+---
+
+## TC-9b: ブロックコンポーネント — gallery
+
+> `surfaceMode: 'internal'` — surface は外側コンテナではなく各サムネイル枠（border / boxShadow）に適用される。`glass` variant は廃止。`base64` が全 null のとき `CardItem` は `null` を返す（isEmpty で非表示）。
+
+| # | テスト内容 | 意味 | 期待値 |
+|---|---|---|---|
+| 1 | defaultValue の `base64` が全 null | 初期値の確認 | `base64: [null, null, null]` |
+| 2 | `isEmpty({ base64: [null,null,null] })` | 空判定 | `true` |
+| 3 | `isEmpty({ base64: ['data:...', null, null] })` | 1枚でもある場合 | `false` |
+| 4 | base64 が全 null のとき `CardItem` が null を返す | 空時の非表示 | `CardItem` が null |
+| 5 | 3枚の base64 を設定したとき 3つの img が描画される | 複数画像表示 | `querySelectorAll('img').length === 3` |
+| 6 | 1枚だけ設定したとき 1つの img が描画される | 入力済みスロットのみ表示 | `querySelectorAll('img').length === 1` |
+| 7 | `ctx.surface='glass'` のとき各サムネイル枠に border が設定される | surface による border 適用 | サムネイルラッパーに glass の border |
+| 8 | `ctx.surface='transparent'` のとき border が設定されない | surface なし | borderRadius のみ、border なし |
+| 9 | `componentDef.surfaceMode === 'internal'` | surfaceMode の確認 | `surfaceMode === 'internal'` |
+| 10 | `variants` に `'glass'` が含まれない | glass variant 廃止の確認 | `!variants.includes('glass')` |
 
 ---
 

@@ -216,7 +216,15 @@ const SPECS: ComponentSpec[] = [
   {
     name: 'gallery',
     component: galleryComponent as ComponentDef<unknown>,
-    value: { enabled: false, images: [null, null, null], base64: [null, null, null] },
+    value: {
+      enabled: true,
+      images: [null, null, null],
+      base64: [
+        'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjYTc4YmZhIi8+PC9zdmc+',
+        'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjNjBhNWZhIi8+PC9zdmc+',
+        'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZjU5ZTBiIi8+PC9zdmc+',
+      ],
+    },
   },
 ]
 

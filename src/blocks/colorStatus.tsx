@@ -31,11 +31,14 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
     if (variant === 'cards') {
       const fs = ctx.fontSize.sm
       const dotSize = ctx.cardWidth * 0.006
+      const ss = ctx.surface && ctx.surface !== 'transparent' ? SURFACE_STYLE[ctx.surface] : null
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
           {fields.map((f, i) => (
             <div key={i} style={{
               display: 'flex', alignItems: 'center', gap: ctx.cardWidth * 0.005,
+              background: ss ? ss.background : undefined,
+              boxShadow: ss ? ss.boxShadow : undefined,
               border: `1px solid ${f.color}40`,
               borderLeft: `3px solid ${f.color}`,
               borderRadius: ctx.cardWidth * 0.006,

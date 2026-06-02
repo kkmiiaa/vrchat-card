@@ -19,6 +19,7 @@
 ### 品質・テスト（優先度：中）
 
 - [ ] **`/upgrade` ページ E2E** — `tests/e2e/upgrade.spec.ts` を新規作成（ページは `src/app/upgrade/page.tsx` に実装済み）
+- ✅ **マイグレーション系テスト 43 件修正** — `migrateLegacyCardData` が `'v1'`/`'v2'` を受け付けていなかったバグを修正（`'vrchat-simple'`/`'vrchat-glass'` のエイリアスとして追加）。全73件パス。
 - [ ] **自動マイグレーション発動条件のユニットテスト**
   - データ変換テスト（`migrateV1Patterns.test.ts` 等）はカバー済み・685 件全パス
   - 未テスト: `CardEditor.tsx` の `isLoggedIn && !cardId && localStorage にデータあり` 分岐

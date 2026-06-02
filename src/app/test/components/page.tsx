@@ -53,17 +53,24 @@ const SELECT_BLOCKCONFIG = {
 }
 
 const MARK_VALUE = {
-  marks: { '通話': '◎', '写真': '◯', '動画': '△', '深夜': '✗' },
-  custom: [],
+  marks: { 0: '◎', 1: '◯', 2: '△', 3: '✗' },
+  custom: [{ label: 'カスタム', mark: '◎' }],
 }
 
+const MARK_ITEMS = [
+  { label: '通話' },
+  { label: '写真' },
+  { label: '動画' },
+  { label: '深夜' },
+]
+
 const MARK_BLOCKCONFIG = {
-  marks: [
-    { label: '通話', icon: 'TbMicrophone', ok: ['◎', '◯'] },
-    { label: '写真', icon: 'TbCamera', ok: ['◎', '◯'] },
-    { label: '動画', icon: 'TbVideo', ok: ['◎', '◯'] },
-    { label: '深夜', icon: 'TbMoon', ok: ['◎', '◯'] },
-  ],
+  items: MARK_ITEMS,
+}
+
+const MARK_GRID_BLOCKCONFIG = {
+  items: MARK_ITEMS,
+  cols: 2,
 }
 
 const COLOR_STATUS_VALUE = { a: 'option1', b: 'option2', c: 'option1' }
@@ -151,7 +158,7 @@ const SPECS: ComponentSpec[] = [
     name: 'markGrid',
     component: markGridComponent as ComponentDef<unknown>,
     value: MARK_VALUE,
-    blockConfig: MARK_BLOCKCONFIG,
+    blockConfig: MARK_GRID_BLOCKCONFIG,
   },
   {
     name: 'colorStatus',

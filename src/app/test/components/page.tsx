@@ -248,7 +248,8 @@ function VariantPreview({
   const { component, value, blockConfig } = spec
   if (!component.CardItem) return null
 
-  const hasSurface = surface !== 'transparent'
+  const isInternalSurface = component.surfaceMode === 'internal'
+  const hasSurface = !isInternalSurface && surface !== 'transparent'
   const ss = hasSurface ? SURFACE_STYLE[surface] : null
   const pad = hasSurface
     ? `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`
@@ -261,8 +262,10 @@ function VariantPreview({
     padding: pad,
   } : {}
 
+  const blockCtx = isInternalSurface ? { ...ctx, surface } : ctx
+
   const content = (
-    <component.CardItem value={value} ctx={ctx} variant={variant} blockConfig={blockConfig} />
+    <component.CardItem value={value} ctx={blockCtx} variant={variant} blockConfig={blockConfig} />
   )
 
   const labelEl = (

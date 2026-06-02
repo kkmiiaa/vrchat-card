@@ -8,16 +8,16 @@
  * ─────────────────────────────────────────────────────────────
  * Component        | Variants
  * ─────────────────────────────────────────────────────────────
- * profileImage     | default, circle, glass
+ * profileImage     | simple, circle  ※ glass は廃止、surfaceMode:internal で代替
  * badge            | default, outline, subtle
  * select           | default, badge, compact
  * multiSelect      | default, slash, icon, icon-slash
  * divider          | horizontal, vertical
- * markGrid         | default, white
+ * markGrid         | simple          ※ white は廃止、surfaceMode:internal で代替
  * qrCode           | default, glass
  * language         | default, slash
  * gender           | default, compact
- * activity         | default, v2
+ * activity         | simple, bar
  * ─────────────────────────────────────────────────────────────
  */
 import { describe, it, expect } from 'vitest'
@@ -62,37 +62,33 @@ describe('profileImage variant 仕様', () => {
     expect(root.style.borderRadius).toBe('50%')
   })
 
-  it('glass: border は 1px solid rgba(255,255,255,0.75)（固定値）', () => {
+  it('ctx.surface="glass": border が設定される', () => {
     const { container } = render(
-      profileImageComponent.CardItem!({ value: VALUE, ctx: CTX, variant: 'glass' })
+      profileImageComponent.CardItem!({ value: VALUE, ctx: { ...CTX, surface: 'glass' }, variant: 'simple' })
     )
     const root = container.querySelector('div') as HTMLElement
-    expect(root.style.border).toBe('1px solid rgba(255, 255, 255, 0.75)')
+    expect(root.style.border).toContain('rgba(255, 255, 255, 0.75)')
   })
 
-  it('glass: boxShadow は 0 0 12px rgba(0,0,0,0.08)（固定値）', () => {
+  it('ctx.surface="glass": boxShadow が設定される', () => {
     const { container } = render(
-      profileImageComponent.CardItem!({ value: VALUE, ctx: CTX, variant: 'glass' })
+      profileImageComponent.CardItem!({ value: VALUE, ctx: { ...CTX, surface: 'glass' }, variant: 'simple' })
     )
     const root = container.querySelector('div') as HTMLElement
-    expect(root.style.boxShadow).toBe('0 0 12px rgba(0,0,0,0.08)')
+    expect(root.style.boxShadow).not.toBe('')
   })
 
-  it('circle と glass は borderRadius が異なる（circle=50%, glass=proportional）', () => {
-    const { container: c1 } = render(
+  it('circle: borderRadius は 50%（正円）', () => {
+    const { container } = render(
       profileImageComponent.CardItem!({ value: VALUE, ctx: CTX, variant: 'circle' })
     )
-    const { container: c2 } = render(
-      profileImageComponent.CardItem!({ value: VALUE, ctx: CTX, variant: 'glass' })
-    )
-    const r1 = (c1.querySelector('div') as HTMLElement).style.borderRadius
-    const r2 = (c2.querySelector('div') as HTMLElement).style.borderRadius
-    expect(r1).not.toBe(r2)
+    const root = container.querySelector('div') as HTMLElement
+    expect(root.style.borderRadius).toBe('50%')
   })
 
-  it('default: border スタイルがない', () => {
+  it('surface なし: border スタイルがない', () => {
     const { container } = render(
-      profileImageComponent.CardItem!({ value: VALUE, ctx: CTX, variant: 'default' })
+      profileImageComponent.CardItem!({ value: VALUE, ctx: CTX, variant: 'simple' })
     )
     const root = container.querySelector('div') as HTMLElement
     expect(root.style.border || '').toBe('')
@@ -305,31 +301,24 @@ describe('markGrid variant 仕様', () => {
     expect(cells.length).toBeGreaterThan(0)
   })
 
-  it('white: すべてのセルが白背景 rgba(255,255,255,0.85) を持つ', () => {
+  it('ctx.surface="contained": label のあるセルが contained の background を持つ', () => {
     const { container } = render(
-      markGridComponent.CardItem!({ value: VALUE, ctx: CTX, variant: 'white', blockConfig: BLOCK_CONFIG })
+      markGridComponent.CardItem!({ value: VALUE, ctx: { ...CTX, surface: 'contained' }, blockConfig: BLOCK_CONFIG })
     )
     const gridDiv = container.querySelector('div') as HTMLElement
     const cells = Array.from(gridDiv.children) as HTMLElement[]
-    expect(cells.length).toBeGreaterThan(0)
-    const allWhite = cells.every(el =>
-      (el as HTMLElement).style.background?.includes('rgba(255') && (el as HTMLElement).style.background?.includes('0.85')
-    )
-    expect(allWhite).toBe(true)
+    const hasContainedBg = cells.some(el => (el as HTMLElement).style.background?.includes('rgba(255'))
+    expect(hasContainedBg).toBe(true)
   })
 
-  it('white variant は default より gap が小さい（1px vs 4px）', () => {
-    const { container: c1 } = render(
-      markGridComponent.CardItem!({ value: VALUE, ctx: CTX, variant: 'default', blockConfig: BLOCK_CONFIG })
+  it('ctx.surface が未指定: label ありセルはデフォルト白背景を持つ', () => {
+    const { container } = render(
+      markGridComponent.CardItem!({ value: VALUE, ctx: CTX, blockConfig: BLOCK_CONFIG })
     )
-    const { container: c2 } = render(
-      markGridComponent.CardItem!({ value: VALUE, ctx: CTX, variant: 'white', blockConfig: BLOCK_CONFIG })
-    )
-    const defaultGap = (c1.querySelector('div') as HTMLElement).style.gap
-    const whiteGap = (c2.querySelector('div') as HTMLElement).style.gap
-    // white=1px, default=4px
-    expect(whiteGap).toBe('1px')
-    expect(defaultGap).toBe('4px')
+    const gridDiv = container.querySelector('div') as HTMLElement
+    const cells = Array.from(gridDiv.children) as HTMLElement[]
+    const hasWhiteBg = cells.some(el => (el as HTMLElement).style.background?.includes('rgba(255'))
+    expect(hasWhiteBg).toBe(true)
   })
 })
 

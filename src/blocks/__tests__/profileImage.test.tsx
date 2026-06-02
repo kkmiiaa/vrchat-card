@@ -8,27 +8,31 @@ describe('profileImage', () => {
     expect(profileImageComponent.defaultValue).toEqual({ base64: null, url: null })
   })
 
-  it('2. variants に glass が含まれる', () => {
-    expect(profileImageComponent.variants).toContain('glass')
+  it('2. variants に glass が含まれない（glass は廃止、surfaceMode:internal で代替）', () => {
+    expect(profileImageComponent.variants).not.toContain('glass')
   })
 
-  it('3. default variant: 画像なしのとき "Photo" プレースホルダーが表示される', () => {
+  it('3. surfaceMode が internal である', () => {
+    expect(profileImageComponent.surfaceMode).toBe('internal')
+  })
+
+  it('4. 画像なしのとき "Photo" プレースホルダーが表示される', () => {
     render(
       profileImageComponent.CardItem!({
         value: { base64: null, url: null },
         ctx: DEFAULT_CARD_RENDER_CONTEXT,
-        variant: 'default',
+        variant: 'simple',
       })
     )
     expect(screen.getByText('Photo')).toBeInTheDocument()
   })
 
-  it('4. default variant: base64 画像が設定されているとき img タグが描画される', () => {
+  it('5. base64 画像が設定されているとき img タグが描画される', () => {
     const { container } = render(
       profileImageComponent.CardItem!({
         value: { base64: 'data:image/png;base64,abc', url: null },
         ctx: DEFAULT_CARD_RENDER_CONTEXT,
-        variant: 'default',
+        variant: 'simple',
       })
     )
     const img = container.querySelector('img')
@@ -36,31 +40,31 @@ describe('profileImage', () => {
     expect(img?.getAttribute('src')).toBe('data:image/png;base64,abc')
   })
 
-  it('5. url が設定されているとき img src に url が使われる', () => {
+  it('6. url が設定されているとき img src に url が使われる', () => {
     const { container } = render(
       profileImageComponent.CardItem!({
         value: { base64: null, url: 'https://example.com/photo.jpg' },
         ctx: DEFAULT_CARD_RENDER_CONTEXT,
-        variant: 'default',
+        variant: 'simple',
       })
     )
     const img = container.querySelector('img')
     expect(img?.getAttribute('src')).toBe('https://example.com/photo.jpg')
   })
 
-  it('6. base64 と url が両方あるとき url が優先される', () => {
+  it('7. base64 と url が両方あるとき url が優先される', () => {
     const { container } = render(
       profileImageComponent.CardItem!({
         value: { base64: 'data:image/png;base64,abc', url: 'https://example.com/photo.jpg' },
         ctx: DEFAULT_CARD_RENDER_CONTEXT,
-        variant: 'default',
+        variant: 'simple',
       })
     )
     const img = container.querySelector('img')
     expect(img?.getAttribute('src')).toBe('https://example.com/photo.jpg')
   })
 
-  it('7. circle variant: border-radius が 50% になる', () => {
+  it('8. circle variant: border-radius が 50% になる', () => {
     const { container } = render(
       profileImageComponent.CardItem!({
         value: { base64: null, url: null },
@@ -72,59 +76,59 @@ describe('profileImage', () => {
     expect(el.style.borderRadius).toBe('50%')
   })
 
-  it('8. glass variant: border が設定される', () => {
+  it('9. ctx.surface="glass" のとき border が設定される', () => {
     const { container } = render(
       profileImageComponent.CardItem!({
         value: { base64: null, url: null },
-        ctx: DEFAULT_CARD_RENDER_CONTEXT,
-        variant: 'glass',
+        ctx: { ...DEFAULT_CARD_RENDER_CONTEXT, surface: 'glass' },
+        variant: 'simple',
       })
     )
     const el = container.querySelector('div') as HTMLElement
     expect(el.style.border).toContain('rgba(255, 255, 255, 0.75)')
   })
 
-  it('9. glass variant: boxShadow が設定される', () => {
+  it('10. ctx.surface="glass" のとき boxShadow が設定される', () => {
     const { container } = render(
       profileImageComponent.CardItem!({
         value: { base64: null, url: null },
-        ctx: DEFAULT_CARD_RENDER_CONTEXT,
-        variant: 'glass',
+        ctx: { ...DEFAULT_CARD_RENDER_CONTEXT, surface: 'glass' },
+        variant: 'simple',
       })
     )
     const el = container.querySelector('div') as HTMLElement
     expect(el.style.boxShadow).not.toBe('')
   })
 
-  it('10. glass variant: border は 1px 固定', () => {
+  it('11. ctx.surface="transparent" のとき border が設定されない', () => {
     const { container } = render(
       profileImageComponent.CardItem!({
         value: { base64: null, url: null },
-        ctx: DEFAULT_CARD_RENDER_CONTEXT,
-        variant: 'glass',
+        ctx: { ...DEFAULT_CARD_RENDER_CONTEXT, surface: 'transparent' },
+        variant: 'simple',
       })
     )
     const el = container.querySelector('div') as HTMLElement
-    expect(el.style.border).toMatch(/^1px/)
+    expect(el.style.border || '').toBe('')
   })
 
-  it('11. glass variant と default variant でボーダー有無が異なる', () => {
-    const { container: glassContainer } = render(
+  it('12. glass と transparent で border の有無が異なる', () => {
+    const { container: gc } = render(
       profileImageComponent.CardItem!({
         value: { base64: null, url: null },
-        ctx: DEFAULT_CARD_RENDER_CONTEXT,
-        variant: 'glass',
+        ctx: { ...DEFAULT_CARD_RENDER_CONTEXT, surface: 'glass' },
+        variant: 'simple',
       })
     )
-    const { container: defaultContainer } = render(
+    const { container: tc } = render(
       profileImageComponent.CardItem!({
         value: { base64: null, url: null },
-        ctx: DEFAULT_CARD_RENDER_CONTEXT,
-        variant: 'default',
+        ctx: { ...DEFAULT_CARD_RENDER_CONTEXT, surface: 'transparent' },
+        variant: 'simple',
       })
     )
-    const glassEl = glassContainer.querySelector('div') as HTMLElement
-    const defaultEl = defaultContainer.querySelector('div') as HTMLElement
-    expect(glassEl.style.border).not.toBe(defaultEl.style.border)
+    const glassBorder = (gc.querySelector('div') as HTMLElement).style.border
+    const transBorder = (tc.querySelector('div') as HTMLElement).style.border
+    expect(glassBorder).not.toBe(transBorder)
   })
 })

@@ -98,26 +98,24 @@ describe('空値の「-」表示: テキスト色は subText', () => {
     expect(getDashSpanColor(container)).toBe(SUB)
   })
 
-  it('simpleSns / glass: id 未設定のとき「-」は subText 相当色', () => {
+  it('simpleSns / simple: id 未設定のとき「-」が表示される', () => {
     const { container } = render(
       simpleSnsComponent.CardItem!({
-        value: { handle: '' },
+        value: '',
         ctx: CTX,
-        variant: 'glass',
+        variant: 'simple',
         blockConfig: { platform: 'x' },
       })
     )
-    const dash = getDashSpanColor(container)
-    // simpleSns は rgba(0,0,0,0.3) を使用（意図的なデザイン）
-    expect(dash).not.toBe(CTX.theme.text)
+    expect(container.textContent).toContain('-')
   })
 
-  it('snsWithFriendPolicy / glass: id 未設定のとき「-」は subText 色', () => {
+  it('snsWithFriendPolicy / simple: id 未設定のとき「-」は subText 相当色', () => {
     const { container } = render(
       snsWithFriendPolicyComponent.CardItem!({
-        value: { friendPolicy: '' },
+        value: { id: '', friendPolicy: '' },
         ctx: CTX,
-        variant: 'glass',
+        variant: 'simple',
         blockConfig: {
           platform: 'vrchat',
           policies: [{ icon: 'TbHeart', label: 'だれでもOK', value: 'frPolicyAnyone' }],

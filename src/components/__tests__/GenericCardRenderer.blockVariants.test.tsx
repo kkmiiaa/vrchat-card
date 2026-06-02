@@ -40,7 +40,7 @@ function makeDefinition(overrides: Partial<TemplateDefinition> = {}): TemplateDe
 describe('GenericCardRenderer – pool variant', () => {
   it('pool エントリの variant が ref ノードに適用される', () => {
     const def = makeDefinition({
-      blockPool: { img: { componentKey: 'profileImage', dataKey: 'profileImage', variant: 'glass' } },
+      blockPool: { img: { componentKey: 'profileImage', dataKey: 'profileImage', variant: 'circle' } },
       card: {
         cardWidth: 900, cardHeight: 500, grid: { cellSize: 10, gap: 4 },
         layout: { type: 'ref', blockId: 'img' },
@@ -49,13 +49,13 @@ describe('GenericCardRenderer – pool variant', () => {
     const { container } = render(
       <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} noBackground orientation="card" />
     )
-    const hasBorder = Array.from(container.querySelectorAll('div')).some(d => d.style.border?.includes('rgba(255, 255, 255, 0.75)'))
-    expect(hasBorder).toBe(true)
+    const hasCircle = Array.from(container.querySelectorAll('div')).some(d => d.style.borderRadius === '50%')
+    expect(hasCircle).toBe(true)
   })
 
   it('variant は pool で固定され、2つのレイアウトで同じ ref を参照しても同じ variant が適用される', () => {
     const def = makeDefinition({
-      blockPool: { img: { componentKey: 'profileImage', dataKey: 'profileImage', variant: 'glass' } },
+      blockPool: { img: { componentKey: 'profileImage', dataKey: 'profileImage', variant: 'circle' } },
       card: {
         cardWidth: 900, cardHeight: 500, grid: { cellSize: 10, gap: 4 },
         layout: { type: 'ref', blockId: 'img' },
@@ -71,10 +71,10 @@ describe('GenericCardRenderer – pool variant', () => {
     const { container: pc } = render(
       <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} noBackground orientation="web" />
     )
-    const hasGlassL = Array.from(lc.querySelectorAll('div')).some(d => d.style.border?.includes('rgba(255, 255, 255, 0.75)'))
-    const hasGlassP = Array.from(pc.querySelectorAll('div')).some(d => d.style.border?.includes('rgba(255, 255, 255, 0.75)'))
-    expect(hasGlassL).toBe(true)
-    expect(hasGlassP).toBe(true)
+    const hasCircleL = Array.from(lc.querySelectorAll('div')).some(d => d.style.borderRadius === '50%')
+    const hasCircleP = Array.from(pc.querySelectorAll('div')).some(d => d.style.borderRadius === '50%')
+    expect(hasCircleL).toBe(true)
+    expect(hasCircleP).toBe(true)
   })
 })
 

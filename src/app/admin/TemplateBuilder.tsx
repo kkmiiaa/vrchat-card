@@ -833,6 +833,11 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
             onBlur={e => {
               const newId = e.target.value.trim()
               if (!newId || newId === blockId) return
+              if (currentPool[newId]) {
+                alert(`"${newId}" はすでに使用されています`)
+                e.target.value = blockId
+                return
+              }
               setCurrentPool(prev => {
                 const next = { ...prev }
                 next[newId] = { ...next[blockId], dataKey: newId }

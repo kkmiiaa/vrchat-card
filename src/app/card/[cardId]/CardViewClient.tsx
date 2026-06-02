@@ -684,7 +684,8 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
               >
                 {orientation === 'web' ? (
                   // Web モード: zoom でレイアウトに影響させる（autoHeight 対応・コンテンツが下まで表示される）
-                  <div style={{ zoom: scale, width: cardW } as React.CSSProperties}>
+                  // WebkitTextSizeAdjust: iOS がズーム時にフォントを自動拡大するのを抑制
+                  <div style={{ zoom: scale, width: cardW, WebkitTextSizeAdjust: '100%' } as React.CSSProperties}>
                     <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} isInteractive orientation="web" cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
                   </div>
                 ) : (

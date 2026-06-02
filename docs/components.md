@@ -20,12 +20,12 @@
 [コンポーネント管理者（開発者）]
        ↓ コンポーネントを定義（コード）
 [コンポーネント（ComponentDef<T>）]
-       ← 汎用UIパーツ。フォームUIとカードUIをセットで持つ。
+       ← 純粋なコンテンツ描画パーツ。値の表示 UI のみ担当。
          例: gauge, text, expressiveSelect, gender, ...
        ↓ テンプレート作成者がインスタンス化・配置
 [ブロック（Block）]
-       ← componentKey + dataKey + ラベル + 設定 + レイアウト情報
-         例: componentKey='gauge', dataKey='micOnRate', label='マイクオン率'
+       ← componentKey + dataKey + ラベル + surface + レイアウト情報
+         例: componentKey='gauge', dataKey='micOnRate', surface='contained'
        ↓ ブロックを組み合わせてレイアウトを定義
 [テンプレート（TemplateDefinition）]
        ← カードのレイアウト全体定義（向き・テーマ・背景）
@@ -53,22 +53,39 @@
 
 > コード上の型名: `ComponentDef<T>` （`src/blocks/types.ts`）
 
-コンポーネントは「再利用可能な汎用 UI パーツ」の定義。フォーム入力 UI とカード表示 UI をセットで持つ。
+コンポーネントは「再利用可能な純粋コンテンツ描画パーツ」の定義。**surface コンテナやラベルの描画は担当しない**（それは `GenericCardRenderer` が担う）。
 
 ```typescript
 // src/blocks/types.ts
 type ComponentDef<T = unknown> = {
   key: string               // レジストリ内の一意識別子（例: 'gauge'）
   defaultValue: T           // 値の初期値
-  variants?: BlockVariant[] // 対応するデザインバリアント
+  variants?: BlockVariant[] // 対応するデザインバリアント（コンテンツ表示の切り替え）
   global?: boolean          // true のとき選択肢が全界隈共通で固定（界隈横断検索が可能）
-  supportsSurface?: boolean // CardItem が surface prop を解釈する場合 true
-  surfaceFor?: string[]     // surface が有効な variant 一覧（未指定かつ supportsSurface=true なら全 variant で有効）
   FormItem: (props: ComponentFormProps<T>) => ReactNode
   CardItem?: (props: ComponentCardProps<T>) => ReactNode
   blockConfigForm?: (props: BlockConfigFormProps) => ReactNode
+  isEmpty?: (value: T) => boolean
+}
+
+// CardItem の props（surface/label は含まない）
+type ComponentCardProps<T> = {
+  value: T
+  ctx: CardRenderContext
+  variant?: BlockVariant
+  blockConfig?: Record<string, unknown>
+  isInteractive?: boolean
 }
 ```
+
+#### コンポーネントの責務の明確化
+
+| 担当 | 責務 |
+|------|------|
+| **コンポーネント（CardItem）** | 値のコンテンツ描画のみ（テキスト・ゲージバー・アイコン等） |
+| **GenericCardRenderer** | surface コンテナ・ラベル・labelInset レイアウトをすべて管理 |
+
+コンポーネントは `surface` や `label` を受け取らない。レンダラーがコンポーネントの出力を surface コンテナで包み、ラベルを配置する。
 
 #### global フラグ
 
@@ -87,63 +104,43 @@ type ComponentDef<T = unknown> = {
 
 #### formLabel
 
-`ComponentFormProps.formLabel` はテンプレート作成者がブロックのフォームタイトルをカスタマイズするための値。`FormItem` の実装はこの値を優先してタイトルとして表示する。未設定時はデフォルトの翻訳キーを使用する。
+`ComponentFormProps.formLabel` はテンプレート作成者がブロックのフォームタイトルをカスタマイズするための値。`FormItem` はこの値を優先してタイトルとして表示する。
 
 #### labelIcon（ラベルアイコンプレフィックス）
 
-`Block`・`LayoutNodeRow`・`LayoutNodeCol` の `labelIcon` フィールドに Tabler Icons のキー（例: `TbMicrophone`）を指定すると、ラベルテキストの左にアイコンが描画される。
-
-- `labelInset: true` の block → `LabelDef.icon` 経由でコンポーネントに渡される
-- `labelInset: false` の block / `col` / `row` → `GenericCardRenderer` がラベル行に直接描画する
+`Block`・`LayoutNodeRow`・`LayoutNodeCol` の `labelIcon` フィールドに Tabler Icons のキー（例: `TbMicrophone`）を指定すると、ラベルテキストの左にアイコンが描画される。これは `GenericCardRenderer` が描画するため、コンポーネント実装は不要。
 
 #### 空値表示の統一仕様
-
-値が空のときの表示は以下のルールで統一されている。
 
 | ルール | 内容 |
 |---|---|
 | 空値デフォルト表示 | `"-"`（半角ハイフン）を subText 色で表示する |
 | 全角ダッシュ禁止 | `"—"`（em dash）・`"ー"`（全角長音）はフォント依存のため使用しない |
 | `hideWhenEmpty` オプション | `blockConfig.hideWhenEmpty: true` のとき、空値で `null` を返しブロックを非表示にする |
-| null 返却コンポーネント | 値が空でも常に `null` を返すコンポーネント: `sns`, `status`, `playEnv`, `activity`, `selfIntro`, `trustRank`, `gallery`（空欄は「未入力」ではなく「表示なし」を意味する） |
-
-**`hideWhenEmpty` 対応コンポーネント**（blockConfig.hideWhenEmpty: true で null 返却）
-
-`select`, `multiSelect`, `language`, `badgeList`, `markList`, `colorLabeledList`
 
 ---
 
 #### surface（コンテナ背景スタイル）
 
-`surface` は **ブロックのコンテナ背景スタイル**を制御するプロパティ。`SURFACE_STYLE` テーブル（`src/blocks/types.ts`）で定義されており、`supportsSurface: true` なコンポーネントのみ有効。
+`surface` は **GenericCardRenderer がブロックを包む外側コンテナの背景スタイル**を制御するプロパティ。コンポーネント自体は surface を知らない。
 
 ```typescript
-type SurfaceVariant = 'simple' | 'default' | 'glass' | 'flat' | 'transparent' | 'outline'
+type SurfaceVariant = 'contained' | 'default' | 'glass' | 'flat' | 'transparent' | 'outline'
 ```
 
 | surface 値 | 視覚的特徴 | 用途 |
 |---|---|---|
-| `simple` | 半透明白 + 薄い白枠 | 汎用・デフォルト |
-| `glass` | 半透明白(0.55) + 白枠 + 影 | ガラスデザイン（v2 テンプレート） |
-| `flat` | 不透明白(0.95) + 濃いグレー枠 | フラットデザイン |
-| `transparent` | 背景・枠なし | 背景に溶け込ませる |
+| `contained` | 半透明白(0.85) + 枠なし | 基本コンテナ（デフォルト） |
+| `glass` | 半透明白(0.55) + 白枠 + 影 | ガラスデザイン |
+| `flat` | 不透明白(0.95) + グレー枠 | フラットデザイン |
+| `transparent` | 背景・枠なし | コンテナなし（コンテンツのみ） |
 | `outline` | 背景透明 + 白枠のみ | 軽量なフレーム |
-| `default` | 半透明白(0.85) + 枠なし | 旧仕様・後方互換用 |
+| `default` | 後方互換エイリアス（= contained） | DB保存済みデータ向け |
+| `simple` | 後方互換エイリアス（= contained） | DB保存済みデータ向け |
+
+**surface とパディング**: `transparent` 以外の surface を設定すると、レンダラーがコンテナに標準パディングを付与する。
 
 `defaultSurface`（テンプレートレベルの fallback）はテンプレートの `card_config.defaultSurface` で設定し、ブロックに `surface` が未指定のときに使われる。
-
-#### ⚠️ 既知の設計課題: `glass` の二重意味
-
-`glass` という名前が variant と surface の両方で使われており、意味が混在している。
-
-| コンポーネント | `variant='glass'` の意味 | surface 対応 |
-|---|---|---|
-| `simpleSns`, `snsWithFriendPolicy` | 「surface コンテナを持つ」という構造選択。`surface` prop で見た目を変更可能 | ✅ `surfaceFor: ['glass']` |
-| `activity` | `v2` variant のみ surface コンテナ表示 | ✅ `surfaceFor: ['v2']` |
-| `profileImage`, `gallery`, `qrCode` | 内部要素（画像フレーム・サムネイル・QR枠）の固定スタイル。surface コンテナではない | ❌ surface 非対応 |
-| `overlay` | カード全体を覆う glass オーバーレイ | ❌ surface 非対応 |
-
-`simpleSns` / `snsWithFriendPolicy` の `glass` variant は本質的に「コンテナを持つかどうか」の選択であり、surface の `glass` スタイルとは別概念。将来的に variant 名を改める余地がある。
 
 ---
 
@@ -158,29 +155,35 @@ type SurfaceVariant = 'simple' | 'default' | 'glass' | 'flat' | 'transparent' | 
 - `componentKey`: 使用するコンポーネントの種類（`gauge`、`text` など）
 - `dataKey`: `card_data` に保存・参照するキー（`micOnRate`、`selfIntro` など）
 
-この分離により、同一コンポーネントを異なるキーで複数配置できる（例: `gauge` コンポーネントを `micOnRate` と `trustRank` で別々に使用）。
-
 ```typescript
 type Block = {
   type: 'block'
   componentKey: string          // 使用するコンポーネントの key
   dataKey: string               // card_data に保存・参照するキー
-  variant?: string              // コンテンツ表示バリアント（省略時は 'simple' にフォールバック）
-  surface?: SurfaceVariant      // コンテナ背景スタイル（supportsSurface: true のコンポーネントのみ有効）
+  variant?: string              // コンテンツ表示バリアント
+  surface?: SurfaceVariant      // コンテナ背景スタイル（GenericCardRenderer が適用）
   label?: string                // ブロック上部のラベル
   subLabel?: string             // ラベル右のサブテキスト
   labelColor?: string
-  labelInset?: boolean          // ラベルをコンテンツ枠内に表示するか
-  labelInsetDir?: 'col' | 'row' // ラベルとコンテンツの並び方向（'col'=縦、'row'=横）
+  labelInset?: boolean          // ラベルをコンテナ内に配置するか
+  labelInsetDir?: 'col' | 'row' // labelInset 時の並び方向
   contentFontScale?: number
   labelFontScale?: number
-  contentAlign?: string
   alignSelf?: string
   blockConfig?: Record<string, unknown>
   minW?: number
   minH?: number
   flex?: number
 }
+```
+
+#### GenericCardRenderer のブロック描画フロー
+
+```
+Block ノード
+  ↓ surface コンテナを適用（background/border/boxShadow/padding/borderRadius）
+  ↓ label を描画（labelInset=true → コンテナ内 / false → コンテナ外）
+  ↓ component.CardItem を呼び出してコンテンツを描画
 ```
 
 ---
@@ -212,22 +215,21 @@ type LayoutNodeRef = {
   minW?: number
   minH?: number
   flex?: number
-  variant?: string        // card と web で異なる variant を使い分けられる
-  surface?: SurfaceVariant
+  variant?: string           // card と web で異なる variant を使い分けられる
+  surface?: SurfaceVariant   // コンテナ背景スタイル
   contentFontScale?: number
   labelFontScale?: number
 }
 ```
 
-**設計の分離理由**: 同一ブロック（例: `name`）でも card と web で異なる variant/surface を使いたい場合があるため、これらの表示設定はレイアウト（ref）レベルで指定する。
+**設計の分離理由**: 同一ブロックでも card と web で異なる variant/surface を使いたい場合があるため、表示設定はレイアウト（ref）レベルで指定する。
 
 ---
 
 ### 3.2.2 テンプレートビルダーでのブロック追加 UX フロー
 
 **Step 1: コンポーネントをプールに追加**
-- 左パネル「プール」タブ → 「+ ブロックを追加」
-- コンポーネント一覧から選択し `blockId` を入力
+- 左パネル「プール」タブ → 「+ ブロックを追加」→ コンポーネント選択・blockId 入力
 
 **Step 2: プールエントリを設定（blockConfig 編集）**
 - `label` / `subLabel` / `dataKey` / `blockConfig`（選択肢・単位など）を編集
@@ -237,25 +239,14 @@ type LayoutNodeRef = {
 
 **Step 4: ref ノードのプロパティ編集**
 - `minW` / `minH` / `flex` / `variant` / `surface` / `contentFontScale` / `labelFontScale`
+- `labelInset: true` にするとラベルがコンテナ内に配置される
 
-#### labelInset と LabelDef
+#### labelInset の動作
 
-`labelInset: true` を指定すると、`GenericCardRenderer` がブロックのラベル情報を `LabelDef` としてコンポーネントの `CardItem` に渡す。コンポーネント側はこの `label` prop を受け取り、自コンテナ内にラベルとコンテンツを描画する責務を持つ。
-
-```typescript
-type LabelDef = {
-  text: string
-  subText?: string
-  color?: string        // 省略時はテーマの text 色
-  fontScale?: number    // 省略時は 1
-  dir?: 'row' | 'col'  // 並び方向（省略時は 'col' 相当）
-  icon?: string         // Tabler Icons キー（例: 'TbMicrophone'）
-}
-```
+`labelInset: true` を指定すると、`GenericCardRenderer` がラベルとコンテンツを同じ surface コンテナ内に配置する。
 
 - `dir === 'col'`（デフォルト）: ラベルが上、コンテンツが下
-- `dir === 'row'`: ラベルが左、コンテンツが右（単行コンポーネントでは縦方向センタリング）
-- コンポーネントがラベルをサポートするかは variant に依存する（例: `language`, `multiSelect` は `slash` variant のみ label 対応）
+- `dir === 'row'`: ラベルが左、コンテンツが右（単行コンテンツでは縦方向センタリング）
 
 ---
 
@@ -285,14 +276,7 @@ type TemplateDefinition = {
 
 テンプレート全体で orientation をまたいで共通の variant を指定する仕組み。ノードの `variant` が明示されている場合は `blockVariants` より優先される。
 
-```typescript
-// 例: V2 では profileImage を常に glass variant で描画
-blockVariants: { profileImage: 'glass' }
-```
-
 #### フォントサイズトークン（FontScale）
-
-カード幅に対する比率でフォントサイズを定義する。
 
 | トークン | 用途 | デフォルト比率 |
 |----------|------|----------------|
@@ -312,15 +296,6 @@ blockVariants: { profileImage: 'glass' }
 - 型: `Record<dataKey, value>`
 - レンダリング: `GenericCardRenderer` がテンプレート定義を参照して描画
 
-```json
-{
-  "micOnRate": 80,
-  "selfIntro": "よろしくお願いします！",
-  "genderTag": { "tag": "female", "display": "女の子" },
-  "language": { "preset": ["ja"], "custom": [] }
-}
-```
-
 ---
 
 ## 4. 作成フロー
@@ -329,11 +304,12 @@ blockVariants: { profileImage: 'glass' }
 1. コンポーネント管理者（開発者）
    └── ComponentDef<T> を定義し BLOCK_REGISTRY に登録
        （src/blocks/*.tsx + src/blocks/registry.ts）
+       ※ コンポーネントはコンテンツのみを描画する。surface/label は不要。
 
 2. テンプレート作成者（現在は開発者）
    └── Block を使ってブロックをインスタンス化（componentKey + dataKey を設定）
+   └── surface / variant / labelInset を指定
    └── LayoutNode ツリーでレイアウトを組み立て
-   └── TemplateDefinition として定義（DB 管理に移行中）
 
 3. カード作成者（エンドユーザー）
    └── テンプレートを選択
@@ -346,14 +322,12 @@ blockVariants: { profileImage: 'glass' }
 
 ## 5. FormItem と CardItem
 
-すべてのコンポーネントは 2 つの UI 表現を持つ。
-
 | 表現 | 役割 |
 |---|---|
 | **FormItem** | ユーザーが値を入力・編集する UI（カードエディター内） |
-| **CardItem** | カード上に値を表示する UI（汎用レンダラーが使用） |
+| **CardItem** | カード上にコンテンツを表示する UI（汎用レンダラーが使用） |
 
-`FormItem` は `ComponentFormProps<T>` を受け取り、`formLabel` があればそれをフォームタイトルとして使用する。`CardItem` は `ComponentCardProps<T>` を受け取り、`CardRenderContext`（テーマ・フォントサイズ等）を参照して描画する。
+`CardItem` は `ComponentCardProps<T>`（`value`, `ctx`, `variant`, `blockConfig`, `isInteractive`）のみを受け取る。surface/label はレンダラーが担うため、コンポーネントに渡されない。
 
 ---
 
@@ -363,7 +337,7 @@ blockVariants: { profileImage: 'glass' }
 
 | タブ | 機能 |
 |------|------|
-| コンポーネント（BlockPreviewList） | 全コンポーネントを variant・surface・blockConfig でインタラクティブにプレビュー |
+| コンポーネント（BlockPreviewList） | 全コンポーネントを variant・surface・blockConfig でプレビュー（renderer と同じロジックで surface コンテナを適用） |
 | テンプレート（TemplateBuilder） | ブロックプールを管理し、レイアウトツリーに ref を配置するビジュアルビルダー |
 | カード | 既存ユーザーカードの一覧ブラウズ |
 
@@ -393,8 +367,9 @@ blockVariants: { profileImage: 'glass' }
 
 | ファイル | 内容 |
 |----------|------|
-| `src/blocks/types.ts` | `ComponentDef<T>`, `Block`, `LayoutNode`, `TemplateDefinition`, `CardRenderContext`, `FontScale` など全主要型 |
+| `src/blocks/types.ts` | `ComponentDef<T>`, `Block`, `LayoutNode`, `TemplateDefinition`, `CardRenderContext`, `SurfaceVariant`, `SURFACE_STYLE` など全主要型 |
 | `src/blocks/registry.ts` | `BLOCK_REGISTRY`, `getBlock()`, `getAllBlocks()` |
-| `src/blocks/*.tsx` | 各コンポーネントの実装 |
+| `src/blocks/*.tsx` | 各コンポーネントの実装（コンテンツ描画のみ） |
+| `src/components/GenericCardRenderer.tsx` | surface コンテナ・ラベル・labelInset を一元管理するレンダラー |
 | `src/app/admin/BlockPreviewList.tsx` | Admin コンポーネントプレビュー UI |
 | `src/app/test/components/page.tsx` | variant × surface ビューワー（視覚仕様の一次ソース） |

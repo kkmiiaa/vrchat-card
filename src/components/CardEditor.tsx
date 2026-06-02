@@ -101,8 +101,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   const [cardScale, setCardScale] = useState(1)
 
   // --- UI state ---
-  const [previewOpen, setPreviewOpen]       = useState(false)
-  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
+  const [previewOpen, setPreviewOpen] = useState(false)
   const [currentUrlDisplay, setCurrentUrlDisplay] = useState('')
   const [saveModalLoading, setSaveModalLoading] = useState(false)
 
@@ -375,12 +374,9 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank')
   }
 
-  const handlePreviewOpen = async () => {
-    const dataUrl = await getCardDataUrl()
-    if (!dataUrl) return
-    setPreviewImageUrl(dataUrl)
+  const handlePreviewOpen = useCallback(() => {
     setPreviewOpen(true)
-  }
+  }, [])
 
   // --- Render ---
   const blockMap = Object.fromEntries(template.blocks.map(b => [b.key, b]))
@@ -448,10 +444,15 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         </div>
       )}
 
-      {/* プレビューモーダル */}
-      {previewOpen && previewImageUrl && (
+      {/* プレビューモーダル（スマホ用拡大表示） */}
+      {previewOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center" onClick={() => setPreviewOpen(false)}>
-          <img src={previewImageUrl} alt={t.enlargedCardPreview} className="max-w-[90%] max-h-[90%] rounded shadow-lg" />
+          {(() => {
+            const maxW = window.innerWidth * 0.9
+            const maxH = window.innerHeight * 0.9
+            const scale = Math.min(maxW / template.cardWidth, maxH / template.cardHeight)
+            return <CardScaledView template={template} values={values} background={background} scale={scale} fontFamily={fontFamily} t={t} className="rounded shadow-lg" />
+          })()}
         </div>
       )}
 

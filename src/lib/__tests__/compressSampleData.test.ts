@@ -50,6 +50,19 @@ describe('compressSampleData', () => {
     })
   })
 
+  it('ネストされたオブジェクト内の base64 も除去される', () => {
+    const input = {
+      section: {
+        nested: { base64: 'data:image/png;base64,deep', url: 'https://example.com/x.png' },
+      },
+    }
+    expect(compressSampleData(input)).toEqual({
+      section: {
+        nested: { base64: null, url: 'https://example.com/x.png' },
+      },
+    })
+  })
+
   it('複数フィールドが混在しても正しく処理される', () => {
     const input = {
       name: 'Alice',

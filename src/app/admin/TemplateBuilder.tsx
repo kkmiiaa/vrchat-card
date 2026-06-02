@@ -474,7 +474,9 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
   const [sampleState, setSampleState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const handleSaveSample = useCallback(async () => {
     setSampleState('saving')
-    const compressed = compressSampleData(localValues as Record<string, unknown>)
+    const raw = localValues as Record<string, unknown>
+    const compressed = compressSampleData(raw)
+    console.log('[saveSample] raw size:', JSON.stringify(raw).length, 'compressed size:', JSON.stringify(compressed).length)
     const { error } = await saveSampleCardData(currentRow.id, compressed)
     setSampleState(error ? 'error' : 'saved')
     setTimeout(() => setSampleState('idle'), 2000)

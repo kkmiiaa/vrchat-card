@@ -2,42 +2,33 @@
  * サンプルカードデータ保存前の前処理
  *
  * base64 画像は Server Action の 1MB 制限を超えるため除去し、
- * URL 参照のみ保持する。
+ * URL 参照のみ保持する。ネストされた構造も再帰的に処理する。
  */
 export function compressSampleData(
   values: Record<string, unknown>,
 ): Record<string, unknown> {
-  const result: Record<string, unknown> = {}
+  return stripBase64(values) as Record<string, unknown>
+}
 
-  for (const [key, val] of Object.entries(values)) {
-    if (val === null || val === undefined) {
-      result[key] = val
-      continue
-    }
+function stripBase64(val: unknown): unknown {
+  if (val === null || val === undefined) return val
+  if (typeof val !== 'object') return val
 
-    // profileImage: { base64, url } — base64 は除去、url のみ保持
-    if (
-      typeof val === 'object' &&
-      'base64' in (val as object) &&
-      'url' in (val as object)
-    ) {
-      result[key] = { ...(val as object), base64: null }
-      continue
-    }
-
-    // gallery: { enabled, images, base64: (string | null)[] } — base64 は除去
-    if (
-      typeof val === 'object' &&
-      'base64' in (val as object) &&
-      Array.isArray((val as { base64: unknown }).base64)
-    ) {
-      const v = val as { base64: (string | null)[]; [k: string]: unknown }
-      result[key] = { ...v, base64: v.base64.map(() => null) }
-      continue
-    }
-
-    result[key] = val
+  if (Array.isArray(val)) {
+    return val.map(stripBase64)
   }
 
+  const obj = val as Record<string, unknown>
+
+  // base64 フィールドを持つオブジェクト — null に置換
+  if ('base64' in obj) {
+    return { ...obj, base64: Array.isArray(obj.base64) ? obj.base64.map(() => null) : null }
+  }
+
+  // 再帰処理
+  const result: Record<string, unknown> = {}
+  for (const [key, v] of Object.entries(obj)) {
+    result[key] = stripBase64(v)
+  }
   return result
 }

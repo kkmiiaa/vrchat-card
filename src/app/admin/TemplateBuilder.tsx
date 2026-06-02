@@ -1092,7 +1092,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
                 </div>
               )}
               {/* surface */}
-              {comp?.supportsSurface && (
+              {comp && (
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] text-gray-500">surface <span className="text-[9px] text-indigo-400">（このレイアウトのみ）</span></label>
                   <div className="flex gap-1 flex-wrap">

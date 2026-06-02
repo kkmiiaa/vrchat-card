@@ -29,7 +29,7 @@ import { dateItemComponent } from '@/blocks/dateItem'
 import { qrCodeComponent } from '@/blocks/qrCode'
 import { translations } from '@/utils/translations'
 import type { ComponentDef, SurfaceVariant } from '@/blocks/types'
-import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
+import { DEFAULT_CARD_RENDER_CONTEXT, SURFACE_STYLE } from '@/blocks/types'
 import { BlockPropertyEditor, defaultBlockDisplaySettings, type BlockDisplaySettings } from './BlockPropertyEditor'
 
 const t = translations.ja
@@ -538,6 +538,10 @@ function RowDivider() {
 
 // ─── ラベル付き CardItem プレビュー ──────────────────────────────
 
+/**
+ * GenericCardRenderer と同じ動作で surface コンテナ＋ラベルを描画する Admin プレビュー用コンポーネント。
+ * コンポーネント自体には surface/label を渡さず、このコンポーネントが直接描画する。
+ */
 function LabeledCardItemPreview({
   component, value, variant, surface, labelConfig, config,
 }: {
@@ -554,8 +558,19 @@ function LabeledCardItemPreview({
   const color = labelColor || ctx.theme.text
 
   const cardContent = component.CardItem
-    ? <component.CardItem value={value} ctx={ctx} variant={variant} surface={surface} blockConfig={config} />
+    ? <component.CardItem value={value} ctx={ctx} variant={variant} blockConfig={config} />
     : <span className="text-xs text-gray-300 italic">未実装</span>
+
+  // surface コンテナスタイル（GenericCardRenderer と同じロジック）
+  const hasSurface = surface !== 'transparent'
+  const surfaceStyle = hasSurface ? SURFACE_STYLE[surface] : null
+  const containerStyle: React.CSSProperties = surfaceStyle ? {
+    background: surfaceStyle.background,
+    border: surfaceStyle.border,
+    boxShadow: surfaceStyle.boxShadow,
+    borderRadius: ctx.cardWidth * 0.006,
+    padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
+  } : {}
 
   const labelEl = hasLabel ? (
     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexShrink: 0 }}>
@@ -566,7 +581,7 @@ function LabeledCardItemPreview({
 
   if (!hasLabel) {
     return (
-      <div style={{ display: 'flex', flexGrow: 1, minWidth: 0, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexGrow: 1, minWidth: 0, overflow: 'hidden', ...containerStyle }}>
         {cardContent}
       </div>
     )
@@ -580,12 +595,10 @@ function LabeledCardItemPreview({
         flexDirection: flexDir,
         gap: labelInsetDir === 'row' ? 8 : 4,
         alignItems: labelInsetDir === 'row' ? 'center' : 'stretch',
-        background: 'rgba(255,255,255,0.85)',
-        borderRadius: 8,
-        padding: '6px 8px',
         flexGrow: 1,
         minWidth: 0,
         overflow: 'hidden',
+        ...containerStyle,
       }}>
         {labelEl}
         <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 'auto', minWidth: 0, overflow: 'hidden', display: 'flex', alignItems: 'stretch' }}>
@@ -598,7 +611,7 @@ function LabeledCardItemPreview({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexGrow: 1, minWidth: 0, overflow: 'hidden' }}>
       {labelEl}
-      <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 'auto', minWidth: 0, overflow: 'hidden', display: 'flex', alignItems: 'stretch' }}>
+      <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 'auto', minWidth: 0, overflow: 'hidden', display: 'flex', alignItems: 'stretch', ...containerStyle }}>
         {cardContent}
       </div>
     </div>

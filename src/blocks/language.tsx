@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import type { ComponentDef, ComponentCardProps, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 
 export type LanguageValue = {
   preset: string[]
@@ -12,23 +11,16 @@ const PRESET_LANGUAGES = [
   '日本語', 'English', '한국어', '中文',
 ]
 
-function LanguageCard({ value, ctx, variant = 'simple', surface, label, blockConfig }: ComponentCardProps<LanguageValue>) {
+function LanguageCard({ value, ctx, variant = 'simple', blockConfig }: ComponentCardProps<LanguageValue>) {
   const preset = Array.isArray(value?.preset) ? value.preset : []
   const custom = Array.isArray(value?.custom) ? value.custom : []
   const all = [...preset, ...custom]
   const fs = ctx.fontSize.sm
 
   if (variant === 'slash') {
-    const effectiveSurface = surface ?? 'transparent'
-    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (
       <div style={{
         width: '100%',
-        background: surfaceStyle.background,
-        border: surfaceStyle.border,
-        boxShadow: surfaceStyle.boxShadow,
-        borderRadius: ctx.cardWidth * 0.006,
-        padding: `${label ? `${ctx.cardWidth * 0.006 * ctx.paddingScale}px` : '0'} ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         fontSize: fs,
         color: all.length ? ctx.theme.text : ctx.theme.subText,
         fontFamily: ctx.fontFamily,
@@ -36,17 +28,9 @@ function LanguageCard({ value, ctx, variant = 'simple', surface, label, blockCon
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         display: 'flex',
-        flexDirection: (label?.dir === 'row') ? 'row' : 'column',
-        alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
-        justifyContent: (label?.dir === 'row') ? undefined : 'center',
-        gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
-        {label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-          </div>
-        )}
         {all.join(' / ') || '-'}
       </div>
     )
@@ -87,8 +71,6 @@ export const languageComponent: ComponentDef<LanguageValue> = {
   global: true,
   defaultValue: { preset: [], custom: [] },
   variants: ['simple', 'slash'],
-  supportsSurface: true,
-  surfaceFor: ['slash'],
   CardItem: LanguageCard,
   FormItem({ value, onChange, t, blockConfig }) {
     const preset = Array.isArray(value?.preset) ? value.preset : []

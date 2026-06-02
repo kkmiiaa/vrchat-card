@@ -1,6 +1,5 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 import { renderIcon, IconPicker } from './iconRegistry'
 
 export type LinkItemValue = { label: string; url: string }
@@ -9,9 +8,7 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
   key: 'linkItem',
   defaultValue: { label: '', url: '' },
   variants: ['simple', 'compact'],
-  supportsSurface: true,
-  surfaceFor: ['simple'],
-  CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
+  CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     const safe: LinkItemValue = (value && typeof value === 'object' && 'label' in value)
       ? value as LinkItemValue
       : { label: '', url: '' }
@@ -20,17 +17,11 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
 
     if (variant === 'compact') {
       const fs = ctx.fontSize.xs
-      const compactStyle = SURFACE_STYLE[surface ?? 'transparent']
       return (
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: 4,
-          background: compactStyle.background,
-          border: compactStyle.border,
-          boxShadow: compactStyle.boxShadow,
-          borderRadius: ctx.cardWidth * 0.004,
-          padding: `${ctx.cardWidth * 0.003 * ctx.paddingScale}px ${ctx.cardWidth * 0.005 * ctx.paddingScale}px`,
           fontFamily: ctx.fontFamily,
           overflow: 'hidden',
         }}>
@@ -42,31 +33,17 @@ export const linkItemComponent: ComponentDef<LinkItemValue> = {
     }
 
     const fs = ctx.fontSize.md
-    const effectiveSurface = surface ?? 'transparent'
-    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (
       <div style={{
         width: '100%',
-        height: '100%',
-        background: surfaceStyle.background,
-        border: surfaceStyle.border,
-        boxShadow: surfaceStyle.boxShadow,
-        borderRadius: ctx.cardWidth * 0.006,
-        padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',
-        flexDirection: (label?.dir === 'row') ? 'row' : 'column',
-        alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
-        justifyContent: (label?.dir === 'row') ? undefined : 'center',
-        gap: label ? ctx.cardWidth * 0.003 : 6,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        gap: 6,
         fontFamily: ctx.fontFamily,
         overflow: 'hidden',
       }}>
-        {label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-          </div>
-        )}
         <span style={{ fontSize: fs, flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
           {renderIcon(iconKey, fs)}
         </span>

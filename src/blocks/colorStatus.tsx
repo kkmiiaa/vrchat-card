@@ -1,6 +1,5 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 import { ColorPicker } from './colorPicker'
 
 type ColorStatusField = { key: string; label: string; color: string }
@@ -23,16 +22,13 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
   key: 'color-status',
   defaultValue: {},
   variants: ['simple', 'compact', 'cards'],
-  supportsSurface: true,
-  surfaceFor: ['simple', 'cards'],
-  CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
+  CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     const safe = (value && typeof value === 'object') ? value as Record<string, string> : {}
     const fields = getFields(blockConfig)
 
     if (variant === 'cards') {
       const fs = ctx.fontSize.sm
       const dotSize = ctx.cardWidth * 0.006
-      const cardBgStyle = SURFACE_STYLE[surface ?? 'glass']
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
           {fields.map((f, i) => (
@@ -41,8 +37,6 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
               border: `1px solid ${f.color}40`,
               borderLeft: `3px solid ${f.color}`,
               borderRadius: ctx.cardWidth * 0.006,
-              background: cardBgStyle.background,
-              boxShadow: (surface ?? 'glass') === 'glass' ? '0 1px 4px rgba(0,0,0,0.08)' : undefined,
               padding: `${ctx.cardWidth * 0.002 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px ${ctx.cardWidth * 0.002 * ctx.paddingScale}px ${ctx.cardWidth * 0.005 * ctx.paddingScale}px`,
               flex: 1, minHeight: 0, overflow: 'hidden',
             }}>
@@ -84,24 +78,13 @@ export const colorStatusComponent: ComponentDef<Record<string, string>> = {
 
     // default
     const fs = ctx.fontSize.sm
-    const effectiveSurface = surface ?? 'transparent'
-    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (
-      <div style={{ display: 'flex', flexDirection: label?.dir === 'row' ? 'row' : 'column', gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 4, width: '100%', alignItems: label?.dir === 'row' ? 'center' : 'stretch' }}>
-        {label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-          </div>
-        )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', alignItems: 'stretch' }}>
         {fields.map((f, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'stretch', gap: 6, flex: 1, minHeight: 0 }}>
             <span style={{ width: 9, height: 9, borderRadius: '50%', background: f.color, flexShrink: 0, alignSelf: 'center' }} />
             <div style={{
               flex: 1,
-              background: surfaceStyle.background,
-              border: surfaceStyle.border,
-              boxShadow: surfaceStyle.boxShadow,
               borderRadius: ctx.cardWidth * 0.006,
               padding: `${ctx.cardWidth * 0.003 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px`,
               overflow: 'hidden',

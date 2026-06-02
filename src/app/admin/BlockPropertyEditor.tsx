@@ -38,13 +38,13 @@ const SURFACE_OPTIONS: { value: SurfaceVariant; label: string }[] = [
   { value: 'outline',    label: 'outline' },
 ]
 
-/** コンポーネントと現在の variant から surface 選択肢を表示するか判定 */
-export function isSurfaceApplicable(
-  component: Pick<ComponentDef<unknown>, 'supportsSurface' | 'surfaceFor'>,
-  variant: string,
-): boolean {
-  if (!component.supportsSurface) return false
-  return (component.surfaceFor ?? []).includes(variant)
+/**
+ * surface 選択肢を表示するか判定。
+ * surface は GenericCardRenderer が管理するためすべてのコンポーネント・variant で有効。
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function isSurfaceApplicable(_component: ComponentDef<unknown>, _variant: string): boolean {
+  return true
 }
 
 // ─── 共通ラベル ─────────────────────────────────────────────────────

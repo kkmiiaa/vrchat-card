@@ -65,9 +65,8 @@ export const qrCodeComponent: ComponentDef<QrCodeValue> = {
   key: 'qr-code',
   defaultValue: {},
   variants: ['simple', 'glass'],
-  supportsSurface: false,
   isEmpty: () => true,
-  CardItem({ value, ctx, variant = 'simple', blockConfig, label }) {
+  CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     const urlType: UrlType = (blockConfig?.urlType as UrlType | undefined) ?? 'card'
     const resolvedUrl =
       urlType === 'card'   ? (ctx.cardUrl ?? DEMO_URL) :
@@ -116,12 +115,6 @@ export const qrCodeComponent: ComponentDef<QrCodeValue> = {
         justifyContent: 'center',
         gap: ctx.cardWidth * 0.003,
       }}>
-        {label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-          </div>
-        )}
         <div style={containerStyle}>
           <RoundedQR url={resolvedUrl} size={size} color={dotColor} />
         </div>

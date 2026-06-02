@@ -1,6 +1,5 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 import { IconPicker } from './iconRegistry'
 import { ColorPicker } from './colorPicker'
 
@@ -15,9 +14,7 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
   key: 'expressive-select',
   defaultValue: DEFAULT_EXPRESSIVE_SELECT_VALUE,
   variants: ['simple'],
-  supportsSurface: true,
-  surfaceFor: ['simple'],
-  CardItem({ value, ctx, surface, blockConfig, label }) {
+  CardItem({ value, ctx, blockConfig }) {
     const safe: ExpressiveSelectValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as ExpressiveSelectValue
       : DEFAULT_EXPRESSIVE_SELECT_VALUE
@@ -27,30 +24,15 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
     const optionLabel = options.find(o => o.value === safe.tag)?.label
     const display = safe.display || optionLabel
     const fs = ctx.fontSize.md
-    const effectiveSurface = surface ?? 'transparent'
-    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
 
     return (
       <div style={{
         width: '100%',
-        height: '100%',
-        background: surfaceStyle.background,
-        border: surfaceStyle.border,
-        boxShadow: surfaceStyle.boxShadow,
-        borderRadius: ctx.cardWidth * 0.006,
-        padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',
-        flexDirection: (label?.dir === 'row') ? 'row' : 'column',
-        alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
-        gap: label ? ctx.cardWidth * 0.003 : 4,
+        alignItems: 'stretch',
         overflow: 'hidden',
+        fontFamily: ctx.fontFamily,
       }}>
-        {label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-          </div>
-        )}
         <span style={{ fontSize: fs, color: (safe.tag && display) ? ctx.theme.text : ctx.theme.subText, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {(safe.tag && display) ? display : '-'}
         </span>

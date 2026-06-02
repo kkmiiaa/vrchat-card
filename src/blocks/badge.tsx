@@ -1,7 +1,6 @@
 'use client'
 
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 import { ColorPicker } from './colorPicker'
 
 export type BadgeValue = {
@@ -16,7 +15,7 @@ export const badgeComponent: ComponentDef<BadgeValue> = {
   defaultValue: DEFAULT_BADGE_VALUE,
   variants: ['simple', 'outline', 'subtle'],
 
-  CardItem({ value, ctx, variant, surface, blockConfig }) {
+  CardItem({ value, ctx, variant, blockConfig }) {
     const safe: BadgeValue = (value && typeof value === 'object' && 'label' in value)
       ? value as BadgeValue
       : DEFAULT_BADGE_VALUE

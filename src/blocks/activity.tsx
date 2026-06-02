@@ -1,15 +1,12 @@
 'use client'
 import type { ComponentDef, ActivityValue, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 
 const DAYS = ['月', '火', '水', '木', '金', '土', '日']
 
 export const activityComponent: ComponentDef<ActivityValue> = {
   key: 'activity',
   variants: ['simple', 'v2'],  // default=曜日ドット+時間帯テキスト, v2=視覚的タイムバー+曜日サークル
-  supportsSurface: true,
-  surfaceFor: ['v2'],
-  CardItem({ value, ctx, variant = 'simple', surface, blockConfig }) {
+  CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     const safe: ActivityValue = (value && typeof value === 'object' && 'days' in value) ? value as ActivityValue : { days: [], weekdayStart: '', weekdayEnd: '', holidayStart: '', holidayEnd: '' }
     const fs = ctx.fontSize.sm
 
@@ -21,14 +18,13 @@ export const activityComponent: ComponentDef<ActivityValue> = {
           ? [{ left: `${s * 100}%`, width: `${(e - s) * 100}%` }]
           : [{ left: `${s * 100}%`, width: `${(1 - s) * 100}%` }, { left: '0%', width: `${e * 100}%` }]
       }
-      const surfaceStyle = SURFACE_STYLE[surface ?? 'glass']
       const smallFs = ctx.fontSize.xs * 0.9
       const timeRanges = [
         { label: '平日', start: safe.weekdayStart, end: safe.weekdayEnd, color: '#60a5fa', irregular: safe.weekdayTimesMode === 'irregular' },
         { label: '休日', start: safe.holidayStart, end: safe.holidayEnd, color: '#f59e0b', irregular: safe.holidayTimesMode === 'irregular' },
       ]
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, width: '100%', background: surfaceStyle.background, border: surfaceStyle.border, boxShadow: surfaceStyle.boxShadow ?? '0 0 12px rgba(0,0,0,0.08)', borderRadius: ctx.cardWidth * 0.006, padding: '6px 8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, width: '100%', fontFamily: ctx.fontFamily }}>
           {/* 曜日サークル */}
           {safe.days.length === 7 && (
             <div style={{ display: 'flex', gap: 3 }}>

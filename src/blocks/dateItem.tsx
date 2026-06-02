@@ -1,6 +1,5 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 
 export type DateItemValue = { display: string; iso?: string }
 
@@ -15,9 +14,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
   key: 'dateItem',
   defaultValue: { display: '', iso: '' },
   variants: ['simple', 'compact', 'badge'],
-  supportsSurface: true,
-  surfaceFor: ['simple'],
-  CardItem({ value, ctx, variant = 'simple', surface, label }) {
+  CardItem({ value, ctx, variant = 'simple' }) {
     const safe: DateItemValue = (value && typeof value === 'object' && 'display' in value)
       ? value as DateItemValue
       : { display: '', iso: '' }
@@ -25,16 +22,10 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
 
     if (variant === 'compact') {
       const fs = ctx.fontSize.xs
-      const surfaceStyle = SURFACE_STYLE[surface ?? 'transparent']
       return (
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
-          background: surfaceStyle.background,
-          border: surfaceStyle.border,
-        boxShadow: surfaceStyle.boxShadow,
-          borderRadius: ctx.cardWidth * 0.004,
-          padding: `${ctx.cardWidth * 0.003 * ctx.paddingScale}px ${ctx.cardWidth * 0.005 * ctx.paddingScale}px`,
           fontFamily: ctx.fontFamily,
           overflow: 'hidden',
         }}>
@@ -76,31 +67,15 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
 
     // default
     const fs = ctx.fontSize.md
-    const effectiveSurface = surface ?? 'transparent'
-    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     return (
       <div style={{
         width: '100%',
-        height: '100%',
-        background: surfaceStyle.background,
-        border: surfaceStyle.border,
-        boxShadow: surfaceStyle.boxShadow,
-        borderRadius: ctx.cardWidth * 0.006,
-        padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',
-        flexDirection: (label?.dir === 'row') ? 'row' : 'column',
-        alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
-        justifyContent: (label?.dir === 'row') ? undefined : 'center',
-        gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
+        alignItems: 'center',
+        justifyContent: 'center',
         fontFamily: ctx.fontFamily,
         overflow: 'hidden',
       }}>
-        {label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-          </div>
-        )}
         <span style={{
           fontSize: fs,
           color: text === '-' ? ctx.theme.subText : ctx.theme.text,

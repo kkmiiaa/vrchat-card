@@ -1,6 +1,5 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 
 const PLATFORM_ICONS: Record<string, string> = {
   vrchat:  '/icon_vrchat.png',
@@ -28,9 +27,7 @@ export const simpleSnsComponent: ComponentDef<string> = {
   key: 'simple-sns',
   defaultValue: '',
   variants: ['simple', 'contained'],
-  supportsSurface: true,
-  surfaceFor: ['contained'],
-  CardItem({ value, ctx, variant, surface, blockConfig }) {
+  CardItem({ value, ctx, variant, blockConfig }) {
     const isInteractive = ctx.isInteractive
     const platform = getPlatform(blockConfig)
     const icon = PLATFORM_ICONS[platform] ?? PLATFORM_ICONS['x']
@@ -52,9 +49,8 @@ export const simpleSnsComponent: ComponentDef<string> = {
     }
 
     if (isGlass) {
-      const surfaceStyle = SURFACE_STYLE[surface ?? 'glass']
       const inner = (
-        <div className={isInteractive && id ? 'vaacard-sns-item' : undefined} style={{ width: '100%', background: surfaceStyle.background, border: surfaceStyle.border, boxShadow: surfaceStyle.boxShadow ?? '0 0 12px rgba(0,0,0,0.08)', borderRadius: ctx.cardWidth * 0.006, padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 6, cursor: isInteractive && id ? 'pointer' : 'default' }}>
+        <div className={isInteractive && id ? 'vaacard-sns-item' : undefined} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, cursor: isInteractive && id ? 'pointer' : 'default' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={icon} alt="" style={{ width: iconSize * 0.65, height: iconSize * 0.65, borderRadius: 3, flexShrink: 0 }} />
           <span style={{ fontSize: fs * 0.9, color: id ? ctx.theme.text : 'rgba(0,0,0,0.3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0, fontFamily: ctx.fontFamily }}>
@@ -69,9 +65,8 @@ export const simpleSnsComponent: ComponentDef<string> = {
 
     const actionType = typeof blockConfig?.actionType === 'string' ? blockConfig.actionType : ''
     const idText = id || '-'
-    const simpleStyle = SURFACE_STYLE[surface ?? 'transparent']
     const innerContent = (
-      <div style={{ flex: 1, background: simpleStyle.background, border: simpleStyle.border, boxShadow: simpleStyle.boxShadow, borderRadius: ctx.cardWidth * 0.005, padding: `${ctx.cardWidth * 0.004 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px`, overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 4 }}>
+      <div style={{ flex: 1, borderRadius: ctx.cardWidth * 0.005, padding: `${ctx.cardWidth * 0.004 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px`, overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 4 }}>
         <span style={{ fontSize: fs, color: ctx.theme.text, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', flex: 1 }}>
           {idText}
         </span>

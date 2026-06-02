@@ -1,42 +1,15 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 
 export const textComponent: ComponentDef<string> = {
   key: 'text',
   defaultValue: '',
   variants: ['simple'],
-  supportsSurface: true,
-  surfaceFor: ['simple'],
-  CardItem({ value, ctx, surface, label, blockConfig }) {
+  CardItem({ value, ctx, blockConfig }) {
     const fs = ctx.fontSize.lg
-    const effectiveSurface = surface ?? 'transparent'
-    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     const multiline = blockConfig?.multiline !== false
-    const noPadding = blockConfig?.noPadding === true
     const maxRows = typeof blockConfig?.rows === 'number' ? blockConfig.rows : undefined
     return (
-      <div style={{
-        width: '100%',
-        flexGrow: 1,
-        background: surfaceStyle.background,
-        border: surfaceStyle.border,
-        boxShadow: surfaceStyle.boxShadow,
-        borderRadius: ctx.cardWidth * 0.006,
-        padding: noPadding ? 0 : `${ctx.cardWidth * 0.007 * ctx.paddingScale}px ${ctx.cardWidth * 0.009 * ctx.paddingScale}px`,
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: (label?.dir === 'row') ? 'row' : 'column',
-        gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
-        alignItems: (label?.dir === 'row') ? 'center' : (label ? 'stretch' : (multiline ? 'flex-start' : 'center')),
-        justifyContent: (label?.dir === 'row') ? undefined : (multiline ? 'flex-start' : 'center'),
-      }}>
-        {label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-          </div>
-        )}
         <p style={{
           fontSize: fs,
           color: (value as string) ? ctx.theme.text : ctx.theme.subText,
@@ -54,7 +27,6 @@ export const textComponent: ComponentDef<string> = {
             WebkitBoxOrient: 'vertical' as const,
           } : {}),
         }}>{(value as string) || '-'}</p>
-      </div>
     )
   },
   FormItem({ value, onChange, t, blockConfig }) {

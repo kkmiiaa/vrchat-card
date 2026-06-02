@@ -1,6 +1,5 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 import { renderIcon, IconPicker } from './iconRegistry'
 import { ColorPicker } from './colorPicker'
 
@@ -8,9 +7,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
   key: 'multi-select',
   defaultValue: [],
   variants: ['simple', 'slash', 'icon', 'icon-slash', 'chips'],
-  supportsSurface: true,
-  surfaceFor: ['slash'],
-  CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
+  CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     const items = Array.isArray(value) ? value : []
     const fs = ctx.fontSize.sm
     type OptionRow = { value: string; label: string; color?: string; icon?: string }
@@ -18,16 +15,9 @@ export const multiSelectComponent: ComponentDef<string[]> = {
     const getOption = (v: string) => options.find(o => o.value === v)
 
     if (variant === 'slash') {
-      const effectiveSurface = surface ?? 'transparent'
-      const surfaceStyle = SURFACE_STYLE[effectiveSurface]
       return (
         <div style={{
           width: '100%',
-          background: surfaceStyle.background,
-          border: surfaceStyle.border,
-        boxShadow: surfaceStyle.boxShadow,
-          borderRadius: ctx.cardWidth * 0.006,
-          padding: `${label ? `${ctx.cardWidth * 0.006 * ctx.paddingScale}px` : '0'} ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
           fontSize: fs,
           color: items.length ? ctx.theme.text : ctx.theme.subText,
           fontFamily: ctx.fontFamily,
@@ -35,17 +25,9 @@ export const multiSelectComponent: ComponentDef<string[]> = {
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           display: 'flex',
-          flexDirection: (label?.dir === 'row') ? 'row' : 'column',
-          alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
-          justifyContent: (label?.dir === 'row') ? undefined : 'center',
-          gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
+          alignItems: 'center',
+          justifyContent: 'center',
         }}>
-          {label && (
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-              <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-              {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-            </div>
-          )}
           {items.map(v => getOption(v)?.label || v).join(' / ') || '-'}
         </div>
       )
@@ -53,30 +35,16 @@ export const multiSelectComponent: ComponentDef<string[]> = {
 
     // icon-slash: [icon] text / [icon] text 形式でスラッシュ区切り
     if (variant === 'icon-slash') {
-      const effectiveSurface = surface ?? 'transparent'
-      const surfaceStyle = SURFACE_STYLE[effectiveSurface]
       const selectedOpts = items.map(v => getOption(v) ?? { value: v, label: v, icon: undefined, color: undefined })
       return (
         <div style={{
           width: '100%',
-          background: surfaceStyle.background,
-          border: surfaceStyle.border,
-        boxShadow: surfaceStyle.boxShadow,
-          borderRadius: ctx.cardWidth * 0.006,
-          padding: `${label ? `${ctx.cardWidth * 0.006 * ctx.paddingScale}px` : '0'} ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
           display: 'flex',
-          flexDirection: (label?.dir === 'row') ? 'row' : 'column',
-          alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
-          justifyContent: (label?.dir === 'row') ? undefined : 'center',
-          gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0,
+          alignItems: 'center',
+          justifyContent: 'center',
           overflow: 'hidden',
+          fontFamily: ctx.fontFamily,
         }}>
-          {label && (
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-              <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-              {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-            </div>
-          )}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: selectedOpts.length === 0 ? 'center' : undefined, gap: 6, flexShrink: 1, minWidth: 0, overflow: 'hidden', flexWrap: 'nowrap' }}>
             {selectedOpts.length === 0
               ? <span style={{ fontSize: fs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>-</span>

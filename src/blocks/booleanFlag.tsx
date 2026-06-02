@@ -1,6 +1,5 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 import { renderIcon, IconPicker } from './iconRegistry'
 import { ColorPicker } from './colorPicker'
 
@@ -8,9 +7,7 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
   key: 'booleanFlag',
   defaultValue: false,
   variants: ['simple', 'badge'],
-  supportsSurface: true,
-  surfaceFor: ['simple'],
-  CardItem({ value, ctx, variant, surface, blockConfig, label }) {
+  CardItem({ value, ctx, variant, blockConfig }) {
     const on = typeof value === 'boolean' ? value : false
     const fs = ctx.fontSize.md
     const trueIcon = typeof blockConfig?.trueIcon === 'string' ? blockConfig.trueIcon : null
@@ -51,31 +48,17 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
       )
     }
 
-    const effectiveSurface = surface ?? 'transparent'
-    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
     const iconColor = on ? trueColor : falseColor
 
     return (
       <div style={{
         width: '100%',
-        height: '100%',
-        background: surfaceStyle.background,
-        border: surfaceStyle.border,
-        boxShadow: surfaceStyle.boxShadow,
-        borderRadius: ctx.cardWidth * 0.006,
-        padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',
-        flexDirection: (label?.dir === 'row') ? 'row' : 'column',
-        alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
-        gap: label ? ctx.cardWidth * 0.003 : 6,
+        flexDirection: 'column',
+        alignItems: 'stretch',
+        gap: 6,
         fontFamily: ctx.fontFamily,
       }}>
-        {label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-          </div>
-        )}
         {(on ? trueIcon : falseIcon)
           ? <span style={{ fontSize: fs * 1.3, display: 'inline-flex', alignItems: 'center' }}>{renderIcon(on ? trueIcon : falseIcon, fs * 1.3)}</span>
           : <span style={{ fontSize: fs * 1.1, color: iconColor }}>{on ? '✓' : '✗'}</span>

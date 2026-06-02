@@ -134,23 +134,16 @@ export const SURFACE_STYLE: Record<SurfaceVariant | 'simple', { background: stri
 export type ComponentCardProps<T> = {
   value: T
   ctx: CardRenderContext
-  /** コンテンツの表示方法バリアント。未指定時は 'contained' */
+  /** コンテンツの表示方法バリアント */
   variant?: BlockVariant
-  /** 背景・コンテナの見た目バリアント。未指定時は 'contained' */
-  surface?: SurfaceVariant
-  /**
-   * labelInset が有効なとき渡されるラベル定義。
-   * コンポーネント自身の surface コンテナ内に描画する。
-   */
-  label?: LabelDef
   /** ブロック作成時にテンプレート作成者が設定した値（FormItem・CardItem 共通） */
   blockConfig?: Record<string, unknown>
   /** カード閲覧画面でのインタラクティブ表示（クリック可能）かどうか */
   isInteractive?: boolean
 }
 
-/** コンポーネント定義の共通フィールド */
-type ComponentDefBase<T> = {
+/** コンポーネント定義: フォームUIとカードUIをセットで持つ単位 */
+export type ComponentDef<T = unknown> = {
   key: string
   defaultValue: T
   /** このコンポーネントが対応するデザインバリアント一覧。未定義は ['simple'] 扱い */
@@ -166,18 +159,6 @@ type ComponentDefBase<T> = {
   /** 値が「空」かどうかを判定する関数。未定義なら defaultValue と深い比較でフォールバック */
   isEmpty?: (value: T) => boolean
 }
-
-/**
- * コンポーネント定義: フォームUIとカードUIをセットで持つ単位
- *
- * surface サポートは discriminated union で型安全に定義する:
- * - supportsSurface: true のとき surfaceFor（有効な variant 一覧）が必須
- * - supportsSurface なし/false のとき surfaceFor は指定不可
- */
-export type ComponentDef<T = unknown> = ComponentDefBase<T> & (
-  | { supportsSurface: true; surfaceFor: string[] }
-  | { supportsSurface?: false; surfaceFor?: never }
-)
 
 // --- テンプレート定義型 ---
 

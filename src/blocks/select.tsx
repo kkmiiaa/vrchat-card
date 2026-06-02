@@ -1,6 +1,5 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 import { renderIcon, IconPicker } from './iconRegistry'
 import { ColorPicker } from './colorPicker'
 
@@ -8,9 +7,7 @@ export const selectComponent: ComponentDef<string> = {
   key: 'select',
   defaultValue: '',
   variants: ['simple', 'badge', 'compact', 'chips'],
-  supportsSurface: true,
-  surfaceFor: ['simple', 'chips'],
-  CardItem({ value, ctx, variant = 'simple', surface, label, blockConfig }) {
+  CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     if (!value) {
       if (blockConfig?.hideWhenEmpty) return null
       return (
@@ -110,17 +107,10 @@ export const selectComponent: ComponentDef<string> = {
       )
     }
 
-    // simple: surface コンテナ内に値を表示
-    const bgStyle = SURFACE_STYLE[surface ?? 'transparent']
+    // simple
     const fs = ctx.fontSize.md
     return (
-      <div style={{ width: '100%', background: bgStyle.background, border: bgStyle.border, boxShadow: bgStyle.boxShadow, borderRadius: ctx.cardWidth * 0.006, padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`, display: 'flex', flexDirection: label?.dir === 'row' ? 'row' : 'column', gap: label ? (label.dir === 'row' ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003) : 0, alignItems: label?.dir === 'row' ? 'center' : 'stretch', justifyContent: label?.dir === 'row' ? undefined : 'center', overflow: 'hidden' }}>
-        {label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-          </div>
-        )}
+      <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', fontFamily: ctx.fontFamily }}>
         <span style={{ fontSize: fs, lineHeight: 1, color, fontWeight: 700, fontFamily: ctx.fontFamily, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
           {icon && renderIcon(icon, fs)}
           {displayValue}

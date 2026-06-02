@@ -8,9 +8,8 @@ import type {
   LayoutNode,
   Block,
   TemplateGridDef,
-  LabelDef,
 } from '@/blocks/types'
-import { cellsToPixels, makeFontSizeTokens } from '@/blocks/types'
+import { cellsToPixels, makeFontSizeTokens, SURFACE_STYLE } from '@/blocks/types'
 import { getComponent } from '@/blocks/registry'
 import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
 import type { BackgroundValue } from '@/blocks/types'
@@ -87,18 +86,6 @@ function renderNode(
     const value = values[node.dataKey] ?? block.defaultValue
 
     const hasFlex = node.flex !== undefined
-    const style: React.CSSProperties = {
-      display: 'flex', alignItems: (node.minH !== undefined || hasFlex) ? 'stretch' : 'flex-start', minWidth: 0, minHeight: 0,
-      flexGrow: hasFlex ? node.flex : 0,
-      flexShrink: hasFlex ? 1 : 0,
-      flexBasis: hasFlex ? 0 : 'auto',
-      ...(node.minW !== undefined && !hasFlex ? { width: cellsToPixels(node.minW, cellSize) } : {}),
-      // minHeight ではなく height を使うことで子要素の height:100% が正しく解決される
-      ...(node.minH !== undefined && !hasFlex ? { height: cellsToPixels(node.minH, cellSize) } : {}),
-      ...(node.alignSelf ? { alignSelf: node.alignSelf } : {}),
-      ...highlight,
-    }
-
     const contentScale = (node.contentFontScale ?? 1) * (ctx.defaultContentFontScale ?? 1)
     const blockCtx = contentScale !== 1
       ? { ...ctx, fontSize: {
@@ -110,52 +97,94 @@ function renderNode(
         }}
       : ctx
 
-    // labelInset のとき LabelDef を組み立ててコンポーネントに渡す。コンポーネント自身が自前コンテナ内に描画する。
-    const labelScale = (node.labelFontScale ?? 1) * (ctx.defaultLabelFontScale ?? 1)
-    const insetLabelDef: LabelDef | undefined = node.labelInset && node.label ? {
-      text: node.label,
-      subText: node.subLabel,
-      color: node.labelColor,
-      fontScale: labelScale !== 1 ? labelScale : undefined,
-      dir: node.labelInsetDir,
-      icon: node.labelIcon,
-    } : undefined
-
-    const resolvedVariant = node.variant
-    const resolvedSurface = node.surface ?? ctx.defaultSurface
-    const cardContent = block.CardItem({ value, ctx: blockCtx, variant: resolvedVariant, surface: resolvedSurface, label: insetLabelDef, blockConfig: node.blockConfig })
+    const cardContent = block.CardItem({ value, ctx: blockCtx, variant: node.variant, blockConfig: node.blockConfig, isInteractive: ctx.isInteractive })
     if (cardContent === null || cardContent === undefined) return null
 
-    const innerStyle = (flexOverride?: React.CSSProperties): React.CSSProperties => ({ ...style, ...flexOverride })
+    // surface コンテナスタイル（GenericCardRenderer が一元管理）
+    const resolvedSurface = node.surface ?? ctx.defaultSurface
+    const hasSurface = !!resolvedSurface && resolvedSurface !== 'transparent'
+    const ss = hasSurface ? SURFACE_STYLE[resolvedSurface!] : null
+    const surfaceProps: React.CSSProperties = ss ? {
+      background: ss.background,
+      border: ss.border,
+      boxShadow: ss.boxShadow,
+      borderRadius: ctx.cardWidth * 0.006,
+      padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
+    } : {}
 
-    // labelInset: ラベルはコンポーネント側が管理。GenericCardRenderer は外枠ラベルのみ担当
-    if (!node.label || node.labelInset) return (
-      <div style={innerStyle()}>{cardContent}</div>
-    )
-
-    const titleFs = ctx.fontSize.sm * labelScale
-    const subFs   = ctx.fontSize.xs * labelScale
+    // ラベル要素（GenericCardRenderer が一元管理）
+    const labelScale = (node.labelFontScale ?? 1) * (ctx.defaultLabelFontScale ?? 1)
+    const titleFs = blockCtx.fontSize.sm * labelScale
+    const subFs   = blockCtx.fontSize.xs * labelScale
     const labelColor = node.labelColor ?? ctx.theme.text
-    const contentMinH = node.minH !== undefined ? cellsToPixels(node.minH, cellSize) : undefined
-    const innerFlex: React.CSSProperties = {
-      flexGrow: 1, flexShrink: 1, flexBasis: 'auto',
-      ...(contentMinH !== undefined ? { minHeight: contentMinH } : {}),
-    }
-
-    const labelEl = (
+    const labelEl = node.label ? (
       <div style={{ display: 'flex', alignItems: 'center', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
         {node.labelIcon && <span style={{ display: 'inline-flex', alignItems: 'center', color: labelColor, fontSize: titleFs, lineHeight: 1 }}>{renderIcon(node.labelIcon, titleFs)}</span>}
         <span style={{ fontSize: titleFs, fontWeight: 700, color: labelColor, fontFamily: ctx.fontFamily }}>{node.label}</span>
         {node.subLabel && <span style={{ fontSize: subFs, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{node.subLabel}</span>}
       </div>
-    )
+    ) : null
 
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: ctx.cardWidth * 0.004, flexGrow: hasFlex ? node.flex : 0, flexShrink: hasFlex ? 1 : 0, flexBasis: hasFlex ? 0 : 'auto', minWidth: 0, minHeight: 0, ...(node.alignSelf ? { alignSelf: node.alignSelf } : {}), ...highlight }}>
-        {labelEl}
-        <div style={innerStyle(innerFlex)}>
-          {cardContent}
+    const baseStyle: React.CSSProperties = {
+      minWidth: 0, minHeight: 0,
+      flexGrow: hasFlex ? node.flex : 0,
+      flexShrink: hasFlex ? 1 : 0,
+      flexBasis: hasFlex ? 0 : 'auto',
+      ...(node.minW !== undefined && !hasFlex ? { width: cellsToPixels(node.minW, cellSize) } : {}),
+      ...(node.alignSelf ? { alignSelf: node.alignSelf } : {}),
+      ...highlight,
+    }
+
+    // labelInset: ラベルを surface コンテナ内に配置
+    if (node.labelInset && node.label) {
+      const isRow = node.labelInsetDir === 'row'
+      return (
+        <div style={{
+          ...baseStyle,
+          display: 'flex',
+          flexDirection: isRow ? 'row' : 'column',
+          gap: isRow ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003,
+          alignItems: isRow ? 'center' : 'stretch',
+          overflow: 'hidden',
+          ...(node.minH !== undefined && !hasFlex ? { height: cellsToPixels(node.minH, cellSize) } : {}),
+          ...surfaceProps,
+        }}>
+          {labelEl}
+          <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 'auto', minWidth: 0, display: 'flex', alignItems: 'stretch' }}>
+            {cardContent}
+          </div>
         </div>
+      )
+    }
+
+    // ラベル外置き: label → surface コンテナ → content の縦並び
+    if (node.label) {
+      return (
+        <div style={{ ...baseStyle, display: 'flex', flexDirection: 'column', gap: ctx.cardWidth * 0.004, minWidth: 0 }}>
+          {labelEl}
+          <div style={{
+            flexGrow: 1, flexShrink: 1, flexBasis: 'auto', minWidth: 0,
+            display: 'flex', alignItems: 'stretch', overflow: 'hidden',
+            ...(node.minH !== undefined ? { minHeight: cellsToPixels(node.minH, cellSize) } : {}),
+            ...surfaceProps,
+          }}>
+            {cardContent}
+          </div>
+        </div>
+      )
+    }
+
+    // ラベルなし: surface コンテナのみ
+    return (
+      <div style={{
+        ...baseStyle,
+        display: 'flex',
+        alignItems: hasFlex || node.minH !== undefined ? 'stretch' : 'flex-start',
+        overflow: 'hidden',
+        ...(node.minH !== undefined && !hasFlex ? { height: cellsToPixels(node.minH, cellSize) } : {}),
+        ...surfaceProps,
+      }}>
+        {cardContent}
       </div>
     )
   }

@@ -27,7 +27,7 @@ import { galleryComponent } from '@/blocks/gallery'
 import { colorLabeledListComponent } from '@/blocks/colorLabeledList'
 import { dividerComponent } from '@/blocks/divider'
 import type { ComponentDef, SurfaceVariant, CardRenderContext } from '@/blocks/types'
-import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
+import { DEFAULT_CARD_RENDER_CONTEXT, SURFACE_STYLE } from '@/blocks/types'
 
 const ctx: CardRenderContext = {
   ...DEFAULT_CARD_RENDER_CONTEXT,
@@ -41,7 +41,6 @@ type ComponentSpec = {
   component: ComponentDef<unknown>
   value: unknown
   blockConfig?: Record<string, unknown>
-  surfaceVariants?: string[]
 }
 
 const SELECT_BLOCKCONFIG = {
@@ -163,22 +162,19 @@ const SPECS: ComponentSpec[] = [
   {
     name: 'activity',
     component: activityComponent as ComponentDef<unknown>,
-    value: ACTIVITY_VALUE,
-    surfaceVariants: ['v2'],
+    value: ACTIVITY_VALUE
   },
   {
     name: 'simpleSns',
     component: simpleSnsComponent as ComponentDef<unknown>,
     value: '@vrcuser_example',
-    blockConfig: { platform: 'x', policies: [] },
-    surfaceVariants: ['contained'],
+    blockConfig: { platform: 'x', policies: [] }
   },
   {
     name: 'snsWithFriendPolicy',
     component: snsWithFriendPolicyComponent as ComponentDef<unknown>,
     value: { id: '@vrcuser_example', friendPolicy: 'frPolicyAnyone' },
-    blockConfig: { platform: 'x' },
-    surfaceVariants: ['contained'],
+    blockConfig: { platform: 'x' }
   },
   {
     name: 'gender',
@@ -217,6 +213,9 @@ const SPECS: ComponentSpec[] = [
   },
 ]
 
+/**
+ * surface コンテナを renderer と同様に wrapper で適用し、コンポーネント自体には渡さない。
+ */
 function VariantPreview({
   spec,
   variant,
@@ -229,10 +228,15 @@ function VariantPreview({
   const { component, value, blockConfig } = spec
   if (!component.CardItem) return null
 
-  const label = {
-    text: 'ラベル',
-    dir: 'col' as const,
-  }
+  const hasSurface = surface !== 'transparent'
+  const ss = hasSurface ? SURFACE_STYLE[surface] : null
+  const containerStyle: React.CSSProperties = ss ? {
+    background: ss.background,
+    border: ss.border,
+    boxShadow: ss.boxShadow,
+    borderRadius: ctx.cardWidth * 0.006,
+    padding: `${ctx.cardWidth * 0.006}px ${ctx.cardWidth * 0.008}px`,
+  } : {}
 
   return (
     <div className="flex flex-col gap-1">
@@ -250,14 +254,12 @@ function VariantPreview({
           alignItems: 'stretch',
         }}
       >
-        <div style={{ width: '100%', display: 'flex', overflow: 'hidden' }}>
+        <div style={{ width: '100%', display: 'flex', overflow: 'hidden', ...containerStyle }}>
           <component.CardItem
             value={value}
             ctx={ctx}
             variant={variant}
-            surface={surface}
             blockConfig={blockConfig}
-            label={label}
           />
         </div>
       </div>
@@ -269,10 +271,6 @@ function ComponentSection({ spec }: { spec: ComponentSpec }) {
   const { component, name } = spec
   const variants = component.variants ?? ['simple']
 
-  // surface が有効なバリアントを特定
-  const supportsSurface = component.supportsSurface === true
-  const surfaceForVariants = component.surfaceFor
-
   return (
     <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-3 flex-wrap">
@@ -282,42 +280,22 @@ function ComponentSection({ spec }: { spec: ComponentSpec }) {
             <span key={v} className="text-[10px] font-mono bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">{v}</span>
           ))}
         </div>
-        {supportsSurface && (
-          <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded border border-emerald-100">
-            surface ✓ {surfaceForVariants ? `(${surfaceForVariants.join(', ')})` : '(all)'}
-          </span>
-        )}
-        {!supportsSurface && (
-          <span className="text-[10px] bg-gray-50 text-gray-400 px-2 py-0.5 rounded border border-gray-100">surface ✗</span>
-        )}
+        <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded border border-emerald-100">surface ✓ (all)</span>
       </div>
 
       <div className="px-5 py-4">
-        {variants.map(variant => {
-          const hasSurface = supportsSurface && (
-            !surfaceForVariants || surfaceForVariants.includes(variant)
-          )
-
-          return (
-            <div key={variant} className="mb-6 last:mb-0">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                variant: {variant}
-                {hasSurface ? ' × surfaces' : ' (surface なし)'}
-              </p>
-              {hasSurface ? (
-                <div className="grid grid-cols-3 gap-3">
-                  {SURFACES.map(surface => (
-                    <VariantPreview key={surface} spec={spec} variant={variant} surface={surface} />
-                  ))}
-                </div>
-              ) : (
-                <div style={{ maxWidth: 280 }}>
-                  <VariantPreview spec={spec} variant={variant} surface="transparent" />
-                </div>
-              )}
+        {variants.map(variant => (
+          <div key={variant} className="mb-6 last:mb-0">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
+              variant: {variant} × surfaces
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {SURFACES.map(surface => (
+                <VariantPreview key={surface} spec={spec} variant={variant} surface={surface} />
+              ))}
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
     </section>
   )

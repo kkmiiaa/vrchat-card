@@ -1,6 +1,5 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 import { ColorPicker } from './colorPicker'
 import { renderIcon } from './iconRegistry'
 
@@ -16,10 +15,8 @@ export const gaugeComponent: ComponentDef<number> = {
   key: 'gauge',
   defaultValue: 0,
   variants: ['simple'],
-  supportsSurface: true,
-  surfaceFor: ['simple'],
 
-  CardItem({ value, ctx, surface, blockConfig, label }) {
+  CardItem({ value, ctx, blockConfig }) {
     const cfg = (blockConfig ?? {}) as GaugeConfig
     const rate = typeof value === 'number' ? value : 0
     const fs = ctx.fontSize.sm
@@ -32,31 +29,16 @@ export const gaugeComponent: ComponentDef<number> = {
       ? `linear-gradient(to right, ${cfg.barGradient.join(', ')})`
       : cfg.barColor ?? ctx.theme.accent
 
-    const effectiveSurface = surface ?? 'transparent'
-    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
-
     return (
       <div style={{
         width: '100%',
-        background: surfaceStyle.background,
-        border: surfaceStyle.border,
-        boxShadow: surfaceStyle.boxShadow,
-        borderRadius: ctx.cardWidth * 0.006,
-        padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',
-        flexDirection: (label?.dir === 'row') ? 'row' : 'column',
-        alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
-        justifyContent: (label?.dir === 'row') ? undefined : 'center',
-        gap: label ? ctx.cardWidth * 0.008 : 6,
+        flexDirection: 'column',
+        alignItems: 'stretch',
+        justifyContent: 'center',
+        gap: 6,
         fontFamily: ctx.fontFamily,
       }}>
-        {label && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-            {label.icon && <span style={{ display: 'inline-flex', alignItems: 'center', color: label.color ?? ctx.theme.subText, fontSize: ctx.fontSize.sm * (label.fontScale ?? 1) }}>{renderIcon(label.icon, ctx.fontSize.sm * (label.fontScale ?? 1))}</span>}
-            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-          </div>
-        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
         <div style={{
           flex: 1,

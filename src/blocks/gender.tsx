@@ -1,6 +1,5 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
-import { SURFACE_STYLE } from './types'
 import { TbGenderMale, TbGenderFemale, TbGenderBigender, TbEyeOff, TbMinus } from 'react-icons/tb'
 
 export type GenderValue = {
@@ -22,9 +21,7 @@ export const genderComponent: ComponentDef<GenderValue> = {
   global: true,
   defaultValue: DEFAULT_GENDER_VALUE,
   variants: ['simple', 'compact'],
-  supportsSurface: true,
-  surfaceFor: ['simple'],
-  CardItem({ value, ctx, variant = 'simple', surface, label }) {
+  CardItem({ value, ctx, variant = 'simple' }) {
     const safe: GenderValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as GenderValue
       : DEFAULT_GENDER_VALUE
@@ -35,8 +32,6 @@ export const genderComponent: ComponentDef<GenderValue> = {
     const display = isEmpty ? '-' : (isNone ? '-' : (safe.display || option?.label || safe.tag))
     // 非公開: フラットなマイナスアイコン、それ以外: 性別アイコン（未設定はアイコンなし）
     const Icon = isEmpty ? null : (isNone ? TbMinus : option?.Icon)
-    const effectiveSurface = surface ?? 'transparent'
-    const surfaceStyle = SURFACE_STYLE[effectiveSurface]
 
     // compact: アイコン + 短縮テキストのみ（ラベルなし・背景なし）
     if (variant === 'compact') {
@@ -63,24 +58,12 @@ export const genderComponent: ComponentDef<GenderValue> = {
     return (
       <div style={{
         width: '100%',
-        background: surfaceStyle.background,
-        border: surfaceStyle.border,
-        boxShadow: surfaceStyle.boxShadow,
-        borderRadius: ctx.cardWidth * 0.006,
-        padding: `${ctx.cardWidth * 0.006 * ctx.paddingScale}px ${ctx.cardWidth * 0.008 * ctx.paddingScale}px`,
         display: 'flex',
-        flexDirection: (label?.dir === 'row') ? 'row' : 'column',
-        alignItems: (label?.dir === 'row') ? 'center' : 'stretch',
-        justifyContent: (label?.dir === 'row') ? undefined : 'center',
-        gap: label ? ctx.cardWidth * 0.003 : 4,
+        alignItems: 'center',
+        justifyContent: 'center',
         overflow: 'hidden',
+        fontFamily: ctx.fontFamily,
       }}>
-        {label && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: ctx.cardWidth * 0.003, flexShrink: 0 }}>
-            <span style={{ fontSize: ctx.fontSize.sm * (label.fontScale ?? 1), fontWeight: 700, color: label.color ?? ctx.theme.text, fontFamily: ctx.fontFamily }}>{label.text}</span>
-            {label.subText && <span style={{ fontSize: ctx.fontSize.xs * (label.fontScale ?? 1), color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>{label.subText}</span>}
-          </div>
-        )}
         {/* アイコンとテキストは常に横並び */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 1, minWidth: 0, overflow: 'hidden' }}>
           {Icon && <Icon style={{ fontSize: fs, color: ctx.theme.subText, flexShrink: 0 }} />}

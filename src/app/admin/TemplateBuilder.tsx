@@ -1603,6 +1603,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
                 highlightPath={selectedPath ?? undefined}
                 cardUrl="https://vaacard.com/card/preview"
                 userUrl="https://vaacard.com/u/preview"
+                defaultSurface={currentDesignPreset}
               />
             </div>
           ) : (
@@ -1625,6 +1626,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange }: Props) 
                   highlightPath={selectedPath ?? undefined}
                   cardUrl="https://vaacard.com/card/preview"
                   userUrl="https://vaacard.com/u/preview"
+                  defaultSurface={currentDesignPreset}
                 />
               </div>
             </div>

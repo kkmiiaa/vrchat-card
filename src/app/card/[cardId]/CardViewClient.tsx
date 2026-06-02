@@ -107,6 +107,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const [dragging, setDragging] = useState(false)
   const dragOrigin = useRef({ mx: 0, my: 0, ox: 0, oy: 0 })
   const gyroPermissionAsked = useRef(false)
+  const isMobile = useRef(typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches)
   const [cardEntered, setCardEntered] = useState<'hidden' | 'entering' | 'done'>('hidden')
   const [likeBurst, setLikeBurst] = useState(false)
   const [fabExpanded, setFabExpanded] = useState(true)
@@ -242,6 +243,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   }
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (isMobile.current) return
     if (dragging) {
       setOffset({
         x: e.clientX - dragOrigin.current.mx + dragOrigin.current.ox,
@@ -253,7 +255,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   }
 
   function handleMouseLeave() {
-    if (dragging) return
+    if (isMobile.current || dragging) return
     setTilt({ x: 0, y: 0 })
   }
 

@@ -9,7 +9,7 @@ export const ratingComponent: ComponentDef<number> = {
   defaultValue: 0,
   variants: ['simple', 'compact'],
   supportsSurface: true,
-  surfaceFor: ['contained'],
+  surfaceFor: ['simple'],
   CardItem({ value, ctx, variant = 'simple', surface, blockConfig, label }) {
     const maxValue = typeof blockConfig?.maxValue === 'number' ? blockConfig.maxValue : 5
     const rating = typeof value === 'number' ? Math.min(maxValue, Math.max(0, value)) : 0

@@ -16,7 +16,7 @@ export const dateItemComponent: ComponentDef<DateItemValue> = {
   defaultValue: { display: '', iso: '' },
   variants: ['simple', 'compact', 'badge'],
   supportsSurface: true,
-  surfaceFor: ['contained'],
+  surfaceFor: ['simple'],
   CardItem({ value, ctx, variant = 'simple', surface, label }) {
     const safe: DateItemValue = (value && typeof value === 'object' && 'display' in value)
       ? value as DateItemValue

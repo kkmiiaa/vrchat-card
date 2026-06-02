@@ -9,7 +9,7 @@ export const booleanFlagComponent: ComponentDef<boolean> = {
   defaultValue: false,
   variants: ['simple', 'badge'],
   supportsSurface: true,
-  surfaceFor: ['contained'],
+  surfaceFor: ['simple'],
   CardItem({ value, ctx, variant, surface, blockConfig, label }) {
     const on = typeof value === 'boolean' ? value : false
     const fs = ctx.fontSize.md

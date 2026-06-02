@@ -16,7 +16,7 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
   defaultValue: DEFAULT_EXPRESSIVE_SELECT_VALUE,
   variants: ['simple'],
   supportsSurface: true,
-  surfaceFor: ['contained'],
+  surfaceFor: ['simple'],
   CardItem({ value, ctx, surface, blockConfig, label }) {
     const safe: ExpressiveSelectValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as ExpressiveSelectValue

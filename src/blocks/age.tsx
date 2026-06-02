@@ -15,7 +15,7 @@ export const ageComponent: ComponentDef<AgeValue> = {
   defaultValue: { searchTag: '', display: '' },
   variants: ['simple', 'badge'],
   supportsSurface: true,
-  surfaceFor: ['contained'],
+  surfaceFor: ['simple'],
   CardItem({ value, ctx, variant = 'simple', surface, label }) {
     const safe: AgeValue = (value && typeof value === 'object' && 'searchTag' in value)
       ? value as AgeValue

@@ -60,8 +60,8 @@ function getPlatform(blockConfig?: Record<string, unknown>): string {
 export const snsWithFriendPolicyComponent: ComponentDef<SnsWithFriendPolicyValue> = {
   key: 'sns-with-friend-policy',
   defaultValue: DEFAULT_VALUE,
-  variants: ['simple', 'contained'],
-  CardItem({ value, ctx, variant, blockConfig }) {
+  variants: ['simple'],
+  CardItem({ value, ctx, blockConfig }) {
     const isInteractive = ctx.isInteractive
     const safe: SnsWithFriendPolicyValue =
       (value && typeof value === 'object' && 'id' in value)
@@ -85,10 +85,7 @@ export const snsWithFriendPolicyComponent: ComponentDef<SnsWithFriendPolicyValue
     const fs = ctx.fontSize.md
     const fsSmall = ctx.fontSize.sm
     const iconSize = ctx.cardWidth * 0.018 * ctx.paddingScale
-    // 'glass' は後方互換エイリアス
-    const isGlass = variant === 'contained' || variant === 'glass'
-
-    const snsSize = iconSize * (isGlass ? 0.65 : 1)
+    const snsSize = iconSize * 0.65
     const snsIconEl = (
       <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
         {imgIcon ? (
@@ -100,64 +97,40 @@ export const snsWithFriendPolicyComponent: ComponentDef<SnsWithFriendPolicyValue
       </span>
     )
 
-    const friendIconSize = isGlass ? iconSize * 0.6 : iconSize * 0.85
+    const friendIconSize = iconSize * 0.6
     const friendIconEl = friendIconKey
       ? <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: ctx.theme.subText }}>{renderIcon(friendIconKey, friendIconSize)}</span>
       : null
 
-    if (isGlass) {
-      const iconColW = snsSize + 6  // アイコン幅 + gap 分で列幅を固定
-      const glassEl = (
-        <div className={isInteractive && id ? 'vaacard-sns-item' : undefined} style={{ width: '100%', display: 'flex', flexDirection: 'column', cursor: isInteractive && id ? 'pointer' : 'default' }}>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
-            <div style={{ width: iconColW, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-              {snsIconEl}
-            </div>
-            <span style={{ fontSize: fs * 0.9, color: id ? ctx.theme.text : 'rgba(0,0,0,0.3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0, fontFamily: ctx.fontFamily }}>
-              {id || '-'}
-            </span>
+    const iconColW = snsSize + 6
+    const el = (
+      <div className={isInteractive && id ? 'vaacard-sns-item' : undefined} style={{ width: '100%', display: 'flex', flexDirection: 'column', cursor: isInteractive && id ? 'pointer' : 'default' }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+          <div style={{ width: iconColW, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+            {snsIconEl}
           </div>
-          {policy && (
-            <>
-              <div style={{ height: 1, background: 'rgba(0,0,0,0.08)', flexShrink: 0 }} />
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
-                <div style={{ width: iconColW, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                  {friendIconEl}
-                </div>
-                <span style={{ fontSize: fsSmall * 0.9, color: ctx.theme.subText, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {policy.label}
-                </span>
-              </div>
-            </>
-          )}
-        </div>
-      )
-      if (isInteractive && xHref) return <a href={xHref} target="_blank" rel="noopener noreferrer" style={{ display: 'contents' }}>{glassEl}</a>
-      if (isInteractive && canCopy) return <div style={{ display: 'contents' }} onClick={handleCopy}>{glassEl}</div>
-      return glassEl
-    }
-
-    const defaultEl = (
-      <div className={isInteractive && id ? 'vaacard-sns-item' : undefined} style={{ display: 'flex', alignItems: 'stretch', gap: 6, width: '100%', flexGrow: 1, minHeight: 0, cursor: isInteractive && id ? 'pointer' : 'default' }}>
-        <div style={{ display: 'flex', alignSelf: 'center' }}>{snsIconEl}</div>
-        <div style={{ flex: 1, borderRadius: ctx.cardWidth * 0.005, padding: `${ctx.cardWidth * 0.004 * ctx.paddingScale}px ${ctx.cardWidth * 0.007 * ctx.paddingScale}px`, overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 2 }}>
-          <span style={{ fontSize: fs, lineHeight: 1, color: id ? ctx.theme.text : ctx.theme.subText, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span style={{ fontSize: fs * 0.9, color: id ? ctx.theme.text : 'rgba(0,0,0,0.3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0, fontFamily: ctx.fontFamily }}>
             {id || '-'}
           </span>
-          {policy && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              {friendIconEl}
-              <span style={{ fontSize: fsSmall, lineHeight: 1, color: ctx.theme.subText, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        </div>
+        {policy && (
+          <>
+            <div style={{ height: 1, background: 'rgba(0,0,0,0.08)', flexShrink: 0 }} />
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+              <div style={{ width: iconColW, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                {friendIconEl}
+              </div>
+              <span style={{ fontSize: fsSmall * 0.9, color: ctx.theme.subText, fontFamily: ctx.fontFamily, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {policy.label}
               </span>
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     )
-    if (isInteractive && xHref) return <a href={xHref} target="_blank" rel="noopener noreferrer" style={{ display: 'contents' }}>{defaultEl}</a>
-    if (isInteractive && canCopy) return <div style={{ display: 'contents' }} onClick={handleCopy}>{defaultEl}</div>
-    return defaultEl
+    if (isInteractive && xHref) return <a href={xHref} target="_blank" rel="noopener noreferrer" style={{ display: 'contents' }}>{el}</a>
+    if (isInteractive && canCopy) return <div style={{ display: 'contents' }} onClick={handleCopy}>{el}</div>
+    return el
   },
   FormItem({ value, onChange, blockConfig }) {
     const safe: SnsWithFriendPolicyValue =

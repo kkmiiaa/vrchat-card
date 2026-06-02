@@ -26,16 +26,14 @@ function getPlatform(blockConfig?: Record<string, unknown>): string {
 export const simpleSnsComponent: ComponentDef<string> = {
   key: 'simple-sns',
   defaultValue: '',
-  variants: ['simple', 'contained'],
-  CardItem({ value, ctx, variant, blockConfig }) {
+  variants: ['simple'],
+  CardItem({ value, ctx, blockConfig }) {
     const isInteractive = ctx.isInteractive
     const platform = getPlatform(blockConfig)
     const icon = PLATFORM_ICONS[platform] ?? PLATFORM_ICONS['x']
     const id = typeof value === 'string' ? value : ''
     const fs = ctx.fontSize.md
     const iconSize = ctx.cardWidth * 0.018 * ctx.paddingScale
-    // 'glass' は後方互換エイリアス
-    const isGlass = variant === 'contained' || variant === 'glass'
 
     // isInteractive 時のクリック動作を解決
     const xHref = platform === 'x' && id
@@ -46,21 +44,6 @@ export const simpleSnsComponent: ComponentDef<string> = {
     function handleCopy() {
       navigator.clipboard.writeText(id)
       window.dispatchEvent(new CustomEvent('vaacard:copied', { detail: `${id} をコピーしました` }))
-    }
-
-    if (isGlass) {
-      const inner = (
-        <div className={isInteractive && id ? 'vaacard-sns-item' : undefined} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, cursor: isInteractive && id ? 'pointer' : 'default' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={icon} alt="" style={{ width: iconSize * 0.65, height: iconSize * 0.65, borderRadius: 3, flexShrink: 0 }} />
-          <span style={{ fontSize: fs * 0.9, color: id ? ctx.theme.text : 'rgba(0,0,0,0.3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0, fontFamily: ctx.fontFamily }}>
-            {id || '-'}
-          </span>
-        </div>
-      )
-      if (isInteractive && xHref) return <a href={xHref} target="_blank" rel="noopener noreferrer" style={{ display: 'contents' }}>{inner}</a>
-      if (isInteractive && canCopy) return <div style={{ display: 'contents' }} onClick={handleCopy}>{inner}</div>
-      return inner
     }
 
     const actionType = typeof blockConfig?.actionType === 'string' ? blockConfig.actionType : ''

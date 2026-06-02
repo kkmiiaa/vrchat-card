@@ -13,7 +13,7 @@ type ConfigItem = { label: string; required?: boolean }
 export const markGridComponent: ComponentDef<MarkGridValue> = {
   key: 'mark-grid',
   defaultValue: { marks: {}, custom: [] },
-  variants: ['simple', 'white'],
+  variants: ['simple'],
   CardItem({ value, ctx, variant, blockConfig }) {
     const markDefs = (blockConfig?.marks as MarkDefinition[] | undefined) ?? DEFAULT_MARKS
     const cols = typeof blockConfig?.cols === 'number' ? blockConfig.cols : 3
@@ -39,17 +39,13 @@ export const markGridComponent: ComponentDef<MarkGridValue> = {
 
     const fs = ctx.fontSize.xs
     const markFs = ctx.fontSize.md
-    const isWhite = variant === 'white'
-    const gap = isWhite ? 1 : 4
     const gridRows = rows !== undefined ? `repeat(${rows}, 1fr)` : undefined
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, ...(gridRows ? { gridTemplateRows: gridRows } : {}), gap, width: '100%' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, ...(gridRows ? { gridTemplateRows: gridRows } : {}), gap: 4, width: '100%' }}>
         {allItems.map((slot, i) => {
           const isDash = slot.mark === '-'
           const style = getMarkStyle(slot.mark, markDefs)
-          const cellBg = isWhite
-            ? 'rgba(255,255,255,0.85)'
-            : slot.label ? 'rgba(255,255,255,0.85)' : 'transparent'
+          const cellBg = slot.label ? 'rgba(255,255,255,0.85)' : 'transparent'
           return (
             <div key={i} style={{
               background: cellBg,

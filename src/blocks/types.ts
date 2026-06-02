@@ -128,7 +128,7 @@ export const SURFACE_STYLE: Record<SurfaceVariant | 'simple', { background: stri
   simple:      { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined }, // 後方互換エイリアス
   default:     { background: 'rgba(255,255,255,0.85)', border: 'none',                                   boxShadow: undefined }, // 後方互換エイリアス
   glass:       { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.75)',        boxShadow: '0 0 12px rgba(0,0,0,0.08)' },
-  flat:        { background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(0,0,0,0.30)',            boxShadow: undefined },
+  flat:        { background: 'rgba(255,255,255,0.95)', border: '0.75px solid rgba(0,0,0,0.30)',          boxShadow: undefined },
   transparent: { background: 'transparent',            border: 'none',                                   boxShadow: undefined },
   outline:     { background: 'transparent',            border: '1px solid rgba(255,255,255,0.6)',         boxShadow: undefined },
 }

@@ -61,7 +61,7 @@ function OverlayCard({ value, ctx }: ComponentCardProps<OverlayValue>) {
     style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'
   } else if (variant === 'flat') {
     style.background = `rgba(255,255,255,${alpha})`
-    style.border = borderColor ? `1px solid ${borderColor}` : '1px solid rgba(0,0,0,0.28)'
+    style.border = borderColor ? `0.75px solid ${borderColor}` : '0.75px solid rgba(0,0,0,0.28)'
   } else if (variant === 'solid') {
     const r = parseInt(color.slice(1, 3), 16)
     const g = parseInt(color.slice(3, 5), 16)

@@ -8,7 +8,7 @@
  *   localStorage (最古フラット形式)
  *     → migrateFromOld() [useCardValues.ts]
  *     → sns オブジェクト形式 (values)
- *     → migrateLegacyCardData('v1', values) [handleShareByUrl]
+ *     → migrateLegacyCardData('vrchat-simple', values) [handleShareByUrl]
  *     → 新フォーマット (DB 保存)
  */
 import { describe, it, expect } from 'vitest'
@@ -54,7 +54,7 @@ function migrateFromOld(raw: Record<string, unknown>): Record<string, unknown> {
 /** migrateFromOld → migrateLegacyCardData の2段変換を実行 */
 function fullMigrate(localStorage: Record<string, unknown>) {
   const afterFromOld = migrateFromOld(localStorage)
-  return migrateLegacyCardData('v1', afterFromOld)
+  return migrateLegacyCardData('vrchat-simple', afterFromOld)
 }
 
 describe('V1 旧メーカー データパターン網羅テスト', () => {
@@ -139,37 +139,37 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
     }
 
     it('sns.vrchatId → vrchat', () => {
-      const result = migrateLegacyCardData('v1', snsFormat)
+      const result = migrateLegacyCardData('vrchat-simple', snsFormat)
       expect(result.vrchat).toBe('vrc_b')
     })
 
     it('sns.twitterId → x', () => {
-      const result = migrateLegacyCardData('v1', snsFormat)
+      const result = migrateLegacyCardData('vrchat-simple', snsFormat)
       expect(result.x).toBe('tw_b')
     })
 
     it('sns.discordId → discord', () => {
-      const result = migrateLegacyCardData('v1', snsFormat)
+      const result = migrateLegacyCardData('vrchat-simple', snsFormat)
       expect(result.discord).toBe('disc_b')
     })
 
     it('sns.friendPolicy → friendPolicy（string）', () => {
-      const result = migrateLegacyCardData('v1', snsFormat)
+      const result = migrateLegacyCardData('vrchat-simple', snsFormat)
       expect(result.friendPolicy).toBe('frPolicyMutualsOnX')
     })
 
     it('gender string → { tag, display }', () => {
-      const result = migrateLegacyCardData('v1', snsFormat)
+      const result = migrateLegacyCardData('vrchat-simple', snsFormat)
       expect(result.gender).toEqual({ tag: 'female', display: '' })
     })
 
     it('language string[] → { preset, custom }', () => {
-      const result = migrateLegacyCardData('v1', snsFormat)
+      const result = migrateLegacyCardData('vrchat-simple', snsFormat)
       expect(result.language).toEqual({ preset: ['ja'], custom: [] })
     })
 
     it('age.mode → age.searchTag', () => {
-      const result = migrateLegacyCardData('v1', snsFormat)
+      const result = migrateLegacyCardData('vrchat-simple', snsFormat)
       const age = result.age as Record<string, unknown>
       expect(age.searchTag).toBe('18+')
       expect(age.mode).toBeUndefined()
@@ -181,7 +181,7 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
   // ──────────────────────────────────────────────────────────────────────────
   describe('パターン C: フィールド欠損パターン', () => {
     it('sns の一部フィールドが空文字でも変換される', () => {
-      const result = migrateLegacyCardData('v1', {
+      const result = migrateLegacyCardData('vrchat-simple', {
         sns: { vrchatId: 'vrc', twitterId: '', discordId: '', friendPolicy: '' },
       })
       expect(result.vrchat).toBe('vrc')
@@ -191,7 +191,7 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
     })
 
     it('sns フィールドが完全に空でも変換される', () => {
-      const result = migrateLegacyCardData('v1', {
+      const result = migrateLegacyCardData('vrchat-simple', {
         sns: { vrchatId: '', twitterId: '', discordId: '', friendPolicy: '' },
         name: 'テスト',
       })
@@ -200,28 +200,28 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
     })
 
     it('gender が未設定でも変換処理でエラーにならない', () => {
-      const result = migrateLegacyCardData('v1', {
+      const result = migrateLegacyCardData('vrchat-simple', {
         sns: { vrchatId: '', twitterId: '', discordId: '', friendPolicy: '' },
       })
       expect(result.gender).toBeUndefined()
     })
 
     it('language が未設定でも変換処理でエラーにならない', () => {
-      const result = migrateLegacyCardData('v1', {
+      const result = migrateLegacyCardData('vrchat-simple', {
         sns: { vrchatId: '', twitterId: '', discordId: '', friendPolicy: '' },
       })
       expect(result.language).toBeUndefined()
     })
 
     it('age が未設定でも変換処理でエラーにならない', () => {
-      const result = migrateLegacyCardData('v1', {
+      const result = migrateLegacyCardData('vrchat-simple', {
         sns: { vrchatId: '', twitterId: '', discordId: '', friendPolicy: '' },
       })
       expect(result.age).toBeUndefined()
     })
 
     it('micOnRate だけある場合も変換は正常終了する', () => {
-      const result = migrateLegacyCardData('v1', {
+      const result = migrateLegacyCardData('vrchat-simple', {
         sns: { vrchatId: '', twitterId: '', discordId: '', friendPolicy: '' },
         micOnRate: 60,
       })
@@ -245,7 +245,7 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
     }
 
     it('再変換しても vrchat / x / discord / friendPolicy が変わらない', () => {
-      const result = migrateLegacyCardData('v1', newFormat)
+      const result = migrateLegacyCardData('vrchat-simple', newFormat)
       expect(result.vrchat).toBe('vrc_new')
       expect(result.x).toBe('tw_new')
       expect(result.discord).toBe('disc_new')
@@ -253,17 +253,17 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
     })
 
     it('再変換しても gender が変わらない', () => {
-      const result = migrateLegacyCardData('v1', newFormat)
+      const result = migrateLegacyCardData('vrchat-simple', newFormat)
       expect(result.gender).toEqual({ tag: 'male', display: '男性' })
     })
 
     it('再変換しても language が変わらない', () => {
-      const result = migrateLegacyCardData('v1', newFormat)
+      const result = migrateLegacyCardData('vrchat-simple', newFormat)
       expect(result.language).toEqual({ preset: ['ja'], custom: ['ks'] })
     })
 
     it('再変換しても age.searchTag が変わらない', () => {
-      const result = migrateLegacyCardData('v1', newFormat)
+      const result = migrateLegacyCardData('vrchat-simple', newFormat)
       expect((result.age as Record<string, unknown>).searchTag).toBe('20s')
     })
   })
@@ -273,7 +273,7 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
   // ──────────────────────────────────────────────────────────────────────────
   describe('パターン E: 既存の新フォーマットキーがある場合は上書きしない', () => {
     it('vrchat が既にあれば sns.vrchatId で上書きしない', () => {
-      const result = migrateLegacyCardData('v1', {
+      const result = migrateLegacyCardData('vrchat-simple', {
         vrchat: 'existing_vrc',
         sns: { vrchatId: 'new_vrc', twitterId: '', discordId: '', friendPolicy: '' },
       })
@@ -281,7 +281,7 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
     })
 
     it('friendPolicy が既にあれば sns.friendPolicy で上書きしない', () => {
-      const result = migrateLegacyCardData('v1', {
+      const result = migrateLegacyCardData('vrchat-simple', {
         friendPolicy: 'frPolicyNo',
         sns: { vrchatId: '', twitterId: '', discordId: '', friendPolicy: 'frPolicyAnyone' },
       })

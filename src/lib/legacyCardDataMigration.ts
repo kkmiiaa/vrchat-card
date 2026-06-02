@@ -108,7 +108,7 @@ export function migrateLegacyCardData(
   templateId: string,
   cardData: Record<string, unknown>,
 ): BlockValues {
-  if (templateId === 'vrchat-simple' || templateId === 'v1') {
+  if (templateId === 'vrchat-simple') {
     const isLegacy =
       cardData.sns !== undefined ||
       typeof cardData.gender === 'string' ||
@@ -119,7 +119,7 @@ export function migrateLegacyCardData(
     }
   }
 
-  if (templateId === 'vrchat-glass' || templateId === 'v2') {
+  if (templateId === 'vrchat-glass') {
     const isLegacy =
       cardData.sns !== undefined ||
       cardData.micOnRate !== undefined ||

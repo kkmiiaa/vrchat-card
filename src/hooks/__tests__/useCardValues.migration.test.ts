@@ -61,49 +61,49 @@ describe('useCardValues / localStorage マイグレーション', () => {
     })
 
     it('vrchat に値が入る', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.vrchat).toBe('vrc_user')
     })
 
     it('x に値が入る', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.x).toBe('tw_user')
     })
 
     it('discord に値が入る', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.discord).toBe('disc_user')
     })
 
     it('friendPolicy に値が入る', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.friendPolicy).toBe('frPolicyAnyone')
     })
 
     it('gender が { tag, display } 形式になる', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.gender).toEqual({ tag: '男性', display: '' })
     })
 
     it('language が { preset, custom } 形式になる', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.language).toEqual({ preset: ['ja', 'en'], custom: [] })
     })
 
     it('name がそのまま入る', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.name).toBe('太郎')
     })
 
     it('micOnRate がそのまま入る', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.micOnRate).toBe(75)
     })
@@ -130,37 +130,37 @@ describe('useCardValues / localStorage マイグレーション', () => {
     })
 
     it('vrchat に値が入る', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.vrchat).toBe('vrc_b')
     })
 
     it('x に値が入る', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.x).toBe('tw_b')
     })
 
     it('discord に値が入る', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.discord).toBe('disc_b')
     })
 
     it('friendPolicy に値が入る', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.friendPolicy).toBe('frPolicyMutualsOnX')
     })
 
     it('gender が { tag, display } 形式になる', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.gender).toEqual({ tag: 'female', display: '' })
     })
 
     it('language が { preset, custom } 形式になる', async () => {
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.language).toEqual({ preset: ['ja'], custom: [] })
     })
@@ -196,7 +196,7 @@ describe('useCardValues / localStorage マイグレーション', () => {
 
     it('initialValues の値が使われる', async () => {
       const initial = { vrchat: 'from_initial', x: '', discord: '', name: '初期値' }
-      const { result } = renderHook(() => useCardValues(V1_BLOCKS, initial, 'v1'))
+      const { result } = renderHook(() => useCardValues(V1_BLOCKS, initial, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
       expect(result.current.values.vrchat).toBe('from_initial')
       expect(result.current.values.name).toBe('初期値')

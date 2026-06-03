@@ -4,6 +4,8 @@ import { useImageUpload } from '@/lib/ImageUploadContext'
 
 export type PhotoGridValue = Array<{ url: string | null; base64: string | null }>
 
+const MAX_PHOTOS = 4
+
 export const photoGridComponent: ComponentDef<PhotoGridValue> = {
   key: 'photo-grid',
   defaultValue: [],
@@ -12,7 +14,7 @@ export const photoGridComponent: ComponentDef<PhotoGridValue> = {
   surfaceMode: 'internal',
 
   CardItem({ value, ctx, blockConfig }) {
-    const items = Array.isArray(value) ? value : []
+    const items = Array.isArray(value) ? value.slice(0, MAX_PHOTOS) : []
     const filled = items.filter(item => item.url || item.base64)
     if (!filled.length) return (
       <span style={{ fontSize: ctx.fontSize.sm, color: ctx.theme.subText, fontFamily: ctx.fontFamily }}>–</span>
@@ -22,17 +24,19 @@ export const photoGridComponent: ComponentDef<PhotoGridValue> = {
     const gap = ctx.cardWidth * 0.006
     const borderRadius = ctx.cardWidth * 0.008
 
+    // gallery と同様、与えられた高さを満たすよう stretch
     return (
       <div style={{
         display: 'grid',
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gridTemplateColumns: `repeat(${Math.min(cols, filled.length)}, 1fr)`,
         gap,
         width: '100%',
+        height: '100%',
       }}>
         {filled.map((item, i) => {
           const src = item.url ?? item.base64
           return (
-            <div key={i} style={{ aspectRatio: '1', borderRadius, overflow: 'hidden', background: '#e5e7eb' }}>
+            <div key={i} style={{ borderRadius, overflow: 'hidden', background: '#e5e7eb', minHeight: 0 }}>
               {src && <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
             </div>
           )
@@ -42,13 +46,13 @@ export const photoGridComponent: ComponentDef<PhotoGridValue> = {
   },
 
   FormItem({ value, onChange }) {
-    const items: PhotoGridValue = Array.isArray(value) ? value : []
+    const items: PhotoGridValue = Array.isArray(value) ? value.slice(0, MAX_PHOTOS) : []
     const uploadCtx = useImageUpload()
 
     const update = (i: number, patch: { url: string | null; base64: string | null }) =>
       onChange(items.map((item, idx) => idx === i ? patch : item))
     const remove = (i: number) => onChange(items.filter((_, idx) => idx !== i))
-    const add = () => onChange([...items, { url: null, base64: null }])
+    const add = () => { if (items.length < MAX_PHOTOS) onChange([...items, { url: null, base64: null }]) }
 
     const handleFile = async (i: number, file: File | null) => {
       if (!file) { update(i, { url: null, base64: null }); return }
@@ -83,11 +87,14 @@ export const photoGridComponent: ComponentDef<PhotoGridValue> = {
               </div>
             )
           })}
-          <button type="button" onClick={add}
-            className="h-16 w-16 flex items-center justify-center rounded border-2 border-dashed border-gray-200 text-gray-300 text-2xl hover:border-sky-300 hover:text-sky-300 transition-colors">
-            +
-          </button>
+          {items.length < MAX_PHOTOS && (
+            <button type="button" onClick={add}
+              className="h-16 w-16 flex items-center justify-center rounded border-2 border-dashed border-gray-200 text-gray-300 text-2xl hover:border-sky-300 hover:text-sky-300 transition-colors">
+              +
+            </button>
+          )}
         </div>
+        <p className="text-[10px] text-gray-400">最大{MAX_PHOTOS}枚</p>
       </div>
     )
   },
@@ -97,7 +104,7 @@ export const photoGridComponent: ComponentDef<PhotoGridValue> = {
     return (
       <div className="flex items-center gap-2 text-sm">
         <span className="text-[10px] text-gray-500 w-20 shrink-0">列数</span>
-        <input type="number" min={2} max={6} value={columns}
+        <input type="number" min={2} max={4} value={columns}
           onChange={e => onChange({ ...blockConfig, columns: Number(e.target.value) })}
           className="w-16 text-xs border border-gray-200 rounded px-2 py-1 bg-white" />
       </div>

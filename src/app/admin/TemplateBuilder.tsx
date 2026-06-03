@@ -1009,8 +1009,54 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
         </div>
       )
     }
-    // row / col: no block config
-    return <p className="text-xs text-gray-400 px-3 py-4 text-center">コンテナノードにはブロック設定がありません</p>
+    // row / col: label settings
+    const containerPath = selectedPath!
+    const containerNode = node as import('@/blocks/types').LayoutNodeRow | import('@/blocks/types').LayoutNodeCol
+    return (
+      <div className="flex flex-col gap-3 px-3 py-3">
+        <p className="text-[10px] text-gray-500 uppercase tracking-wider">ラベル設定</p>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 w-20 shrink-0">ラベル</span>
+          <input
+            type="text"
+            value={containerNode.label ?? ''}
+            onChange={e => handleUpdate(containerPath, n => ({ ...n, label: e.target.value || undefined }))}
+            placeholder="なし"
+            className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 bg-white"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 w-20 shrink-0">サブラベル</span>
+          <input
+            type="text"
+            value={containerNode.subLabel ?? ''}
+            onChange={e => handleUpdate(containerPath, n => ({ ...n, subLabel: e.target.value || undefined }))}
+            placeholder="なし"
+            className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 bg-white"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 w-20 shrink-0">ラベル色</span>
+          <ColorPicker
+            value={containerNode.labelColor ?? ''}
+            onChange={v => handleUpdate(containerPath, n => ({ ...n, labelColor: v || undefined }))}
+            defaultColor="#1f2937"
+            presetColors={themeColors.length ? [...themeColors, ...LABEL_PRESET_COLORS] : LABEL_PRESET_COLORS}
+          />
+          {containerNode.labelColor && (
+            <button type="button" onClick={() => handleUpdate(containerPath, n => ({ ...n, labelColor: undefined }))}
+              className="text-[10px] text-gray-400 hover:text-red-400">リセット</button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 w-20 shrink-0">ラベルアイコン</span>
+          <IconPicker
+            value={containerNode.labelIcon ?? ''}
+            onChange={v => handleUpdate(containerPath, n => ({ ...n, labelIcon: v || undefined }))}
+          />
+        </div>
+      </div>
+    )
   }
 
   // ── 配置タブ ──────────────────────────────────────────────────────────────

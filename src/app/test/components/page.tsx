@@ -24,6 +24,8 @@ import { tagListComponent } from '@/blocks/tagList'
 import { colorPaletteComponent } from '@/blocks/colorPalette'
 import { profileImageComponent } from '@/blocks/profileImage'
 import { galleryComponent } from '@/blocks/gallery'
+import { itemListComponent } from '@/blocks/itemList'
+import { heightRulerComponent } from '@/blocks/heightRuler'
 import { colorLabeledListComponent } from '@/blocks/colorLabeledList'
 import { dividerComponent } from '@/blocks/divider'
 import type { ComponentDef, SurfaceVariant, CardRenderContext } from '@/blocks/types'
@@ -212,6 +214,20 @@ const SPECS: ComponentSpec[] = [
     name: 'profileImage',
     component: profileImageComponent as ComponentDef<unknown>,
     value: { base64: null, url: null },
+  },
+  {
+    name: 'item-list',
+    component: itemListComponent as ComponentDef<unknown>,
+    value: [
+      { category: 'BASE AVATAR', name: 'Luna Base（少女体）', code: '#PB-03', url: 'https://booth.pm' },
+      { category: 'OUTFIT',      name: 'Celestia Set',       code: '#OF-17', url: '' },
+      { category: 'HAIR',        name: 'Ash Lilac Waves',    code: '#HA-12', url: '' },
+    ],
+  },
+  {
+    name: 'height-ruler',
+    component: heightRulerComponent as ComponentDef<unknown>,
+    value: { height: 154, avatarImage: null, imageScale: 1, imageOffsetY: 0 },
   },
   {
     name: 'gallery',

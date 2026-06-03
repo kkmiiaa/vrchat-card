@@ -12,7 +12,11 @@ import { activityComponent } from '@/blocks/activity'
 import { markListComponent } from '@/blocks/markList'
 import { markGridComponent } from '@/blocks/markGrid'
 import { profileImageComponent } from '@/blocks/profileImage'
+import { itemListComponent } from '@/blocks/itemList'
+import { heightRulerComponent } from '@/blocks/heightRuler'
 import type { ActivityValue } from '@/blocks/types'
+import type { ItemListValue } from '@/blocks/itemList'
+import type { HeightRulerValue } from '@/blocks/heightRuler'
 
 const ctx = DEFAULT_CARD_RENDER_CONTEXT
 
@@ -392,6 +396,49 @@ function ProfileImageDemo({ variant }: { variant: string }) {
 }
 
 // ─────────────────────────────────────────
+// item-list
+// ─────────────────────────────────────────
+function ItemListDemo({ variant }: { variant: string }) {
+  const [value, setValue] = useState<ItemListValue>([
+    { category: 'BASE AVATAR', name: 'Luna Base（少女体）', code: '#PB-03', url: '' },
+    { category: 'OUTFIT',      name: 'Celestia Set',       code: '#OF-17', url: '' },
+  ])
+  return (
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
+      <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">
+        <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
+        <itemListComponent.FormItem value={value} onChange={setValue} t={{} as never} />
+      </div>
+      <div className="px-5 py-5 min-w-0 overflow-hidden">
+        <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
+        <div style={{ width: 280 }}>
+          {itemListComponent.CardItem && <itemListComponent.CardItem value={value} ctx={ctx} variant={variant} />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────
+// height-ruler
+// ─────────────────────────────────────────
+function HeightRulerDemo() {
+  const [value, setValue] = useState<HeightRulerValue>({ height: 154, avatarImage: null, imageScale: 1, imageOffsetY: 0 })
+  return (
+    <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
+      <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">
+        <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
+        <heightRulerComponent.FormItem value={value} onChange={setValue} t={{} as never} />
+      </div>
+      <div className="px-5 py-5 min-w-0 overflow-hidden">
+        <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>
+        {heightRulerComponent.CardItem && <heightRulerComponent.CardItem value={value} ctx={ctx} variant="simple" />}
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────
 // 抽象コンポーネント一覧
 // ─────────────────────────────────────────
 const ABSTRACT_COMPONENTS: AbstractComponent[] = [
@@ -406,6 +453,8 @@ const ABSTRACT_COMPONENTS: AbstractComponent[] = [
   { inputType: 'mark-grid',         description: 'ラベル＋記号（◎◯△✗）のグリッド表示。全項目を格子状に並べる。',        variants: ['simple'],  Demo: ({ variant: _ }) => <MarkGridDemo /> },
   { inputType: 'gallery',           description: '画像ギャラリー（最大3枚）。',                       variants: ['simple'],             Demo: ({ variant: _ }) => <GalleryDemo /> },
   { inputType: 'profile-image',     description: 'プロフィール画像。正方形トリミング。variant で形状変更。', variants: ['simple', 'circle'], Demo: ProfileImageDemo },
+  { inputType: 'item-list',        description: '改変アイテムリスト。カテゴリ・名前・コード・Booth URL を可変エントリで管理。', variants: ['simple', 'compact'], Demo: ItemListDemo },
+  { inputType: 'height-ruler',     description: '身長ルーラー。SVG目盛り＋透過PNG重ね合わせ。身長マーカー自動計算。', variants: ['simple'], Demo: ({ variant: _ }) => <HeightRulerDemo /> },
 ]
 
 const INPUT_TYPE_COLORS: Record<string, string> = {
@@ -419,6 +468,8 @@ const INPUT_TYPE_COLORS: Record<string, string> = {
   'mark-list':         'bg-rose-100 text-rose-700 border-rose-200',
   'gallery':           'bg-yellow-100 text-yellow-700 border-yellow-200',
   'profile-image':     'bg-indigo-100 text-indigo-700 border-indigo-200',
+  'item-list':         'bg-violet-100 text-violet-700 border-violet-200',
+  'height-ruler':      'bg-cyan-100 text-cyan-700 border-cyan-200',
 }
 
 function AbstractComponentCard({ inputType, description, variants, Demo }: AbstractComponent) {

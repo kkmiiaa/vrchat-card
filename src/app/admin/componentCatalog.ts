@@ -27,6 +27,8 @@ export const COMPONENT_NAMES: { name: string; category: ComponentCategory }[] = 
   { name: 'color-palette',          category: 'complex' },
   { name: 'color-status',           category: 'complex' },
   { name: 'gallery',                category: 'complex' },
+  { name: 'item-list',             category: 'complex' },
+  { name: 'height-ruler',          category: 'complex' },
   { name: 'simple-sns',             category: 'sns' },
   { name: 'sns-with-friend-policy', category: 'sns' },
   { name: 'profile-image',          category: 'complex' },

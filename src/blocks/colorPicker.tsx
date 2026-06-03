@@ -2,7 +2,11 @@
 import { useState, useRef, useEffect, useId } from 'react'
 import { createPortal } from 'react-dom'
 
+export const SERVICE_COLORS = ['#00AADB']
+
 export const PRESET_COLORS = [
+  // vaacard サービスカラー
+  ...SERVICE_COLORS,
   // ビビッド
   '#ef4444', '#f97316', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6',
   // グレイッシュ（くすみ）
@@ -18,6 +22,8 @@ export const PRESET_COLORS = [
 ]
 
 export const LABEL_PRESET_COLORS = [
+  // vaacard サービスカラー
+  ...SERVICE_COLORS,
   // 黒・ダークグレー
   '#000000', '#111827', '#1f2937', '#374151', '#4b5563', '#6b7280',
   // ミディアムグレー

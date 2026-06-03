@@ -31,6 +31,7 @@ export type TemplateLayoutRow = {
     fontFamily?: string
     fixedBackground?: import('@/blocks/types').BackgroundValue
     defaultSurface?: import('@/blocks/types').SurfaceVariant
+    theme?: { accent?: string; text?: string; subText?: string; bg?: string }
     card?: { grid?: { cellSize?: number; gap?: number } }
     web?:  { grid?: { cellSize?: number; gap?: number }; autoHeight?: boolean }
   } | null

@@ -214,7 +214,7 @@ function rowToDefinition(
     borderRadius: cfg.borderRadius,
     backgroundKey: cfg.backgroundKey,
     overlayKey: cfg.overlayKey,
-    theme: DEFAULT_CARD_RENDER_CONTEXT.theme,
+    theme: cfg.theme ?? DEFAULT_CARD_RENDER_CONTEXT.theme,
     blockPool: blockPool as TemplateDefinition['blockPool'],
     overlayFixed: overlayConfig ?? undefined,
     card: {
@@ -600,6 +600,9 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
 
   const cfg = currentRow.card_config ?? {}
   const grid = orientation === 'card' ? (cfg.card?.grid ?? { cellSize: 8, gap: 4 }) : (cfg.web?.grid ?? { cellSize: 8, gap: 4 })
+  const themeColors: string[] = cfg.theme
+    ? Object.values(cfg.theme as Record<string, string>).filter(Boolean)
+    : []
 
   // ページ背景（固定モード時は fixedBg、カスタムモード時は localValues[backgroundKey]）
   const bgValue = currentBgMode === 'fixed'
@@ -901,7 +904,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
             value={entry.labelColor ?? ''}
             onChange={v => updatePoolEntry({ labelColor: v || undefined })}
             defaultColor="#1f2937"
-            presetColors={LABEL_PRESET_COLORS}
+            presetColors={themeColors.length ? [...themeColors, ...LABEL_PRESET_COLORS] : LABEL_PRESET_COLORS}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -988,6 +991,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
             component={comp}
             settings={displaySettings}
             onChange={handleDisplayChange}
+            themeColors={themeColors}
             extras={
               <div className="flex flex-col gap-2 border-t border-gray-100 pt-3">
                 {comp.blockConfigForm && (

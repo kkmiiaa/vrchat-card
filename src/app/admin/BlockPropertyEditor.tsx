@@ -67,11 +67,13 @@ export function BlockPropertyEditor({
   settings,
   onChange,
   extras,
+  themeColors,
 }: {
   component: ComponentDef<unknown>
   settings: BlockDisplaySettings
   onChange: (patch: Partial<BlockDisplaySettings>) => void
   extras?: React.ReactNode
+  themeColors?: string[]
 }) {
   const variants = component.variants ?? ['simple']
   const showSurface = isSurfaceApplicable(component, settings.variant)
@@ -155,7 +157,7 @@ export function BlockPropertyEditor({
           value={settings.labelColor}
           onChange={v => onChange({ labelColor: v })}
           defaultColor="#1f2937"
-          presetColors={LABEL_PRESET_COLORS}
+          presetColors={themeColors ? [...themeColors, ...LABEL_PRESET_COLORS] : LABEL_PRESET_COLORS}
         />
       </div>
 

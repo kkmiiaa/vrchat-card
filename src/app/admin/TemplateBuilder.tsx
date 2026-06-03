@@ -608,7 +608,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
       ? (localValues[currentRow.card_config.backgroundKey] as BackgroundValue | undefined)
       : undefined
   const pageBg = bgValue
-    ? (getBackgroundStyle(bgValue.type, bgValue.value, bgValue.base64 ?? null, CARD_BG_FALLBACK) ?? CARD_BG_FALLBACK)
+    ? (getBackgroundStyle(bgValue.type, bgValue.value, bgValue.base64 ?? null, CARD_BG_FALLBACK, bgValue.url) ?? CARD_BG_FALLBACK)
     : CARD_BG_FALLBACK
 
   function fmtW(cells: number) {

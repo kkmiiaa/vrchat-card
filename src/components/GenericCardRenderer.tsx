@@ -319,7 +319,7 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
   const bg = noBackground
     ? 'transparent'
     : bgValue
-      ? getBackgroundStyle(bgValue.type, bgValue.value, bgValue.base64 ?? null, CARD_BG_FALLBACK) as string
+      ? getBackgroundStyle(bgValue.type, bgValue.value, bgValue.base64 ?? null, CARD_BG_FALLBACK, bgValue.url) as string
       : CARD_BG_FALLBACK
 
   const overlayValuesForInset = definition.overlayFixed

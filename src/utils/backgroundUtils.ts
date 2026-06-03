@@ -14,6 +14,7 @@ export function getBackgroundStyle(
   value?: string | [string, string],
   base64?: string | null,
   fallback?: string,
+  url?: string | null,
 ): string | null {
   if (type === 'color' && typeof value === 'string') {
     return value
@@ -24,7 +25,8 @@ export function getBackgroundStyle(
   }
 
   if (type === 'image') {
-    const src = base64 ?? (typeof value === 'string' ? value : null)
+    // Storage URL を優先、なければ base64、なければ value（プリセットパス）
+    const src = url ?? base64 ?? (typeof value === 'string' ? value : null)
     if (src) return `url(${src}) center/cover no-repeat`
   }
 

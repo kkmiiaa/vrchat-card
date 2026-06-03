@@ -8,7 +8,8 @@ import type { Area } from 'react-easy-crop'
 import type { CardTemplate, BlockValues, BackgroundValue, GalleryValue, TemplateSectionBlock, FormSection, ComponentDef } from '@/blocks/types'
 import { createCard, updateCard } from '@/lib/saveCard'
 import { createClient } from '@/lib/supabase/client'
-import { uploadCardImage, ImageTooLargeError } from '@/lib/uploadImage'
+import { uploadCardImage, uploadCardImageWithAlpha, ImageTooLargeError } from '@/lib/uploadImage'
+import { ImageUploadContext } from '@/lib/ImageUploadContext'
 import type { FontKey } from '@/components/FontSelector'
 import FontSelector from '@/components/FontSelector'
 import { fontMap } from '@/lib/fontMap'
@@ -162,14 +163,27 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       prevGalleryImages.current[i] = file
       uploadCardImage(userId, cardId, `gallery-${i}`, file)
         .then(url => {
-          const current = (values.gallery as GalleryValue) ?? { enabled: false, images: [], base64: [] }
-          const urls = [...(current.base64 ?? [null, null, null])]
+          const current = (values.gallery as GalleryValue) ?? { enabled: false, images: [], base64: [null,null,null] }
+          const urls = [...(current.urls ?? [null, null, null])]
           urls[i] = url
-          updateValue('gallery', { ...current, base64: urls })
+          updateValue('gallery', { ...current, urls, base64: [null, null, null] })
         })
         .catch(e => { if (e instanceof ImageTooLargeError) alert(e.message) })
     })
   }, [(values.gallery as GalleryValue)?.images, userId, cardId])
+
+  // background 画像が変わったら Storage にアップロード
+  const prevBgFile = useRef<File | null>(null)
+  useEffect(() => {
+    if (!userId || !cardId) return
+    const bgValue = background
+    if (bgValue.type !== 'image' || !(bgValue.imageFile instanceof File)) return
+    if (bgValue.imageFile === prevBgFile.current) return
+    prevBgFile.current = bgValue.imageFile
+    uploadCardImageWithAlpha(userId, cardId, 'background', bgValue.imageFile)
+      .then(url => setBackground(prev => ({ ...prev, url, imageFile: null, base64: null })))
+      .catch(e => { if (e instanceof ImageTooLargeError) alert(e.message) })
+  }, [background.imageFile, userId, cardId])
 
   // helpers
   const bg = background
@@ -381,7 +395,20 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   // --- Render ---
   const blockMap = Object.fromEntries(template.blocks.map(b => [b.key, b]))
 
+  const imageUploadContextValue = React.useMemo(() => ({
+    upload: async (slot: string, file: File): Promise<string | null> => {
+      if (!userId || !cardId) return null
+      try {
+        return await uploadCardImageWithAlpha(userId, cardId, slot, file)
+      } catch (e) {
+        if (e instanceof ImageTooLargeError) alert((e as Error).message)
+        return null
+      }
+    },
+  }), [userId, cardId])
+
   return (
+    <ImageUploadContext.Provider value={imageUploadContextValue}>
     <>
     <main className="w-screen h-screen flex flex-col text-gray-800">
       {/* ヘッダー */}
@@ -451,7 +478,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
             const maxW = window.innerWidth * 0.9
             const maxH = window.innerHeight * 0.9
             const scale = Math.min(maxW / template.cardWidth, maxH / template.cardHeight)
-            const bgStyle = getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK)
+            const bgStyle = getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK, bg.url)
             return (
               <div
                 className="rounded shadow-lg overflow-hidden"
@@ -470,7 +497,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
           className="w-full max-w-full flex items-center justify-center lg:flex-1 lg:min-w-0 lg:h-full lg:px-6 lg:static fixed top-12 sm:top-14 lg:top-auto z-10 sm:h-auto cursor-zoom-in sm:cursor-default active:brightness-95 transition-[filter] duration-100"
           onClick={e => { if (window.innerWidth < 768) { e.preventDefault(); handlePreviewOpen() } }}
           style={{
-            background: getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK) ?? undefined,
+            background: getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK, bg.url) ?? undefined,
             WebkitTapHighlightColor: 'transparent',
           }}
         >
@@ -657,5 +684,6 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
     </main>
     </>
+    </ImageUploadContext.Provider>
   )
 }

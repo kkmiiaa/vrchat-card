@@ -37,7 +37,7 @@ type Card = {
 
 function cardBg(background: BackgroundValue | null): string | null {
   if (!background) return null
-  return getBackgroundStyle(background.type, background.value, background.base64 ?? null)
+  return getBackgroundStyle(background.type, background.value, background.base64 ?? null, undefined, background.url)
 }
 
 function cardBgType(background: BackgroundValue | null): string | null {

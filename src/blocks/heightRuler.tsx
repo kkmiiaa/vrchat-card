@@ -1,10 +1,12 @@
 'use client'
 import type { ComponentDef, BlockConfigFormProps } from './types'
 import { ColorPicker } from './colorPicker'
+import { useImageUpload } from '@/lib/ImageUploadContext'
 
 export type HeightRulerValue = {
   height: number
-  avatarImage: string | null
+  avatarImage: string | null      // 後方互換（base64 プレビュー用）
+  avatarImageUrl?: string | null  // Storage URL（新形式、あれば優先）
   imageScale: number
   imageOffsetY: number
 }
@@ -68,8 +70,8 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
         display: 'flex',
         alignItems: 'flex-start',
       }}>
-        {/* アバター透過画像 */}
-        {v.avatarImage && (
+        {/* アバター透過画像（Storage URL 優先、なければ base64 プレビュー） */}
+        {(v.avatarImageUrl ?? v.avatarImage) && (
           <div style={{
             position: 'absolute',
             bottom: padY,
@@ -79,7 +81,7 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
             transform: `translateY(${imgOffsetY}px)`,
           }}>
             <img
-              src={v.avatarImage}
+              src={v.avatarImageUrl ?? v.avatarImage ?? undefined}
               alt=""
               style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'bottom center', display: 'block' }}
             />
@@ -154,12 +156,26 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
       ? { ...DEFAULT_VALUE, ...value }
       : { ...DEFAULT_VALUE }
 
-    const handleFile = (file: File | null) => {
-      if (!file) { onChange({ ...v, avatarImage: null }); return }
+    const uploadCtx = useImageUpload()
+
+    const handleFile = async (file: File | null) => {
+      if (!file) {
+        onChange({ ...v, avatarImage: null, avatarImageUrl: null })
+        return
+      }
+      // base64 でプレビューを即時表示
       const reader = new FileReader()
-      reader.onload = e => onChange({ ...v, avatarImage: e.target?.result as string })
+      reader.onload = e => onChange({ ...v, avatarImage: e.target?.result as string, avatarImageUrl: null })
       reader.readAsDataURL(file)
+      // Context があれば Storage にアップロードして URL で置換
+      if (uploadCtx) {
+        const url = await uploadCtx.upload('avatar', file).catch(() => null)
+        if (url) onChange({ ...v, avatarImageUrl: url, avatarImage: null })
+      }
     }
+
+    const hasImage = !!(v.avatarImageUrl ?? v.avatarImage)
+    const previewSrc = v.avatarImageUrl ?? v.avatarImage ?? undefined
 
     return (
       <div className="flex flex-col gap-3">
@@ -185,20 +201,20 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
             id="height-ruler-image-upload"
           />
           <label htmlFor="height-ruler-image-upload" className="flex items-center gap-2 cursor-pointer">
-            {v.avatarImage
-              ? <img src={v.avatarImage} alt="" className="h-20 w-auto object-contain rounded border border-gray-200 bg-gray-50" />
+            {hasImage
+              ? <img src={previewSrc} alt="" className="h-20 w-auto object-contain rounded border border-gray-200 bg-gray-50" />
               : <div className="h-20 w-20 flex items-center justify-center rounded border-2 border-dashed border-gray-200 text-gray-400 text-xs bg-gray-50">画像を選択</div>
             }
           </label>
-          {v.avatarImage && (
-            <button type="button" onClick={() => onChange({ ...v, avatarImage: null })}
+          {hasImage && (
+            <button type="button" onClick={() => onChange({ ...v, avatarImage: null, avatarImageUrl: null })}
               className="text-xs text-red-400 hover:text-red-600 text-left">
               画像を削除
             </button>
           )}
         </div>
 
-        {v.avatarImage && (
+        {hasImage && (
           <>
             <div className="flex items-center gap-3">
               <label className="text-sm text-gray-600 w-20 shrink-0">画像サイズ</label>

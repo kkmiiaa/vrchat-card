@@ -502,7 +502,8 @@ export type ActivityValue = {
 export type GalleryValue = {
   enabled: boolean
   images: (File | null)[]
-  base64: (string | null)[]
+  base64: (string | null)[]  // 後方互換
+  urls?: (string | null)[]   // Storage URL（新形式、あれば優先）
 }
 
 export type BackgroundValue = {
@@ -510,5 +511,6 @@ export type BackgroundValue = {
   /** color: string, gradient: [from, to], image: URL string or base64 */
   value: string | [string, string]
   imageFile?: File | null
-  base64?: string | null
+  base64?: string | null  // 後方互換
+  url?: string | null     // Storage URL（新形式、あれば優先）
 }

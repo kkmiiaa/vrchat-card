@@ -5,21 +5,22 @@ import { SURFACE_STYLE } from './types'
 export const galleryComponent: ComponentDef<GalleryValue> = {
   key: 'gallery',
   defaultValue: { enabled: false, images: [null, null, null], base64: [null, null, null] },
-  isEmpty: (v) => !v?.base64?.some(Boolean),
+  isEmpty: (v) => !v?.urls?.some(Boolean) && !v?.base64?.some(Boolean),
   variants: ['simple'],
   surfaceMode: 'internal',
   CardItem({ value, ctx }) {
-    if (!value?.base64?.some(Boolean)) return null
+    const hasSrc = value?.urls?.some(Boolean) || value?.base64?.some(Boolean)
+    if (!hasSrc) return null
     const ss = ctx.surface && ctx.surface !== 'transparent' ? SURFACE_STYLE[ctx.surface] : null
     // 入力済みのスロットだけ表示し、全体を埋める
-    const filledSlots = [0, 1, 2].filter(i => value.base64[i])
+    const filledSlots = [0, 1, 2].filter(i => value.urls?.[i] || value.base64[i])
     const thumbStyle = ss
       ? { flex: 1, height: '100%', borderRadius: ctx.cardWidth * 0.008, overflow: 'hidden' as const, background: '#e5e7eb', border: ss.border, boxShadow: ss.boxShadow }
       : { flex: 1, height: '100%', borderRadius: ctx.cardWidth * 0.006, overflow: 'hidden' as const, background: '#e5e7eb' }
     return (
       <div style={{ display: 'flex', gap: 4, width: '100%', height: '100%' }}>
         {filledSlots.map(i => {
-          const src = value.base64[i]
+          const src = value.urls?.[i] ?? value.base64[i]  // URL優先
           return (
             <div key={i} style={thumbStyle}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -55,7 +56,7 @@ export const galleryComponent: ComponentDef<GalleryValue> = {
     return (
       <div className="flex flex-col gap-3">
         {[0, 1, 2].map(index => {
-          const hasImage = !!value.base64[index]
+          const hasImage = !!(value.urls?.[index] ?? value.base64[index])
           return (
             <div key={index} className="flex flex-col gap-1">
               <span className="text-xs font-medium text-gray-500">{t.galleryImage} {index + 1}</span>

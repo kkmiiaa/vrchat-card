@@ -1,12 +1,14 @@
 'use client'
 import type { ComponentDef } from './types'
 import { SURFACE_STYLE } from './types'
+import { useImageUpload } from '@/lib/ImageUploadContext'
 
 export type ItemEntry = {
   category: string
   name: string
   code?: string
   url?: string
+  imageUrl?: string  // アイテムサムネイル（Storage URL）
 }
 
 export type ItemListValue = ItemEntry[]
@@ -49,6 +51,7 @@ export const itemListComponent: ComponentDef<ItemListValue> = {
     const catFs = ctx.fontSize.xs
     const gap = isCompact ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.008
     const ss = ctx.surface && ctx.surface !== 'transparent' ? SURFACE_STYLE[ctx.surface] : null
+    const thumbSize = isCompact ? ctx.cardWidth * 0.028 : ctx.cardWidth * 0.034
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap, width: '100%' }}>
@@ -72,6 +75,24 @@ export const itemListComponent: ComponentDef<ItemListValue> = {
                 color: 'inherit',
               }}
             >
+              {/* サムネイル */}
+              {entry.imageUrl && (
+                <div style={{
+                  width: thumbSize,
+                  height: thumbSize,
+                  borderRadius: ctx.cardWidth * 0.003,
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                  background: '#f3f4f6',
+                }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={entry.imageUrl}
+                    alt=""
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                </div>
+              )}
               {entry.category && (
                 <span style={{
                   fontSize: catFs * 0.85,
@@ -109,12 +130,7 @@ export const itemListComponent: ComponentDef<ItemListValue> = {
                 </span>
               )}
               {entry.url && (
-                <span style={{
-                  color: ctx.theme.accent,
-                  flexShrink: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                }}>
+                <span style={{ color: ctx.theme.accent, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
                   <ExternalLinkIcon size={catFs} />
                 </span>
               )}
@@ -136,6 +152,7 @@ export const itemListComponent: ComponentDef<ItemListValue> = {
 
   FormItem({ value, onChange }) {
     const items: ItemListValue = Array.isArray(value) ? value : []
+    const uploadCtx = useImageUpload()
 
     const update = (i: number, patch: Partial<ItemEntry>) =>
       onChange(items.map((e, idx) => idx === i ? { ...e, ...patch } : e))
@@ -143,6 +160,14 @@ export const itemListComponent: ComponentDef<ItemListValue> = {
       onChange(items.filter((_, idx) => idx !== i))
     const add = () =>
       onChange([...items, { ...EMPTY_ENTRY }])
+
+    const handleImage = async (i: number, file: File | null) => {
+      if (!file) { update(i, { imageUrl: undefined }); return }
+      if (uploadCtx) {
+        const url = await uploadCtx.upload(`item-${i}`, file).catch(() => null)
+        if (url) update(i, { imageUrl: url })
+      }
+    }
 
     return (
       <div className="flex flex-col gap-3">
@@ -159,11 +184,8 @@ export const itemListComponent: ComponentDef<ItemListValue> = {
               <datalist id={`item-list-category-presets-${i}`}>
                 {PRESETS.map(p => <option key={p} value={p} />)}
               </datalist>
-              <button
-                type="button"
-                onClick={() => remove(i)}
-                className="text-gray-300 hover:text-red-400 transition-colors text-sm leading-none shrink-0"
-              >
+              <button type="button" onClick={() => remove(i)}
+                className="text-gray-300 hover:text-red-400 transition-colors text-sm leading-none shrink-0">
                 ✕
               </button>
             </div>
@@ -176,25 +198,45 @@ export const itemListComponent: ComponentDef<ItemListValue> = {
             <div className="flex gap-2">
               <input
                 value={entry.code ?? ''}
-                onChange={e => update(i, { code: e.target.value })}
-                placeholder="コード（例: #HA-12）"
+                onChange={e => update(i, { code: e.target.value || undefined })}
+                placeholder="コード（任意）"
                 className="w-28 px-2 py-1 text-xs border border-gray-200 rounded bg-white focus:outline-none focus:ring-1 focus:ring-sky-300"
               />
               <input
                 type="url"
                 value={entry.url ?? ''}
-                onChange={e => update(i, { url: e.target.value })}
-                placeholder="Booth URL"
+                onChange={e => update(i, { url: e.target.value || undefined })}
+                placeholder="Booth URL（任意）"
                 className="flex-1 px-2 py-1 text-xs border border-gray-200 rounded bg-white focus:outline-none focus:ring-1 focus:ring-sky-300"
               />
             </div>
+            {/* 画像アップロード（CardEditor 内でのみ有効） */}
+            {uploadCtx && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => handleImage(i, e.target.files?.[0] ?? null)}
+                  className="hidden"
+                  id={`item-image-${i}`}
+                />
+                <label htmlFor={`item-image-${i}`} className="cursor-pointer flex items-center gap-2">
+                  {entry.imageUrl
+                    ? <img src={entry.imageUrl} alt="" className="h-10 w-10 object-cover rounded border border-gray-200 bg-gray-50" />
+                    : <div className="h-10 w-10 flex items-center justify-center rounded border-2 border-dashed border-gray-200 text-gray-300 text-lg bg-white">+</div>
+                  }
+                  <span className="text-xs text-gray-400">サムネイル（任意）</span>
+                </label>
+                {entry.imageUrl && (
+                  <button type="button" onClick={() => update(i, { imageUrl: undefined })}
+                    className="text-xs text-gray-300 hover:text-red-400">削除</button>
+                )}
+              </div>
+            )}
           </div>
         ))}
-        <button
-          type="button"
-          onClick={add}
-          className="text-sm text-sky-500 hover:text-sky-700 font-medium text-left transition-colors"
-        >
+        <button type="button" onClick={add}
+          className="text-sm text-sky-500 hover:text-sky-700 font-medium text-left transition-colors">
           + アイテムを追加
         </button>
       </div>

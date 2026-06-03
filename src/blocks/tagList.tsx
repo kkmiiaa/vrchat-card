@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useId } from 'react'
 import type { ComponentDef, BlockConfigFormProps } from './types'
 import { ColorPicker } from './colorPicker'
 
@@ -46,6 +46,7 @@ export const tagListComponent: ComponentDef<string[]> = {
   FormItem({ value, onChange, blockConfig }) {
     const tags = Array.isArray(value) ? value : []
     const [input, setInput] = useState('')
+    const listId = useId()
     const maxTags = typeof blockConfig?.maxTags === 'number' ? blockConfig.maxTags : undefined
     const presets: string[] = (() => {
       const raw = blockConfig?.presets
@@ -72,7 +73,7 @@ export const tagListComponent: ComponentDef<string[]> = {
         <div className="flex gap-2">
           <input
             type="text"
-            list="tag-list-presets"
+            list={listId}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
@@ -80,7 +81,7 @@ export const tagListComponent: ComponentDef<string[]> = {
             className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
           />
           {presets.length > 0 && (
-            <datalist id="tag-list-presets">
+            <datalist id={listId}>
               {presets.map(p => <option key={p} value={p} />)}
             </datalist>
           )}

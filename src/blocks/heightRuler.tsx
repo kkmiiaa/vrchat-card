@@ -78,18 +78,6 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
           height="100%"
           style={{ display: 'block', overflow: 'visible' }}
         >
-          {/* アバター透過画像（<image>要素） */}
-          {imgSrc && (
-            <image
-              href={imgSrc}
-              x={LINE_X + 2}
-              y={imgY_vb}
-              width={imgW_vb}
-              height={imgH_vb}
-              preserveAspectRatio="xMidYMax meet"
-            />
-          )}
-
           {/* 縦線 */}
           <line x1={LINE_X} y1={VB_PAD} x2={LINE_X} y2={VB_PAD + VB_RULER} stroke={lineColor} strokeWidth={0.6} />
 
@@ -116,7 +104,19 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
             </g>
           ))}
 
-          {/* 身長マーカー */}
+          {/* アバター透過画像（目盛りの手前・マーカーの奥） */}
+          {imgSrc && (
+            <image
+              href={imgSrc}
+              x={LINE_X + 2}
+              y={imgY_vb}
+              width={imgW_vb}
+              height={imgH_vb}
+              preserveAspectRatio="xMidYMax meet"
+            />
+          )}
+
+          {/* 身長マーカー（最前面） */}
           <g>
             <line
               x1={LINE_X} y1={markerY}

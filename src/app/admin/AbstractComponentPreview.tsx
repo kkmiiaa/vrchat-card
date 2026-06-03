@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { ImageUploadContext } from '@/lib/ImageUploadContext'
 import { DEFAULT_CARD_RENDER_CONTEXT } from '@/blocks/types'
 import { expressiveSelectComponent } from '@/blocks/expressiveSelect'
 import { multiSelectComponent } from '@/blocks/multiSelect'
@@ -403,11 +404,16 @@ function ItemListDemo({ variant }: { variant: string }) {
     { category: 'BASE AVATAR', name: 'Luna Base（少女体）', code: '#PB-03', url: '' },
     { category: 'OUTFIT',      name: 'Celestia Set',       code: '#OF-17', url: '' },
   ])
+  const previewUploadCtx = useMemo(() => ({
+    upload: async (_slot: string, file: File) => URL.createObjectURL(file),
+  }), [])
   return (
     <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
       <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">FormItem</p>
-        <itemListComponent.FormItem value={value} onChange={setValue} t={{} as never} />
+        <ImageUploadContext.Provider value={previewUploadCtx}>
+          <itemListComponent.FormItem value={value} onChange={setValue} t={{} as never} />
+        </ImageUploadContext.Provider>
       </div>
       <div className="px-5 py-5 min-w-0 overflow-hidden">
         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-3">CardItem</p>

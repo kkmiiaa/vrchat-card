@@ -1785,16 +1785,9 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
                     position: 'absolute',
                     bottom: 10,
                     right: 14,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    gap: 2,
                     pointerEvents: 'none',
                   }}>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.25)', fontFamily: 'sans-serif', letterSpacing: '0.04em' }}>
-                      {currentRow.label}
-                    </span>
-                    <span style={{ fontSize: 8, color: 'rgba(0,0,0,0.18)', fontFamily: 'sans-serif', letterSpacing: '0.06em' }}>
+                    <span style={{ fontSize: 9, fontWeight: 600, color: 'rgba(255,255,255,0.6)', fontFamily: 'sans-serif', letterSpacing: '0.06em' }}>
                       vaacard.me
                     </span>
                   </div>

@@ -1243,8 +1243,8 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
               <label className="text-[10px] text-gray-500">データキー</label>
               <input
                 type="text"
-                value={node.dataKey}
-                onChange={e => handleUpdate(path, n => ({ ...n, dataKey: e.target.value }))}
+                value={node.dataKey ?? ''}
+                onChange={e => handleUpdate(path, n => ({ ...n, dataKey: e.target.value || undefined }))}
                 className="text-xs border rounded px-2 py-1 font-mono"
               />
             </div>

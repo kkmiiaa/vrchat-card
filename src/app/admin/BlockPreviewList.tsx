@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
+import { ImageUploadContext } from '@/lib/ImageUploadContext'
 import type { ReactNode } from 'react'
 import { languageComponent } from '@/blocks/language'
 import { ageComponent } from '@/blocks/age'
@@ -675,6 +676,9 @@ function ComponentPreview({ name, category, inputType, format, description, exam
   )
   const patchDisplay = (patch: Partial<BlockDisplaySettings>) =>
     setDisplaySettings(prev => ({ ...prev, ...patch }))
+  const previewUploadCtx = useMemo(() => ({
+    upload: async (_slot: string, file: File) => URL.createObjectURL(file),
+  }), [])
 
   // サイズ制約
   const [previewW, setPreviewW] = useState('')
@@ -763,7 +767,9 @@ function ComponentPreview({ name, category, inputType, format, description, exam
           {formLabel && (
             <p className="text-xs font-medium text-gray-700 mb-2">{formLabel}</p>
           )}
-          <component.FormItem value={value} onChange={setValue} t={t} blockConfig={blockConfig} />
+          <ImageUploadContext.Provider value={previewUploadCtx}>
+            <component.FormItem value={value} onChange={setValue} t={t} blockConfig={blockConfig} />
+          </ImageUploadContext.Provider>
         </div>
         <div className="px-5 py-4 min-w-0 overflow-hidden">
           <SectionLabel>保存値</SectionLabel>

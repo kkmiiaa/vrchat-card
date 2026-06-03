@@ -47,6 +47,13 @@ export const tagListComponent: ComponentDef<string[]> = {
     const tags = Array.isArray(value) ? value : []
     const [input, setInput] = useState('')
     const maxTags = typeof blockConfig?.maxTags === 'number' ? blockConfig.maxTags : undefined
+    const presets: string[] = (() => {
+      const raw = blockConfig?.presets
+      if (!raw) return []
+      if (Array.isArray(raw)) return raw.filter((v): v is string => typeof v === 'string')
+      if (typeof raw === 'string') return raw.split('\n').map(s => s.trim()).filter(Boolean)
+      return []
+    })()
 
     const addTag = () => {
       const trimmed = input.trim()
@@ -65,12 +72,18 @@ export const tagListComponent: ComponentDef<string[]> = {
         <div className="flex gap-2">
           <input
             type="text"
+            list="tag-list-presets"
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
             placeholder="タグを入力してEnter"
             className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
           />
+          {presets.length > 0 && (
+            <datalist id="tag-list-presets">
+              {presets.map(p => <option key={p} value={p} />)}
+            </datalist>
+          )}
           <button
             type="button"
             onClick={addTag}
@@ -102,6 +115,13 @@ export const tagListComponent: ComponentDef<string[]> = {
     const color = typeof blockConfig.color === 'string' ? blockConfig.color : ''
     const maxTags = typeof blockConfig.maxTags === 'number' ? blockConfig.maxTags : ''
     const prefix = typeof blockConfig.prefix === 'string' ? blockConfig.prefix : ''
+    const presetsStr = (() => {
+      const raw = blockConfig.presets
+      if (!raw) return ''
+      if (Array.isArray(raw)) return (raw as string[]).join('\n')
+      if (typeof raw === 'string') return raw
+      return ''
+    })()
     return (
       <div className="flex flex-col gap-2 text-sm">
         <div className="flex items-center gap-2">
@@ -119,6 +139,16 @@ export const tagListComponent: ComponentDef<string[]> = {
           <input type="number" min={1} value={maxTags} placeholder="無制限"
             onChange={e => onChange({ ...blockConfig, maxTags: e.target.value ? Number(e.target.value) : undefined })}
             className="w-20 text-xs border border-gray-200 rounded px-2 py-1 bg-white" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] text-gray-500">入力プリセット（1行1項目）</span>
+          <textarea
+            value={presetsStr}
+            onChange={e => onChange({ ...blockConfig, presets: e.target.value || undefined })}
+            placeholder={'例:\nかわいい\nかっこいい\nふわふわ'}
+            rows={4}
+            className="text-xs border border-gray-200 rounded px-2 py-1 bg-white resize-none font-mono"
+          />
         </div>
       </div>
     )

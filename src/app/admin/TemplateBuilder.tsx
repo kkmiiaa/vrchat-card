@@ -1766,6 +1766,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
                   background: pageBg,
                   borderRadius: currentRow.card_config?.borderRadius ?? 20,
                   overflow: 'hidden',
+                  position: 'relative',
                 }}>
                   <GenericCardRenderer
                     definition={previewDefinition}
@@ -1779,6 +1780,24 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
                     userUrl="https://vaacard.com/u/preview"
                     defaultSurface={currentDesignPreset}
                   />
+                  {/* 書き出し用ウォーターマーク */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 10,
+                    right: 14,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    gap: 2,
+                    pointerEvents: 'none',
+                  }}>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.25)', fontFamily: 'sans-serif', letterSpacing: '0.04em' }}>
+                      {currentRow.label}
+                    </span>
+                    <span style={{ fontSize: 8, color: 'rgba(0,0,0,0.18)', fontFamily: 'sans-serif', letterSpacing: '0.06em' }}>
+                      vaacard.me
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,5 +1,6 @@
 'use client'
-import type { ComponentDef } from './types'
+import type { ComponentDef, BlockConfigFormProps } from './types'
+import { ColorPicker } from './colorPicker'
 
 export type HeightRulerValue = {
   height: number
@@ -15,8 +16,6 @@ const DEFAULT_VALUE: HeightRulerValue = {
   imageOffsetY: 0,
 }
 
-// 目盛りの最大値・ステップ
-const RULER_MAX = 200
 const RULER_STEP = 10
 
 export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
@@ -24,42 +23,47 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
   defaultValue: DEFAULT_VALUE,
   variants: ['simple'],
 
-  CardItem({ value, ctx }) {
+  CardItem({ value, ctx, blockConfig }) {
     const v: HeightRulerValue = value && typeof value === 'object'
       ? { ...DEFAULT_VALUE, ...value }
       : DEFAULT_VALUE
 
-    const rulerH = ctx.cardWidth * 0.55
-    const lineX = ctx.cardWidth * 0.025   // 縦線のX位置
-    const tickRight = ctx.cardWidth * 0.015  // 目盛りの右方向長さ
-    const labelOffsetX = tickRight + ctx.cardWidth * 0.004  // ラベル開始X（線より右）
-    const svgW = lineX + tickRight + ctx.cardWidth * 0.05   // SVG幅（ラベル含む）
-    const rulerW = lineX  // 後方互換（アバター画像位置用）
-    const totalW = ctx.cardWidth * 0.22
+    const rulerMax: number = typeof blockConfig?.maxHeight === 'number' ? blockConfig.maxHeight : 200
+    const lineColor: string = typeof blockConfig?.lineColor === 'string' ? blockConfig.lineColor : ctx.theme.subText
+
+    // 上下に fs 分のパディングを確保
     const fs = ctx.fontSize.xs
+    const padY = fs * 1.2
+    const rulerH = ctx.cardWidth * 0.55
+    const svgH = rulerH + padY * 2  // パディング込みのSVG高さ
+
+    const lineX = ctx.cardWidth * 0.025
+    const tickRight = ctx.cardWidth * 0.015
+    const labelOffsetX = tickRight + ctx.cardWidth * 0.004
+    const svgW = lineX + tickRight + ctx.cardWidth * 0.05
+    const totalW = ctx.cardWidth * 0.22
     const accentColor = ctx.theme.accent
 
-    // 身長の割合位置（0 = 下端, 1 = 上端）
-    const heightRatio = Math.min(Math.max(v.height / RULER_MAX, 0), 1)
-    const markerY = rulerH * (1 - heightRatio)
+    // y座標変換: h=0 → svgH-padY, h=rulerMax → padY
+    const toY = (h: number) => padY + rulerH * (1 - h / rulerMax)
 
-    const ticks = []
-    for (let h = 0; h <= RULER_MAX; h += RULER_STEP) {
-      const y = rulerH * (1 - h / RULER_MAX)
-      const isMajor = h % 50 === 0
-      ticks.push({ h, y, isMajor })
+    const heightRatio = Math.min(Math.max(v.height / rulerMax, 0), 1)
+    const markerY = padY + rulerH * (1 - heightRatio)
+
+    const ticks: { h: number; y: number; isMajor: boolean }[] = []
+    for (let h = 0; h <= rulerMax; h += RULER_STEP) {
+      ticks.push({ h, y: toY(h), isMajor: h % 50 === 0 })
     }
 
-    // アバター画像の実表示サイズ（imageScale は 0.5〜2.0）
     const imgH = rulerH * (v.imageScale ?? 1)
-    const imgW = imgH * 0.55  // 縦長比率
+    const imgW = imgH * 0.55
     const imgOffsetY = (v.imageOffsetY ?? 0) * rulerH * 0.1
 
     return (
       <div style={{
         position: 'relative',
         width: totalW,
-        height: rulerH,
+        height: svgH,
         flexShrink: 0,
         display: 'flex',
         alignItems: 'flex-start',
@@ -68,7 +72,7 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
         {v.avatarImage && (
           <div style={{
             position: 'absolute',
-            bottom: 0,
+            bottom: padY,
             left: svgW + ctx.cardWidth * 0.01,
             width: imgW,
             height: imgH,
@@ -83,13 +87,9 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
         )}
 
         {/* 目盛りSVG */}
-        <svg
-          width={svgW}
-          height={rulerH}
-          style={{ flexShrink: 0, overflow: 'hidden' }}
-        >
+        <svg width={svgW} height={svgH} style={{ flexShrink: 0, overflow: 'hidden' }}>
           {/* メインライン */}
-          <line x1={lineX} y1={0} x2={lineX} y2={rulerH} stroke={ctx.theme.subText} strokeWidth={1} />
+          <line x1={lineX} y1={padY} x2={lineX} y2={padY + rulerH} stroke={lineColor} strokeWidth={1} />
 
           {/* 目盛り */}
           {ticks.map(({ h, y, isMajor }) => {
@@ -99,7 +99,7 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
                 <line
                   x1={lineX} y1={y}
                   x2={lineX + tickLen} y2={y}
-                  stroke={ctx.theme.subText} strokeWidth={isMajor ? 1 : 0.5}
+                  stroke={lineColor} strokeWidth={isMajor ? 1 : 0.5}
                 />
                 {isMajor && (
                   <text
@@ -107,7 +107,7 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
                     y={y + fs * 0.35}
                     textAnchor="start"
                     fontSize={fs * 0.85}
-                    fill={ctx.theme.subText}
+                    fill={lineColor}
                     fontFamily={ctx.fontFamily}
                   >
                     {h}
@@ -167,7 +167,7 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
           <label className="text-sm text-gray-600 w-20 shrink-0">身長</label>
           <input
             type="number"
-            min={50} max={250}
+            min={50} max={300}
             value={v.height}
             onChange={e => onChange({ ...v, height: Number(e.target.value) })}
             className="w-24 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
@@ -184,21 +184,15 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
             className="hidden"
             id="height-ruler-image-upload"
           />
-          <label
-            htmlFor="height-ruler-image-upload"
-            className="flex items-center gap-2 cursor-pointer"
-          >
+          <label htmlFor="height-ruler-image-upload" className="flex items-center gap-2 cursor-pointer">
             {v.avatarImage
               ? <img src={v.avatarImage} alt="" className="h-20 w-auto object-contain rounded border border-gray-200 bg-gray-50" />
               : <div className="h-20 w-20 flex items-center justify-center rounded border-2 border-dashed border-gray-200 text-gray-400 text-xs bg-gray-50">画像を選択</div>
             }
           </label>
           {v.avatarImage && (
-            <button
-              type="button"
-              onClick={() => onChange({ ...v, avatarImage: null })}
-              className="text-xs text-red-400 hover:text-red-600 text-left"
-            >
+            <button type="button" onClick={() => onChange({ ...v, avatarImage: null })}
+              className="text-xs text-red-400 hover:text-red-600 text-left">
               画像を削除
             </button>
           )}
@@ -208,28 +202,53 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
           <>
             <div className="flex items-center gap-3">
               <label className="text-sm text-gray-600 w-20 shrink-0">画像サイズ</label>
-              <input
-                type="range"
-                min={0.3} max={2.0} step={0.05}
-                value={v.imageScale}
+              <input type="range" min={0.3} max={2.0} step={0.05} value={v.imageScale}
                 onChange={e => onChange({ ...v, imageScale: Number(e.target.value) })}
-                className="flex-1"
-              />
+                className="flex-1" />
               <span className="text-xs text-gray-400 w-10 text-right">{v.imageScale.toFixed(2)}×</span>
             </div>
             <div className="flex items-center gap-3">
               <label className="text-sm text-gray-600 w-20 shrink-0">上下位置</label>
-              <input
-                type="range"
-                min={-5} max={5} step={0.1}
-                value={v.imageOffsetY}
+              <input type="range" min={-5} max={5} step={0.1} value={v.imageOffsetY}
                 onChange={e => onChange({ ...v, imageOffsetY: Number(e.target.value) })}
-                className="flex-1"
-              />
-              <span className="text-xs text-gray-400 w-10 text-right">{v.imageOffsetY > 0 ? `+${v.imageOffsetY.toFixed(1)}` : v.imageOffsetY.toFixed(1)}</span>
+                className="flex-1" />
+              <span className="text-xs text-gray-400 w-10 text-right">
+                {v.imageOffsetY > 0 ? `+${v.imageOffsetY.toFixed(1)}` : v.imageOffsetY.toFixed(1)}
+              </span>
             </div>
           </>
         )}
+      </div>
+    )
+  },
+
+  blockConfigForm({ blockConfig, onChange }: BlockConfigFormProps) {
+    const maxHeight = typeof blockConfig.maxHeight === 'number' ? blockConfig.maxHeight : 200
+    const lineColor = typeof blockConfig.lineColor === 'string' ? blockConfig.lineColor : ''
+
+    return (
+      <div className="flex flex-col gap-3 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 w-28 shrink-0">最大身長 (cm)</span>
+          <input
+            type="number" min={100} max={300} value={maxHeight}
+            onChange={e => onChange({ ...blockConfig, maxHeight: Number(e.target.value) })}
+            className="w-20 text-xs border border-gray-200 rounded px-2 py-1 bg-white"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 w-28 shrink-0">線の色</span>
+          <ColorPicker
+            value={lineColor || '#9ca3af'}
+            onChange={v => onChange({ ...blockConfig, lineColor: v })}
+          />
+          {lineColor && (
+            <button type="button" onClick={() => onChange({ ...blockConfig, lineColor: undefined })}
+              className="text-[10px] text-gray-400 hover:text-red-400">
+              リセット
+            </button>
+          )}
+        </div>
       </div>
     )
   },

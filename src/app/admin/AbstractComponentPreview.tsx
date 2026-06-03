@@ -429,7 +429,7 @@ function ItemListDemo({ variant }: { variant: string }) {
 // height-ruler
 // ─────────────────────────────────────────
 function HeightRulerDemo() {
-  const [value, setValue] = useState<HeightRulerValue>({ height: 154, avatarImage: null, imageScale: 1, imageOffsetY: 0 })
+  const [value, setValue] = useState<HeightRulerValue>({ height: 154, avatarImage: null, imageScale: 1, imageOffsetY: 0, imageOffsetX: 0 })
   return (
     <div className="grid grid-cols-2 divide-x divide-gray-100 min-w-0">
       <div className="px-5 py-5 space-y-3 min-w-0 overflow-hidden">

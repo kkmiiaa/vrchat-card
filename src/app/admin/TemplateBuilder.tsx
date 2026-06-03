@@ -1030,8 +1030,6 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
             <button onClick={() => handleMove(path, 1)} disabled={idx >= siblingCount - 1}
               className="px-2 py-1 text-xs border rounded disabled:opacity-30 hover:bg-gray-50">↓</button>
           </>}
-          <NodeCopyButton node={node} />
-          <NodePasteButton onApply={n => handleUpdate(path, () => n)} />
           {!isRoot && (
             <button onClick={() => handleDelete(path)}
               className="ml-auto px-2 py-1 text-xs border border-red-200 text-red-600 rounded hover:bg-red-50">削除</button>
@@ -1321,6 +1319,10 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
                 onClick={() => handleAdd(path, { type: 'col', flex: 1, children: [] })}
                 className="px-2 py-1 text-xs border rounded hover:bg-purple-50 text-purple-700 border-purple-200"
               >+ col</button>
+              <button
+                onClick={() => handleAdd(path, { type: 'grid', columns: 2, gap: 4, flex: 1, children: [] })}
+                className="px-2 py-1 text-xs border rounded hover:bg-teal-50 text-teal-700 border-teal-200"
+              >+ grid</button>
               <select
                 className="px-2 py-1 text-xs border rounded hover:bg-blue-50 text-blue-700 border-blue-200"
                 defaultValue=""
@@ -1875,72 +1877,6 @@ function SizeProp({ label, value, onChange }: {
   )
 }
 
-function NodeCopyButton({ node }: { node: LayoutNode }) {
-  const [copied, setCopied] = useState(false)
-  return (
-    <button
-      onClick={() => {
-        navigator.clipboard.writeText(JSON.stringify(node, null, 2))
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1500)
-      }}
-      className={`px-2 py-1 text-xs rounded border transition-colors ${copied ? 'border-green-300 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'}`}
-    >
-      {copied ? '✓ コピー済み' : 'ノードコピー'}
-    </button>
-  )
-}
-
-function NodePasteButton({ onApply }: { onApply: (node: LayoutNode) => void }) {
-  const [open, setOpen] = useState(false)
-  const [text, setText] = useState('')
-  const [error, setError] = useState('')
-
-  const handleApply = () => {
-    try {
-      const node = JSON.parse(text) as LayoutNode
-      onApply(node)
-      setOpen(false)
-      setText('')
-      setError('')
-    } catch {
-      setError('JSON のパースに失敗しました')
-    }
-  }
-
-  return (
-    <>
-      <button
-        onClick={() => { setOpen(true); setError('') }}
-        className="px-2 py-1 text-xs rounded border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 transition-colors"
-      >
-        ノード貼り付け
-      </button>
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setOpen(false)}>
-          <div className="bg-white rounded-xl shadow-xl p-4 w-[480px] flex flex-col gap-3" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-gray-700">ノード貼り付け</span>
-              <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
-            </div>
-            <p className="text-[11px] text-gray-400">選択中のノードを JSON で置き換えます。</p>
-            <textarea
-              className="w-full h-48 text-xs font-mono border border-gray-200 rounded-lg p-2 resize-none focus:outline-none focus:ring-2 focus:ring-sky-200"
-              placeholder='{ "type": "col", ... }'
-              value={text}
-              onChange={e => { setText(e.target.value); setError('') }}
-            />
-            {error && <p className="text-xs text-red-500">{error}</p>}
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-xs rounded border border-gray-200 text-gray-500 hover:bg-gray-50">キャンセル</button>
-              <button onClick={handleApply} disabled={!text.trim()} className="px-3 py-1.5 text-xs rounded bg-sky-500 text-white font-semibold hover:bg-sky-600 disabled:opacity-40">適用</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  )
-}
 
 
 // ─── FormBuilder ────────────────────────────────────────────────────────────

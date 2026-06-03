@@ -1783,11 +1783,11 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
                   {/* 書き出し用ウォーターマーク */}
                   <div style={{
                     position: 'absolute',
-                    bottom: 10,
-                    right: 14,
+                    bottom: 6,
+                    right: 6,
                     pointerEvents: 'none',
                   }}>
-                    <span style={{ fontSize: 9, fontWeight: 600, color: 'rgba(255,255,255,0.6)', fontFamily: 'sans-serif', letterSpacing: '0.06em' }}>
+                    <span style={{ fontSize: 8, fontWeight: 600, color: 'rgba(255,255,255,0.6)', fontFamily: 'sans-serif', letterSpacing: '0.06em' }}>
                       vaacard.me
                     </span>
                   </div>

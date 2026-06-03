@@ -194,7 +194,7 @@ function collectUsedKeys(node: LayoutNode): Set<string> {
 
 type Props = {
   savedLayouts: Record<string, TemplateLayoutRow>
-  onLabelChange?: (id: string, label: string) => void
+  onLabelChange?: (id: string, label: string, description?: string) => void
   onDelete?: (id: string, label: string) => void
 }
 
@@ -417,6 +417,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
   const currentPublished = publishedMap[currentRow.id] ?? false
   const [editingLabel, setEditingLabel] = useState(false)
   const [labelDraft, setLabelDraft] = useState('')
+  const [descriptionDraft, setDescriptionDraft] = useState('')
 
   type DesignPreset = 'contained' | 'glass' | 'flat'
   const [designPresets, setDesignPresets] = useState<Record<string, DesignPreset>>(
@@ -458,6 +459,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
     const cfg = currentRow.card_config ?? {}
     const { error } = await saveTemplateLayout(currentRow.id, {
       label:              currentRow.label,
+      description:        currentRow.description ?? undefined,
       card_layout:        cardLayout,
       web_layout:         webLayout,
       block_pool:         currentPool as Record<string, unknown>,
@@ -1543,12 +1545,12 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
           {/* テンプレート名インライン編集 */}
           {editingLabel ? (
             <form
-              className="flex items-center gap-1"
+              className="flex flex-col gap-1"
               onSubmit={e => {
                 e.preventDefault()
                 const trimmed = labelDraft.trim()
-                if (trimmed && trimmed !== currentRow.label) {
-                  onLabelChange?.(currentRow.id, trimmed)
+                if (trimmed) {
+                  onLabelChange?.(currentRow.id, trimmed, descriptionDraft.trim() || undefined)
                 }
                 setEditingLabel(false)
               }}
@@ -1557,25 +1559,39 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
                 autoFocus
                 value={labelDraft}
                 onChange={e => setLabelDraft(e.target.value)}
-                onBlur={() => {
-                  const trimmed = labelDraft.trim()
-                  if (trimmed && trimmed !== currentRow.label) {
-                    onLabelChange?.(currentRow.id, trimmed)
-                  }
-                  setEditingLabel(false)
-                }}
                 onKeyDown={e => { if (e.key === 'Escape') setEditingLabel(false) }}
-                className="text-xs font-semibold text-gray-800 border border-sky-300 rounded px-2 py-0.5 w-40 focus:outline-none focus:ring-1 focus:ring-sky-300"
+                placeholder="テンプレート名"
+                className="text-xs font-semibold text-gray-800 border border-sky-300 rounded px-2 py-0.5 w-56 focus:outline-none focus:ring-1 focus:ring-sky-300"
               />
+              <input
+                value={descriptionDraft}
+                onChange={e => setDescriptionDraft(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Escape') setEditingLabel(false) }}
+                placeholder="説明（任意）"
+                className="text-xs text-gray-600 border border-gray-200 rounded px-2 py-0.5 w-56 focus:outline-none focus:ring-1 focus:ring-sky-300"
+              />
+              <div className="flex gap-1">
+                <button type="submit" className="text-[10px] px-2 py-0.5 bg-sky-500 text-white rounded hover:bg-sky-600">保存</button>
+                <button type="button" onClick={() => setEditingLabel(false)} className="text-[10px] px-2 py-0.5 border border-gray-200 rounded text-gray-500 hover:bg-gray-50">キャンセル</button>
+              </div>
             </form>
           ) : (
             <button
               type="button"
-              onClick={() => { setLabelDraft(currentRow.label); setEditingLabel(true) }}
+              onClick={() => {
+                setLabelDraft(currentRow.label)
+                setDescriptionDraft(currentRow.description ?? '')
+                setEditingLabel(true)
+              }}
               className="flex items-center gap-1 group min-w-0 shrink"
-              title="クリックして名前を編集"
+              title="クリックして名前・説明を編集"
             >
-              <span className="text-xs font-semibold text-gray-800 truncate max-w-[160px]">{currentRow.label}</span>
+              <div className="flex flex-col items-start min-w-0">
+                <span className="text-xs font-semibold text-gray-800 truncate max-w-[160px]">{currentRow.label}</span>
+                {currentRow.description && (
+                  <span className="text-[10px] text-gray-400 truncate max-w-[160px]">{currentRow.description}</span>
+                )}
+              </div>
               <span className="text-[10px] text-gray-300 group-hover:text-gray-500 transition-colors flex-shrink-0">✏</span>
             </button>
           )}

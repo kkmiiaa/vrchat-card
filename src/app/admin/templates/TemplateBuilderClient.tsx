@@ -135,16 +135,17 @@ export default function TemplateBuilderClient({ savedLayouts: initialLayouts, co
     setDeletingId(null)
   }
 
-  const handleLabelChange = (id: string, label: string) => {
+  const handleLabelChange = (id: string, label: string, description?: string) => {
     setSavedLayouts(prev => {
       const saved = prev[id]
       if (!saved) return prev
-      return { ...prev, [id]: { ...saved, label } }
+      return { ...prev, [id]: { ...saved, label, description: description ?? saved.description } }
     })
     const saved = savedLayouts[id]
     if (saved?.card_layout && saved.web_layout) {
       saveTemplateLayout(id, {
         label,
+        description,
         card_layout:        saved.card_layout,
         web_layout:         saved.web_layout,
         form_sections:      saved.form_sections ?? [],

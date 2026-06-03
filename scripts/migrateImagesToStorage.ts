@@ -13,6 +13,7 @@
 
 import 'dotenv/config'
 import { createClient } from '@supabase/supabase-js'
+import ws from 'ws'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -27,7 +28,9 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
   process.exit(1)
 }
 
-const supabase = createClient(SUPABASE_URL, SERVICE_KEY)
+const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
+  realtime: { transport: ws },
+})
 
 // base64 data URL → Buffer
 function base64ToBuffer(dataUrl: string): { buffer: Buffer; mimeType: string } {
@@ -70,6 +73,8 @@ async function migrateCard(card: {
     for (let i = 0; i < 3; i++) {
       const b64 = (gallery.base64 as (string|null)[])[i]
       if (!b64 || newUrls[i]) continue
+      // 既に Storage URL が入っている場合はそちらを urls に移すだけ
+      if (!b64.startsWith('data:')) { newUrls[i] = b64; changed = true; continue }
       try {
         const { buffer, mimeType } = base64ToBuffer(b64)
         const url = await uploadBuffer(userId, cardId, `gallery-${i}`, buffer, mimeType, 'jpg')

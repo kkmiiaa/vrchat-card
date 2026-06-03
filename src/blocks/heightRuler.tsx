@@ -30,7 +30,11 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
       : DEFAULT_VALUE
 
     const rulerH = ctx.cardWidth * 0.55
-    const rulerW = ctx.cardWidth * 0.03
+    const lineX = ctx.cardWidth * 0.025   // 縦線のX位置
+    const tickRight = ctx.cardWidth * 0.015  // 目盛りの右方向長さ
+    const labelOffsetX = tickRight + ctx.cardWidth * 0.004  // ラベル開始X（線より右）
+    const svgW = lineX + tickRight + ctx.cardWidth * 0.05   // SVG幅（ラベル含む）
+    const rulerW = lineX  // 後方互換（アバター画像位置用）
     const totalW = ctx.cardWidth * 0.22
     const fs = ctx.fontSize.xs
     const accentColor = ctx.theme.accent
@@ -65,7 +69,7 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
           <div style={{
             position: 'absolute',
             bottom: 0,
-            left: rulerW + ctx.cardWidth * 0.01,
+            left: svgW + ctx.cardWidth * 0.01,
             width: imgW,
             height: imgH,
             transform: `translateY(${imgOffsetY}px)`,
@@ -80,28 +84,28 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
 
         {/* 目盛りSVG */}
         <svg
-          width={rulerW + ctx.cardWidth * 0.065}
+          width={svgW}
           height={rulerH}
-          style={{ flexShrink: 0, overflow: 'visible' }}
+          style={{ flexShrink: 0, overflow: 'hidden' }}
         >
           {/* メインライン */}
-          <line x1={rulerW} y1={0} x2={rulerW} y2={rulerH} stroke={ctx.theme.subText} strokeWidth={1} />
+          <line x1={lineX} y1={0} x2={lineX} y2={rulerH} stroke={ctx.theme.subText} strokeWidth={1} />
 
           {/* 目盛り */}
           {ticks.map(({ h, y, isMajor }) => {
-            const tickLen = isMajor ? rulerW * 0.8 : rulerW * 0.4
+            const tickLen = isMajor ? tickRight : tickRight * 0.5
             return (
               <g key={h}>
                 <line
-                  x1={rulerW - tickLen} y1={y}
-                  x2={rulerW} y2={y}
+                  x1={lineX} y1={y}
+                  x2={lineX + tickLen} y2={y}
                   stroke={ctx.theme.subText} strokeWidth={isMajor ? 1 : 0.5}
                 />
-                {isMajor && h > 0 && (
+                {isMajor && (
                   <text
-                    x={rulerW - tickLen - 2}
+                    x={lineX + labelOffsetX}
                     y={y + fs * 0.35}
-                    textAnchor="end"
+                    textAnchor="start"
                     fontSize={fs * 0.85}
                     fill={ctx.theme.subText}
                     fontFamily={ctx.fontFamily}
@@ -116,22 +120,21 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
           {/* 身長マーカー */}
           <g>
             <line
-              x1={rulerW} y1={markerY}
-              x2={rulerW + ctx.cardWidth * 0.06} y2={markerY}
+              x1={lineX} y1={markerY}
+              x2={svgW} y2={markerY}
               stroke={accentColor} strokeWidth={1.5} strokeDasharray="3 2"
             />
-            {/* ラベル */}
             <rect
-              x={rulerW + ctx.cardWidth * 0.006}
-              y={markerY - fs * 1.0}
-              width={fs * 3.8}
-              height={fs * 1.4}
+              x={lineX + labelOffsetX}
+              y={markerY - fs * 1.1}
+              width={fs * 4.0}
+              height={fs * 1.5}
               rx={fs * 0.3}
               fill={accentColor}
             />
             <text
-              x={rulerW + ctx.cardWidth * 0.006 + fs * 1.9}
-              y={markerY - fs * 0.15}
+              x={lineX + labelOffsetX + fs * 2.0}
+              y={markerY - fs * 0.2}
               textAnchor="middle"
               fontSize={fs * 0.85}
               fill="#fff"

@@ -1,5 +1,6 @@
 'use client'
 import type { ComponentDef } from './types'
+import { SURFACE_STYLE } from './types'
 
 export type ItemEntry = {
   category: string
@@ -28,6 +29,7 @@ export const itemListComponent: ComponentDef<ItemListValue> = {
   key: 'item-list',
   defaultValue: [],
   variants: ['simple', 'compact'],
+  surfaceMode: 'internal',
 
   CardItem({ value, ctx, variant = 'simple', blockConfig, isInteractive }) {
     const items: ItemListValue = Array.isArray(value) ? value : []
@@ -46,6 +48,7 @@ export const itemListComponent: ComponentDef<ItemListValue> = {
     const fs = isCompact ? ctx.fontSize.xs : ctx.fontSize.sm
     const catFs = ctx.fontSize.xs
     const gap = isCompact ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.008
+    const ss = ctx.surface && ctx.surface !== 'transparent' ? SURFACE_STYLE[ctx.surface] : null
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap, width: '100%' }}>
@@ -60,8 +63,9 @@ export const itemListComponent: ComponentDef<ItemListValue> = {
                 width: '100%',
                 padding: `${ctx.cardWidth * 0.004}px ${ctx.cardWidth * 0.006}px`,
                 borderRadius: ctx.cardWidth * 0.005,
-                background: 'rgba(255,255,255,0.45)',
-                border: '0.5px solid rgba(0,0,0,0.08)',
+                background: ss ? ss.background : 'rgba(255,255,255,0.45)',
+                border: ss ? ss.border : '0.5px solid rgba(0,0,0,0.08)',
+                boxShadow: ss?.boxShadow,
                 boxSizing: 'border-box',
                 cursor: (isInteractive && entry.url) ? 'pointer' : 'default',
                 textDecoration: 'none',

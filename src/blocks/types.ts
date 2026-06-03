@@ -330,9 +330,40 @@ export type LayoutNodeRef = {
   labelInset?: boolean
   /** labelInsetDir 上書き */
   labelInsetDir?: 'col' | 'row'
+  /** grid 親のとき有効: 列方向の跨ぎ数 */
+  colSpan?: number
+  /** grid 親のとき有効: 行方向の跨ぎ数 */
+  rowSpan?: number
 }
 
-export type LayoutNode = Block | LayoutNodeRow | LayoutNodeCol | LayoutNodeRef
+export type LayoutNodeGrid = {
+  type: 'grid'
+  children: LayoutNode[]
+  /** 列定義。数値（等幅列数）または CSS grid-template-columns 文字列 */
+  columns: number | string
+  /** 行定義。省略時は auto */
+  rows?: number | string
+  /** セル間ギャップ（px）。省略時は親の gap を継承 */
+  gap?: number
+  /** 列方向ギャップ（px）。gap より優先 */
+  columnGap?: number
+  /** 行方向ギャップ（px）。gap より優先 */
+  rowGap?: number
+  /** align-items 値（省略時は stretch） */
+  alignItems?: string
+  /** justify-items 値（省略時は stretch） */
+  justifyItems?: string
+  /** コンテナ上部に表示するセクションラベル */
+  label?: string
+  labelColor?: string
+  labelIcon?: string
+  /** flex 伸長係数（row/col 親のとき有効） */
+  flex?: number
+  minW?: number
+  minH?: number
+}
+
+export type LayoutNode = Block | LayoutNodeRow | LayoutNodeCol | LayoutNodeGrid | LayoutNodeRef
 
 /** 向き別レイアウト定義（card / web それぞれ持つ） */
 export type TemplateOrientationDef = {

@@ -287,6 +287,72 @@ function renderNode(
     )
   }
 
+  if (node.type === 'grid') {
+    const hasFlex = node.flex !== undefined
+    const nodeGap = node.gap !== undefined ? node.gap : 2 * gapUnit
+    const columnGap = node.columnGap ?? nodeGap
+    const rowGap    = node.rowGap    ?? nodeGap
+    const cols = typeof node.columns === 'number'
+      ? `repeat(${node.columns}, 1fr)`
+      : node.columns
+    const rows = node.rows === undefined ? undefined
+      : typeof node.rows === 'number' ? `repeat(${node.rows}, 1fr)` : node.rows
+    const labelScale = ctx.defaultLabelFontScale ?? 1
+    const titleFs = ctx.fontSize.sm * labelScale
+    const labelColor = node.labelColor ?? ctx.theme.text
+    const outerStyle: React.CSSProperties = {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: node.label ? ctx.cardWidth * 0.004 : 0,
+      minWidth: 0,
+      minHeight: 0,
+      flexGrow: hasFlex ? node.flex : 0,
+      flexShrink: hasFlex ? 1 : 0,
+      flexBasis: hasFlex ? 0 : 'auto',
+      ...(node.minW !== undefined && !hasFlex ? { width: cellsToPixels(node.minW, cellSize) } : {}),
+      ...(node.minH !== undefined && !hasFlex ? { minHeight: cellsToPixels(node.minH, cellSize) } : {}),
+      ...highlight,
+    }
+    const innerStyle: React.CSSProperties = {
+      display: 'grid',
+      gridTemplateColumns: cols,
+      ...(rows ? { gridTemplateRows: rows } : {}),
+      columnGap,
+      rowGap,
+      minWidth: 0,
+      flexGrow: 1,
+      ...(node.alignItems  ? { alignItems:  node.alignItems  } : {}),
+      ...(node.justifyItems ? { justifyItems: node.justifyItems } : {}),
+    }
+    return (
+      <div style={outerStyle}>
+        {node.label && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: ctx.cardWidth * 0.004, flexShrink: 0 }}>
+            {node.labelIcon && <span style={{ display: 'inline-flex', alignItems: 'center', color: labelColor, fontSize: titleFs, lineHeight: 1 }}>{renderIcon(node.labelIcon, titleFs)}</span>}
+            <span style={{ fontSize: titleFs, fontWeight: 700, color: labelColor, fontFamily: ctx.fontFamily }}>{node.label}</span>
+          </div>
+        )}
+        <div style={innerStyle}>
+          {node.children.map((child, i) => {
+            const colSpan = child.type === 'ref' ? child.colSpan : undefined
+            const rowSpan = child.type === 'ref' ? child.rowSpan : undefined
+            const cellStyle: React.CSSProperties = {
+              ...(colSpan ? { gridColumn: `span ${colSpan}` } : {}),
+              ...(rowSpan ? { gridRow:    `span ${rowSpan}` } : {}),
+              minWidth: 0,
+              minHeight: 0,
+            }
+            return (
+              <div key={i} style={cellStyle}>
+                {renderNode(child, grid, values, ctx, [...currentPath, i], highlightPath, blockPool)}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
   return null
 }
 

@@ -51,8 +51,8 @@ export function buildCardTemplateFromDefinition(
   const resolvedDefinition: TemplateDefinition = {
     id:           (definition?.id ?? dbRow?.id ?? 'unknown') as TemplateDefinition['id'],
     label:        dbRow?.label ?? definition?.label ?? '',
-    theme:        definition?.theme ?? { accent: '#00AADB', text: '#1f2937', subText: '#9ca3af', bg: 'rgba(255,255,255,0.85)' },
-    fontFamily:   definition?.fontFamily ?? 'sans-serif',
+    theme:        (cfg?.theme as TemplateDefinition['theme'] | undefined) ?? definition?.theme ?? { accent: '#00AADB', text: '#1f2937', subText: '#9ca3af', bg: 'rgba(255,255,255,0.85)' },
+    fontFamily:   cfg?.fontFamily ?? definition?.fontFamily ?? 'sans-serif',
     borderRadius,
     backgroundKey,
     overlayKey,
@@ -155,6 +155,7 @@ export function buildCardTemplateFromDefinition(
         values:      sampleData,
         fontFamily:  resolvedDefinition.fontFamily,
         background:  fixedBackground ?? sampleBg,
+        defaultSurface,
       })
     },
   }

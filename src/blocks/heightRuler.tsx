@@ -34,7 +34,7 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
 
     const rulerMax: number = typeof blockConfig?.maxHeight === 'number' && blockConfig.maxHeight > 0 ? blockConfig.maxHeight : 200
     const lineColor: string = typeof blockConfig?.lineColor === 'string' ? blockConfig.lineColor : ctx.theme.subText
-    const accentColor = ctx.theme.accent
+    const accentColor: string = typeof blockConfig?.markerColor === 'string' ? blockConfig.markerColor : ctx.theme.accent
 
     // ── viewBox 座標系（高さに依存しない固定単位） ──
     const VB_PAD  = 6    // 上下パディング
@@ -253,6 +253,7 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
   blockConfigForm({ blockConfig, onChange }: BlockConfigFormProps) {
     const maxHeight = typeof blockConfig.maxHeight === 'number' ? blockConfig.maxHeight : 200
     const lineColor = typeof blockConfig.lineColor === 'string' ? blockConfig.lineColor : ''
+    const markerColor = typeof blockConfig.markerColor === 'string' ? blockConfig.markerColor : ''
 
     return (
       <div className="flex flex-col gap-3 text-sm">
@@ -272,6 +273,19 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
           />
           {lineColor && (
             <button type="button" onClick={() => onChange({ ...blockConfig, lineColor: undefined })}
+              className="text-[10px] text-gray-400 hover:text-red-400">
+              リセット
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 w-28 shrink-0">身長ラベル・点線色</span>
+          <ColorPicker
+            value={markerColor || '#00AADB'}
+            onChange={v => onChange({ ...blockConfig, markerColor: v })}
+          />
+          {markerColor && (
+            <button type="button" onClick={() => onChange({ ...blockConfig, markerColor: undefined })}
               className="text-[10px] text-gray-400 hover:text-red-400">
               リセット
             </button>

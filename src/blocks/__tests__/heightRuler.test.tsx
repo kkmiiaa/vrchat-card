@@ -12,17 +12,19 @@ const DEFAULT: HeightRulerValue = {
   avatarImage: null,
   imageScale: 1,
   imageOffsetY: 0,
+  imageOffsetX: 0,
 }
 
 // ─── defaultValue ────────────────────────────────────────────────────────────
 
 describe('heightRuler defaultValue', () => {
-  it('height=160, avatarImage=null, imageScale=1, imageOffsetY=0', () => {
+  it('height=160, avatarImage=null, imageScale=1, imageOffsetY=0, imageOffsetX=0', () => {
     expect(heightRulerComponent.defaultValue).toEqual({
       height: 160,
       avatarImage: null,
       imageScale: 1,
       imageOffsetY: 0,
+      imageOffsetX: 0,
     })
   })
 })

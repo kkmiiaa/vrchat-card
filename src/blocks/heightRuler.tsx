@@ -9,6 +9,7 @@ export type HeightRulerValue = {
   avatarImageUrl?: string | null  // Storage URL（新形式、あれば優先）
   imageScale: number
   imageOffsetY: number
+  imageOffsetX: number
 }
 
 const DEFAULT_VALUE: HeightRulerValue = {
@@ -16,6 +17,7 @@ const DEFAULT_VALUE: HeightRulerValue = {
   avatarImage: null,
   imageScale: 1,
   imageOffsetY: 0,
+  imageOffsetX: 0,
 }
 
 const RULER_STEP = 10
@@ -58,10 +60,14 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
     // アバター画像（<image>要素でSVG内に配置）
     const imgSrc = v.avatarImageUrl ?? v.avatarImage ?? null
     const imgScale = v.imageScale ?? 1
-    const imgH_vb = VB_RULER * imgScale
-    const imgW_vb = (VB_W - LINE_X - 2) * imgScale
-    const imgOffsetY_vb = -(v.imageOffsetY ?? 0) * 8  // VB 単位での上下オフセット
-    const imgY_vb = toY(0) - imgH_vb + imgOffsetY_vb  // 下端を 0cm に揃える
+    // 高さを主制約にすることでスケールが素直に効く
+    // 幅は大きめに設定し portrait 画像でも高さが先に制約されるようにする
+    const imgH_vb = VB_RULER * 0.75 * imgScale
+    const imgW_vb = VB_W * 2 * imgScale           // 幅はゆったり確保（overflow: visible で画面外にはみ出し可）
+    const imgOffsetY_vb = -(v.imageOffsetY ?? 0) * 8
+    const imgOffsetX_vb = (v.imageOffsetX ?? 0) * 6
+    const imgY_vb = toY(0) - imgH_vb + imgOffsetY_vb
+    const imgX_vb = LINE_X + 2 + imgOffsetX_vb
 
     return (
       <div style={{
@@ -108,7 +114,7 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
           {imgSrc && (
             <image
               href={imgSrc}
-              x={LINE_X + 2}
+              x={imgX_vb}
               y={imgY_vb}
               width={imgW_vb}
               height={imgH_vb}
@@ -215,10 +221,19 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
           <>
             <div className="flex items-center gap-3">
               <label className="text-sm text-gray-600 w-20 shrink-0">画像サイズ</label>
-              <input type="range" min={0.3} max={2.0} step={0.05} value={v.imageScale}
+              <input type="range" min={0.3} max={3.0} step={0.05} value={v.imageScale}
                 onChange={e => onChange({ ...v, imageScale: Number(e.target.value) })}
                 className="flex-1" />
               <span className="text-xs text-gray-400 w-10 text-right">{v.imageScale.toFixed(2)}×</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-600 w-20 shrink-0">左右位置</label>
+              <input type="range" min={-5} max={10} step={0.1} value={v.imageOffsetX ?? 0}
+                onChange={e => onChange({ ...v, imageOffsetX: Number(e.target.value) })}
+                className="flex-1" />
+              <span className="text-xs text-gray-400 w-10 text-right">
+                {(v.imageOffsetX ?? 0) > 0 ? `+${(v.imageOffsetX ?? 0).toFixed(1)}` : (v.imageOffsetX ?? 0).toFixed(1)}
+              </span>
             </div>
             <div className="flex items-center gap-3">
               <label className="text-sm text-gray-600 w-20 shrink-0">上下位置</label>

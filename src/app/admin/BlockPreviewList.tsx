@@ -27,6 +27,8 @@ import { linkItemComponent } from '@/blocks/linkItem'
 import { colorPaletteComponent } from '@/blocks/colorPalette'
 import { dateItemComponent } from '@/blocks/dateItem'
 import { qrCodeComponent } from '@/blocks/qrCode'
+import { itemListComponent } from '@/blocks/itemList'
+import { heightRulerComponent } from '@/blocks/heightRuler'
 import { translations } from '@/utils/translations'
 import type { ComponentDef, SurfaceVariant } from '@/blocks/types'
 import { DEFAULT_CARD_RENDER_CONTEXT, SURFACE_STYLE } from '@/blocks/types'
@@ -512,6 +514,24 @@ export const COMPONENTS: ComponentEntry[] = [
     format: '{ images: (File|null)[], base64: (string|null)[] }',
     description: '画像ギャラリー（最大3枚）。optional: true にすると未入力時は非表示',
     component: galleryComponent as ComponentDef<unknown>,
+    SearchInput: SearchNoSupportInput,
+  },
+  {
+    name: 'item-list',
+    category: 'complex',
+    inputType: 'item-list',
+    format: '{ category: string, name: string, code?: string, url?: string }[]',
+    description: '改変アイテムリスト。カテゴリ・名前・コード・Booth URLを可変エントリで管理',
+    component: itemListComponent as ComponentDef<unknown>,
+    SearchInput: SearchNoSupportInput,
+  },
+  {
+    name: 'height-ruler',
+    category: 'complex',
+    inputType: 'height-ruler',
+    format: '{ height: number, avatarImage: string|null, imageScale: number, imageOffsetY: number }',
+    description: '身長ルーラー。透過PNG画像をアップロードして身長マーカーと重ねて表示',
+    component: heightRulerComponent as ComponentDef<unknown>,
     SearchInput: SearchNoSupportInput,
   },
   // ─── Utility ────────────────────────────────────────────────────

@@ -27,6 +27,8 @@ import { expressiveSelectComponent } from './expressiveSelect'
 import { genderComponent } from './gender'
 import { snsWithFriendPolicyComponent } from './snsWithFriendPolicy'
 import { qrCodeComponent } from './qrCode'
+import { itemListComponent } from './itemList'
+import { heightRulerComponent } from './heightRuler'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const COMPONENT_REGISTRY: Record<string, ComponentDef<any>> = {
@@ -58,6 +60,8 @@ const COMPONENT_REGISTRY: Record<string, ComponentDef<any>> = {
   [genderComponent.key]:            genderComponent,
   [snsWithFriendPolicyComponent.key]: snsWithFriendPolicyComponent,
   [qrCodeComponent.key]:              qrCodeComponent,
+  [itemListComponent.key]:            itemListComponent,
+  [heightRulerComponent.key]:         heightRulerComponent,
 }
 
 export function getComponent(blockKey: string): ComponentDef<unknown> | undefined {

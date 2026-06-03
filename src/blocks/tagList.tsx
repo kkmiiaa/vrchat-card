@@ -51,7 +51,7 @@ export const tagListComponent: ComponentDef<string[]> = {
       const raw = blockConfig?.presets
       if (!raw) return []
       if (Array.isArray(raw)) return raw.filter((v): v is string => typeof v === 'string')
-      if (typeof raw === 'string') return raw.split('\n').map(s => s.trim()).filter(Boolean)
+      if (typeof raw === 'string') return raw.split(/\\n|\n/).map(s => s.trim()).filter(Boolean)
       return []
     })()
 

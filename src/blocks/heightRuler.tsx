@@ -42,7 +42,7 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
     const lineX = ctx.cardWidth * 0.025
     const tickRight = ctx.cardWidth * 0.015
     const labelOffsetX = tickRight + ctx.cardWidth * 0.004
-    const svgW = lineX + tickRight + ctx.cardWidth * 0.05
+    const svgW = lineX + tickRight + ctx.cardWidth * 0.075
     const totalW = ctx.cardWidth * 0.22
     const accentColor = ctx.theme.accent
 

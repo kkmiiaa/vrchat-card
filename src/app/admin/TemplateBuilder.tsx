@@ -1761,12 +1761,12 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
             }}>
               <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: o.cardWidth, height: o.cardHeight }}>
                 <div ref={cardExportRef} style={{
+                  position: 'relative',
                   width: o.cardWidth,
                   height: o.cardHeight,
                   background: pageBg,
                   borderRadius: currentRow.card_config?.borderRadius ?? 20,
                   overflow: 'hidden',
-                  position: 'relative',
                 }}>
                   <GenericCardRenderer
                     definition={previewDefinition}
@@ -1781,16 +1781,19 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
                     defaultSurface={currentDesignPreset}
                   />
                   {/* 書き出し用ウォーターマーク */}
-                  <div style={{
+                  <span style={{
                     position: 'absolute',
                     bottom: 6,
                     right: 6,
+                    fontSize: 8,
+                    fontWeight: 600,
+                    color: 'rgba(255,255,255,0.6)',
+                    fontFamily: 'sans-serif',
+                    letterSpacing: '0.06em',
                     pointerEvents: 'none',
                   }}>
-                    <span style={{ fontSize: 8, fontWeight: 600, color: 'rgba(255,255,255,0.6)', fontFamily: 'sans-serif', letterSpacing: '0.06em' }}>
-                      vaacard.me
-                    </span>
-                  </div>
+                    vaacard.me
+                  </span>
                 </div>
               </div>
             </div>

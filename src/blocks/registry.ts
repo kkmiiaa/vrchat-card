@@ -16,6 +16,8 @@ import { activityComponent } from './activity'
 import { markListComponent } from './markList'
 import { markGridComponent } from './markGrid'
 import { galleryComponent } from './gallery'
+import { singleImageComponent } from './singleImage'
+import { photoGridComponent } from './photoGrid'
 import { backgroundComponent } from './background'
 import { overlayComponent } from './overlay'
 import { profileImageComponent } from './profileImage'
@@ -42,6 +44,8 @@ const COMPONENT_REGISTRY: Record<string, ComponentDef<any>> = {
   [markListComponent.key]:          markListComponent,
   [markGridComponent.key]:          markGridComponent,
   [galleryComponent.key]:           galleryComponent,
+  [singleImageComponent.key]:       singleImageComponent,
+  [photoGridComponent.key]:         photoGridComponent,
   [backgroundComponent.key]:        backgroundComponent,
   [overlayComponent.key]:           overlayComponent,
   [profileImageComponent.key]:      profileImageComponent,

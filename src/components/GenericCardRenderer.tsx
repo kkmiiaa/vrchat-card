@@ -151,7 +151,7 @@ function renderNode(
           flexDirection: isRow ? 'row' : 'column',
           gap: isRow ? ctx.cardWidth * 0.005 : ctx.cardWidth * 0.003,
           alignItems: isRow ? 'center' : 'stretch',
-          overflow: 'hidden',
+          overflow: 'visible',
           ...(node.minH !== undefined && !hasFlex ? { height: cellsToPixels(node.minH, cellSize) } : {}),
           ...surfaceProps,
         }}>
@@ -170,7 +170,7 @@ function renderNode(
           {labelEl}
           <div style={{
             flexGrow: 1, flexShrink: 1, flexBasis: 'auto', minWidth: 0,
-            display: 'flex', alignItems: 'stretch', overflow: 'hidden',
+            display: 'flex', alignItems: 'stretch', overflow: 'visible',
             ...(node.minH !== undefined ? { minHeight: cellsToPixels(node.minH, cellSize) } : {}),
             ...surfaceProps,
           }}>
@@ -186,7 +186,7 @@ function renderNode(
         ...baseStyle,
         display: 'flex',
         alignItems: hasFlex || node.minH !== undefined ? 'stretch' : 'flex-start',
-        overflow: 'hidden',
+        overflow: 'visible',
         ...(node.minH !== undefined && !hasFlex ? { height: cellsToPixels(node.minH, cellSize) } : {}),
         ...surfaceProps,
       }}>

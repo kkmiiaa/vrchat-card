@@ -137,11 +137,11 @@ export const avatarRecipeDefinition: TemplateDefinition = {
           children: [
             { type: 'ref', blockId: 'avatarName',    minH: 5, contentFontScale: 1.6 },
             { type: 'ref', blockId: 'avatarNameSub', minH: 2, contentFontScale: 0.85 },
-            { type: 'block', componentKey: 'divider', dataKey: '_div1', variant: 'horizontal' },
+            { type: 'block', componentKey: 'divider', variant: 'horizontal' },
             { type: 'ref', blockId: 'height',      minH: 3 },
             { type: 'ref', blockId: 'birthdate',   minH: 3 },
             { type: 'ref', blockId: 'personality', minH: 3 },
-            { type: 'block', componentKey: 'divider', dataKey: '_div2', variant: 'horizontal' },
+            { type: 'block', componentKey: 'divider', variant: 'horizontal' },
             { type: 'ref', blockId: 'concept',   flex: 1, minH: 5 },
             { type: 'ref', blockId: 'themeTags', minH: 4 },
           ],
@@ -164,7 +164,7 @@ export const avatarRecipeDefinition: TemplateDefinition = {
           gap: 3,
           children: [
             { type: 'ref', blockId: 'items', flex: 1 },
-            { type: 'block', componentKey: 'divider', dataKey: '_div3', variant: 'horizontal' },
+            { type: 'block', componentKey: 'divider', variant: 'horizontal' },
             {
               type: 'row',
               gap: 2,
@@ -293,11 +293,11 @@ export const avatarRecipeSimpleDefinition: TemplateDefinition = {
           children: [
             { type: 'ref', blockId: 'avatarName',    minH: 5, contentFontScale: 1.6 },
             { type: 'ref', blockId: 'avatarNameSub', minH: 2, contentFontScale: 0.85 },
-            { type: 'block', componentKey: 'divider', dataKey: '_div1', variant: 'horizontal' },
+            { type: 'block', componentKey: 'divider', variant: 'horizontal' },
             { type: 'ref', blockId: 'height',      minH: 3 },
             { type: 'ref', blockId: 'birthdate',   minH: 3 },
             { type: 'ref', blockId: 'personality', minH: 3 },
-            { type: 'block', componentKey: 'divider', dataKey: '_div2', variant: 'horizontal' },
+            { type: 'block', componentKey: 'divider', variant: 'horizontal' },
             { type: 'ref', blockId: 'concept',   flex: 1, minH: 5 },
             { type: 'ref', blockId: 'themeTags', minH: 4 },
           ],
@@ -309,7 +309,7 @@ export const avatarRecipeSimpleDefinition: TemplateDefinition = {
           gap: 3,
           children: [
             { type: 'ref', blockId: 'items', flex: 1 },
-            { type: 'block', componentKey: 'divider', dataKey: '_div3', variant: 'horizontal' },
+            { type: 'block', componentKey: 'divider', variant: 'horizontal' },
             {
               type: 'row',
               gap: 2,

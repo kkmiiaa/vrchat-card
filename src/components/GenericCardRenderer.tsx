@@ -83,7 +83,7 @@ function renderNode(
   if (node.type === 'block') {
     const block = getComponent(node.componentKey)
     if (!block?.CardItem) return null
-    const value = values[node.dataKey] ?? block.defaultValue
+    const value = (node.dataKey ? values[node.dataKey] : undefined) ?? block.defaultValue
 
     const hasFlex = node.flex !== undefined
     const contentScale = (node.contentFontScale ?? 1) * (ctx.defaultContentFontScale ?? 1)

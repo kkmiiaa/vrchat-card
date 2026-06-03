@@ -184,7 +184,7 @@ function collectUsedKeys(node: LayoutNode): Set<string> {
   const result = new Set<string>()
   function scan(n: LayoutNode) {
     if (n.type === 'ref') result.add(n.blockId)
-    else if (n.type === 'block') result.add(n.dataKey)
+    else if (n.type === 'block') { if (n.dataKey) result.add(n.dataKey) }
     else n.children.forEach(scan)
   }
   scan(node)
@@ -254,7 +254,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
       const initPool: Record<string, PoolEntry> = { ...dbPool }
       function scanIntoPool(node: LayoutNode) {
         if (node.type === 'block') {
-          if (!initPool[node.dataKey]) {
+          if (node.dataKey && !initPool[node.dataKey]) {
             initPool[node.dataKey] = {
               componentKey: node.componentKey,
               dataKey: node.dataKey,
@@ -515,7 +515,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
   useEffect(() => {
     function scanBlocks(node: LayoutNode, acc: Record<string, PoolEntry>) {
       if (node.type === 'block') {
-        if (!acc[node.dataKey]) {
+        if (node.dataKey && !acc[node.dataKey]) {
           acc[node.dataKey] = {
             componentKey: node.componentKey,
             dataKey:      node.dataKey,
@@ -1227,7 +1227,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
                   const newComponentKey = e.target.value
                   handleUpdate(path, n => {
                     const usedKeys = collectAllDataKeys(layout)
-                    usedKeys.delete((n as Block).dataKey)
+                    if ((n as Block).dataKey) usedKeys.delete((n as Block).dataKey!)
                     const newDataKey = generateDataKey(newComponentKey, usedKeys)
                     return { ...n, componentKey: newComponentKey, dataKey: newDataKey, variant: 'simple' }
                   })

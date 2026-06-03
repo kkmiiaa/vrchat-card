@@ -31,7 +31,7 @@ export function collectBlockEntries(
       })
     }
   } else if (node.type === 'block') {
-    if (!seen.has(node.dataKey)) {
+    if (node.dataKey && !seen.has(node.dataKey)) {
       seen.add(node.dataKey)
       result.push({
         componentKey: node.componentKey,
@@ -52,7 +52,7 @@ export function collectAllDataKeys(node: LayoutNode, result = new Set<string>(),
     const poolEntry = blockPool?.[node.blockId]
     if (poolEntry) result.add(poolEntry.dataKey)
   } else if (node.type === 'block') {
-    result.add(node.dataKey)
+    if (node.dataKey) result.add(node.dataKey)
   } else {
     node.children.forEach(c => collectAllDataKeys(c, result, blockPool))
   }

@@ -195,8 +195,8 @@ export type Block = {
   type: 'block'
   /** 使用するコンポーネントのキー */
   componentKey: string
-  /** card_data に保存・参照するキー */
-  dataKey: string
+  /** card_data に保存・参照するキー。省略時はデータの読み書きを行わない（divider 等の装飾専用ブロック向け） */
+  dataKey?: string
   /** コンテンツの表示方法バリアント */
   variant: BlockVariant
   /** 背景・コンテナの見た目バリアント */

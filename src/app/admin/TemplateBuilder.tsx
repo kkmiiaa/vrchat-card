@@ -488,7 +488,7 @@ export default function TemplateBuilder({ savedLayouts, communities = [], onLabe
   const [sampleState, setSampleState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const handleSaveSample = useCallback(async () => {
     setSampleState('saving')
-    const compressed = compressSampleData(localValues as Record<string, unknown>)
+    const compressed = await compressSampleData(localValues as Record<string, unknown>)
     const { error } = await saveSampleCardData(currentRow.id, compressed)
     setSampleState(error ? 'error' : 'saved')
     setTimeout(() => setSampleState('idle'), 2000)

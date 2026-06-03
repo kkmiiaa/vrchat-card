@@ -1392,7 +1392,13 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
               <p className={`text-xs font-medium ${selectedId === row.id ? 'text-sky-700' : 'text-gray-700'}`}>
                 {row.label}
               </p>
-              <p className="text-[10px] text-gray-400 mt-0.5 font-mono">{row.id}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <p className="text-[10px] text-gray-400 font-mono">{row.id}</p>
+                {row.is_published
+                  ? <span className="text-[9px] font-medium px-1 py-0.5 rounded bg-green-100 text-green-700">公開</span>
+                  : <span className="text-[9px] font-medium px-1 py-0.5 rounded bg-gray-100 text-gray-400">非公開</span>
+                }
+              </div>
             </button>
           ))}
         </div>

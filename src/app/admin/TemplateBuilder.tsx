@@ -1744,13 +1744,19 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
               flexShrink: 0,
             }}>
               <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: o.cardWidth, height: o.cardHeight }}>
-                <div ref={cardExportRef} style={{ width: o.cardWidth, height: o.cardHeight }}>
+                <div ref={cardExportRef} style={{
+                  width: o.cardWidth,
+                  height: o.cardHeight,
+                  background: pageBg,
+                  borderRadius: currentRow.card_config?.borderRadius ?? 20,
+                  overflow: 'hidden',
+                }}>
                   <GenericCardRenderer
                     definition={previewDefinition}
                     orientation={orientation}
                     values={localValues}
                     fontFamily={localFontFamily}
-                    noBackground={currentBgMode !== 'fixed'}
+                    noBackground
                     background={previewBackground ?? undefined}
                     highlightPath={selectedPath ?? undefined}
                     cardUrl="https://vaacard.com/card/preview"

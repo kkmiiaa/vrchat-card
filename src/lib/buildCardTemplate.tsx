@@ -80,7 +80,7 @@ export function buildCardTemplateFromDefinition(
 
   // ── blocks 配列（useCardValues・FormItem 解決に使用）─────────────────────
   const seenDataKeys = new Set<string>()
-  const blocks = Object.values(blockPool ?? {})
+  const poolBlocks = Object.values(blockPool ?? {})
     .map(entry => {
       const component = getComponent(entry.componentKey)
       return {
@@ -94,10 +94,24 @@ export function buildCardTemplateFromDefinition(
       }
     })
     .filter(b => {
-      if (seenDataKeys.has(b.key)) return false
+      if (!b.key || seenDataKeys.has(b.key)) return false
       seenDataKeys.add(b.key)
       return true
     })
+
+  // backgroundKey が blockPool になければ background コンポーネントを追加
+  const bgComponent = !seenDataKeys.has(backgroundKey) ? getComponent('background') : null
+  const bgBlock = bgComponent ? [{
+    key:          backgroundKey,
+    formLabel:    undefined,
+    defaultValue: bgComponent.defaultValue ?? null,
+    blockConfig:  undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    FormItem:     bgComponent.FormItem as any,
+    isEmpty:      bgComponent.isEmpty,
+  }] : []
+
+  const blocks = [...poolBlocks, ...bgBlock]
 
   const template: CardTemplate = {
     id:           resolvedDefinition.id as string,

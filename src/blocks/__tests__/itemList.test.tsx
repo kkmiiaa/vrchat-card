@@ -8,7 +8,7 @@ import { DEFAULT_CARD_RENDER_CONTEXT } from '../types'
 const CTX = DEFAULT_CARD_RENDER_CONTEXT
 
 const SAMPLE: ItemListValue = [
-  { category: 'HAIR', name: 'Ash Lilac Waves', code: '#HA-12', url: 'https://booth.pm/example' },
+  { category: 'HAIR', name: 'Ash Lilac Waves', url: 'https://booth.pm/example' },
   { category: 'OUTFIT', name: 'Celestia Set' },
   { category: '', name: '名前のみ' },
 ]
@@ -36,9 +36,9 @@ describe('itemList CardItem', () => {
     expect(screen.getByText('OUTFIT')).toBeInTheDocument()
   })
 
-  it('3. code が描画される', () => {
+  it('3. url を持つエントリが描画される（code フィールドは廃止済み）', () => {
     render(itemListComponent.CardItem!({ value: SAMPLE, ctx: CTX }))
-    expect(screen.getByText('#HA-12')).toBeInTheDocument()
+    expect(screen.getByText('Ash Lilac Waves')).toBeInTheDocument()
   })
 
   it('4. name が空のエントリは描画されない', () => {

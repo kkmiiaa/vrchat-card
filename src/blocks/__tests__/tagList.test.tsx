@@ -22,7 +22,7 @@ describe('tagList', () => {
         t={{} as never}
       />
     )
-    expect(screen.getByRole('textbox')).toBeInTheDocument()
+    expect(screen.getByRole('combobox')).toBeInTheDocument()
   })
 
   it('3. タグを追加すると onChange に新しいタグを含む配列が渡される', () => {
@@ -34,7 +34,7 @@ describe('tagList', () => {
         t={{} as never}
       />
     )
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'VRC' } })
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'VRC' } })
     fireEvent.click(screen.getByText('追加'))
     expect(onChange).toHaveBeenCalledWith(['VRC'])
   })
@@ -63,7 +63,7 @@ describe('tagList', () => {
         blockConfig={{ maxTags: 2 }}
       />
     )
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '音楽' } })
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: '音楽' } })
     fireEvent.click(screen.getByText('追加'))
     expect(onChange).not.toHaveBeenCalled()
   })

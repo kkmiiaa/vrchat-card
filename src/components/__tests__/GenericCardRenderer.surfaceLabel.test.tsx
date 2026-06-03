@@ -135,11 +135,11 @@ describe('GenericCardRenderer – surface コンテナスタイル', () => {
     expect(findElemWithBg(container, 'rgba(255,255,255,0.95)')).not.toBeNull()
   })
 
-  it("surface='flat' → border 1.5px solid rgba(0,0,0,0.18)", () => {
+  it("surface='flat' → border 0.75px solid rgba(0,0,0,0.30)", () => {
     const { container } = render(
       <GenericCardRenderer definition={makeBlock({ surface: 'flat' })} values={VALUES} noBackground />
     )
-    expect(findElemWithBorder(container, '1.5px solid rgba(0,0,0,0.18)')).not.toBeNull()
+    expect(findElemWithBorder(container, '0.75px solid rgba(0,0,0,0.30)')).not.toBeNull()
   })
 
   it("surface='transparent' → 白背景のコンテナが描画されない", () => {

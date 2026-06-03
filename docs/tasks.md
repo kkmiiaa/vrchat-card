@@ -20,7 +20,7 @@
 
 ### 品質・テスト（優先度：中）
 
-- [ ] **既存テストのカバレッジ調査** — ユニット・E2E の現状カバレッジを把握し、抜け漏れ箇所を特定する
+- ✅ **既存テストのカバレッジ調査・修正** — ユニット 717 件全パス確認。4件の実装追従漏れを修正（itemList code フィールド廃止・tagList role=combobox 化・flat border 値更新・compressSampleData async 化対応）（2026-06-04）
 - [ ] **`/upgrade` ページ E2E** — `tests/e2e/upgrade.spec.ts` を新規作成（ページは `src/app/upgrade/page.tsx` に実装済み）
 - ✅ **マイグレーション系テスト 43 件修正** — `migrateLegacyCardData` が `'v1'`/`'v2'` を受け付けていなかったバグを修正（`'vrchat-simple'`/`'vrchat-glass'` のエイリアスとして追加）。全73件パス。
 - [ ] **自動マイグレーション発動条件のユニットテスト**

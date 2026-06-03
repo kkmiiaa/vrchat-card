@@ -88,6 +88,36 @@ describe('POST /api/cards — background を card_data から分離', () => {
   })
 })
 
+describe('POST /api/cards — visibility デフォルト値', () => {
+  it('visibility を指定しない場合、デフォルトは private（下書き）', async () => {
+    const { POST } = await import('../route')
+
+    const req = new NextRequest('http://localhost/api/cards', {
+      method: 'POST',
+      body: JSON.stringify({ templateId: 'v1' }),
+    })
+
+    await POST(req)
+
+    const insertArg = mockInsert.mock.lastCall![0]
+    expect(insertArg.visibility).toBe('private')
+  })
+
+  it('visibility を明示指定した場合はその値が使われる', async () => {
+    const { POST } = await import('../route')
+
+    const req = new NextRequest('http://localhost/api/cards', {
+      method: 'POST',
+      body: JSON.stringify({ templateId: 'v1', visibility: 'public' }),
+    })
+
+    await POST(req)
+
+    const insertArg = mockInsert.mock.lastCall![0]
+    expect(insertArg.visibility).toBe('public')
+  })
+})
+
 describe('PATCH /api/cards/[cardId] — background を card_data から分離', () => {
   it('background フィールドを card_data と別に update する', async () => {
     const { PATCH } = await import('@/app/api/cards/[cardId]/route')

@@ -401,8 +401,8 @@ function ProfileImageDemo({ variant }: { variant: string }) {
 // ─────────────────────────────────────────
 function ItemListDemo({ variant }: { variant: string }) {
   const [value, setValue] = useState<ItemListValue>([
-    { category: 'BASE AVATAR', name: 'Luna Base（少女体）', code: '#PB-03', url: '' },
-    { category: 'OUTFIT',      name: 'Celestia Set',       code: '#OF-17', url: '' },
+    { category: 'BASE AVATAR', name: 'Luna Base（少女体）', url: '' },
+    { category: 'OUTFIT',      name: 'Celestia Set',       url: '' },
   ])
   const previewUploadCtx = useMemo(() => ({
     upload: async (_slot: string, file: File) => URL.createObjectURL(file),

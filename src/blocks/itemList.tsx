@@ -7,14 +7,13 @@ import { useImageUpload } from '@/lib/ImageUploadContext'
 export type ItemEntry = {
   category: string
   name: string
-  code?: string
   url?: string
   imageUrl?: string  // アイテムサムネイル（Storage URL）
 }
 
 export type ItemListValue = ItemEntry[]
 
-const EMPTY_ENTRY: ItemEntry = { category: '', name: '', code: '', url: '' }
+const EMPTY_ENTRY: ItemEntry = { category: '', name: '', url: '' }
 
 function ExternalLinkIcon({ size }: { size: number }) {
   return (
@@ -125,17 +124,6 @@ export const itemListComponent: ComponentDef<ItemListValue> = {
               }}>
                 {entry.name}
               </span>
-              {entry.code && (
-                <span style={{
-                  fontSize: catFs * 0.9,
-                  color: ctx.theme.subText,
-                  fontFamily: ctx.fontFamily,
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}>
-                  {entry.code}
-                </span>
-              )}
               {entry.url && (
                 <span style={{ color: accentColor, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
                   <ExternalLinkIcon size={catFs} />
@@ -206,12 +194,6 @@ export const itemListComponent: ComponentDef<ItemListValue> = {
               className="w-full px-2 py-1 text-sm border border-gray-200 rounded bg-white focus:outline-none focus:ring-1 focus:ring-sky-300"
             />
             <div className="flex gap-2">
-              <input
-                value={entry.code ?? ''}
-                onChange={e => update(i, { code: e.target.value || undefined })}
-                placeholder="コード（任意）"
-                className="w-28 px-2 py-1 text-xs border border-gray-200 rounded bg-white focus:outline-none focus:ring-1 focus:ring-sky-300"
-              />
               <input
                 type="url"
                 value={entry.url ?? ''}

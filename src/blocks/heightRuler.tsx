@@ -32,113 +32,110 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
 
     const rulerMax: number = typeof blockConfig?.maxHeight === 'number' && blockConfig.maxHeight > 0 ? blockConfig.maxHeight : 200
     const lineColor: string = typeof blockConfig?.lineColor === 'string' ? blockConfig.lineColor : ctx.theme.subText
-
-    // 上下に fs 分のパディングを確保
-    const fs = (ctx.fontSize?.xs > 0 ? ctx.fontSize.xs : ctx.cardWidth * 0.009)
-    const padY = fs * 1.2
-    const rulerH = ctx.cardWidth * 0.55
-    const svgH = rulerH + padY * 2  // パディング込みのSVG高さ
-
-    const lineX = ctx.cardWidth * 0.025
-    const tickRight = ctx.cardWidth * 0.015
-    const labelOffsetX = tickRight + ctx.cardWidth * 0.004
-    const svgW = lineX + tickRight + ctx.cardWidth * 0.075
-    const totalW = ctx.cardWidth * 0.22
     const accentColor = ctx.theme.accent
 
-    // y座標変換: h=0 → svgH-padY, h=rulerMax → padY
-    const toY = (h: number) => padY + rulerH * (1 - h / rulerMax)
+    // ── viewBox 座標系（高さに依存しない固定単位） ──
+    const VB_PAD  = 6    // 上下パディング
+    const VB_RULER = 200 // ルーラー本体（cm と同じスケール）
+    const VB_H    = VB_RULER + VB_PAD * 2  // 212
+    const VB_W    = 70   // SVG 幅（VB 単位）
 
-    const heightRatio = Math.min(Math.max(v.height / rulerMax, 0), 1)
-    const markerY = padY + rulerH * (1 - heightRatio)
+    const LINE_X  = 16   // 縦線の X
+    const TICK_MAJ = 7   // 主目盛り右長さ
+    const TICK_MIN = 3.5 // 補助目盛り右長さ
+    const LABEL_X = LINE_X + TICK_MAJ + 2
+    const FS      = 6.5  // フォントサイズ（VB 単位）
+
+    // h → VB y 座標（上端=rulerMax, 下端=0）
+    const toY = (h: number) => VB_PAD + (rulerMax - h) / rulerMax * VB_RULER
+    const markerY = toY(Math.min(Math.max(v.height, 0), rulerMax))
 
     const ticks: { h: number; y: number; isMajor: boolean }[] = []
     for (let h = 0; h <= rulerMax; h += RULER_STEP) {
       ticks.push({ h, y: toY(h), isMajor: h % 50 === 0 })
     }
 
-    const imgH = rulerH * (v.imageScale ?? 1)
-    const imgW = imgH * 0.55
-    const imgOffsetY = (v.imageOffsetY ?? 0) * rulerH * 0.1
+    // アバター画像（<image>要素でSVG内に配置）
+    const imgSrc = v.avatarImageUrl ?? v.avatarImage ?? null
+    const imgScale = v.imageScale ?? 1
+    const imgH_vb = VB_RULER * imgScale
+    const imgW_vb = (VB_W - LINE_X - 2) * imgScale
+    const imgOffsetY_vb = -(v.imageOffsetY ?? 0) * 8  // VB 単位での上下オフセット
+    const imgY_vb = toY(0) - imgH_vb + imgOffsetY_vb  // 下端を 0cm に揃える
 
     return (
       <div style={{
-        position: 'relative',
-        width: totalW,
-        height: svgH,
+        width: '100%',
+        height: '100%',
+        minHeight: ctx.cardWidth * 0.3,
         flexShrink: 0,
-        display: 'flex',
-        alignItems: 'flex-start',
       }}>
-        {/* アバター透過画像（Storage URL 優先、なければ base64 プレビュー） */}
-        {(v.avatarImageUrl ?? v.avatarImage) && (
-          <div style={{
-            position: 'absolute',
-            bottom: padY,
-            left: svgW + ctx.cardWidth * 0.01,
-            width: imgW,
-            height: imgH,
-            transform: `translateY(${imgOffsetY}px)`,
-          }}>
-            <img
-              src={v.avatarImageUrl ?? v.avatarImage ?? undefined}
-              alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'bottom center', display: 'block' }}
+        {/* viewBox ベース SVG: height:100% で親コンテナを満たす */}
+        <svg
+          viewBox={`0 0 ${VB_W} ${VB_H}`}
+          preserveAspectRatio="xMinYMin meet"
+          width="100%"
+          height="100%"
+          style={{ display: 'block', overflow: 'visible' }}
+        >
+          {/* アバター透過画像（<image>要素） */}
+          {imgSrc && (
+            <image
+              href={imgSrc}
+              x={LINE_X + 2}
+              y={imgY_vb}
+              width={imgW_vb}
+              height={imgH_vb}
+              preserveAspectRatio="xMidYMax meet"
             />
-          </div>
-        )}
+          )}
 
-        {/* 目盛りSVG */}
-        <svg width={svgW} height={svgH} style={{ flexShrink: 0, overflow: 'hidden' }}>
-          {/* メインライン */}
-          <line x1={lineX} y1={padY} x2={lineX} y2={padY + rulerH} stroke={lineColor} strokeWidth={1} />
+          {/* 縦線 */}
+          <line x1={LINE_X} y1={VB_PAD} x2={LINE_X} y2={VB_PAD + VB_RULER} stroke={lineColor} strokeWidth={0.6} />
 
           {/* 目盛り */}
-          {ticks.map(({ h, y, isMajor }) => {
-            const tickLen = isMajor ? tickRight : tickRight * 0.5
-            return (
-              <g key={h}>
-                <line
-                  x1={lineX} y1={y}
-                  x2={lineX + tickLen} y2={y}
-                  stroke={lineColor} strokeWidth={isMajor ? 1 : 0.5}
-                />
-                {isMajor && (
-                  <text
-                    x={lineX + labelOffsetX}
-                    y={y + fs * 0.35}
-                    textAnchor="start"
-                    fontSize={fs * 0.85}
-                    fill={lineColor}
-                    fontFamily={ctx.fontFamily}
-                  >
-                    {h}
-                  </text>
-                )}
-              </g>
-            )
-          })}
+          {ticks.map(({ h, y, isMajor }) => (
+            <g key={h}>
+              <line
+                x1={LINE_X} y1={y}
+                x2={LINE_X + (isMajor ? TICK_MAJ : TICK_MIN)} y2={y}
+                stroke={lineColor} strokeWidth={isMajor ? 0.6 : 0.4}
+              />
+              {isMajor && (
+                <text
+                  x={LABEL_X}
+                  y={y + FS * 0.35}
+                  textAnchor="start"
+                  fontSize={FS}
+                  fill={lineColor}
+                  fontFamily={ctx.fontFamily}
+                >
+                  {h}
+                </text>
+              )}
+            </g>
+          ))}
 
           {/* 身長マーカー */}
           <g>
             <line
-              x1={lineX} y1={markerY}
-              x2={svgW} y2={markerY}
-              stroke={accentColor} strokeWidth={1.5} strokeDasharray="3 2"
+              x1={LINE_X} y1={markerY}
+              x2={VB_W - 2} y2={markerY}
+              stroke={accentColor} strokeWidth={1} strokeDasharray="2 1.5"
             />
             <rect
-              x={lineX + labelOffsetX}
-              y={markerY - fs * 1.1}
-              width={fs * 4.0}
-              height={fs * 1.5}
-              rx={fs * 0.3}
+              x={LABEL_X}
+              y={markerY - FS * 1.1}
+              width={FS * 4.0}
+              height={FS * 1.5}
+              rx={FS * 0.35}
               fill={accentColor}
             />
             <text
-              x={lineX + labelOffsetX + fs * 2.0}
-              y={markerY - fs * 0.2}
+              x={LABEL_X + FS * 2.0}
+              y={markerY - FS * 0.15}
               textAnchor="middle"
-              fontSize={fs * 0.85}
+              fontSize={FS * 0.9}
               fill="#fff"
               fontFamily={ctx.fontFamily}
               fontWeight="bold"

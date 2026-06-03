@@ -43,22 +43,22 @@ describe('heightRuler CardItem', () => {
     expect(screen.getByText('154 cm')).toBeInTheDocument()
   })
 
-  it('3. avatarImage (base64) があるとき img が描画される', () => {
+  it('3. avatarImage (base64) があるとき SVG image 要素が描画される', () => {
     const { container } = render(heightRulerComponent.CardItem!({
       value: { ...DEFAULT, avatarImage: 'data:image/png;base64,abc' },
       ctx: CTX,
     }))
-    expect(container.querySelector('img')).not.toBeNull()
+    expect(container.querySelector('image')).not.toBeNull()
   })
 
-  it('4. avatarImageUrl があるとき URL が src に使われる', () => {
+  it('4. avatarImageUrl があるとき href に URL が使われる', () => {
     const { container } = render(heightRulerComponent.CardItem!({
       value: { ...DEFAULT, avatarImageUrl: 'https://example.com/avatar.webp' },
       ctx: CTX,
     }))
-    const img = container.querySelector('img')
+    const img = container.querySelector('image')
     expect(img).not.toBeNull()
-    expect(img!.src).toContain('example.com')
+    expect(img!.getAttribute('href')).toContain('example.com')
   })
 
   it('5. avatarImageUrl を avatarImage より優先する', () => {
@@ -70,14 +70,14 @@ describe('heightRuler CardItem', () => {
       },
       ctx: CTX,
     }))
-    const img = container.querySelector('img')
-    expect(img!.src).toContain('example.com')
-    expect(img!.src).not.toContain('base64')
+    const img = container.querySelector('image')
+    expect(img!.getAttribute('href')).toContain('example.com')
+    expect(img!.getAttribute('href')).not.toContain('base64')
   })
 
-  it('6. 画像なしのとき img が存在しない', () => {
+  it('6. 画像なしのとき SVG image 要素が存在しない', () => {
     const { container } = render(heightRulerComponent.CardItem!({ value: DEFAULT, ctx: CTX }))
-    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('image')).toBeNull()
   })
 
   it('7. blockConfig.maxHeight が反映される（ラベルは変わらないがエラーにならない）', () => {

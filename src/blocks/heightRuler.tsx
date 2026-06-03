@@ -28,11 +28,11 @@ export const heightRulerComponent: ComponentDef<HeightRulerValue> = {
       ? { ...DEFAULT_VALUE, ...value }
       : DEFAULT_VALUE
 
-    const rulerMax: number = typeof blockConfig?.maxHeight === 'number' ? blockConfig.maxHeight : 200
+    const rulerMax: number = typeof blockConfig?.maxHeight === 'number' && blockConfig.maxHeight > 0 ? blockConfig.maxHeight : 200
     const lineColor: string = typeof blockConfig?.lineColor === 'string' ? blockConfig.lineColor : ctx.theme.subText
 
     // 上下に fs 分のパディングを確保
-    const fs = ctx.fontSize.xs
+    const fs = (ctx.fontSize?.xs > 0 ? ctx.fontSize.xs : ctx.cardWidth * 0.009)
     const padY = fs * 1.2
     const rulerH = ctx.cardWidth * 0.55
     const svgH = rulerH + padY * 2  // パディング込みのSVG高さ

@@ -194,7 +194,9 @@ function collectUsedKeys(node: LayoutNode): Set<string> {
 
 type Props = {
   savedLayouts: Record<string, TemplateLayoutRow>
+  communities?: { slug: string; label: string }[]
   onLabelChange?: (id: string, label: string, description?: string) => void
+  onCommunityToggle?: (id: string, slug: string, linked: boolean) => void
   onDelete?: (id: string, label: string) => void
 }
 
@@ -235,7 +237,7 @@ function rowToDefinition(
   } as unknown as TemplateDefinition
 }
 
-export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete }: Props) {
+export default function TemplateBuilder({ savedLayouts, communities = [], onLabelChange, onCommunityToggle, onDelete }: Props) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -1570,6 +1572,26 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
                 placeholder="説明（任意）"
                 className="text-xs text-gray-600 border border-gray-200 rounded px-2 py-0.5 w-56 focus:outline-none focus:ring-1 focus:ring-sky-300"
               />
+              {communities.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] text-gray-400">界隈</span>
+                  <div className="flex flex-wrap gap-1">
+                    {communities.map(c => {
+                      const linked = currentRow.community_slugs?.includes(c.slug) ?? false
+                      return (
+                        <button
+                          key={c.slug}
+                          type="button"
+                          onClick={() => onCommunityToggle?.(currentRow.id, c.slug, !linked)}
+                          className={`px-2 py-0.5 text-[10px] rounded border transition-colors ${linked ? 'border-sky-400 bg-sky-50 text-sky-700' : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
+                        >
+                          {linked ? '✓ ' : ''}{c.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
               <div className="flex gap-1">
                 <button type="submit" className="text-[10px] px-2 py-0.5 bg-sky-500 text-white rounded hover:bg-sky-600">保存</button>
                 <button type="button" onClick={() => setEditingLabel(false)} className="text-[10px] px-2 py-0.5 border border-gray-200 rounded text-gray-500 hover:bg-gray-50">キャンセル</button>

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import TemplateBuilder from '../TemplateBuilder'
 import type { TemplateLayoutRow, CommunityRow } from '@/lib/templateLayout'
-import { saveTemplateLayout, linkTemplateToCommunity, deleteTemplate } from '@/lib/templateLayout'
+import { saveTemplateLayout, linkTemplateToCommunity, unlinkTemplateToCommunity, deleteTemplate } from '@/lib/templateLayout'
 
 type Props = {
   savedLayouts: Record<string, TemplateLayoutRow>
@@ -114,6 +114,22 @@ export default function TemplateBuilderClient({ savedLayouts: initialLayouts, co
     setTab('edit')
   }
 
+  const handleCommunityToggle = async (templateId: string, slug: string, linked: boolean) => {
+    if (linked) {
+      await linkTemplateToCommunity(templateId, slug)
+    } else {
+      await unlinkTemplateToCommunity(templateId, slug)
+    }
+    setSavedLayouts(prev => {
+      const row = prev[templateId]
+      if (!row) return prev
+      const slugs = linked
+        ? [...(row.community_slugs ?? []).filter(s => s !== slug), slug]
+        : (row.community_slugs ?? []).filter(s => s !== slug)
+      return { ...prev, [templateId]: { ...row, community_slugs: slugs } }
+    })
+  }
+
   const [deleteError, setDeleteError] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -183,7 +199,9 @@ export default function TemplateBuilderClient({ savedLayouts: initialLayouts, co
           )}
           <TemplateBuilder
             savedLayouts={savedLayouts}
+            communities={communities}
             onLabelChange={handleLabelChange}
+            onCommunityToggle={handleCommunityToggle}
             onDelete={handleDelete}
           />
         </div>

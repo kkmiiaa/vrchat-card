@@ -187,6 +187,20 @@ export async function linkTemplateToCommunity(
   return { error: error?.message ?? null }
 }
 
+/** テンプレートと界隈の紐づけを解除 */
+export async function unlinkTemplateToCommunity(
+  templateId: string,
+  communitySlug: string,
+): Promise<{ error: string | null }> {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('community_templates')
+    .delete()
+    .eq('template_id', templateId)
+    .eq('community_slug', communitySlug)
+  return { error: error?.message ?? null }
+}
+
 /** テンプレートを新規作成（upsert）して動的部分も保存 */
 export async function saveTemplateLayout(
   templateId: string,

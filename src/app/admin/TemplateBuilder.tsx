@@ -21,6 +21,7 @@ import GenericCardRenderer from '@/components/GenericCardRenderer'
 import { BlockPropertyEditor, isSurfaceApplicable, type BlockDisplaySettings } from './BlockPropertyEditor'
 import { ColorPicker, LABEL_PRESET_COLORS } from '@/blocks/colorPicker'
 import { IconPicker } from '@/blocks/iconRegistry'
+import { useCardExport } from '@/hooks/useCardExport'
 
 type Orientation = 'card' | 'web'
 type NodePath = number[]
@@ -277,6 +278,7 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
   const [fitScale, setFitScale] = useState(0.5)
   const [scaleMultiplier, setScaleMultiplier] = useState(1.0)
   const containerRef = useRef<HTMLDivElement>(null)
+  const { exportRef: cardExportRef, downloadPng, downloading } = useCardExport('vaacard-template-preview')
 
   const [layouts, setLayouts] = useState<Record<string, { card: LayoutNode; web: LayoutNode }>>(
     () => Object.fromEntries(rowList.map(row => ([row.id, {
@@ -1625,6 +1627,14 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
             変更を破棄
           </button>
           <button
+            onClick={downloadPng}
+            disabled={downloading || orientation !== 'card'}
+            title={orientation !== 'card' ? 'カードモードに切り替えると書き出せます' : 'プレビューを PNG でダウンロード'}
+            className="flex-shrink-0 px-3 py-1 text-xs rounded border font-medium transition-colors border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {downloading ? '生成中…' : '画像を書き出す'}
+          </button>
+          <button
             onClick={handleSaveSample}
             disabled={sampleState === 'saving'}
             title="現在のプレビュー値をサンプルカードデータとして保存"
@@ -1734,18 +1744,20 @@ export default function TemplateBuilder({ savedLayouts, onLabelChange, onDelete 
               flexShrink: 0,
             }}>
               <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: o.cardWidth, height: o.cardHeight }}>
-                <GenericCardRenderer
-                  definition={previewDefinition}
-                  orientation={orientation}
-                  values={localValues}
-                  fontFamily={localFontFamily}
-                  noBackground={currentBgMode !== 'fixed'}
-                  background={previewBackground ?? undefined}
-                  highlightPath={selectedPath ?? undefined}
-                  cardUrl="https://vaacard.com/card/preview"
-                  userUrl="https://vaacard.com/u/preview"
-                  defaultSurface={currentDesignPreset}
-                />
+                <div ref={cardExportRef} style={{ width: o.cardWidth, height: o.cardHeight }}>
+                  <GenericCardRenderer
+                    definition={previewDefinition}
+                    orientation={orientation}
+                    values={localValues}
+                    fontFamily={localFontFamily}
+                    noBackground={currentBgMode !== 'fixed'}
+                    background={previewBackground ?? undefined}
+                    highlightPath={selectedPath ?? undefined}
+                    cardUrl="https://vaacard.com/card/preview"
+                    userUrl="https://vaacard.com/u/preview"
+                    defaultSurface={currentDesignPreset}
+                  />
+                </div>
               </div>
             </div>
           )}

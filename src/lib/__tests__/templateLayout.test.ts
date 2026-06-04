@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+// unstable_cache をバイパスして関数をそのまま実行する
+vi.mock('next/cache', () => ({
+  unstable_cache: (fn: (...args: unknown[]) => unknown) => fn,
+  revalidateTag: vi.fn(),
+}))
+
 // 'use server' ディレクティブを持つモジュールのため、依存をモックしてから import
 const mockSelect = vi.fn()
 const mockEq = vi.fn()
@@ -85,8 +91,9 @@ describe('fetchTemplateLayouts', () => {
       { id: 'v1', label: 'V1', description: null, card_layout: null, web_layout: null, block_pool: null, form_sections: null, orientation_scales: null, overlay_config: null, community_templates: [] },
       { id: 'v2', label: 'V2', description: 'desc', card_layout: null, web_layout: null, block_pool: null, form_sections: null, orientation_scales: null, overlay_config: null, community_templates: [] },
     ]
-    const chain = { ...makeChain(vi.fn()), order: vi.fn(async () => ({ data: rows, error: null })) }
-    chain.select = vi.fn(() => chain)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chain = makeChain(vi.fn(async () => ({ data: rows, error: null }))) as any
+    chain.order = vi.fn(async () => ({ data: rows, error: null }))
     mockSupabase.from.mockReturnValue(chain)
 
     const result = await fetchTemplateLayouts()
@@ -97,8 +104,9 @@ describe('fetchTemplateLayouts', () => {
   })
 
   it('エラー時は空オブジェクトを返す', async () => {
-    const chain = { ...makeChain(vi.fn()), order: vi.fn(async () => ({ data: null, error: { message: 'db error' } })) }
-    chain.select = vi.fn(() => chain)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chain = makeChain(vi.fn()) as any
+    chain.order = vi.fn(async () => ({ data: null, error: { message: 'db error' } }))
     mockSupabase.from.mockReturnValue(chain)
 
     const result = await fetchTemplateLayouts()
@@ -109,8 +117,9 @@ describe('fetchTemplateLayouts', () => {
     const rows = [
       { id: 'v1', label: 'V1', description: null, card_layout: null, web_layout: null, block_pool: null, form_sections: null, orientation_scales: null, overlay_config: null, community_templates: [] },
     ]
-    const chain = { ...makeChain(vi.fn()), order: vi.fn(async () => ({ data: rows, error: null })) }
-    chain.select = vi.fn(() => chain)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chain = makeChain(vi.fn(async () => ({ data: rows, error: null }))) as any
+    chain.order = vi.fn(async () => ({ data: rows, error: null }))
     mockSupabase.from.mockReturnValue(chain)
 
     const result = await fetchTemplateLayouts()
@@ -125,8 +134,9 @@ describe('fetchCommunities', () => {
 
   it('コミュニティ行の配列を返す', async () => {
     const rows = [{ slug: 'vrchat', label: 'VRChat', description: null, sort_order: 0 }]
-    const chain = { ...makeChain(vi.fn()), order: vi.fn(async () => ({ data: rows, error: null })) }
-    chain.select = vi.fn(() => chain)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chain = makeChain(vi.fn(async () => ({ data: rows, error: null }))) as any
+    chain.order = vi.fn(async () => ({ data: rows, error: null }))
     mockSupabase.from.mockReturnValue(chain)
 
     const result = await fetchCommunities()
@@ -134,8 +144,9 @@ describe('fetchCommunities', () => {
   })
 
   it('エラー時は空配列を返す', async () => {
-    const chain = { ...makeChain(vi.fn()), order: vi.fn(async () => ({ data: null, error: { message: 'err' } })) }
-    chain.select = vi.fn(() => chain)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chain = makeChain(vi.fn()) as any
+    chain.order = vi.fn(async () => ({ data: null, error: { message: 'err' } }))
     mockSupabase.from.mockReturnValue(chain)
 
     const result = await fetchCommunities()

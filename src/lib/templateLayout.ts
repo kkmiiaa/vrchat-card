@@ -1,5 +1,6 @@
 'use server'
 
+import { unstable_cache } from 'next/cache'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import type { LayoutNode, FormSection } from '@/blocks/types'
 import type { OverlayValue } from '@/blocks/overlay'
@@ -45,24 +46,14 @@ export type TemplateLayoutRow = {
   } | null
 }
 
-/** 単一テンプレート行を DB から取得 */
-export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow | null> {
-  const supabase = await createClient()
-  const SELECT = 'id, label, description, is_published, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, template_config, community_templates(community_slug)'
+const SELECT = 'id, label, description, is_published, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, template_config, community_templates(community_slug)'
 
-  const { data, error } = await supabase
-    .from('templates')
-    .select(SELECT)
-    .eq('id', id)
-    .single()
-
-  if (error || !data) return null
-
+function rowToTemplateLayoutRow(data: Record<string, unknown>): TemplateLayoutRow {
   return {
-    id:                 data.id,
-    label:              data.label,
-    description:        data.description,
-    is_published: (data.is_published as boolean) ?? false,
+    id:                 data.id as string,
+    label:              data.label as string,
+    description:        data.description as string | null,
+    is_published:       (data.is_published as boolean) ?? false,
     card_layout:        data.card_layout        as LayoutNode | null,
     web_layout:         data.web_layout         as LayoutNode | null,
     block_pool:         data.block_pool         as Record<string, unknown> | null,
@@ -79,49 +70,50 @@ export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow
   }
 }
 
-/** 全テンプレート行を DB から取得 */
+const _fetchTemplateLayoutCached = unstable_cache(
+  async (id: string): Promise<TemplateLayoutRow | null> => {
+    const supabase = createAdminClient()
+    const { data, error } = await supabase
+      .from('templates')
+      .select(SELECT)
+      .eq('id', id)
+      .single()
+    if (error || !data) return null
+    return rowToTemplateLayoutRow(data as Record<string, unknown>)
+  },
+  ['template-layout'],
+  { revalidate: 300 }, // 5分キャッシュ
+)
+
+/** 単一テンプレート行を DB から取得（5分キャッシュ） */
+export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow | null> {
+  return _fetchTemplateLayoutCached(id)
+}
+
+const _fetchTemplateLayoutsCached = unstable_cache(
+  async (publishedOnly: boolean): Promise<Record<string, TemplateLayoutRow>> => {
+    const supabase = createAdminClient()
+    let query = supabase
+      .from('templates')
+      .select(SELECT)
+      .order('sort_order', { ascending: true })
+    if (publishedOnly) query = query.eq('is_published', true)
+    const { data, error } = await query
+    if (error) {
+      console.error('fetchTemplateLayouts error:', error)
+      return {}
+    }
+    return Object.fromEntries(
+      (data ?? []).map(row => [row.id, rowToTemplateLayoutRow(row as Record<string, unknown>)])
+    )
+  },
+  ['template-layouts'],
+  { revalidate: 300 }, // 5分キャッシュ
+)
+
+/** 全テンプレート行を DB から取得（5分キャッシュ） */
 export async function fetchTemplateLayouts(options?: { publishedOnly?: boolean }): Promise<Record<string, TemplateLayoutRow>> {
-  const supabase = await createClient()
-  const SELECT = 'id, label, description, is_published, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, template_config, community_templates(community_slug)'
-
-  let query = supabase
-    .from('templates')
-    .select(SELECT)
-    .order('sort_order', { ascending: true })
-
-  if (options?.publishedOnly) query = query.eq('is_published', true)
-
-  const { data, error } = await query
-
-  if (error) {
-    console.error('fetchTemplateLayouts error:', error)
-    return {}
-  }
-
-  return Object.fromEntries(
-    (data ?? []).map(row => [
-      row.id,
-      {
-        id:                 row.id,
-        label:              row.label,
-        description:        row.description,
-        is_published: (row.is_published as boolean) ?? false,
-        card_layout:        row.card_layout        as LayoutNode | null,
-        web_layout:         row.web_layout         as LayoutNode | null,
-        block_pool:         row.block_pool         as Record<string, unknown> | null,
-        form_sections:      row.form_sections      as FormSection[] | null,
-        orientation_scales: row.orientation_scales as { card: OrientationScales; web: OrientationScales } | null,
-        overlay_config:     row.overlay_config     as OverlayValue | null,
-        card_width:         row.card_width         as number | null,
-        card_height:        row.card_height        as number | null,
-        web_width:          row.web_width          as number | null,
-        card_config:        row.card_config        as TemplateLayoutRow['card_config'],
-        community_slugs:    ((row.community_templates ?? []) as { community_slug: string }[]).map(r => r.community_slug),
-        sample_card_data:   row.sample_card_data   as Record<string, unknown> | null,
-        template_config:    row.template_config     as TemplateLayoutRow['template_config'] ?? null,
-      },
-    ])
-  )
+  return _fetchTemplateLayoutsCached(options?.publishedOnly ?? false)
 }
 
 export type CommunityRow = {

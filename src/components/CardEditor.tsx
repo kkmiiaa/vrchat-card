@@ -90,6 +90,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   const { exportRef: cardExportRef, downloading, generatePng: getCardDataUrl, downloadPng: _downloadPng } = useCardExport()
 
   const [showSaveNudge, setShowSaveNudge] = useState(false)
+  const [xShareConfirming, setXShareConfirming] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [currentOgpVersion, setCurrentOgpVersion] = useState(initialOgpVersion)
   const [publishConfirming, setPublishConfirming] = useState(false)
@@ -289,7 +290,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   }
 
 
-  const handleShareByUrl = useCallback(async (skipEmptyCheck = false) => {
+  const handleShareByUrl = useCallback(async (skipEmptyCheck = false, onSaved?: (cardId: string, ogpVersion: number) => void) => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       const currentUrl = window.location.pathname + window.location.search
@@ -345,10 +346,30 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     await updateCard({ cardId: currentCardId, visibility: 'public' })
     setVisibility('public')
     setSaveModalLoading(false)
-    window.location.href = `/card/${currentCardId}?created=1`
+    if (onSaved) {
+      onSaved(currentCardId, newVersion)
+    } else {
+      window.location.href = `/card/${currentCardId}?created=1`
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardId, values, background, template.id, supabase])
 
+
+  const handlePostToX = () => {
+    setXShareConfirming(true)
+  }
+
+  const doSaveAndPostToX = () => {
+    setXShareConfirming(false)
+    const baseTweetText = template.tweetHashtags
+      ? `カードを作りました！\n${template.tweetHashtags} #vaacard`
+      : t.tweetText
+    handleShareByUrl(false, (savedCardId, ogpVersion) => {
+      const base = `${window.location.origin}/card/${savedCardId}`
+      const shareUrl = ogpVersion > 0 ? `${base}?v=${ogpVersion}` : base
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${baseTweetText}\n${shareUrl}`)}`, '_blank')
+    })
+  }
 
   // V1ログイン後の自動マイグレーション
   const autoMigrateRef = useRef(false)
@@ -408,7 +429,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
               </svg>
               {t.save}
             </button>
-            <button onClick={() => handleShareByUrl()}
+            <button onClick={handlePostToX}
               className="flex items-center gap-1.5 text-xs font-medium text-white bg-black rounded-lg px-3 py-1.5 hover:bg-gray-800 transition-colors">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -601,7 +622,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         </aside>
       </div>
 
-      <FloatingButtons onSave={() => handleShareByUrl()} onShare={() => handleShareByUrl()} onDownload={handleDownload} t={t} />
+      <FloatingButtons onSave={() => handleShareByUrl()} onShare={handlePostToX} onDownload={handleDownload} t={t} />
 
       {/* ダウンロード後の保存誘導トースト */}
       {showSaveNudge && (
@@ -620,6 +641,43 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
             保存する
           </button>
         </div>
+      )}
+
+      {/* Xシェア前の公開確認モーダル */}
+      {xShareConfirming && (
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" onClick={() => setXShareConfirming(false)} />
+          <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-50 flex justify-center px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="px-6 pt-6 pb-4 text-center">
+                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                </div>
+                <h2 className="text-base font-bold text-gray-900 mb-2">Xでシェアする前に</h2>
+                <p className="text-sm text-gray-500 leading-relaxed">カードをマイページに公開してから、Xのシェア画面が開きます。</p>
+              </div>
+              <div className="px-6 pb-5 flex flex-col gap-2">
+                <button
+                  onClick={doSaveAndPostToX}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-black text-white text-sm font-semibold hover:opacity-80 transition-opacity"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                  公開してXへシェア
+                </button>
+                <button
+                  onClick={() => setXShareConfirming(false)}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors py-1"
+                >
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {/* 保存中オーバーレイ */}

@@ -184,8 +184,8 @@ export default function SettingsModal({ onClose }: Props) {
               ) : (
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-gray-800">フリープラン</p>
-                  <button onClick={() => setShowUpgradeModal(true)} className="text-xs font-semibold text-[#00AADB] hover:underline">
-                    アップグレード →
+                  <button onClick={() => setShowUpgradeModal(true)} className="text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity">
+                    Proにアップグレード
                   </button>
                 </div>
               )}

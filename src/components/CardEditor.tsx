@@ -536,20 +536,22 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
         {/* エクスポート専用（フルサイズ、画面外に配置） */}
         {/* html-to-image は CSS background-image の外部URLを確実にインライン化できないため、
-            画像背景は <img> タグで描画し、cardExportRef はこのラッパーに付ける */}
-        <div
-          ref={cardExportRef}
-          style={debugMode
-            ? { overflow: 'hidden', margin: '16px auto', outline: '2px dashed red', position: 'relative', width: template.cardWidth, height: template.cardHeight }
-            : { position: 'fixed', top: -9999, left: -9999, overflow: 'hidden', pointerEvents: 'none', width: template.cardWidth, height: template.cardHeight }}>
-          {background.type === 'image' && (
-            <img
-              src={background.url ?? (typeof background.value === 'string' ? background.value : undefined)}
-              alt=""
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
-          )}
-          <CardScaledView template={template} values={values} background={background.type === 'image' ? { ...background, type: 'color', value: 'transparent' } : background} scale={1} fontFamily={fontFamily} t={t} />
+            画像背景は <img> タグで描画する。ref は position:relative の内側 div に付ける */}
+        <div style={debugMode
+          ? { overflow: 'hidden', margin: '16px auto', outline: '2px dashed red' }
+          : { position: 'fixed', top: -9999, left: -9999, pointerEvents: 'none' }}>
+          <div
+            ref={cardExportRef}
+            style={{ position: 'relative', width: template.cardWidth, height: template.cardHeight, overflow: 'hidden' }}>
+            {background.type === 'image' && (
+              <img
+                src={background.url ?? (typeof background.value === 'string' ? background.value : undefined)}
+                alt=""
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            )}
+            <CardScaledView template={template} values={values} background={background.type === 'image' ? { ...background, type: 'color', value: 'transparent' } : background} scale={1} fontFamily={fontFamily} t={t} />
+          </div>
         </div>
 
         {/* フォームサイドバー */}

@@ -84,7 +84,7 @@ export default function UpgradePage() {
                 <span className="text-[#00AADB]">✓</span> <strong>ユーザー検索・フィルター機能解放</strong>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-[#00AADB]">✓</span> 優先サポート
+                <span className="text-[#00AADB]">✓</span> <span>開発者の生活を支える（まじで）</span>
               </li>
             </ul>
             <button

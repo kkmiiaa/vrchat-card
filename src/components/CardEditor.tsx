@@ -540,12 +540,23 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         </section>
 
         {/* エクスポート専用（フルサイズ、画面外に配置） */}
-        {/* 背景画像は事前に base64 変換済み（useEffect）のため、CSS に data URI が埋め込まれ
-            html-to-image が外部 fetch なしで確実にキャプチャできる */}
+        {/* GenericCardRenderer の borderRadius+overflow:hidden の中に background を置くと
+            html-to-image が背景を描画できないため、背景はキャプチャルートdivに置く */}
         <div style={debugMode
-          ? { overflow: 'hidden', margin: '16px auto', outline: '2px dashed red' }
-          : { position: 'fixed', top: -9999, left: -9999, overflow: 'hidden', pointerEvents: 'none' }}>
-          <CardScaledView innerRef={cardExportRef} template={template} values={values} background={background} scale={1} fontFamily={fontFamily} t={t} />
+          ? { outline: '2px dashed red' }
+          : { position: 'fixed', top: -9999, left: -9999, pointerEvents: 'none' }}>
+          <div
+            ref={cardExportRef}
+            style={{
+              width: template.cardWidth,
+              height: template.cardHeight,
+              position: 'relative',
+              overflow: 'hidden',
+              background: getBackgroundStyle(background.type, background.value as string | [string, string], background.base64 ?? null, CARD_BG_FALLBACK, background.url) ?? undefined,
+            }}
+          >
+            <CardScaledView template={template} values={values} background={background} noBackground scale={1} fontFamily={fontFamily} t={t} />
+          </div>
         </div>
 
         {/* フォームサイドバー */}

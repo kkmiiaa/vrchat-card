@@ -32,7 +32,7 @@ vi.mock('@/lib/supabase/server', () => ({
 
 
 // Supabase admin client モック（Storage 用）
-const mockStorageRemove = vi.fn()
+const mockStorageRemove = vi.fn().mockResolvedValue({ error: null })
 const mockStorageUpload = vi.fn()
 const mockStorageGetPublicUrl = vi.fn()
 const mockAdminFrom = vi.fn()
@@ -127,10 +127,10 @@ describe('PATCH /api/cards/[cardId]', () => {
     expect(mockStorageUpload).toHaveBeenCalled()
   })
 
-  it('imageBase64 と ogp_version が同時に送られた場合、image_url に ?v=N が付く', async () => {
+  it('imageBase64 と ogp_version が同時に送られた場合、ファイル名に _v{N} が含まれる', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
     mockStorageUpload.mockResolvedValue({ error: null })
-    mockStorageGetPublicUrl.mockReturnValue({ data: { publicUrl: 'https://example.com/img.png' } })
+    mockStorageGetPublicUrl.mockReturnValue({ data: { publicUrl: 'https://example.com/u1/card1_v3.png' } })
     mockAdminFrom.mockReturnValue(mockServerChain)
     mockServerChain._terminalEq.mockResolvedValue({ error: null })
 
@@ -145,7 +145,33 @@ describe('PATCH /api/cards/[cardId]', () => {
       makeParams('card1'),
     )
 
-    expect(capturedUpdate.image_url).toBe('https://example.com/img.png?v=3')
+    // ファイル名に _v3 が含まれること
+    expect(mockStorageUpload).toHaveBeenCalledWith(
+      expect.stringContaining('_v3.png'),
+      expect.any(Buffer),
+      expect.any(Object),
+    )
+    // image_url がバージョン付きファイル名の URL になること
+    expect(capturedUpdate.image_url).toBe('https://example.com/u1/card1_v3.png')
+  })
+
+  it('ogp_version=1 のとき旧フォーマット（バージョンなし）ファイルを削除する', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
+    mockStorageUpload.mockResolvedValue({ error: null })
+    mockStorageGetPublicUrl.mockReturnValue({ data: { publicUrl: 'https://example.com/u1/card1_v1.png' } })
+    mockAdminFrom.mockReturnValue(mockServerChain)
+    mockServerChain._terminalEq.mockResolvedValue({ error: null })
+    mockServerChain.update = vi.fn(() => mockServerChain)
+
+    await PATCH(
+      makeRequest('PATCH', { imageBase64: 'data:image/png;base64,abc=', ogp_version: 1 }),
+      makeParams('card1'),
+    )
+
+    // 旧ファイル（バージョンなし）の削除が呼ばれること
+    expect(mockStorageRemove).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.stringContaining('card1.png')])
+    )
   })
 })
 

@@ -44,7 +44,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     )
     const base64Data = imageBase64.replace(/^data:image\/png;base64,/, '')
     const buffer = Buffer.from(base64Data, 'base64')
-    const filename = `${user.id}/${cardId}.png`
+
+    // ogp_version をファイル名に含めることで CDN キャッシュを確実に破壊する
+    const version = ogp_version ?? (updates.ogp_version as number | undefined)
+    const filename = version
+      ? `${user.id}/${cardId}_v${version}.png`
+      : `${user.id}/${cardId}.png`
 
     const { error: uploadError } = await admin.storage
       .from('card-images')
@@ -53,9 +58,18 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
 
     const { data: { publicUrl } } = admin.storage.from('card-images').getPublicUrl(filename)
-    // ogp_version をクエリパラメータに付与することで SNS・CDN のキャッシュを破壊する
-    const version = ogp_version ?? (updates.ogp_version as number | undefined)
-    updates.image_url = version ? `${publicUrl}?v=${version}` : publicUrl
+    updates.image_url = publicUrl
+
+    // 前バージョンのファイルを削除（Storage を肥大化させない）
+    if (version && version > 1) {
+      const prevFilename = `${user.id}/${cardId}_v${version - 1}.png`
+      await admin.storage.from('card-images').remove([prevFilename]).catch(() => {})
+    }
+    // 旧フォーマット（バージョンなし）ファイルも初回のみ削除
+    if (version === 1) {
+      const legacyFilename = `${user.id}/${cardId}.png`
+      await admin.storage.from('card-images').remove([legacyFilename]).catch(() => {})
+    }
   }
 
   const { error } = await supabase

@@ -449,7 +449,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
           <span className="hidden sm:inline text-sm text-gray-500 truncate">{template.title}</span>
           {isLoggedIn && cardId && draftStatus !== 'idle' && (
             <span className="hidden sm:inline text-[11px] text-gray-300 shrink-0">
-              {draftStatus === 'saving' ? '保存中...' : '下書き保存済み'}
+              {draftStatus === 'saving' ? '✨ 保存中...' : '下書き保存済み'}
             </span>
           )}
         </div>
@@ -716,11 +716,24 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       )}
 
       {saveModalLoading && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl px-8 py-6 text-sm text-gray-600 font-medium shadow-xl">
-            保存中...
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
+          <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-50 flex justify-center px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="px-6 py-8 flex flex-col items-center gap-4">
+                <div className="relative w-14 h-14">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-300 via-violet-300 to-pink-300 animate-spin" style={{ maskImage: 'radial-gradient(transparent 55%, black 56%)' }} />
+                  <div className="absolute inset-[3px] rounded-full bg-white" />
+                  <div className="absolute inset-0 flex items-center justify-center text-2xl animate-bounce" style={{ animationDuration: '1.2s' }}>✨</div>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-gray-800">カードを仕上げています</p>
+                  <p className="text-xs text-gray-400 mt-0.5">もうすぐ完成です...</p>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
     </main>

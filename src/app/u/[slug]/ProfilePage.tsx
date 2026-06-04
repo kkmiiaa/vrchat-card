@@ -692,7 +692,7 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
           <button onClick={handleSave}
             disabled={saving || slugStatus === 'taken' || slugStatus === 'invalid' || slugStatus === 'checking'}
             className="px-5 py-1.5 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm">
-            {saved ? '✓ 保存しました' : saving ? '保存中...' : '保存する'}
+            {saved ? '✓ 保存しました' : saving ? '✨ 保存中...' : '保存する'}
           </button>
         </div>
       )}

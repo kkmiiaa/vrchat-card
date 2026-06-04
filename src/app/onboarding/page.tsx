@@ -242,7 +242,7 @@ function OnboardingForm() {
             disabled={!canSubmit}
             className="tap-spring w-full py-3 bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white text-sm font-bold rounded-xl shadow-md shadow-sky-200 hover:opacity-90 disabled:opacity-50 transition-opacity mb-3"
           >
-            {saving ? '保存中...' : 'マイページを作成 →'}
+            {saving ? '✨ 作成中...' : 'マイページを作成 →'}
           </button>
 
           <button

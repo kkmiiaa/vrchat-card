@@ -98,9 +98,9 @@ export function ColorPicker({
     >
       {/* プリセットグリッド */}
       <div className="grid grid-cols-6 gap-1.5">
-        {colors.map(c => (
+        {colors.map((c, i) => (
           <button
-            key={c}
+            key={`${c}-${i}`}
             type="button"
             title={c}
             onClick={() => { onChange(c); setOpen(false) }}

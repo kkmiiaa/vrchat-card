@@ -11,7 +11,7 @@
 X のハッシュタグ・リツイート起点で VRChat ユーザーへのリーチを狙う。
 シェアされたカードが X タイムラインで綺麗に見えることと、`/card/vrchat` の既存ユーザー体験が集客・継続率に直結する。
 
-- [ ] **OGP 品質確認・修正** — X でシェアしたときのカード画像・タイトル・説明文を実機確認。Card ページの `generateMetadata` と OGP 画像生成フローを検証
+- 🔄 **OGP 品質確認・修正** — X でシェアしたときのカード画像・タイトル・説明文を実機確認。Card ページの `generateMetadata` と OGP 画像生成フローを検証（画像生成バグは修正済み→実機確認待ち）
 - [ ] **`/card/vrchat` ユーザー体験の品質担保** — 既存メーカー利用者の導線・マイグレーションを通しで確認
 - [ ] **Stripe 本番キーへの切り替え** — 環境変数を test → 本番に変更
 - [ ] **develop → main マージ・本番デプロイ** — FBを踏まえたタイミングで実施
@@ -70,6 +70,7 @@ X のハッシュタグ・リツイート起点で VRChat ユーザーへのリ�
 ### バグ修正（優先度：中）
 
 - ✅ **編集画面スマホプレビューが機能していない** — モーダルに背景ラッパーdivを追加。CardRendererはnoBackground:true固定のため、背景はラッパー側で適用する方式に統一。
+- ✅ **エクスポート画像・OGP に背景が含まれない** — `buildCardTemplate` の `noBackground: true` ハードコードを修正（`transparentBackground` にリネーム・prop 透過化）。表示用は `transparentBackground={true}` 明示、エクスポート用は背景ありで描画。`toPng` 2回呼び出しを `useCardExport` に統一し OGP 生成にも適用。Admin の背景枠問題（image の center/cover ずれ）も表示／エクスポート要素の分離で解決（2026-06-05）
 - ✅ **スマホ版フォントはみ出し** — 解消済み（2026-06-04）
 - ✅ **SNSリンク等のホバー影の範囲がずれている** — `interactiveSurface` フラグを導入し、GenericCardRenderer の surface コンテナにホバークラスを付与。`simpleSns` / `snsWithFriendPolicy` 対応。
 - ✅ **ポップアップ系UIの画面外はみ出し** — ColorPicker/IconPicker は下に空きが足りなければ上展開。NotificationBell は `max-w-[calc(100vw-1rem)]` で小画面対応。

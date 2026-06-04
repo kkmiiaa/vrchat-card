@@ -369,9 +369,13 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   }, [isLoggedIn, initialized])
 
   const handlePostToX = async () => {
+    // テンプレート固有のハッシュタグがあれば優先、なければデフォルト
+    const baseTweetText = template.tweetHashtags
+      ? `カードを作りました！\n${template.tweetHashtags} #vaacard`
+      : t.tweetText
     if (!cardId) {
       // 未保存でもXシェア可能（テキストのみ）。ログイン不要。
-      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(t.tweetText)}`, '_blank')
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(baseTweetText)}`, '_blank')
       setShowSaveNudge(true)
       setTimeout(() => setShowSaveNudge(false), 8000)
       return
@@ -384,7 +388,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     }
     const base = `${window.location.origin}/card/${cardId}`
     const shareUrl = newVersion > 0 ? `${base}?v=${newVersion}` : base
-    const tweetText = `${t.tweetText}\n${shareUrl}`
+    const tweetText = `${baseTweetText}\n${shareUrl}`
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank')
   }
 
@@ -517,7 +521,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
           {/* モバイルでfixedカードプレビューの下にフォームが来るためのスペーサー */}
           <div className="lg:hidden" style={{ height: 'calc(100vw * 9 / 16 + 16px)' }} />
 
-          <OnboardingBanner t={t} />
+          <OnboardingBanner t={t} howToSteps={template.howToSteps} />
 
 {/* formSections がある場合はそちらを優先、なければ template.sections にフォールバック */}
           {propFormSections && propFormSections.length > 0 ? (
@@ -612,7 +616,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
           )}
 
 
-          <PostTimeline t={t} />
+          <PostTimeline t={t} tweetHashtags={template.tweetHashtags} />
 
           <div className="w-full max-w-screen-md mx-auto mt-4 mb-4">
             <div className="border border-gray-300 rounded-xl bg-gray-50 p-4 text-sm text-gray-700 text-center shadow-sm">

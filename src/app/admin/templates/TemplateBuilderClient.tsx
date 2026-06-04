@@ -105,6 +105,7 @@ export default function TemplateBuilderClient({ savedLayouts: initialLayouts, co
         card_config:        baseLayout?.card_config ?? null,
         community_slugs:    baseLayout?.community_slugs ?? [],
         sample_card_data:   baseLayout?.sample_card_data ?? null,
+        template_config:    baseLayout?.template_config ?? null,
       },
     }))
 

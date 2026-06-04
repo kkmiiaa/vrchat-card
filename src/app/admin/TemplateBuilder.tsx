@@ -412,6 +412,21 @@ export default function TemplateBuilder({ savedLayouts, communities = [], onLabe
   }, [currentRow.id])
   const [selectedOverlay, setSelectedOverlay] = useState(false)
 
+  // ── template_config（作り方ステップ・Xハッシュタグ） ──────────────────────
+  const [templateConfigs, setTemplateConfigs] = useState<Record<string, { howToSteps: string; tweetHashtags: string }>>(
+    () => Object.fromEntries(rowList.map(row => [
+      row.id,
+      {
+        howToSteps:    (row.template_config?.howToSteps ?? []).join('\n'),
+        tweetHashtags: row.template_config?.tweetHashtags ?? '',
+      },
+    ]))
+  )
+  const currentTemplateConfig = templateConfigs[currentRow.id] ?? { howToSteps: '', tweetHashtags: '' }
+  const setCurrentTemplateConfig = useCallback((patch: Partial<{ howToSteps: string; tweetHashtags: string }>) => {
+    setTemplateConfigs(prev => ({ ...prev, [currentRow.id]: { ...prev[currentRow.id] ?? { howToSteps: '', tweetHashtags: '' }, ...patch } }))
+  }, [currentRow.id])
+
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [publishedMap, setPublishedMap] = useState<Record<string, boolean>>(
     () => Object.fromEntries(rowList.map(row => [row.id, row.is_published]))
@@ -479,11 +494,18 @@ export default function TemplateBuilder({ savedLayouts, communities = [], onLabe
           ? { fixedBackground: currentFixedBg }
           : { fixedBackground: undefined }),
       },
+      template_config: (() => {
+        const steps = currentTemplateConfig.howToSteps.trim()
+          ? currentTemplateConfig.howToSteps.split('\n').map(s => s.trim()).filter(Boolean)
+          : undefined
+        const hashtags = currentTemplateConfig.tweetHashtags.trim() || undefined
+        return (steps || hashtags) ? { howToSteps: steps, tweetHashtags: hashtags } : null
+      })(),
       is_published: currentPublished,
     })
     setSaveState(error ? 'error' : 'saved')
     setTimeout(() => setSaveState('idle'), 2000)
-  }, [currentRow, cardLayout, webLayout, currentFormSections, orientationScales, overlayConfigs, currentPool, localFontFamily, currentDesignPreset, currentBgMode, currentFixedBg, currentPublished])
+  }, [currentRow, cardLayout, webLayout, currentFormSections, orientationScales, overlayConfigs, currentPool, localFontFamily, currentDesignPreset, currentBgMode, currentFixedBg, currentTemplateConfig, currentPublished])
 
   const [sampleState, setSampleState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const handleSaveSample = useCallback(async () => {
@@ -1907,6 +1929,38 @@ export default function TemplateBuilder({ savedLayouts, communities = [], onLabe
                 />
               </div>
             )}
+          </div>
+
+          {/* テンプレート設定 — 作り方・ハッシュタグ */}
+          <div className="border-b">
+            <div className="flex items-center gap-2 px-3 py-1.5">
+              <span className="text-[10px] text-teal-400">■</span>
+              <span className="font-mono font-medium text-gray-600 text-xs">template_config</span>
+            </div>
+            <div className="px-3 pb-2 flex flex-col gap-2">
+              <div>
+                <label className="text-[10px] text-gray-500 block mb-0.5">Xハッシュタグ</label>
+                <input
+                  type="text"
+                  value={currentTemplateConfig.tweetHashtags}
+                  onChange={e => setCurrentTemplateConfig({ tweetHashtags: e.target.value })}
+                  placeholder="#VRChat自己紹介カード #vaacard"
+                  className="w-full border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-teal-300"
+                />
+                <p className="text-[9px] text-gray-400 mt-0.5">投稿テキスト・PostTimeline 両方に反映</p>
+              </div>
+              <div>
+                <label className="text-[10px] text-gray-500 block mb-0.5">「作り方」ステップ（1行1ステップ）</label>
+                <textarea
+                  value={currentTemplateConfig.howToSteps}
+                  onChange={e => setCurrentTemplateConfig({ howToSteps: e.target.value })}
+                  placeholder={'カードデザインを決定\n各項目を入力\n画像を保存してXに投稿！'}
+                  rows={3}
+                  className="w-full border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-teal-300 resize-none"
+                />
+                <p className="text-[9px] text-gray-400 mt-0.5">空の場合はデフォルト文言</p>
+              </div>
+            </div>
           </div>
 
           {/* オーバーレイ — 削除不可の固定ノード */}

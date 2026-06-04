@@ -125,6 +125,8 @@ export function buildCardTemplateFromDefinition(
     cardHeight:   cardHeight ?? cardWidth,
     webWidth,
     webHeight:    definition?.web.cardHeight ?? webWidth,
+    howToSteps:   dbRow?.template_config?.howToSteps,
+    tweetHashtags: dbRow?.template_config?.tweetHashtags,
     sections:     [],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     blocks: blocks as any,

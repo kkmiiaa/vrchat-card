@@ -37,12 +37,18 @@ export type TemplateLayoutRow = {
   } | null
   community_slugs: string[]
   sample_card_data: Record<string, unknown> | null
+  template_config: {
+    /** 「作り方」ステップ説明（null の場合はデフォルト） */
+    howToSteps?: string[]
+    /** X 投稿時のハッシュタグ文字列（例: "#VRChat自己紹介カード #vaacard"） */
+    tweetHashtags?: string
+  } | null
 }
 
 /** 単一テンプレート行を DB から取得 */
 export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow | null> {
   const supabase = await createClient()
-  const SELECT = 'id, label, description, is_published, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, community_templates(community_slug)'
+  const SELECT = 'id, label, description, is_published, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, template_config, community_templates(community_slug)'
 
   const { data, error } = await supabase
     .from('templates')
@@ -69,13 +75,14 @@ export async function fetchTemplateLayout(id: string): Promise<TemplateLayoutRow
     card_config:        data.card_config        as TemplateLayoutRow['card_config'],
     community_slugs:    ((data.community_templates ?? []) as { community_slug: string }[]).map(r => r.community_slug),
     sample_card_data:   data.sample_card_data   as Record<string, unknown> | null,
+    template_config:    data.template_config     as TemplateLayoutRow['template_config'] ?? null,
   }
 }
 
 /** 全テンプレート行を DB から取得 */
 export async function fetchTemplateLayouts(options?: { publishedOnly?: boolean }): Promise<Record<string, TemplateLayoutRow>> {
   const supabase = await createClient()
-  const SELECT = 'id, label, description, is_published, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, community_templates(community_slug)'
+  const SELECT = 'id, label, description, is_published, card_layout, web_layout, block_pool, form_sections, orientation_scales, overlay_config, card_width, card_height, web_width, card_config, sample_card_data, template_config, community_templates(community_slug)'
 
   let query = supabase
     .from('templates')
@@ -111,6 +118,7 @@ export async function fetchTemplateLayouts(options?: { publishedOnly?: boolean }
         card_config:        row.card_config        as TemplateLayoutRow['card_config'],
         community_slugs:    ((row.community_templates ?? []) as { community_slug: string }[]).map(r => r.community_slug),
         sample_card_data:   row.sample_card_data   as Record<string, unknown> | null,
+        template_config:    row.template_config     as TemplateLayoutRow['template_config'] ?? null,
       },
     ])
   )
@@ -214,6 +222,7 @@ export async function saveTemplateLayout(
     overlay_config?:    OverlayValue | null
     block_pool?:        Record<string, unknown>
     card_config?:       Record<string, unknown>
+    template_config?:   TemplateLayoutRow['template_config']
     is_published?:      boolean
   }
 ): Promise<{ error: string | null }> {
@@ -232,6 +241,7 @@ export async function saveTemplateLayout(
   if ('overlay_config' in data) payload.overlay_config = data.overlay_config ?? null
   if (data.block_pool !== undefined) payload.block_pool = data.block_pool
   if (data.card_config !== undefined) payload.card_config = data.card_config
+  if (data.template_config !== undefined) payload.template_config = data.template_config
   if (data.is_published !== undefined) payload.is_published = data.is_published
 
   const { error } = await supabase

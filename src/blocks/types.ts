@@ -478,6 +478,10 @@ export type CardTemplate = {
   /** カード全体のレンダラー。全ブロック値を受け取り描画する */
   webWidth?: number
   webHeight?: number
+  /** 「作り方」ステップ説明（未設定時はデフォルト文言） */
+  howToSteps?: string[]
+  /** X 投稿時のハッシュタグ文字列（未設定時はデフォルト） */
+  tweetHashtags?: string
   CardRenderer: (props: {
     values: BlockValues
     fontFamily: string

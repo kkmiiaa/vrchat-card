@@ -38,6 +38,7 @@ const baseRow: TemplateLayoutRow = {
   card_config:        null,
   community_slugs:    [],
   sample_card_data:   null,
+  template_config:    null,
 }
 
 describe('TemplateBuilderClient', () => {

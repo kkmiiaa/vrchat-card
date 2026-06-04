@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@rolldown/binding-darwin-arm64": "^1.1.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
     "@types/qrcode": "^1.5.6",
@@ -51,10 +52,13 @@
     "eslint-config-next": "15.3.1",
     "happy-dom": "^20.9.0",
     "jsdom": "^29.1.1",
-    "postcss": "^8.5.3",
+    "postcss": "^8.5.10",
     "tailwindcss": "^3.4.3",
     "typescript": "^5",
-    "vitest": "^2.1.9"
+    "vitest": "^4.1.8"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
   },
   "optionalDependencies": {
     "@rollup/rollup-darwin-arm64": "^4.60.4"

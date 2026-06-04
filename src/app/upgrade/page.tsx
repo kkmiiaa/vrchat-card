@@ -84,7 +84,7 @@ export default function UpgradePage() {
                 <span className="text-[#00AADB]">✓</span> <strong>ユーザー検索・フィルター機能解放</strong>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-[#00AADB]">✓</span> <span>vaacard の存続に貢献できる（まじで）</span>
+                <span className="text-[#00AADB]">✓</span> サービスが来月も生き残れるよう支援できる
               </li>
             </ul>
             <button

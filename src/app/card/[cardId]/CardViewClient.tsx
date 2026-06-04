@@ -569,9 +569,16 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
           <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-50 flex justify-center px-4">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
-              <div className="px-6 py-8 flex flex-col items-center gap-3">
-                <div className="w-10 h-10 border-4 border-sky-200 border-t-[#00AADB] rounded-full animate-spin" />
-                <p className="text-sm font-semibold text-gray-700">保存中...</p>
+              <div className="px-6 py-8 flex flex-col items-center gap-4">
+                <div className="relative w-14 h-14">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-300 via-violet-300 to-pink-300 animate-spin" style={{ maskImage: 'radial-gradient(transparent 55%, black 56%)' }} />
+                  <div className="absolute inset-[3px] rounded-full bg-white" />
+                  <div className="absolute inset-0 flex items-center justify-center text-2xl animate-bounce" style={{ animationDuration: '1.2s' }}>✨</div>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-gray-800">カードを仕上げています</p>
+                  <p className="text-xs text-gray-400 mt-0.5">もうすぐ完成です...</p>
+                </div>
               </div>
             </div>
           </div>

@@ -49,7 +49,7 @@ type Props = {
   fontFamily: string
   okNgLabels: Record<string, string>
   isInteractive?: boolean
-  noBackground?: boolean
+  transparentBackground?: boolean
   orientation?: 'card' | 'web'
 }
 
@@ -166,7 +166,7 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
     fontFamily,
     okNgLabels,
     isInteractive,
-    noBackground,
+    transparentBackground,
     orientation = 'card',
   } = props
 
@@ -227,10 +227,10 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
           width: PW,
           height: PH,
           fontFamily,
-          background: (isInteractive || noBackground) ? 'transparent' : bg,
+          background: (isInteractive || transparentBackground) ? 'transparent' : bg,
           overflow: 'hidden',
           position: 'relative',
-          borderRadius: (isInteractive || noBackground) ? 0 : 24,
+          borderRadius: (isInteractive || transparentBackground) ? 0 : 24,
         }}
       >
         {/* ガラスパネル全体 */}
@@ -238,9 +238,9 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
           position: 'absolute',
           inset: '24px 28px',
           borderRadius: 20,
-          backdropFilter: noBackground ? undefined : 'blur(18px)',
-          WebkitBackdropFilter: noBackground ? undefined : 'blur(18px)',
-          background: noBackground ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.35)',
+          backdropFilter: transparentBackground ? undefined : 'blur(18px)',
+          WebkitBackdropFilter: transparentBackground ? undefined : 'blur(18px)',
+          background: transparentBackground ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.35)',
           border: '1px solid rgba(255,255,255,0.75)',
           overflow: 'hidden',
           display: 'flex',
@@ -490,10 +490,10 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
         width: 900,
         height: 506,
         fontFamily,
-        background: (isInteractive || noBackground) ? 'transparent' : bg,
+        background: (isInteractive || transparentBackground) ? 'transparent' : bg,
         overflow: 'hidden',
         position: 'relative',
-        borderRadius: (isInteractive || noBackground) ? 0 : 20,
+        borderRadius: (isInteractive || transparentBackground) ? 0 : 20,
       }}
     >
       {/* ガラスカード本体 */}
@@ -501,9 +501,9 @@ const CardV2 = forwardRef<HTMLDivElement, Props>(function CardV2(props, ref) {
         position: 'absolute',
         inset: '20px 24px',
         borderRadius: 16,
-        backdropFilter: noBackground ? undefined : 'blur(18px)',
-        WebkitBackdropFilter: noBackground ? undefined : 'blur(18px)',
-        background: noBackground ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.35)',
+        backdropFilter: transparentBackground ? undefined : 'blur(18px)',
+        WebkitBackdropFilter: transparentBackground ? undefined : 'blur(18px)',
+        background: transparentBackground ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.35)',
         border: '1px solid rgba(255,255,255,0.75)',
         display: 'flex',
         alignItems: 'center',

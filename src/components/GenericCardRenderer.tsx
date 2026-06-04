@@ -21,7 +21,7 @@ type Props = {
   fontFamily?: string
   background?: BackgroundValue
   isInteractive?: boolean
-  noBackground?: boolean
+  transparentBackground?: boolean
   orientation?: 'card' | 'web'
   /** 選択中のノードパス（admin ビルダー用ハイライト） */
   highlightPath?: number[]
@@ -357,7 +357,7 @@ function renderNode(
 }
 
 const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCardRenderer(
-  { definition, values, fontFamily, background, isInteractive, noBackground, orientation = 'card', highlightPath, cardUrl, userUrl, defaultSurface },
+  { definition, values, fontFamily, background, isInteractive, transparentBackground, orientation = 'card', highlightPath, cardUrl, userUrl, defaultSurface },
   ref
 ) {
   const { cardWidth, cardHeight, autoHeight, grid, layout, defaultLabelFontScale, defaultContentFontScale, defaultPaddingScale } = definition[orientation]
@@ -382,7 +382,7 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
 
   const bgValue: BackgroundValue | undefined = background ?? undefined
 
-  const bg = noBackground
+  const bg = transparentBackground
     ? 'transparent'
     : bgValue
       ? getBackgroundStyle(bgValue.type, bgValue.value, bgValue.base64 ?? null, CARD_BG_FALLBACK, bgValue.url) as string

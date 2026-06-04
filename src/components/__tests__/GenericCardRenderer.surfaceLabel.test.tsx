@@ -109,42 +109,42 @@ const VALUES = { name: 'テスト' }
 describe('GenericCardRenderer – surface コンテナスタイル', () => {
   it("surface='contained' → background rgba(255,255,255,0.85)", () => {
     const { container } = render(
-      <GenericCardRenderer definition={makeBlock({ surface: 'contained' })} values={VALUES} noBackground />
+      <GenericCardRenderer definition={makeBlock({ surface: 'contained' })} values={VALUES} transparentBackground />
     )
     expect(findElemWithBg(container, 'rgba(255,255,255,0.85)')).not.toBeNull()
   })
 
   it("surface='glass' → background rgba(255,255,255,0.55)", () => {
     const { container } = render(
-      <GenericCardRenderer definition={makeBlock({ surface: 'glass' })} values={VALUES} noBackground />
+      <GenericCardRenderer definition={makeBlock({ surface: 'glass' })} values={VALUES} transparentBackground />
     )
     expect(findElemWithBg(container, 'rgba(255,255,255,0.55)')).not.toBeNull()
   })
 
   it("surface='glass' → border 1px solid rgba(255,255,255,0.75)", () => {
     const { container } = render(
-      <GenericCardRenderer definition={makeBlock({ surface: 'glass' })} values={VALUES} noBackground />
+      <GenericCardRenderer definition={makeBlock({ surface: 'glass' })} values={VALUES} transparentBackground />
     )
     expect(findElemWithBorder(container, '1px solid rgba(255,255,255,0.75)')).not.toBeNull()
   })
 
   it("surface='flat' → background rgba(255,255,255,0.95)", () => {
     const { container } = render(
-      <GenericCardRenderer definition={makeBlock({ surface: 'flat' })} values={VALUES} noBackground />
+      <GenericCardRenderer definition={makeBlock({ surface: 'flat' })} values={VALUES} transparentBackground />
     )
     expect(findElemWithBg(container, 'rgba(255,255,255,0.95)')).not.toBeNull()
   })
 
   it("surface='flat' → border 0.75px solid rgba(0,0,0,0.30)", () => {
     const { container } = render(
-      <GenericCardRenderer definition={makeBlock({ surface: 'flat' })} values={VALUES} noBackground />
+      <GenericCardRenderer definition={makeBlock({ surface: 'flat' })} values={VALUES} transparentBackground />
     )
     expect(findElemWithBorder(container, '0.75px solid rgba(0,0,0,0.30)')).not.toBeNull()
   })
 
   it("surface='transparent' → 白背景のコンテナが描画されない", () => {
     const { container } = render(
-      <GenericCardRenderer definition={makeBlock({ surface: 'transparent' })} values={VALUES} noBackground />
+      <GenericCardRenderer definition={makeBlock({ surface: 'transparent' })} values={VALUES} transparentBackground />
     )
     expect(findElemWithBg(container, 'rgba(255,255,255,0.85)')).toBeNull()
     expect(findElemWithBg(container, 'rgba(255,255,255,0.55)')).toBeNull()
@@ -153,14 +153,14 @@ describe('GenericCardRenderer – surface コンテナスタイル', () => {
 
   it("surface='outline' → background transparent", () => {
     const { container } = render(
-      <GenericCardRenderer definition={makeBlock({ surface: 'outline' })} values={VALUES} noBackground />
+      <GenericCardRenderer definition={makeBlock({ surface: 'outline' })} values={VALUES} transparentBackground />
     )
     expect(findElemWithBg(container, 'transparent')).not.toBeNull()
   })
 
   it("surface='outline' → border 1px solid rgba(255,255,255,0.6)", () => {
     const { container } = render(
-      <GenericCardRenderer definition={makeBlock({ surface: 'outline' })} values={VALUES} noBackground />
+      <GenericCardRenderer definition={makeBlock({ surface: 'outline' })} values={VALUES} transparentBackground />
     )
     expect(findElemWithBorder(container, '1px solid rgba(255,255,255,0.6)')).not.toBeNull()
   })
@@ -173,7 +173,7 @@ describe('GenericCardRenderer – surface コンテナスタイル', () => {
 describe('GenericCardRenderer – ラベルなし', () => {
   it('label 未指定のときラベルテキストが描画されない', () => {
     const { container } = render(
-      <GenericCardRenderer definition={makeBlock({ surface: 'contained' })} values={VALUES} noBackground />
+      <GenericCardRenderer definition={makeBlock({ surface: 'contained' })} values={VALUES} transparentBackground />
     )
     // span は text コンポーネントの "-" (空値) のみのはず。ラベルspan はない
     const spans = container.querySelectorAll('span')
@@ -193,7 +193,7 @@ describe('GenericCardRenderer – labelInset: false（外ラベル）', () => {
       <GenericCardRenderer
         definition={makeBlock({ label: 'マイクON率', labelInset: false, surface: 'contained' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     expect(container.textContent).toContain('マイクON率')
@@ -204,7 +204,7 @@ describe('GenericCardRenderer – labelInset: false（外ラベル）', () => {
       <GenericCardRenderer
         definition={makeBlock({ label: 'LABEL', labelInset: false, surface: 'contained' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     // 外ラベルの場合、renderer が label → surface container の縦並びコンテナを作る
@@ -218,7 +218,7 @@ describe('GenericCardRenderer – labelInset: false（外ラベル）', () => {
       <GenericCardRenderer
         definition={makeBlock({ label: 'LABEL', labelInset: false, surface: 'glass' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     // glass background がどこかに存在する
@@ -238,7 +238,7 @@ describe('GenericCardRenderer – labelInset: true, dir=col', () => {
       <GenericCardRenderer
         definition={makeBlock({ label: 'マイクON率', labelInset: true, labelInsetDir: 'col', surface: 'contained' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     expect(container.textContent).toContain('マイクON率')
@@ -249,7 +249,7 @@ describe('GenericCardRenderer – labelInset: true, dir=col', () => {
       <GenericCardRenderer
         definition={makeBlock({ label: 'LABEL', labelInset: true, labelInsetDir: 'col', surface: 'contained' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     // labelInset=true の場合、surface コンテナ自体が flex-direction: column でラベルとコンテンツを縦並びにする
@@ -263,7 +263,7 @@ describe('GenericCardRenderer – labelInset: true, dir=col', () => {
       <GenericCardRenderer
         definition={makeBlock({ label: 'LABEL', labelInset: true, labelInsetDir: 'col', surface: 'glass' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     // glass background がラベルを含むコンテナに存在する
@@ -278,7 +278,7 @@ describe('GenericCardRenderer – labelInset: true, dir=col', () => {
       <GenericCardRenderer
         definition={makeBlock({ label: 'LABEL', labelInset: true, surface: 'contained' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     const surfaceEl = findSurfaceContainer(container, 'rgba(255,255,255,0.85)')
@@ -297,7 +297,7 @@ describe('GenericCardRenderer – labelInset: true, dir=row', () => {
       <GenericCardRenderer
         definition={makeBlock({ label: 'マイクON率', labelInset: true, labelInsetDir: 'row', surface: 'contained' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     expect(container.textContent).toContain('マイクON率')
@@ -308,7 +308,7 @@ describe('GenericCardRenderer – labelInset: true, dir=row', () => {
       <GenericCardRenderer
         definition={makeBlock({ label: 'LABEL', labelInset: true, labelInsetDir: 'row', surface: 'contained' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     // labelInset=true, row の場合、surface コンテナが flex-direction: row でラベルとコンテンツを横並びにする
@@ -322,7 +322,7 @@ describe('GenericCardRenderer – labelInset: true, dir=row', () => {
       <GenericCardRenderer
         definition={makeBlock({ label: 'LABEL', labelInset: true, labelInsetDir: 'row', surface: 'flat' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     const flatEl = findElemWithBg(container, 'rgba(255,255,255,0.95)')
@@ -335,7 +335,7 @@ describe('GenericCardRenderer – labelInset: true, dir=row', () => {
       <GenericCardRenderer
         definition={makeBlock({ label: 'LABEL', labelInset: true, labelInsetDir: 'row', surface: 'contained' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     const surfaceEl = findSurfaceContainer(container, 'rgba(255,255,255,0.85)')
@@ -354,7 +354,7 @@ describe('GenericCardRenderer – labelInset: false vs true の描画位置の�
       <GenericCardRenderer
         definition={makeBlock({ label: 'OUTSIDE', labelInset: false, surface: 'glass' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     const glassEl = findElemWithBg(container, 'rgba(255,255,255,0.55)')
@@ -369,7 +369,7 @@ describe('GenericCardRenderer – labelInset: false vs true の描画位置の�
       <GenericCardRenderer
         definition={makeBlock({ label: 'INSIDE', labelInset: true, labelInsetDir: 'col', surface: 'glass' })}
         values={VALUES}
-        noBackground
+        transparentBackground
       />
     )
     const glassEl = findElemWithBg(container, 'rgba(255,255,255,0.55)')
@@ -386,7 +386,7 @@ describe('GenericCardRenderer – surface 後方互換エイリアス', () => {
   it("surface='simple'（旧値）は 'contained' と同じ background を描画する", () => {
     const { container } = render(
       // @ts-expect-error 'simple' は後方互換エイリアス
-      <GenericCardRenderer definition={makeBlock({ surface: 'simple' })} values={VALUES} noBackground />
+      <GenericCardRenderer definition={makeBlock({ surface: 'simple' })} values={VALUES} transparentBackground />
     )
     expect(findElemWithBg(container, 'rgba(255,255,255,0.85)')).not.toBeNull()
   })
@@ -394,7 +394,7 @@ describe('GenericCardRenderer – surface 後方互換エイリアス', () => {
   it("surface='default'（旧値）は 'contained' と同じ background を描画する", () => {
     const { container } = render(
       // @ts-expect-error 'default' は後方互換エイリアス
-      <GenericCardRenderer definition={makeBlock({ surface: 'default' })} values={VALUES} noBackground />
+      <GenericCardRenderer definition={makeBlock({ surface: 'default' })} values={VALUES} transparentBackground />
     )
     expect(findElemWithBg(container, 'rgba(255,255,255,0.85)')).not.toBeNull()
   })

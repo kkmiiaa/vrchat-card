@@ -62,7 +62,7 @@ describe('GenericCardRenderer – labelIcon（アイコンプレフィックス�
       children: [],
     })
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{}} noBackground />
+      <GenericCardRenderer definition={def} values={{}} transparentBackground />
     )
     // アイコンは svg として描画される
     expect(container.querySelector('svg')).not.toBeNull()
@@ -75,7 +75,7 @@ describe('GenericCardRenderer – labelIcon（アイコンプレフィックス�
       children: [],
     })
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{}} noBackground />
+      <GenericCardRenderer definition={def} values={{}} transparentBackground />
     )
     expect(container.querySelector('svg')).toBeNull()
   })
@@ -83,7 +83,7 @@ describe('GenericCardRenderer – labelIcon（アイコンプレフィックス�
   it('block(labelInset:false): labelIcon を指定するとラベル行に svg が描画される', () => {
     const def = makeBlockDefinition({ label: 'NAME', labelIcon: 'TbMicrophone', labelInset: false })
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'テスト' }} noBackground />
+      <GenericCardRenderer definition={def} values={{ name: 'テスト' }} transparentBackground />
     )
     expect(container.querySelector('svg')).not.toBeNull()
   })
@@ -93,7 +93,7 @@ describe('GenericCardRenderer – block labelInset:false のラベル色', () =>
   it('labelColor を指定するとラベル span にその色が反映される', () => {
     const def = makeBlockDefinition({ label: 'NAME', labelColor: '#ff0000', labelInset: false })
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'テスト' }} noBackground />
+      <GenericCardRenderer definition={def} values={{ name: 'テスト' }} transparentBackground />
     )
     const labelSpan = container.querySelector('span') as HTMLElement
     expect(labelSpan).not.toBeNull()
@@ -104,7 +104,7 @@ describe('GenericCardRenderer – block labelInset:false のラベル色', () =>
   it('labelColor 未指定のとき theme.text 色が使われる', () => {
     const def = makeBlockDefinition({ label: 'NAME', labelInset: false })
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'テスト' }} noBackground />
+      <GenericCardRenderer definition={def} values={{ name: 'テスト' }} transparentBackground />
     )
     const labelSpan = container.querySelector('span') as HTMLElement
     expect(labelSpan.style.color).toBe('#1f2937')
@@ -120,7 +120,7 @@ describe('GenericCardRenderer – col / row ラベル色', () => {
       children: [],
     })
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{}} noBackground />
+      <GenericCardRenderer definition={def} values={{}} transparentBackground />
     )
     const labelSpan = container.querySelector('span') as HTMLElement
     expect(labelSpan).not.toBeNull()
@@ -135,7 +135,7 @@ describe('GenericCardRenderer – col / row ラベル色', () => {
       children: [],
     })
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{}} noBackground />
+      <GenericCardRenderer definition={def} values={{}} transparentBackground />
     )
     const labelSpan = container.querySelector('span') as HTMLElement
     expect(labelSpan.style.color).toBe('#1f2937')
@@ -149,7 +149,7 @@ describe('GenericCardRenderer – col / row ラベル色', () => {
       children: [],
     })
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{}} noBackground />
+      <GenericCardRenderer definition={def} values={{}} transparentBackground />
     )
     const labelSpan = container.querySelector('span') as HTMLElement
     expect(labelSpan).not.toBeNull()
@@ -164,7 +164,7 @@ describe('GenericCardRenderer – col / row ラベル色', () => {
       children: [],
     })
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{}} noBackground />
+      <GenericCardRenderer definition={def} values={{}} transparentBackground />
     )
     const labelSpan = container.querySelector('span') as HTMLElement
     expect(labelSpan.style.color).toBe('#1f2937')

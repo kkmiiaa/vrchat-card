@@ -47,7 +47,7 @@ describe('GenericCardRenderer – pool variant', () => {
       },
     })
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} noBackground orientation="card" />
+      <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} transparentBackground orientation="card" />
     )
     const hasCircle = Array.from(container.querySelectorAll('div')).some(d => d.style.borderRadius === '50%')
     expect(hasCircle).toBe(true)
@@ -66,10 +66,10 @@ describe('GenericCardRenderer – pool variant', () => {
       },
     })
     const { container: lc } = render(
-      <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} noBackground orientation="card" />
+      <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} transparentBackground orientation="card" />
     )
     const { container: pc } = render(
-      <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} noBackground orientation="web" />
+      <GenericCardRenderer definition={def} values={{ profileImage: { base64: null, url: null } }} transparentBackground orientation="web" />
     )
     const hasCircleL = Array.from(lc.querySelectorAll('div')).some(d => d.style.borderRadius === '50%')
     const hasCircleP = Array.from(pc.querySelectorAll('div')).some(d => d.style.borderRadius === '50%')
@@ -98,7 +98,7 @@ describe('GenericCardRenderer – glass プロパティは無効化済み', () =
       },
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'テスト' }} noBackground />
+      <GenericCardRenderer definition={def} values={{ name: 'テスト' }} transparentBackground />
     )
     // GenericCardRenderer 由来のガラス枠スタイルが付いていないことを確認
     // （rgba(255,255,255,0.55) の background がない）

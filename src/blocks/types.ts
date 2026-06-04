@@ -488,7 +488,7 @@ export type CardTemplate = {
     t: Translations
     background?: BackgroundValue
     isInteractive?: boolean
-    noBackground?: boolean
+    transparentBackground?: boolean
     orientation?: 'card' | 'web'
     cardUrl?: string
     userUrl?: string

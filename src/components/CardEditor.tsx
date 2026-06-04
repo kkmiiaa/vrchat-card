@@ -483,7 +483,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
                 className="rounded shadow-lg overflow-hidden"
                 style={{ background: bgStyle ?? undefined, width: template.cardWidth * scale, height: template.cardHeight * scale, flexShrink: 0 }}
               >
-                <CardScaledView template={template} values={values} background={background} scale={scale} fontFamily={fontFamily} t={t} />
+                <CardScaledView template={template} values={values} background={background} scale={scale} fontFamily={fontFamily} t={t} transparentBackground />
               </div>
             )
           })()}
@@ -500,7 +500,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
             WebkitTapHighlightColor: 'transparent',
           }}
         >
-          {!debugMode && <CardScaledView template={template} values={values} background={background} scale={cardScale} fontFamily={fontFamily} t={t} isInteractive />}
+          {!debugMode && <CardScaledView template={template} values={values} background={background} scale={cardScale} fontFamily={fontFamily} t={t} isInteractive transparentBackground />}
         </section>
 
         {/* エクスポート専用（フルサイズ、画面外に配置） */}

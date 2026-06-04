@@ -31,7 +31,7 @@ describe('GenericCardRenderer – dataKey なし Block', () => {
         <GenericCardRenderer
           definition={def}
           values={{ name: 'テスト', bio: '自己紹介' }}
-          noBackground
+          transparentBackground
           orientation="card"
         />
       )
@@ -49,7 +49,7 @@ describe('GenericCardRenderer – dataKey なし Block', () => {
       <GenericCardRenderer
         definition={def}
         values={{}}
-        noBackground
+        transparentBackground
         orientation="card"
       />
     )
@@ -68,7 +68,7 @@ describe('GenericCardRenderer – dataKey なし Block', () => {
       <GenericCardRenderer
         definition={def}
         values={{ name: 'ユーザー名' }}
-        noBackground
+        transparentBackground
         orientation="card"
       />
     )

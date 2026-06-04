@@ -37,7 +37,7 @@ describe('GenericCardRenderer – pool の label が ref に反映される', ()
       web:  makeOrient({ type: 'ref', blockId: 'name' }),
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="card" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} transparentBackground orientation="card" />
     )
     const spans = Array.from(container.querySelectorAll('span'))
     expect(spans.some(s => s.textContent === 'プロフィール名')).toBe(true)
@@ -51,7 +51,7 @@ describe('GenericCardRenderer – pool の label が ref に反映される', ()
       web:  makeOrient({ type: 'ref', blockId: 'name' }),
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="card" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} transparentBackground orientation="card" />
     )
     // ラベルなし → span がない（text コンポーネントは p タグを使う）
     expect(container.querySelector('span')).toBeNull()
@@ -69,7 +69,7 @@ describe('GenericCardRenderer – pool の labelColor が ref に反映される
       web:  makeOrient({ type: 'ref', blockId: 'name' }),
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="card" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} transparentBackground orientation="card" />
     )
     const labelSpan = Array.from(container.querySelectorAll('span')).find(s => s.textContent === 'NAME') as HTMLElement
     expect(labelSpan).not.toBeUndefined()
@@ -84,7 +84,7 @@ describe('GenericCardRenderer – pool の labelColor が ref に反映される
       web:  makeOrient({ type: 'ref', blockId: 'name' }),
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="card" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} transparentBackground orientation="card" />
     )
     const labelSpan = Array.from(container.querySelectorAll('span')).find(s => s.textContent === 'NAME') as HTMLElement
     expect(labelSpan.style.color).toBe('#1f2937')
@@ -102,10 +102,10 @@ describe('GenericCardRenderer – contentFontScale はレイアウト固有', ()
       web:  makeOrient({ type: 'ref', blockId: 'name' }),
     }
     const { container: lc } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="card" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} transparentBackground orientation="card" />
     )
     const { container: pc } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="web" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} transparentBackground orientation="web" />
     )
     const getLargestFont = (c: HTMLElement) =>
       Math.max(...Array.from(c.querySelectorAll<HTMLElement>('span, p')).map(s => parseFloat(s.style.fontSize || '0')))
@@ -127,10 +127,10 @@ describe('GenericCardRenderer – contentFontScale はレイアウト固有', ()
       },
     }
     const { container: lc } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="card" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} transparentBackground orientation="card" />
     )
     const { container: pc } = render(
-      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} noBackground orientation="web" />
+      <GenericCardRenderer definition={def} values={{ name: 'Alice' }} transparentBackground orientation="web" />
     )
     const getFont = (c: HTMLElement) => {
       const els = Array.from(c.querySelectorAll<HTMLElement>('span, p'))
@@ -154,7 +154,7 @@ describe('GenericCardRenderer – pool の blockConfig.hideWhenEmpty が ref に
       web:  makeOrient({ type: 'ref', blockId: 'sel' }),
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ sel: '' }} noBackground orientation="card" />
+      <GenericCardRenderer definition={def} values={{ sel: '' }} transparentBackground orientation="card" />
     )
     // select が null を返すのでブロックラッパーごと消える → テキストノードなし
     expect(container.querySelector('span')).toBeNull()
@@ -168,7 +168,7 @@ describe('GenericCardRenderer – pool の blockConfig.hideWhenEmpty が ref に
       web:  makeOrient({ type: 'ref', blockId: 'sel' }),
     }
     const { container } = render(
-      <GenericCardRenderer definition={def} values={{ sel: 'a' }} noBackground orientation="card" />
+      <GenericCardRenderer definition={def} values={{ sel: 'a' }} transparentBackground orientation="card" />
     )
     expect(container.querySelector('span')).not.toBeNull()
   })

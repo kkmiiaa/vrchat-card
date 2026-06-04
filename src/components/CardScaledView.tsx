@@ -12,7 +12,7 @@ type Props = {
   fontFamily: string
   t: Translation
   isInteractive?: boolean
-  noBackground?: boolean
+  transparentBackground?: boolean
   orientation?: 'card' | 'web'
   className?: string
   innerRef?: React.RefObject<HTMLDivElement | null>
@@ -33,7 +33,7 @@ export default function CardScaledView({
   fontFamily,
   t,
   isInteractive,
-  noBackground,
+  transparentBackground,
   orientation,
   className,
   innerRef,
@@ -57,7 +57,7 @@ export default function CardScaledView({
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}
           isInteractive={isInteractive}
-          noBackground={noBackground}
+          transparentBackground={transparentBackground}
           orientation={orientation}
           cardUrl={cardUrl}
           userUrl={userUrl}

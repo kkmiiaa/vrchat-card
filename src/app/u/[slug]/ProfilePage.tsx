@@ -96,7 +96,7 @@ function LiveCardPreview({
   return (
     <div ref={containerRef} style={{ width: '100%', height: template.cardHeight * scale, overflow: 'hidden' }}>
       <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: template.cardWidth, height: template.cardHeight, pointerEvents: 'none' }}>
-        <template.CardRenderer values={values} fontFamily={fontFamily} t={translations.ja} noBackground={transparentBg} />
+        <template.CardRenderer values={values} fontFamily={fontFamily} t={translations.ja} transparentBackground={transparentBg} />
       </div>
     </div>
   )

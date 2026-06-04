@@ -720,14 +720,14 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
                       width: cardW,
                       ...(webContentHeight != null ? { position: 'absolute', top: 0, left: 0 } : {}),
                     }}>
-                      <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} isInteractive orientation="web" cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
+                      <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} isInteractive orientation="web" transparentBackground cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
                     </div>
                   </div>
                 ) : (
                   // カードモード: transform scale + fixed height
                   <div style={{ width: '100%', height: cardH * scale, position: 'relative', overflow: 'hidden' }}>
                     <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: cardW, height: cardH, position: 'absolute', top: 0, left: 0 }}>
-                      <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} isInteractive orientation="card" cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
+                      <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} isInteractive orientation="card" transparentBackground cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
                     </div>
                   </div>
                 )}

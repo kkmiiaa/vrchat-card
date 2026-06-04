@@ -53,7 +53,7 @@ type Props = {
   okNgLabels?: Record<string, string>
   friendPolicyLabels?: Record<string, string>
   isInteractive?: boolean
-  noBackground?: boolean
+  transparentBackground?: boolean
   orientation?: 'card' | 'web'
 }
 
@@ -158,7 +158,7 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
     backgroundType, backgroundValue, backgroundImageBase64,
     galleryEnabled, galleryImagesBase64, galleryImages,
     fontFamily, showBalloon = true, lang = 'ja',
-    okNgLabels, friendPolicyLabels, isInteractive, noBackground, orientation,
+    okNgLabels, friendPolicyLabels, isInteractive, transparentBackground, orientation,
   },
   ref
 ) {
@@ -219,7 +219,7 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
         ref={ref}
         style={{
           width: PW, height: PH, position: 'relative', overflow: 'hidden', fontFamily,
-          background: (isInteractive || noBackground) ? 'transparent' : getBg(backgroundType, backgroundValue, backgroundImageBase64),
+          background: (isInteractive || transparentBackground) ? 'transparent' : getBg(backgroundType, backgroundValue, backgroundImageBase64),
         }}
       >
         {/* balloon panel */}
@@ -414,7 +414,7 @@ const CardV1 = forwardRef<HTMLDivElement, Props>(function CardV1(
     <div
       ref={ref}
       style={{ width: W, height: H, position: 'relative', overflow: 'hidden', fontFamily,
-        background: (isInteractive || noBackground) ? 'transparent' : getBg(backgroundType, backgroundValue, backgroundImageBase64) }}
+        background: (isInteractive || transparentBackground) ? 'transparent' : getBg(backgroundType, backgroundValue, backgroundImageBase64) }}
     >
       {/* バルーン＋コンテンツ まとめてホバー対象 */}
       <div className="vaacard-glass-panel" style={{

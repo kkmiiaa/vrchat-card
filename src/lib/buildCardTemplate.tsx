@@ -131,13 +131,13 @@ export function buildCardTemplateFromDefinition(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     blocks: blocks as any,
 
-    CardRenderer({ values, fontFamily, background, noBackground, isInteractive, orientation, cardUrl, userUrl }) {
+    CardRenderer({ values, fontFamily, background, transparentBackground, isInteractive, orientation, cardUrl, userUrl }) {
       return React.createElement(GenericCardRenderer, {
         definition: resolvedDefinition,
         orientation: orientation === 'web' ? 'web' : 'card',
         values,
         fontFamily,
-        noBackground: true,
+        transparentBackground: transparentBackground ?? false,
         background: fixedBackground ?? background,
         isInteractive,
         defaultSurface,

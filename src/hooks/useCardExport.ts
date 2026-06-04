@@ -18,7 +18,11 @@ export function useCardExport(filename = 'vrchat-introduction-card'): UseCardExp
   const generatePng = useCallback(async (): Promise<string | null> => {
     if (!exportRef.current) return null
     const { toPng } = await import('html-to-image')
-    return await toPng(exportRef.current, { pixelRatio: 2 })
+    const options = { pixelRatio: 2 }
+    // html-to-image は初回呼び出しで外部リソース（背景画像等）のロードが
+    // 完了しないことがある既知の問題があるため、2回呼んで確実にレンダリングする
+    await toPng(exportRef.current, options)
+    return await toPng(exportRef.current, options)
   }, [])
 
   const downloadPng = useCallback(async (): Promise<void> => {

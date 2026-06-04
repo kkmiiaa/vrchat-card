@@ -1786,7 +1786,7 @@ export default function TemplateBuilder({ savedLayouts, communities = [], onLabe
                 orientation={orientation}
                 values={localValues}
                 fontFamily={localFontFamily}
-                noBackground={currentBgMode !== 'fixed'}
+                transparentBackground={currentBgMode !== 'fixed'}
                 background={previewBackground ?? undefined}
                 highlightPath={selectedPath ?? undefined}
                 cardUrl="https://vaacard.com/card/preview"
@@ -1817,7 +1817,7 @@ export default function TemplateBuilder({ savedLayouts, communities = [], onLabe
                     orientation={orientation}
                     values={localValues}
                     fontFamily={localFontFamily}
-                    noBackground
+                    transparentBackground
                     background={previewBackground ?? undefined}
                     highlightPath={selectedPath ?? undefined}
                     cardUrl="https://vaacard.com/card/preview"

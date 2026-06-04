@@ -126,6 +126,27 @@ describe('PATCH /api/cards/[cardId]', () => {
     expect(res.status).toBe(200)
     expect(mockStorageUpload).toHaveBeenCalled()
   })
+
+  it('imageBase64 と ogp_version が同時に送られた場合、image_url に ?v=N が付く', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
+    mockStorageUpload.mockResolvedValue({ error: null })
+    mockStorageGetPublicUrl.mockReturnValue({ data: { publicUrl: 'https://example.com/img.png' } })
+    mockAdminFrom.mockReturnValue(mockServerChain)
+    mockServerChain._terminalEq.mockResolvedValue({ error: null })
+
+    let capturedUpdate: Record<string, unknown> = {}
+    mockServerChain.update = vi.fn((data: Record<string, unknown>) => {
+      capturedUpdate = data
+      return mockServerChain
+    })
+
+    await PATCH(
+      makeRequest('PATCH', { imageBase64: 'data:image/png;base64,abc=', ogp_version: 3 }),
+      makeParams('card1'),
+    )
+
+    expect(capturedUpdate.image_url).toBe('https://example.com/img.png?v=3')
+  })
 })
 
 // ─── DELETE ──────────────────────────────────────────────────────────────────

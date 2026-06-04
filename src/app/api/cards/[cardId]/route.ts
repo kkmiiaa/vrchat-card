@@ -53,7 +53,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
 
     const { data: { publicUrl } } = admin.storage.from('card-images').getPublicUrl(filename)
-    updates.image_url = publicUrl
+    // ogp_version をクエリパラメータに付与することで SNS・CDN のキャッシュを破壊する
+    const version = ogp_version ?? (updates.ogp_version as number | undefined)
+    updates.image_url = version ? `${publicUrl}?v=${version}` : publicUrl
   }
 
   const { error } = await supabase

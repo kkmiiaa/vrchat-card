@@ -34,13 +34,21 @@ export default function UpgradeContent({ onClose }: Props) {
 
   return (
     <div className="max-w-md w-full">
-      <div className="text-center mb-8">
-        <a href="/" className="text-2xl font-black tracking-tight text-[#00AADB]">vaacard</a>
-        <h1 className="mt-4 text-2xl font-bold text-gray-900">Proプランにアップグレード</h1>
-        <p className="mt-2 text-gray-500 text-sm">もっと自由に、あなたらしいカードを。</p>
-      </div>
+      {!onClose && (
+        <div className="text-center mb-8">
+          <a href="/" className="text-2xl font-black tracking-tight text-[#00AADB]">vaacard</a>
+          <h1 className="mt-4 text-2xl font-bold text-gray-900">Proプランにアップグレード</h1>
+          <p className="mt-2 text-gray-500 text-sm">もっと自由に、あなたらしいカードを。</p>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {onClose && (
+          <div className="text-center pt-6 px-6">
+            <p className="text-2xl font-bold text-gray-900">Proプランにアップグレード</p>
+            <p className="mt-1 text-gray-500 text-sm">もっと自由に、あなたらしいカードを。</p>
+          </div>
+        )}
         {/* Freeプラン */}
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between mb-3">

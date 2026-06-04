@@ -45,7 +45,8 @@ export default function UpgradeContent({ onClose }: Props) {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {onClose && (
           <div className="text-center pt-6 px-6">
-            <p className="text-2xl font-bold text-gray-900">Proプランにアップグレード</p>
+            <a href="/" className="text-2xl font-black tracking-tight text-[#00AADB]">vaacard</a>
+            <p className="mt-3 text-2xl font-bold text-gray-900">Proプランにアップグレード</p>
             <p className="mt-1 text-gray-500 text-sm">もっと自由に、あなたらしいカードを。</p>
           </div>
         )}

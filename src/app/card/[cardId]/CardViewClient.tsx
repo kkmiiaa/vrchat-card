@@ -89,15 +89,15 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const [cardData, setCardData] = useState<Record<string, unknown> | null>(null)
   const [template, setTemplate] = useState<CardTemplate | null>(null)
 
-  // OGP 書き出し用 background（image 型は base64 に変換してから使う）
+  // エクスポート用 background（image 型は base64 に変換して外部 URL を排除する）
   const [exportBackground, setExportBackground] = useState(initialBackground)
   useEffect(() => {
     const bg = initialBackground
-    if (!bg || bg.type !== 'image' || bg.base64 || bg.url) {
+    if (!bg || bg.type !== 'image' || bg.base64) {
       setExportBackground(bg)
       return
     }
-    const src = typeof bg.value === 'string' ? bg.value : null
+    const src = bg.url ?? (typeof bg.value === 'string' ? bg.value : null)
     if (!src) { setExportBackground(bg); return }
     const controller = new AbortController()
     fetch(src, { signal: controller.signal })

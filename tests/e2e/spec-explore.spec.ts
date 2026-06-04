@@ -65,7 +65,7 @@ test.describe('探索 — フリープラン', () => {
 // ─── OGP ────────────────────────────────────────────────────────────────────
 
 test.describe('OGP — カード閲覧ページ', () => {
-  test('og:image メタタグが存在する', async ({ page }) => {
+  test('公開カードに og:image メタタグが存在する', async ({ page }) => {
     const cardId = process.env.TEST_PUBLIC_CARD_ID;
     if (!cardId) test.skip();
     await page.goto(`/card/${cardId}`);
@@ -73,9 +73,33 @@ test.describe('OGP — カード閲覧ページ', () => {
     expect(ogImage).toBeTruthy();
   });
 
-  test('image_url がない場合は og:image がデフォルト画像になる', async ({ page }) => {
-    // 下書きカード（image_url=null）の OGP
-    // 作成直後のカードでテスト
+  test('公開カードの og:image がデフォルト画像ではない（実際のカード画像が設定されている）', async ({ page }) => {
+    const cardId = process.env.TEST_PUBLIC_CARD_ID;
+    if (!cardId) test.skip();
+    await page.goto(`/card/${cardId}`);
+    const ogImage = await page.locator('meta[property="og:image"]').getAttribute('content');
+    expect(ogImage).toBeTruthy();
+    expect(ogImage).not.toContain('og-default');
+  });
+
+  test('公開カードに og:title が設定されている', async ({ page }) => {
+    const cardId = process.env.TEST_PUBLIC_CARD_ID;
+    if (!cardId) test.skip();
+    await page.goto(`/card/${cardId}`);
+    const ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content');
+    expect(ogTitle).toBeTruthy();
+    expect(ogTitle!.length).toBeGreaterThan(0);
+  });
+
+  test('公開カードに og:description が設定されている', async ({ page }) => {
+    const cardId = process.env.TEST_PUBLIC_CARD_ID;
+    if (!cardId) test.skip();
+    await page.goto(`/card/${cardId}`);
+    const ogDesc = await page.locator('meta[property="og:description"]').getAttribute('content');
+    expect(ogDesc).toBeTruthy();
+  });
+
+  test('下書きカード（image_url=null）の og:image はデフォルト画像になる', async ({ page }) => {
     await page.goto('/card/new');
     await page.getByText('Standard').click();
     await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
@@ -86,5 +110,29 @@ test.describe('OGP — カード閲覧ページ', () => {
 
     const ogImage = await page.locator('meta[property="og:image"]').getAttribute('content');
     expect(ogImage).toContain('og-default');
+  });
+
+  test('下書きカード（visibility=private）では OGP メタタグが返らない', async ({ page }) => {
+    // 下書きカードは generateMetadata が {} を返すので og:title がない
+    await page.goto('/card/new');
+    await page.getByText('Standard').click();
+    await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
+    const cardId = page.url().match(/\/card\/([a-zA-Z0-9]+)\/edit/)?.[1];
+
+    await page.goto(`/card/${cardId}`);
+    await page.waitForLoadState('networkidle');
+
+    const ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content');
+    expect(ogTitle).toBeFalsy();
+  });
+
+  test('?v=N 付き URL でもOGPが正しく返る', async ({ page }) => {
+    const cardId = process.env.TEST_PUBLIC_CARD_ID;
+    if (!cardId) test.skip();
+    await page.goto(`/card/${cardId}?v=1`);
+    const ogImage = await page.locator('meta[property="og:image"]').getAttribute('content');
+    expect(ogImage).toBeTruthy();
+    const ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content');
+    expect(ogTitle).toBeTruthy();
   });
 });

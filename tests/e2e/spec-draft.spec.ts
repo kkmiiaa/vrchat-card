@@ -117,6 +117,97 @@ test.describe('下書きカード — 非公開（visibility=private）', () => 
   });
 });
 
+// ─── 公開フロー（visibility） ─────────────────────────────────────────────────
+
+test.describe('公開フロー — visibility の遷移', () => {
+  test('新規カードは初期状態で visibility=private（探索に出ない）', async ({ page, browser }) => {
+    const cardId = await createCardAndGetId(page);
+
+    const guestCtx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const guestPage = await guestCtx.newPage();
+    await guestPage.goto('/c/vrchat');
+    await guestPage.waitForLoadState('networkidle');
+
+    await expect(guestPage.locator(`[href*="${cardId}"]`)).not.toBeVisible();
+    await guestCtx.close();
+  });
+
+  test('「マイページに保存」後に visibility=public になる（探索に出る）', async ({ page, browser }) => {
+    const cardId = await createCardAndGetId(page);
+
+    const saveBtn = page.getByRole('button', { name: /マイページに保存/ });
+    await expect(saveBtn).toBeVisible({ timeout: 5000 });
+    await saveBtn.click();
+    // 完了モーダルまたはリダイレクトを待つ
+    await page.waitForURL(/\/card\/[a-z0-9]+(\?created=1)?$/, { timeout: 20000 });
+
+    // 未ログインユーザーがカードにアクセスできること（public になっている）
+    const guestCtx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const guestPage = await guestCtx.newPage();
+    await guestPage.goto(`/card/${cardId}`);
+    await guestPage.waitForLoadState('networkidle');
+
+    const url = guestPage.url();
+    expect(url).toContain(cardId);
+    await guestCtx.close();
+  });
+
+  test('カード表示画面の「マイページに保存」後に visibility=public になる', async ({ page, browser }) => {
+    // 編集画面でカードを作成
+    const cardId = await createCardAndGetId(page);
+
+    // カード表示画面に移動
+    await page.goto(`/card/${cardId}`);
+    await page.waitForLoadState('networkidle');
+
+    // 表示画面の「マイページに保存」ボタン
+    const saveBtn = page.getByRole('button', { name: /マイページに保存/ });
+    await expect(saveBtn).toBeVisible({ timeout: 5000 });
+    await saveBtn.click();
+
+    // 保存完了を待つ
+    await page.waitForTimeout(5000);
+
+    // 未ログインユーザーがアクセスできること
+    const guestCtx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const guestPage = await guestCtx.newPage();
+    await guestPage.goto(`/card/${cardId}`);
+    await guestPage.waitForLoadState('networkidle');
+
+    expect(guestPage.url()).toContain(cardId);
+    await guestCtx.close();
+  });
+
+  test('公開後に再編集しても visibility=public のまま維持される', async ({ page }) => {
+    const cardId = await createCardAndGetId(page);
+
+    // 公開
+    const saveBtn = page.getByRole('button', { name: /マイページに保存/ });
+    await saveBtn.click();
+    await page.waitForURL(/\/card\/[a-z0-9]+(\?created=1)?$/, { timeout: 20000 });
+
+    // 編集画面に戻る
+    await page.goto(`/card/${cardId}/edit`);
+    await page.waitForLoadState('networkidle');
+
+    // 入力して debounce 保存
+    await page.getByText('プロフィール情報').click().catch(() => {});
+    const nameInput = page.getByPlaceholder(/名前/i).first();
+    if (await nameInput.isVisible()) {
+      await nameInput.fill('再編集テスト');
+      await page.waitForTimeout(3000);
+    }
+
+    // マイページで「下書き」バッジが出ていないこと（public のまま）
+    await page.goto('/');
+    await page.locator('header').getByRole('link', { name: 'マイページ' }).click();
+    await page.waitForURL(/\/u\//);
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.getByText('下書き')).not.toBeVisible({ timeout: 3000 });
+  });
+});
+
 // ─── image_url 保存タイミング ─────────────────────────────────────────────────
 
 test.describe('image_url 保存タイミング', () => {

@@ -114,7 +114,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   const [draftStatus, setDraftStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
 
   // --- Visibility ---
-  const [visibility, setVisibility] = useState<'public' | 'limited' | 'private'>('public')
+  const [visibility, setVisibility] = useState<'public' | 'limited' | 'private'>('private')
 
 
 
@@ -132,13 +132,14 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     }
   }, [initialValues])
 
-  // visibility 変更時に即保存
+  // visibility 変更時に即保存（将来の拡張用に残す）
   const handleVisibilityChange = useCallback(async (newVal: 'public' | 'limited' | 'private') => {
     setVisibility(newVal)
     if (cardId) {
       await updateCard({ cardId, visibility: newVal })
     }
   }, [cardId])
+  void handleVisibilityChange // 現在は UI から呼び出さない（マイページ保存時に public に設定）
 
   // debounced auto-save card_data（下書き保存）
   useEffect(() => {

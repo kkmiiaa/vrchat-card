@@ -197,19 +197,33 @@
 
 ### 下書きと公開の定義
 
+**確定済み設計方針：**
+- カードの公開状態は `public` / `private` の2値のみ。`limited`（限定公開）は提供しない
+- ユーザー拡大を優先し、シンプルな公開フローに統一する
+- 「マイページに保存」または「Xで共有」を実行した時点で `visibility: 'public'` に設定される
+- debounce 自動保存（下書き）は `private` のまま。ユーザーが意図しない公開は発生しない
+
 | 状態 | image_url | visibility | 説明 |
 |---|---|---|---|
-| 下書き | null | private | 新規作成直後、debounce 保存中 |
-| 公開 | URL あり | public | 明示的な保存アクション後 |
+| 下書き | なし | private | 新規作成直後、debounce 保存中 |
+| 公開 | あり | public | 「マイページに保存」または「Xで共有」実行後 |
 
-### image_url が保存されるタイミング
+### image_url の更新保証
 
-| アクション | card_data | image_url |
-|---|---|---|
-| debounce 自動保存（1.5秒） | ✅ | ❌ |
-| 「マイページに保存」 | ✅ | ✅ |
-| 「Xでシェア」 | ✅ | ✅ |
-| 「画像で保存」 | ✅ | ✅ |
+「マイページに保存」「Xで共有」を実行するたびに必ず OGP 画像（PNG）を生成して Storage に保存し、`image_url` と `ogp_version` を更新する。`image_url` が null のままになるのは debounce 下書き段階のみ。
+
+| アクション | card_data | image_url | ogp_version | visibility |
+|---|---|---|---|---|
+| debounce 自動保存（1.5秒） | ✅ | ❌ | 変化なし | 変化なし（private） |
+| 「マイページに保存」 | ✅ | ✅ 必ず更新 | +1 | → public |
+| 「Xで共有」 | ✅ | ✅ 必ず更新 | +1 | → public |
+| 「画像で保存」 | ❌ | ❌ | 変化なし | 変化なし |
+
+### OGP キャッシュバスティング（v パラメータ）
+
+- X シェア URL は `/card/{cardId}?v={ogp_version}` 形式
+- `?v=N` を変えることで SNS（X 等）側の OGP キャッシュを強制更新させる
+- サーバーは `dynamic = 'force-dynamic'` で常に最新 DB データを返す（Next.js キャッシュをバイパス）
 
 ### カード削除時の処理
 

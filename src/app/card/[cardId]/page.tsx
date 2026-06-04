@@ -4,6 +4,9 @@ import { type Metadata } from 'next'
 import CardViewWrapper from './CardViewWrapper'
 import { fetchTemplateLayout } from '@/lib/templateLayout'
 
+// ?v=N による OGP キャッシュバスティングのため、SNS クローラーが毎回最新データを取得できるよう動的レンダリングにする
+export const dynamic = 'force-dynamic'
+
 
 export async function generateMetadata({ params }: { params: Promise<{ cardId: string }> }): Promise<Metadata> {
   const { cardId } = await params

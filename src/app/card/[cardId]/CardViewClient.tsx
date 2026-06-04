@@ -375,7 +375,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
       const res = await fetch(`/api/cards/${cardId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: dataUrl, ogp_version: newVersion }),
+        body: JSON.stringify({ imageBase64: dataUrl, ogp_version: newVersion, visibility: 'public' }),
       })
       if (!res.ok) return null
       savedImageUrlRef.current = dataUrl

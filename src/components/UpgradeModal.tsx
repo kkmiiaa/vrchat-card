@@ -5,19 +5,11 @@ import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import { createCard, updateCard } from '@/lib/saveCard'
 
-type Visibility = 'public' | 'limited' | 'private'
-
 type Props = {
   onClose: () => void
   localStorageKey: string
   getCanvasDataUrl: () => Promise<string | null> | string | null
 }
-
-const VISIBILITY_OPTIONS: { value: Visibility; label: string; desc: string }[] = [
-  { value: 'public',  label: '公開',      desc: 'プロフィールページに表示されます' },
-  { value: 'limited', label: '限定公開', desc: 'URLを知っている人だけ見られます。一覧には表示されません' },
-  { value: 'private', label: '非公開',    desc: '自分だけ見られます' },
-]
 
 export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUrl }: Props) {
   const router = useRouter()
@@ -25,7 +17,6 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
   const [loading, setLoading] = useState(false)
   const [slug, setSlug] = useState<string | null>(null)
   const [done, setDone] = useState(false)
-  const [visibility, setVisibility] = useState<Visibility>('public')
   const [savedImageUrl, setSavedImageUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const supabase = createClient()
@@ -63,7 +54,7 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
     const raw = localStorage.getItem(localStorageKey)
     const cardData = raw ? JSON.parse(raw) : {}
 
-    const created = await createCard({ templateId: 'vrchat-glass', cardData, title: 'VRChat Card', visibility })
+    const created = await createCard({ templateId: 'vrchat-glass', cardData, title: 'VRChat Card', visibility: 'public' })
 
     if ('error' in created) {
       setLoading(false)
@@ -142,28 +133,6 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
               vaacard.me/u/{slug}
             </p>
 
-            {/* 公開設定 */}
-            <div className="space-y-2 mb-6">
-              {VISIBILITY_OPTIONS.map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => setVisibility(opt.value)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-colors ${
-                    visibility === opt.value
-                      ? 'border-gray-900 bg-gray-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div>
-                    <span className="text-sm font-medium text-gray-900">{opt.label}</span>
-                    <span className="text-xs text-gray-400 ml-2">{opt.desc}</span>
-                  </div>
-                  <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
-                    visibility === opt.value ? 'border-gray-900 bg-gray-900' : 'border-gray-300'
-                  }`} />
-                </button>
-              ))}
-            </div>
 
             <button
               onClick={handleSave}

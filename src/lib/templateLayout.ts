@@ -1,6 +1,6 @@
 'use server'
 
-import { unstable_cache } from 'next/cache'
+import { unstable_cache, revalidateTag } from 'next/cache'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import type { LayoutNode, FormSection } from '@/blocks/types'
 import type { OverlayValue } from '@/blocks/overlay'
@@ -82,7 +82,7 @@ const _fetchTemplateLayoutCached = unstable_cache(
     return rowToTemplateLayoutRow(data as Record<string, unknown>)
   },
   ['template-layout'],
-  { revalidate: 300 }, // 5分キャッシュ
+  { revalidate: 300, tags: ['templates'] },
 )
 
 /** 単一テンプレート行を DB から取得（5分キャッシュ） */
@@ -108,7 +108,7 @@ const _fetchTemplateLayoutsCached = unstable_cache(
     )
   },
   ['template-layouts'],
-  { revalidate: 300 }, // 5分キャッシュ
+  { revalidate: 300, tags: ['templates'] },
 )
 
 /** 全テンプレート行を DB から取得（5分キャッシュ） */
@@ -240,6 +240,7 @@ export async function saveTemplateLayout(
     .from('templates')
     .upsert(payload, { onConflict: 'id' })
 
+  if (!error) revalidateTag('templates', 'default')
   return { error: error?.message ?? null }
 }
 
@@ -252,6 +253,7 @@ export async function saveSampleCardData(
     .from('templates')
     .update({ sample_card_data: sampleData, updated_at: new Date().toISOString() })
     .eq('id', templateId)
+  if (!error) revalidateTag('templates', 'default')
   return { error: error?.message ?? null }
 }
 

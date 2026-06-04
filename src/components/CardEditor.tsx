@@ -223,33 +223,16 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     reader.readAsDataURL(profileImageFile)
   }, [profileImageFile])
 
-  // background image → base64（初期化完了後のみ実行）
+  // background image → base64（imageFile アップロード時のみ）
   useEffect(() => {
     if (!initialized) return
-    if (bg.type !== 'image') { return }
-    if (bg.imageFile instanceof File) {
-      const reader = new FileReader()
-      reader.onload = e => setBackground({ ...bg, base64: e.target?.result as string })
-      reader.readAsDataURL(bg.imageFile)
-    } else if (!bg.base64) {
-      // プリセットパス(bg.value)・Storage URL(bg.url)どちらも base64 に変換する。
-      // html-to-image は外部 URL を fetch できない場合があるため、
-      // CSS に data URI を埋め込むことで確実にキャプチャできるようにする。
-      const src = bg.url ?? (typeof bg.value === 'string' ? bg.value : null)
-      if (!src) return
-      const controller = new AbortController()
-      fetch(src, { signal: controller.signal })
-        .then(r => r.blob())
-        .then(blob => {
-          const reader = new FileReader()
-          reader.onload = e => setBackground(prev => ({ ...prev, base64: e.target?.result as string }))
-          reader.readAsDataURL(blob)
-        })
-        .catch(() => {})
-      return () => controller.abort()
-    }
+    if (bg.type !== 'image') return
+    if (!(bg.imageFile instanceof File)) return
+    const reader = new FileReader()
+    reader.onload = e => setBackground({ ...bg, base64: e.target?.result as string })
+    reader.readAsDataURL(bg.imageFile)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialized, bg.type, bg.value, bg.url, bg.imageFile])
+  }, [initialized, bg.type, bg.imageFile])
 
   // --- Profile image handlers ---
   const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -305,22 +288,6 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     return false
   }
 
-  // image 型背景の base64 変換が完了するまで待機（最大 5 秒）
-  const waitForBackgroundBase64 = useCallback((): Promise<void> => {
-    const bg = backgroundRef.current
-    if (bg.type !== 'image' || bg.base64) return Promise.resolve()
-    return new Promise<void>(resolve => {
-      const deadline = setTimeout(resolve, 5000)
-      const check = setInterval(() => {
-        const cur = backgroundRef.current
-        if (cur.type !== 'image' || cur.base64) {
-          clearInterval(check)
-          clearTimeout(deadline)
-          resolve()
-        }
-      }, 50)
-    })
-  }, [])
 
   const handleShareByUrl = useCallback(async (skipEmptyCheck = false) => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -337,8 +304,6 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
     setSaveModalLoading(true)
 
-    // image 型背景の base64 変換を待ってから PNG 生成（相対 URL のまま html-to-image に渡さない）
-    await waitForBackgroundBase64()
     const dataUrl = await getCardDataUrl()
     let currentCardId = cardId
 
@@ -411,7 +376,6 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       return
     }
     const newVersion = currentOgpVersion + 1
-    await waitForBackgroundBase64()
     const dataUrl = await getCardDataUrl()
     if (dataUrl) {
       await updateCard({ cardId, imageBase64: dataUrl, ogp_version: newVersion })

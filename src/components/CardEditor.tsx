@@ -231,20 +231,25 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       const reader = new FileReader()
       reader.onload = e => setBackground({ ...bg, base64: e.target?.result as string })
       reader.readAsDataURL(bg.imageFile)
-    } else if (typeof bg.value === 'string' && bg.value && !bg.base64) {
+    } else if (!bg.base64) {
+      // プリセットパス(bg.value)・Storage URL(bg.url)どちらも base64 に変換する。
+      // html-to-image は外部 URL を fetch できない場合があるため、
+      // CSS に data URI を埋め込むことで確実にキャプチャできるようにする。
+      const src = bg.url ?? (typeof bg.value === 'string' ? bg.value : null)
+      if (!src) return
       const controller = new AbortController()
-      fetch(bg.value, { signal: controller.signal })
+      fetch(src, { signal: controller.signal })
         .then(r => r.blob())
         .then(blob => {
           const reader = new FileReader()
-          reader.onload = e => setBackground({ ...bg, base64: e.target?.result as string })
+          reader.onload = e => setBackground(prev => ({ ...prev, base64: e.target?.result as string }))
           reader.readAsDataURL(blob)
         })
         .catch(() => {})
       return () => controller.abort()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialized, bg.type, bg.value, bg.imageFile])
+  }, [initialized, bg.type, bg.value, bg.url, bg.imageFile])
 
   // --- Profile image handlers ---
   const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -303,12 +308,12 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   // image 型背景の base64 変換が完了するまで待機（最大 5 秒）
   const waitForBackgroundBase64 = useCallback((): Promise<void> => {
     const bg = backgroundRef.current
-    if (bg.type !== 'image' || bg.base64 || bg.url) return Promise.resolve()
+    if (bg.type !== 'image' || bg.base64) return Promise.resolve()
     return new Promise<void>(resolve => {
       const deadline = setTimeout(resolve, 5000)
       const check = setInterval(() => {
         const cur = backgroundRef.current
-        if (cur.type !== 'image' || cur.base64 || cur.url) {
+        if (cur.type !== 'image' || cur.base64) {
           clearInterval(check)
           clearTimeout(deadline)
           resolve()
@@ -535,23 +540,12 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         </section>
 
         {/* エクスポート専用（フルサイズ、画面外に配置） */}
-        {/* html-to-image は CSS background-image の外部URLを確実にインライン化できないため、
-            画像背景は <img> タグで描画する。ref は position:relative の内側 div に付ける */}
+        {/* 背景画像は事前に base64 変換済み（useEffect）のため、CSS に data URI が埋め込まれ
+            html-to-image が外部 fetch なしで確実にキャプチャできる */}
         <div style={debugMode
           ? { overflow: 'hidden', margin: '16px auto', outline: '2px dashed red' }
-          : { position: 'fixed', top: -9999, left: -9999, pointerEvents: 'none' }}>
-          <div
-            ref={cardExportRef}
-            style={{ position: 'relative', width: template.cardWidth, height: template.cardHeight, overflow: 'hidden' }}>
-            {background.type === 'image' && (
-              <img
-                src={background.url ?? (typeof background.value === 'string' ? background.value : undefined)}
-                alt=""
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              />
-            )}
-            <CardScaledView template={template} values={values} background={background.type === 'image' ? { ...background, type: 'color', value: 'transparent' } : background} scale={1} fontFamily={fontFamily} t={t} />
-          </div>
+          : { position: 'fixed', top: -9999, left: -9999, overflow: 'hidden', pointerEvents: 'none' }}>
+          <CardScaledView innerRef={cardExportRef} template={template} values={values} background={background} scale={1} fontFamily={fontFamily} t={t} />
         </div>
 
         {/* フォームサイドバー */}

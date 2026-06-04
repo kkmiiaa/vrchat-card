@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect, useCallback } from 'react'
+import { useCardExport } from '@/hooks/useCardExport'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { CardTemplate } from '@/blocks/types'
@@ -96,10 +97,9 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const webContentRef = useRef<HTMLDivElement>(null)
   const [webContentHeight, setWebContentHeight] = useState<number | null>(null)
   const tiltWrapRef = useRef<HTMLDivElement>(null)
-  const exportRef = useRef<HTMLDivElement>(null)
+  const { exportRef, downloading, generatePng, downloadPng } = useCardExport('vaacard')
   const [scale, setScale] = useState(1)
   const [orientation, setOrientation] = useState<'card' | 'web'>('card')
-  const [downloading, setDownloading] = useState(false)
   const [likeCount, setLikeCount] = useState(initialLikeCount)
   const [liked, setLiked] = useState(false)
   const [liking, setLiking] = useState(false)
@@ -370,10 +370,9 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   // OGP画像をStorageに保存してogp_versionをインクリメント
   // 成功時は新しいversionを返す、失敗時はnullを返す
   async function doPublish(): Promise<number | null> {
-    if (!exportRef.current) return null
     try {
-      const { toPng } = await import('html-to-image')
-      const dataUrl = await toPng(exportRef.current, { pixelRatio: 2 })
+      const dataUrl = await generatePng()
+      if (!dataUrl) return null
       const newVersion = currentOgpVersion + 1
       const res = await fetch(`/api/cards/${cardId}`, {
         method: 'PATCH',
@@ -415,20 +414,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     }
   }
 
-  async function handleDownload() {
-    if (!exportRef.current) return
-    setDownloading(true)
-    try {
-      const { toPng } = await import('html-to-image')
-      const dataUrl = await toPng(exportRef.current, { pixelRatio: 2 })
-      const link = document.createElement('a')
-      link.href = dataUrl
-      link.download = 'vaacard.png'
-      link.click()
-    } finally {
-      setDownloading(false)
-    }
-  }
+  const handleDownload = downloadPng
 
   const bg = initialBackground
   const pageBg = (() => {

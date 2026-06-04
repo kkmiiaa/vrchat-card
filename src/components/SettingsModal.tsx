@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import ProUpgradeModal from '@/components/ProUpgradeModal'
 import { createClient } from '@/lib/supabase/client'
 import { IoClose } from 'react-icons/io5'
 
@@ -21,6 +22,7 @@ type Props = {
 export default function SettingsModal({ onClose }: Props) {
   const router = useRouter()
   const [info, setInfo] = useState<PlanInfo | null>(null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
 
@@ -182,9 +184,9 @@ export default function SettingsModal({ onClose }: Props) {
               ) : (
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-gray-800">フリープラン</p>
-                  <Link href="/upgrade" onClick={onClose} className="text-xs font-semibold text-[#00AADB] hover:underline">
+                  <button onClick={() => setShowUpgradeModal(true)} className="text-xs font-semibold text-[#00AADB] hover:underline">
                     アップグレード →
-                  </Link>
+                  </button>
                 </div>
               )}
             </div>
@@ -232,6 +234,7 @@ export default function SettingsModal({ onClose }: Props) {
           </div>
         </div>
       </div>
+    {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} />}
     </>
   )
 }

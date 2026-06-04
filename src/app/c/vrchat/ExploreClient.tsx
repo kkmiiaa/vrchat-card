@@ -3,6 +3,7 @@
 import { useState, useCallback, useTransition } from 'react'
 import Link from 'next/link'
 import HeaderAuth from '@/components/HeaderAuth'
+import ProUpgradeModal from '@/components/ProUpgradeModal'
 import { relativeDate } from '@/utils/relativeDate'
 
 type BackgroundValue = { type: string; value: string | string[]; base64?: string | null } | null
@@ -58,6 +59,7 @@ type Props = {
 }
 
 export default function ExploreClient({ initialCards, isPro, isLoggedIn, communityTemplates = [] }: Props) {
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [cards, setCards] = useState<Card[]>(initialCards)
   const [filters, setFilters] = useState<Filters>({ q: '', gender: '', env: '', lang: '', friendPolicy: '' })
   const [cursor, setCursor] = useState<string | null>(null)
@@ -275,9 +277,9 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
               <p className="text-xs text-gray-500 mt-0.5">性別・使用環境・言語・フレンドポリシーなどで絞り込み</p>
             </div>
             {isLoggedIn ? (
-              <Link href="/upgrade" className="shrink-0 text-xs font-bold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-4 py-2 rounded-full hover:opacity-90 transition-opacity whitespace-nowrap">
+              <button onClick={() => setShowUpgradeModal(true)} className="shrink-0 text-xs font-bold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-4 py-2 rounded-full hover:opacity-90 transition-opacity whitespace-nowrap">
                 Proにアップグレード
-              </Link>
+              </button>
             ) : (
               <Link href="/auth/login" className="shrink-0 text-xs font-bold text-[#00AADB] border border-[#00AADB] px-4 py-2 rounded-full hover:bg-sky-50 transition-colors whitespace-nowrap">
                 ログイン
@@ -361,6 +363,7 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
           </div>
         )}
       </main>
+      {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} />}
     </div>
   )
 }

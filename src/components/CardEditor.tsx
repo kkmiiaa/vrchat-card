@@ -26,6 +26,7 @@ import PostTimeline from '@/components/PostTimeline'
 import CardScaledView from '@/components/CardScaledView'
 import { trackEvent } from '@/lib/gtag'
 import { migrateLegacyCardData } from '@/lib/legacyCardDataMigration'
+import ProUpgradeModal from '@/components/ProUpgradeModal'
 
 const STORAGE_KEY = 'vrchat-card-cache'
 
@@ -89,6 +90,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   const { exportRef: cardExportRef, downloading, generatePng: getCardDataUrl, downloadPng: _downloadPng } = useCardExport()
 
   const [showSaveNudge, setShowSaveNudge] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [currentOgpVersion, setCurrentOgpVersion] = useState(initialOgpVersion)
   const [publishConfirming, setPublishConfirming] = useState(false)
 
@@ -353,7 +355,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       if ('error' in result) {
         setSaveModalLoading(false)
         if (result.error === 'card_limit_reached') {
-          window.location.href = '/upgrade'
+          setShowUpgradeModal(true)
         } else {
           alert('保存に失敗しました: ' + result.error)
         }
@@ -711,6 +713,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       )}
 
     </main>
+    {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} />}
     </>
     </ImageUploadContext.Provider>
   )

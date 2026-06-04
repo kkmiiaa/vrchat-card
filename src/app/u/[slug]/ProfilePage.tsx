@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import ProUpgradeModal from '@/components/ProUpgradeModal'
 import { getBackgroundStyle } from '@/utils/backgroundUtils'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -136,6 +137,7 @@ type Props = {
 }
 
 export default function ProfilePage({ profile, slug, userRowId, cards: initialCards, isOwner, plan = 'free', templateDbRows = {} }: Props) {
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -495,22 +497,30 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
                   {atLimit ? (
                     <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-3 py-1.5 flex-1 min-w-0">
                       <span>Freeプランはカード{FREE_CARD_LIMIT}枚まで</span>
-                      <Link href="/upgrade" className="font-bold text-[#00AADB] hover:underline shrink-0">Proにアップグレード →</Link>
+                      <button onClick={() => setShowUpgradeModal(true)} className="font-bold text-[#00AADB] hover:underline shrink-0">Proにアップグレード →</button>
                     </div>
                   ) : <div className="flex-1" />}
-                  <Link
-                    href={atLimit ? '/upgrade' : '/card/new'}
-                    className={`inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full transition-opacity shadow-sm shrink-0 ${
-                      atLimit
-                        ? 'bg-gray-100 text-gray-400 shadow-none cursor-not-allowed'
-                        : 'bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white hover:opacity-90 shadow-sky-200'
-                    }`}
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    カードを追加
-                  </Link>
+                  {atLimit ? (
+                    <button
+                      onClick={() => setShowUpgradeModal(true)}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full bg-gray-100 text-gray-400 shadow-none shrink-0"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                      カードを追加
+                    </button>
+                  ) : (
+                    <Link
+                      href="/card/new"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white hover:opacity-90 transition-opacity shadow-sm shadow-sky-200 shrink-0"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                      カードを追加
+                    </Link>
+                  )}
                 </div>
               )
             })()}
@@ -686,6 +696,7 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
           </button>
         </div>
       )}
+      {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} />}
     </div>
   )
 }

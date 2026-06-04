@@ -507,7 +507,9 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         <div style={debugMode
           ? { overflow: 'hidden', margin: '16px auto', outline: '2px dashed red' }
           : { position: 'fixed', top: -9999, left: -9999, overflow: 'hidden', pointerEvents: 'none' }}>
-          <CardScaledView innerRef={cardExportRef} template={template} values={values} background={background} scale={1} fontFamily={fontFamily} t={t} />
+          <div ref={cardExportRef} style={{ background: getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK, bg.url) ?? undefined }}>
+            <template.CardRenderer values={values} background={background} fontFamily={fontFamily} t={t} />
+          </div>
         </div>
 
         {/* フォームサイドバー */}

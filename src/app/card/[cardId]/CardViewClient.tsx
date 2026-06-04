@@ -12,6 +12,7 @@ import HeaderAuth from '@/components/HeaderAuth'
 import { translations } from '@/utils/translations'
 import { relativeDate } from '@/utils/relativeDate'
 import { createClient } from '@/lib/supabase/client'
+import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
 
 export type CardViewWrapperProps = {
   cardId: string
@@ -940,7 +941,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
       )}
 
       <div style={{ position: 'fixed', top: -9999, left: -9999, pointerEvents: 'none' }}>
-        <div ref={exportRef}>
+        <div ref={exportRef} style={{ background: exportBackground ? getBackgroundStyle(exportBackground.type, exportBackground.value as string | [string, string], exportBackground.base64 ?? null, CARD_BG_FALLBACK, exportBackground.url) ?? undefined : CARD_BG_FALLBACK }}>
           <template.CardRenderer values={values} background={exportBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
         </div>
       </div>

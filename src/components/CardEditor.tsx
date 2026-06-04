@@ -418,7 +418,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
           <span className="hidden sm:inline text-sm text-gray-500 truncate">{template.title}</span>
           {isLoggedIn && cardId && draftStatus !== 'idle' && (
             <span className="hidden sm:inline text-[11px] text-gray-300 shrink-0">
-              {draftStatus === 'saving' ? '✨ 保存中...' : '下書き保存済み'}
+              {draftStatus === 'saving' ? '保存中...' : '下書き保存済み'}
             </span>
           )}
         </div>
@@ -685,7 +685,11 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
                 <div className="relative w-14 h-14">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-300 via-violet-300 to-pink-300 animate-spin" style={{ maskImage: 'radial-gradient(transparent 55%, black 56%)' }} />
                   <div className="absolute inset-[3px] rounded-full bg-white" />
-                  <div className="absolute inset-0 flex items-center justify-center text-2xl animate-bounce" style={{ animationDuration: '1.2s' }}>✨</div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-violet-400 animate-pulse" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2zm0 10l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z" />
+                    </svg>
+                  </div>
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-bold text-gray-800">カードを仕上げています</p>

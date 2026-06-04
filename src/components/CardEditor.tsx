@@ -363,30 +363,6 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, initialized])
 
-  const handlePostToX = async () => {
-    // テンプレート固有のハッシュタグがあれば優先、なければデフォルト
-    const baseTweetText = template.tweetHashtags
-      ? `カードを作りました！\n${template.tweetHashtags} #vaacard`
-      : t.tweetText
-    if (!cardId) {
-      // 未保存でもXシェア可能（テキストのみ）。ログイン不要。
-      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(baseTweetText)}`, '_blank')
-      setShowSaveNudge(true)
-      setTimeout(() => setShowSaveNudge(false), 8000)
-      return
-    }
-    const newVersion = currentOgpVersion + 1
-    const dataUrl = await getCardDataUrl()
-    if (dataUrl) {
-      await updateCard({ cardId, imageBase64: dataUrl, ogp_version: newVersion })
-      setCurrentOgpVersion(newVersion)
-    }
-    const base = `${window.location.origin}/card/${cardId}`
-    const shareUrl = newVersion > 0 ? `${base}?v=${newVersion}` : base
-    const tweetText = `${baseTweetText}\n${shareUrl}`
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank')
-  }
-
   const handlePreviewOpen = useCallback(() => {
     setPreviewOpen(true)
   }, [])
@@ -432,7 +408,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
               </svg>
               {t.save}
             </button>
-            <button onClick={handlePostToX}
+            <button onClick={() => handleShareByUrl()}
               className="flex items-center gap-1.5 text-xs font-medium text-white bg-black rounded-lg px-3 py-1.5 hover:bg-gray-800 transition-colors">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -625,7 +601,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         </aside>
       </div>
 
-      <FloatingButtons onSave={() => handleShareByUrl()} onShare={handlePostToX} onDownload={handleDownload} t={t} />
+      <FloatingButtons onSave={() => handleShareByUrl()} onShare={() => handleShareByUrl()} onDownload={handleDownload} t={t} />
 
       {/* ダウンロード後の保存誘導トースト */}
       {showSaveNudge && (

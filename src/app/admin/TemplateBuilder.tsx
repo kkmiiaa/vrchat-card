@@ -1804,11 +1804,11 @@ export default function TemplateBuilder({ savedLayouts, communities = [], onLabe
               flexShrink: 0,
             }}>
               <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: o.cardWidth, height: o.cardHeight }}>
-                <div ref={cardExportRef} style={{
+                {/* 表示用: 背景なし（コンテナの pageBg がそのまま透けて見えるため背景枠が出ない） */}
+                <div style={{
                   position: 'relative',
                   width: o.cardWidth,
                   height: o.cardHeight,
-                  background: pageBg,
                   borderRadius: currentRow.card_config?.borderRadius ?? 20,
                   overflow: 'hidden',
                 }}>
@@ -1824,24 +1824,46 @@ export default function TemplateBuilder({ savedLayouts, communities = [], onLabe
                     userUrl="https://vaacard.com/u/preview"
                     defaultSurface={currentDesignPreset}
                   />
-                  {/* 書き出し用ウォーターマーク */}
-                  <span style={{
-                    position: 'absolute',
-                    bottom: 6,
-                    right: 6,
-                    fontSize: 8,
-                    fontWeight: 600,
-                    color: 'rgba(255,255,255,0.6)',
-                    fontFamily: 'sans-serif',
-                    letterSpacing: '0.06em',
-                    pointerEvents: 'none',
-                  }}>
-                    vaacard.me
-                  </span>
                 </div>
               </div>
             </div>
           )}
+          {/* エクスポート専用（画面外・背景あり・ウォーターマーク付き） */}
+          <div style={{ position: 'fixed', top: -9999, left: -9999, pointerEvents: 'none' }}>
+            <div ref={cardExportRef} style={{
+              position: 'relative',
+              width: o.cardWidth,
+              height: o.cardHeight,
+              background: pageBg,
+              borderRadius: currentRow.card_config?.borderRadius ?? 20,
+              overflow: 'hidden',
+            }}>
+              <GenericCardRenderer
+                definition={previewDefinition}
+                orientation={orientation}
+                values={localValues}
+                fontFamily={localFontFamily}
+                transparentBackground
+                background={previewBackground ?? undefined}
+                cardUrl="https://vaacard.com/card/preview"
+                userUrl="https://vaacard.com/u/preview"
+                defaultSurface={currentDesignPreset}
+              />
+              <span style={{
+                position: 'absolute',
+                bottom: 6,
+                right: 6,
+                fontSize: 8,
+                fontWeight: 600,
+                color: 'rgba(255,255,255,0.6)',
+                fontFamily: 'sans-serif',
+                letterSpacing: '0.06em',
+                pointerEvents: 'none',
+              }}>
+                vaacard.me
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 

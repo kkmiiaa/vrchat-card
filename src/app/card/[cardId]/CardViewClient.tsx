@@ -941,8 +941,9 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
       )}
 
       <div style={{ position: 'fixed', top: -9999, left: -9999, pointerEvents: 'none' }}>
-        <div ref={exportRef} style={{ background: exportBackground ? getBackgroundStyle(exportBackground.type, exportBackground.value as string | [string, string], exportBackground.base64 ?? null, CARD_BG_FALLBACK, exportBackground.url) ?? undefined : CARD_BG_FALLBACK }}>
+        <div ref={exportRef} style={{ position: 'relative', background: exportBackground ? getBackgroundStyle(exportBackground.type, exportBackground.value as string | [string, string], exportBackground.base64 ?? null, CARD_BG_FALLBACK, exportBackground.url) ?? undefined : CARD_BG_FALLBACK }}>
           <template.CardRenderer values={values} background={exportBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
+          <span style={{ position: 'absolute', bottom: 6, right: 8, fontSize: 8, fontWeight: 600, color: 'rgba(255,255,255,0.6)', fontFamily: 'sans-serif', letterSpacing: '0.06em', pointerEvents: 'none' }}>vaacard.me</span>
         </div>
       </div>
     </div>

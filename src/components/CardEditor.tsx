@@ -507,8 +507,9 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
         <div style={debugMode
           ? { overflow: 'hidden', margin: '16px auto', outline: '2px dashed red' }
           : { position: 'fixed', top: -9999, left: -9999, overflow: 'hidden', pointerEvents: 'none' }}>
-          <div ref={cardExportRef} style={{ background: getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK, bg.url) ?? undefined }}>
+          <div ref={cardExportRef} style={{ position: 'relative', background: getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK, bg.url) ?? undefined }}>
             <template.CardRenderer values={values} background={background} fontFamily={fontFamily} t={t} />
+            <span style={{ position: 'absolute', bottom: 6, right: 8, fontSize: 8, fontWeight: 600, color: 'rgba(255,255,255,0.6)', fontFamily: 'sans-serif', letterSpacing: '0.06em', pointerEvents: 'none' }}>vaacard.me</span>
           </div>
         </div>
 

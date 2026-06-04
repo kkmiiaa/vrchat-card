@@ -32,7 +32,7 @@ export default defineConfig({
     // Step 3: ログイン済みテスト（setupに依存）
     {
       name: 'authenticated',
-      testMatch: /\/(authenticated|regression-card-save|regression-card-view|regression-profile|explore-search|spec-header|spec-draft|spec-card-flow|spec-settings-auth|spec-explore|spec-legacy-maker)\.spec\.ts/,
+      testMatch: /\/(authenticated|regression-card-save|regression-card-view|regression-profile|explore-search|spec-header|spec-draft|spec-card-flow|spec-settings-auth|spec-explore|spec-legacy-maker|ogp-image)\.spec\.ts/,
       dependencies: ['setup'],
       use: {
         ...devices['Desktop Chrome'],

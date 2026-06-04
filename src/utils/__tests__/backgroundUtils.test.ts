@@ -45,6 +45,19 @@ describe('getBackgroundStyle', () => {
       const fallback = 'linear-gradient(135deg, #c7d2fe, #fbcfe8, #fde68a)'
       expect(getBackgroundStyle('image', undefined, null, fallback)).toBe(fallback)
     })
+
+    it('base64 と url が両方ある場合は base64 を優先する（html-to-image のクロスオリジン回避）', () => {
+      const b64 = 'data:image/png;base64,abc123'
+      const url = 'https://example.supabase.co/storage/v1/object/public/card-images/bg.png'
+      const result = getBackgroundStyle('image', '/bg.webp', b64, undefined, url)
+      expect(result).toBe(`url(${b64}) center/cover no-repeat`)
+    })
+
+    it('base64 がなく url がある場合は url を使う', () => {
+      const url = 'https://example.supabase.co/storage/v1/object/public/card-images/bg.png'
+      const result = getBackgroundStyle('image', '/bg.webp', null, undefined, url)
+      expect(result).toBe(`url(${url}) center/cover no-repeat`)
+    })
   })
 
   describe('type が未定義の場合', () => {

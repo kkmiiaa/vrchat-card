@@ -25,8 +25,8 @@ export function getBackgroundStyle(
   }
 
   if (type === 'image') {
-    // Storage URL を優先、なければ base64、なければ value（プリセットパス）
-    const src = url ?? base64 ?? (typeof value === 'string' ? value : null)
+    // base64 を最優先（html-to-image でクロスオリジンを回避）、なければ Storage URL、なければ value（プリセットパス）
+    const src = base64 ?? url ?? (typeof value === 'string' ? value : null)
     if (src) return `url(${src}) center/cover no-repeat`
   }
 

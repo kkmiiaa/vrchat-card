@@ -403,11 +403,12 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
           width: cardWidth,
           position: 'relative',
           fontFamily: resolvedFont,
-          background: bg,
           borderRadius: definition.borderRadius ?? 20,
           overflow: 'hidden',
         }}
       >
+        {/* 背景を子要素として置く（html-to-image はCSS background より子要素を確実に描画する） */}
+        <div style={{ position: 'absolute', inset: 0, background: bg }} />
         {/* コンテンツ（通常フロー）が親の高さを決定する */}
         <div
           style={{
@@ -448,10 +449,11 @@ const GenericCardRenderer = forwardRef<HTMLDivElement, Props>(function GenericCa
         position: 'relative',
         overflow: 'hidden',
         fontFamily: resolvedFont,
-        background: bg,
         borderRadius: definition.borderRadius ?? 20,
       }}
     >
+      {/* 背景を子要素として置く（html-to-image はCSS background より子要素を確実に描画する） */}
+      <div style={{ position: 'absolute', inset: 0, background: bg }} />
       {/* オーバーレイ（背景の上・コンテンツの下） */}
       {definition.overlayKey && (() => {
         const overlayBlock = getComponent(definition.overlayKey!)

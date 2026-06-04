@@ -62,6 +62,9 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   const DEFAULT_BG: BackgroundValue = { type: 'image', value: '/backgrounds/bg_1.webp' }
   const [background, setBackground] = useState<BackgroundValue>(initialBackground ?? DEFAULT_BG)
   const bgInitialized = useRef(false)
+  // 最新の background を ref で追跡（toPng 前の base64 待機に使用）
+  const backgroundRef = useRef(background)
+  useEffect(() => { backgroundRef.current = background }, [background])
 
   // 新規カード（initialBackground なし）かつ localStorage に background が入っていた場合に同期
   useEffect(() => {
@@ -295,6 +298,23 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     return false
   }
 
+  // image 型背景の base64 変換が完了するまで待機（最大 5 秒）
+  const waitForBackgroundBase64 = useCallback((): Promise<void> => {
+    const bg = backgroundRef.current
+    if (bg.type !== 'image' || bg.base64 || bg.url) return Promise.resolve()
+    return new Promise<void>(resolve => {
+      const deadline = setTimeout(resolve, 5000)
+      const check = setInterval(() => {
+        const cur = backgroundRef.current
+        if (cur.type !== 'image' || cur.base64 || cur.url) {
+          clearInterval(check)
+          clearTimeout(deadline)
+          resolve()
+        }
+      }, 50)
+    })
+  }, [])
+
   const handleShareByUrl = useCallback(async (skipEmptyCheck = false) => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -310,6 +330,8 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
     setSaveModalLoading(true)
 
+    // image 型背景の base64 変換を待ってから PNG 生成（相対 URL のまま html-to-image に渡さない）
+    await waitForBackgroundBase64()
     const dataUrl = await getCardDataUrl()
     let currentCardId = cardId
 
@@ -382,6 +404,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       return
     }
     const newVersion = currentOgpVersion + 1
+    await waitForBackgroundBase64()
     const dataUrl = await getCardDataUrl()
     if (dataUrl) {
       await updateCard({ cardId, imageBase64: dataUrl, ogp_version: newVersion })

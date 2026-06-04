@@ -89,6 +89,30 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const [cardData, setCardData] = useState<Record<string, unknown> | null>(null)
   const [template, setTemplate] = useState<CardTemplate | null>(null)
 
+  // OGP 書き出し用 background（image 型は base64 に変換してから使う）
+  const [exportBackground, setExportBackground] = useState(initialBackground)
+  useEffect(() => {
+    const bg = initialBackground
+    if (!bg || bg.type !== 'image' || bg.base64 || bg.url) {
+      setExportBackground(bg)
+      return
+    }
+    const src = typeof bg.value === 'string' ? bg.value : null
+    if (!src) { setExportBackground(bg); return }
+    const controller = new AbortController()
+    fetch(src, { signal: controller.signal })
+      .then(r => r.blob())
+      .then(blob => new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+      }))
+      .then(base64 => setExportBackground({ ...bg, base64 }))
+      .catch(() => setExportBackground(bg))
+    return () => controller.abort()
+  }, [initialBackground])
+
   const containerRef = useRef<HTMLDivElement>(null)
   const webContentRef = useRef<HTMLDivElement>(null)
   const [webContentHeight, setWebContentHeight] = useState<number | null>(null)
@@ -932,7 +956,7 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
 
       <div style={{ position: 'fixed', top: -9999, left: -9999, pointerEvents: 'none' }}>
         <div ref={exportRef}>
-          <template.CardRenderer values={values} background={initialBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
+          <template.CardRenderer values={values} background={exportBackground ?? undefined} fontFamily={fontFamily} t={translations.ja} cardUrl={shareUrl} userUrl={ownerSlug ? shareUrl.replace(/\/card\/.*$/, '') + `/u/${ownerSlug}` : undefined} />
         </div>
       </div>
     </div>

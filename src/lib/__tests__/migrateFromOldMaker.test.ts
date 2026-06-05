@@ -1,26 +1,28 @@
 /**
  * 旧メーカー（main ブランチ /tools/vrchat-introduction-card）が localStorage に保存する
- * 実際のデータ形式を正義として、2段マイグレーションを網羅的に検証するテスト。
+ * 実際のデータ形式を正義として、2段マイグレーションを検証するテスト。
  *
  * 旧メーカーの LocalStorageCache 型（main ブランチより）:
  *   name: string
- *   language: string[]
- *   gender: string
- *   playEnv: string[]
- *   micOnRate: number
+ *   language: string[]          ← プリセット表示文字列 + カスタム文字列の混在配列
+ *   gender: string              ← ユーザー入力テキスト
+ *   playEnv: string[]           ← キー文字列配列
+ *   micOnRate: number           ← 0〜100
  *   selfIntro: string
  *   vrchatId: string
  *   twitterId: string
  *   discordId: string
  *   statusBlue/Green/Yellow/Red: string
- *   friendPolicy: string[]   ← 配列！
+ *   friendPolicy: string[]      ← キー文字列の配列（複数選択可）
  *   interactions: { label: string, mark: string, isCustom: boolean }[]
+ *                               ← デフォルト項目の label はキー文字列（言語非依存）
  *   backgroundType: "color" | "gradient" | "image"
  *   backgroundValue: string | [string, string]
  *   galleryEnabled: boolean
- *   galleryImages: (File|null)[]   ← File は serialize 不可なので実質 null[]
+ *   galleryImages: null[]       ← File は serialize 不可
  *   fontFamily: string
  *   showBalloon: boolean
+ *   ※ age/ageDisplay フィールドは旧メーカーに存在しない（保存されない）
  *
  * データフロー:
  *   localStorage (旧メーカー形式)
@@ -33,315 +35,460 @@ import { migrateLegacyCardData } from '../legacyCardDataMigration'
 import { migrateFromOld } from '@/hooks/useCardValues'
 
 /** フルパイプライン: migrateFromOld → migrateLegacyCardData */
-function fullMigrate(localStorage: Record<string, unknown>) {
-  const afterFromOld = migrateFromOld(localStorage)
-  return migrateLegacyCardData('vrchat-simple', afterFromOld)
+function fullMigrate(data: Record<string, unknown>) {
+  return migrateLegacyCardData('vrchat-simple', migrateFromOld(data) as Record<string, unknown>)
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 旧メーカーの典型的な localStorage データ
-// ─────────────────────────────────────────────────────────────────────────────
-const OLD_MAKER_TYPICAL = {
-  name:          '太郎',
-  gender:        '男性',
-  playEnv:       ['pcvr', 'quest'],
-  language:      ['ja', 'en'],
-  micOnRate:     75,
-  selfIntro:     '自己紹介テキスト',
-  vrchatId:      'vrc_taro',
-  twitterId:     'tw_taro',
-  discordId:     'disc_taro',
-  statusBlue:    '探索中',
-  statusGreen:   'いつでも歓迎',
-  statusYellow:  'ちょっと忙しい',
-  statusRed:     'フレンド満員',
-  friendPolicy:  ['frPolicyAnyone'],       // 配列
-  interactions:  [
-    { label: 'touch',       mark: '○', isCustom: false },
-    { label: 'closeRange',  mark: '△', isCustom: false },
-    { label: 'romantic',    mark: '×', isCustom: false },
-    { label: 'weapons',     mark: '-', isCustom: false },
-    { label: 'abuseViolence', mark: '×', isCustom: false },
-    { label: 'dirtyJokes',  mark: '-', isCustom: false },
-  ],
-  backgroundType:  'gradient',
-  backgroundValue: ['#fcd5ce', '#e0f7fa'],
-  galleryEnabled:  true,
-  galleryImages:   [null, null, null],
-  fontFamily:      'Rounded M+',
-  showBalloon:     false,
-}
+// friendPolicy の有効キー（旧メーカーのフィルタリング対象）
+const VALID_FRIEND_POLICY_KEYS = [
+  'frPolicyAnyone',
+  'frPolicyAfterGettingToKnow',
+  'frPolicyIfInterested',
+  'frPolicyMutualsOnX',
+  'frPolicyNo',
+]
 
-describe('旧メーカー実データ形式 → 2段マイグレーション 網羅テスト', () => {
+// interactions のデフォルト項目キー（旧メーカーの translations.ja.okNgDefaults のキー）
+const DEFAULT_INTERACTION_KEYS = ['touch', 'closeRange', 'romantic', 'weapons', 'abuseViolence', 'dirtyJokes']
+const DEFAULT_MARK = '-'
 
-  // ────────────────────────────────────────────────────────────────────────
-  // 1. SNS フィールド
-  // ────────────────────────────────────────────────────────────────────────
-  describe('1. SNS フィールド', () => {
-    it('vrchatId → vrchat', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
-      expect(result.vrchat).toBe('vrc_taro')
+describe('旧メーカー実データ形式 → 2段マイグレーション テスト', () => {
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // vrchatId / twitterId / discordId
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('SNS ID（vrchatId / twitterId / discordId）', () => {
+    it('最小: すべて空文字 → vrchat/x/discord が空文字', () => {
+      const result = fullMigrate({ vrchatId: '', twitterId: '', discordId: '' })
+      expect(result.vrchat).toBe('')
+      expect(result.x).toBe('')
+      expect(result.discord).toBe('')
     })
 
-    it('twitterId → x', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
-      expect(result.x).toBe('tw_taro')
+    it('通常: 典型的なID値 → そのまま変換される', () => {
+      const result = fullMigrate({ vrchatId: 'usr_abc123', twitterId: '@taro_vrc', discordId: 'taro#1234' })
+      expect(result.vrchat).toBe('usr_abc123')
+      expect(result.x).toBe('@taro_vrc')
+      expect(result.discord).toBe('taro#1234')
     })
 
-    it('discordId → discord', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
-      expect(result.discord).toBe('disc_taro')
+    it('最大: 100文字の長いID → そのまま変換される', () => {
+      const long = 'a'.repeat(100)
+      const result = fullMigrate({ vrchatId: long, twitterId: long, discordId: long })
+      expect(result.vrchat).toBe(long)
+      expect(result.x).toBe(long)
+      expect(result.discord).toBe(long)
     })
 
-    it('sns キーが残らない', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
+    it('特殊文字（スペース・Unicode・記号）を含むID → そのまま変換される', () => {
+      const special = 'ユーザー名 🎮 @#!'
+      const result = fullMigrate({ vrchatId: special, twitterId: special, discordId: special })
+      expect(result.vrchat).toBe(special)
+      expect(result.x).toBe(special)
+      expect(result.discord).toBe(special)
+    })
+
+    it('未設定 → 空文字になる', () => {
+      const result = fullMigrate({})
+      expect(result.vrchat).toBe('')
+      expect(result.x).toBe('')
+      expect(result.discord).toBe('')
+    })
+
+    it('変換後に sns キーが残らない', () => {
+      const result = fullMigrate({ vrchatId: 'x', twitterId: 'y', discordId: 'z' })
       expect(result.sns).toBeUndefined()
     })
   })
 
-  // ────────────────────────────────────────────────────────────────────────
-  // 2. friendPolicy（string[] → string 変換が最重要）
-  // ────────────────────────────────────────────────────────────────────────
-  describe('2. friendPolicy（旧: string[]、新: string）', () => {
-    it('friendPolicy が string[] のとき、先頭要素が string として取り出される', () => {
-      const result = fullMigrate({ ...OLD_MAKER_TYPICAL, friendPolicy: ['frPolicyAnyone'] })
+  // ──────────────────────────────────────────────────────────────────────────
+  // friendPolicy
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('friendPolicy（旧: string[]、新: string）', () => {
+    it('最小: 空配列 → 空文字', () => {
+      const result = fullMigrate({ friendPolicy: [] })
+      expect(result.friendPolicy).toBe('')
+      expect(Array.isArray(result.friendPolicy)).toBe(false)
+    })
+
+    it('通常: 1要素の配列 → 先頭要素の string', () => {
+      const result = fullMigrate({ friendPolicy: ['frPolicyAnyone'] })
+      expect(result.friendPolicy).toBe('frPolicyAnyone')
+    })
+
+    it('最大: 全5種類が選択されている → 先頭要素のみ使用', () => {
+      const result = fullMigrate({ friendPolicy: VALID_FRIEND_POLICY_KEYS })
       expect(result.friendPolicy).toBe('frPolicyAnyone')
       expect(Array.isArray(result.friendPolicy)).toBe(false)
     })
 
-    it('friendPolicy が複数選択のとき、先頭要素のみが使われる', () => {
-      const result = fullMigrate({ ...OLD_MAKER_TYPICAL, friendPolicy: ['frPolicyMutualsOnX', 'frPolicyAfterGettingToKnow'] })
-      expect(result.friendPolicy).toBe('frPolicyMutualsOnX')
-    })
-
-    it('friendPolicy が空配列のとき、空文字になる', () => {
-      const result = fullMigrate({ ...OLD_MAKER_TYPICAL, friendPolicy: [] })
-      expect(result.friendPolicy).toBe('')
-    })
-
-    it('friendPolicy が未設定のとき、空文字になる', () => {
-      const result = fullMigrate({ ...OLD_MAKER_TYPICAL, friendPolicy: undefined })
-      expect(result.friendPolicy).toBe('')
-    })
-
-    it('5種類すべてのポリシーが正しく変換される', () => {
-      const policies = [
-        'frPolicyAnyone',
-        'frPolicyIfInterested',
-        'frPolicyMutualsOnX',
-        'frPolicyAfterGettingToKnow',
-        'frPolicyNo',
-      ]
-      for (const policy of policies) {
-        const result = fullMigrate({ ...OLD_MAKER_TYPICAL, friendPolicy: [policy] })
-        expect(result.friendPolicy).toBe(policy)
+    it('有効キー5種類それぞれが単独選択で正しく変換される', () => {
+      for (const key of VALID_FRIEND_POLICY_KEYS) {
+        const result = fullMigrate({ friendPolicy: [key] })
+        expect(result.friendPolicy).toBe(key)
       }
+    })
+
+    it('未設定 → 空文字', () => {
+      const result = fullMigrate({})
+      expect(result.friendPolicy).toBe('')
+    })
+
+    it('翻訳ラベル（日本語表示テキスト）は旧メーカーには保存されない（キーが保存される）', () => {
+      // 旧メーカーは「だれでもOK」等のラベルではなく 'frPolicyAnyone' キーを保存する
+      const result = fullMigrate({ friendPolicy: ['frPolicyAnyone'] })
+      expect(result.friendPolicy).toBe('frPolicyAnyone')
+      expect(result.friendPolicy).not.toBe('だれでもOK')
+      expect(result.friendPolicy).not.toBe('Anyone is welcome')
     })
   })
 
-  // ────────────────────────────────────────────────────────────────────────
-  // 3. gender（string → { tag, display }）
-  // ────────────────────────────────────────────────────────────────────────
-  describe('3. gender（string → { tag, display }）', () => {
-    it('gender が string のとき { tag, display: "" } に変換される', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
-      expect(result.gender).toEqual({ tag: '男性', display: '' })
+  // ──────────────────────────────────────────────────────────────────────────
+  // gender
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('gender（string → { tag, display }）', () => {
+    it('最小: 空文字 → { tag: "", display: "" }', () => {
+      const result = fullMigrate({ gender: '' })
+      expect(result.gender).toEqual({ tag: '', display: '' })
     })
 
-    it('gender が空文字のとき { tag: "", display: "" } になる', () => {
-      const result = fullMigrate({ ...OLD_MAKER_TYPICAL, gender: '' })
+    it('通常: 日本語性別文字列 → { tag: 値, display: "" }', () => {
+      for (const g of ['男性', '女性', 'ノンバイナリー', 'その他']) {
+        const result = fullMigrate({ gender: g })
+        expect(result.gender).toEqual({ tag: g, display: '' })
+      }
+    })
+
+    it('最大: 100文字のカスタム入力 → { tag: 値, display: "" }', () => {
+      const long = 'あ'.repeat(100)
+      const result = fullMigrate({ gender: long })
+      expect(result.gender).toEqual({ tag: long, display: '' })
+    })
+
+    it('未設定 → { tag: "", display: "" }', () => {
+      const result = fullMigrate({})
       expect(result.gender).toEqual({ tag: '', display: '' })
     })
   })
 
-  // ────────────────────────────────────────────────────────────────────────
-  // 4. language（string[] → { preset, custom }）
-  // ────────────────────────────────────────────────────────────────────────
-  describe('4. language（string[] → { preset, custom }）', () => {
-    it('language が string[] のとき { preset, custom: [] } に変換される', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
-      expect(result.language).toEqual({ preset: ['ja', 'en'], custom: [] })
+  // ──────────────────────────────────────────────────────────────────────────
+  // language
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('language（string[] → { preset, custom }）', () => {
+    it('最小: 空配列 → { preset: [], custom: [] }', () => {
+      const result = fullMigrate({ language: [] })
+      expect(result.language).toEqual({ preset: [], custom: [] })
     })
 
-    it('language が空配列のとき { preset: [], custom: [] } になる', () => {
-      const result = fullMigrate({ ...OLD_MAKER_TYPICAL, language: [] })
+    it('通常: プリセット2言語 → { preset: [...], custom: [] }', () => {
+      const result = fullMigrate({ language: ['日本語', '英語'] })
+      expect(result.language).toEqual({ preset: ['日本語', '英語'], custom: [] })
+    })
+
+    it('最大: 多数の言語 → すべて preset に格納される', () => {
+      const many = ['日本語', '英語', '韓国語', 'フランス語', 'スペイン語', 'ドイツ語']
+      const result = fullMigrate({ language: many })
+      expect(result.language).toEqual({ preset: many, custom: [] })
+    })
+
+    it('カスタム言語を含む場合 → すべて preset に格納される（custom は空）', () => {
+      // 旧メーカーはプリセット・カスタムを区別せず同一配列に保存するため、
+      // マイグレーション後は全要素が preset に入る
+      const result = fullMigrate({ language: ['日本語', 'カスタム言語'] })
+      expect(result.language).toEqual({ preset: ['日本語', 'カスタム言語'], custom: [] })
+    })
+
+    it('未設定 → { preset: [], custom: [] }', () => {
+      const result = fullMigrate({})
       expect(result.language).toEqual({ preset: [], custom: [] })
     })
   })
 
-  // ────────────────────────────────────────────────────────────────────────
-  // 5. status（statusBlue/Green/Yellow/Red → status オブジェクト）
-  // ────────────────────────────────────────────────────────────────────────
-  describe('5. status フィールド', () => {
-    it('statusBlue/Green/Yellow/Red が status.{blue,green,yellow,red} にまとまる', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
-      const status = result.status as Record<string, string>
-      expect(status.blue).toBe('探索中')
-      expect(status.green).toBe('いつでも歓迎')
-      expect(status.yellow).toBe('ちょっと忙しい')
-      expect(status.red).toBe('フレンド満員')
+  // ──────────────────────────────────────────────────────────────────────────
+  // micOnRate
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('micOnRate（number）', () => {
+    it('最小: 0 → そのまま', () => {
+      const result = fullMigrate({ micOnRate: 0 })
+      expect(result.micOnRate).toBe(0)
     })
 
-    it('status フィールドが未設定のとき空文字になる', () => {
-      const { statusBlue: _, statusGreen: __, statusYellow: ___, statusRed: ____, ...rest } = OLD_MAKER_TYPICAL
-      const result = fullMigrate(rest)
-      const status = result.status as Record<string, string>
-      expect(status.blue).toBe('')
-      expect(status.green).toBe('')
-      expect(status.yellow).toBe('')
-      expect(status.red).toBe('')
+    it('通常: 50 → そのまま', () => {
+      const result = fullMigrate({ micOnRate: 50 })
+      expect(result.micOnRate).toBe(50)
+    })
+
+    it('最大: 100 → そのまま', () => {
+      const result = fullMigrate({ micOnRate: 100 })
+      expect(result.micOnRate).toBe(100)
+    })
+
+    it('未設定 → 0', () => {
+      const result = fullMigrate({})
+      expect(result.micOnRate).toBe(0)
     })
   })
 
-  // ────────────────────────────────────────────────────────────────────────
-  // 6. background（backgroundType/backgroundValue → background オブジェクト）
-  // ────────────────────────────────────────────────────────────────────────
-  describe('6. background（backgroundType/backgroundValue → background オブジェクト）', () => {
-    it('backgroundType="gradient" + backgroundValue=配列 → background.{type,value} に変換される', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
+  // ──────────────────────────────────────────────────────────────────────────
+  // name / selfIntro
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('name / selfIntro（string）', () => {
+    it('最小: 空文字 → 空文字', () => {
+      const result = fullMigrate({ name: '', selfIntro: '' })
+      expect(result.name).toBe('')
+      expect(result.selfIntro).toBe('')
+    })
+
+    it('通常: 日本語テキスト → そのまま', () => {
+      const result = fullMigrate({ name: '太郎', selfIntro: 'よろしくお願いします！' })
+      expect(result.name).toBe('太郎')
+      expect(result.selfIntro).toBe('よろしくお願いします！')
+    })
+
+    it('最大: 改行・絵文字を含む長文 → そのまま', () => {
+      const long = '🎮 VRChat が大好きです！\n'.repeat(10)
+      const result = fullMigrate({ selfIntro: long })
+      expect(result.selfIntro).toBe(long)
+    })
+
+    it('未設定 → 空文字', () => {
+      const result = fullMigrate({})
+      expect(result.name).toBe('')
+      expect(result.selfIntro).toBe('')
+    })
+  })
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // statusBlue/Green/Yellow/Red → status オブジェクト
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('status（statusBlue/Green/Yellow/Red → status.{blue,green,yellow,red}）', () => {
+    it('最小: すべて空文字 → status の各値が空文字', () => {
+      const result = fullMigrate({ statusBlue: '', statusGreen: '', statusYellow: '', statusRed: '' })
+      const s = result.status as Record<string, string>
+      expect(s).toEqual({ blue: '', green: '', yellow: '', red: '' })
+    })
+
+    it('通常: 典型的なステータステキスト → そのまま変換', () => {
+      const result = fullMigrate({
+        statusBlue: '探索中', statusGreen: 'いつでも歓迎',
+        statusYellow: 'ちょっと忙しい', statusRed: 'フレンド満員',
+      })
+      const s = result.status as Record<string, string>
+      expect(s.blue).toBe('探索中')
+      expect(s.green).toBe('いつでも歓迎')
+      expect(s.yellow).toBe('ちょっと忙しい')
+      expect(s.red).toBe('フレンド満員')
+    })
+
+    it('最大: 100文字のカスタムテキスト → そのまま変換', () => {
+      const long = 'あ'.repeat(100)
+      const result = fullMigrate({ statusBlue: long, statusGreen: long, statusYellow: long, statusRed: long })
+      const s = result.status as Record<string, string>
+      expect(s.blue).toBe(long)
+    })
+
+    it('未設定 → 各値が空文字', () => {
+      const result = fullMigrate({})
+      const s = result.status as Record<string, string>
+      expect(s).toEqual({ blue: '', green: '', yellow: '', red: '' })
+    })
+  })
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // background（backgroundType/backgroundValue → background オブジェクト）
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('background（backgroundType/backgroundValue → { type, value }）', () => {
+    it('最小(color): 空文字の色 → { type: "color", value: "" }', () => {
+      const result = fullMigrate({ backgroundType: 'color', backgroundValue: '' })
+      const bg = result.background as Record<string, unknown>
+      expect(bg.type).toBe('color')
+      expect(bg.value).toBe('')
+    })
+
+    it('通常(color): カラーコード → { type: "color", value: "#rrggbb" }', () => {
+      const result = fullMigrate({ backgroundType: 'color', backgroundValue: '#ff6b6b' })
+      const bg = result.background as Record<string, unknown>
+      expect(bg.type).toBe('color')
+      expect(bg.value).toBe('#ff6b6b')
+    })
+
+    it('通常(gradient): 2色配列 → { type: "gradient", value: [色1, 色2] }', () => {
+      const result = fullMigrate({ backgroundType: 'gradient', backgroundValue: ['#fcd5ce', '#e0f7fa'] })
       const bg = result.background as Record<string, unknown>
       expect(bg.type).toBe('gradient')
       expect(bg.value).toEqual(['#fcd5ce', '#e0f7fa'])
     })
 
-    it('backgroundType="color" + backgroundValue=文字列 → background.{type,value} に変換される', () => {
-      const result = fullMigrate({
-        ...OLD_MAKER_TYPICAL,
-        backgroundType: 'color',
-        backgroundValue: '#ff0000',
-      })
-      const bg = result.background as Record<string, unknown>
-      expect(bg.type).toBe('color')
-      expect(bg.value).toBe('#ff0000')
+    it('通常(image): 画像パス → { type: "image", value: "/backgrounds/bg_N.webp" }', () => {
+      for (let i = 1; i <= 5; i++) {
+        const path = `/backgrounds/bg_${i}.webp`
+        const result = fullMigrate({ backgroundType: 'image', backgroundValue: path })
+        const bg = result.background as Record<string, unknown>
+        expect(bg.type).toBe('image')
+        expect(bg.value).toBe(path)
+      }
     })
 
-    it('backgroundType="image" + backgroundValue=パス → background.{type,value} に変換される', () => {
-      const result = fullMigrate({
-        ...OLD_MAKER_TYPICAL,
-        backgroundType: 'image',
-        backgroundValue: '/backgrounds/bg_2.webp',
-      })
-      const bg = result.background as Record<string, unknown>
-      expect(bg.type).toBe('image')
-      expect(bg.value).toBe('/backgrounds/bg_2.webp')
-    })
-
-    it('backgroundType が未設定のとき background は undefined', () => {
-      const { backgroundType: _, backgroundValue: __, ...rest } = OLD_MAKER_TYPICAL
-      const result = fullMigrate(rest)
+    it('backgroundType 未設定 → background は undefined（CardEditor がデフォルトを使う）', () => {
+      const result = fullMigrate({ name: '太郎' })
       expect(result.background).toBeUndefined()
     })
   })
 
-  // ────────────────────────────────────────────────────────────────────────
-  // 7. gallery（galleryEnabled → gallery.enabled）
-  // ────────────────────────────────────────────────────────────────────────
-  describe('7. gallery（galleryEnabled → gallery.enabled）', () => {
-    it('galleryEnabled=true → gallery.enabled=true に変換される', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
-      const gallery = result.gallery as Record<string, unknown>
-      expect(gallery.enabled).toBe(true)
+  // ──────────────────────────────────────────────────────────────────────────
+  // gallery（galleryEnabled → gallery.enabled）
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('gallery（galleryEnabled → gallery.enabled）', () => {
+    it('最小: galleryEnabled=false → gallery.enabled=false', () => {
+      const result = fullMigrate({ galleryEnabled: false, galleryImages: [null, null, null] })
+      const g = result.gallery as Record<string, unknown>
+      expect(g.enabled).toBe(false)
     })
 
-    it('galleryEnabled=false → gallery.enabled=false に変換される', () => {
-      const result = fullMigrate({ ...OLD_MAKER_TYPICAL, galleryEnabled: false })
-      const gallery = result.gallery as Record<string, unknown>
-      expect(gallery.enabled).toBe(false)
+    it('通常: galleryEnabled=true → gallery.enabled=true', () => {
+      const result = fullMigrate({ galleryEnabled: true, galleryImages: [null, null, null] })
+      const g = result.gallery as Record<string, unknown>
+      expect(g.enabled).toBe(true)
     })
 
-    it('galleryEnabled が未設定のとき gallery は undefined', () => {
-      const { galleryEnabled: _, galleryImages: __, ...rest } = OLD_MAKER_TYPICAL
-      const result = fullMigrate(rest)
+    it('images は常に null 配列（File はシリアライズ不可のため）', () => {
+      const result = fullMigrate({ galleryEnabled: true, galleryImages: [null, null, null] })
+      const g = result.gallery as Record<string, unknown>
+      expect(g.images).toEqual([null, null, null])
+    })
+
+    it('galleryImages が欠損していても gallery オブジェクトが生成される', () => {
+      const result = fullMigrate({ galleryEnabled: true })
+      const g = result.gallery as Record<string, unknown>
+      expect(g.enabled).toBe(true)
+      expect(g.images).toEqual([null, null, null])
+    })
+
+    it('galleryEnabled 未設定 → gallery は undefined', () => {
+      const result = fullMigrate({ name: '太郎' })
       expect(result.gallery).toBeUndefined()
     })
   })
 
-  // ────────────────────────────────────────────────────────────────────────
-  // 8. interactions（そのまま保持）
-  // ────────────────────────────────────────────────────────────────────────
-  describe('8. interactions（旧形式のまま保持）', () => {
-    it('interactions 配列がそのまま保持される', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
-      const interactions = result.interactions as Array<Record<string, unknown>>
-      expect(interactions).toHaveLength(6)
-      expect(interactions[0]).toEqual({ label: 'touch', mark: '○', isCustom: false })
-      expect(interactions[2]).toEqual({ label: 'romantic', mark: '×', isCustom: false })
+  // ──────────────────────────────────────────────────────────────────────────
+  // interactions
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('interactions（{ label, mark, isCustom }[]）', () => {
+    const defaultInteractions = DEFAULT_INTERACTION_KEYS.map(key => ({
+      label: key, mark: DEFAULT_MARK, isCustom: false,
+    }))
+
+    it('最小: 空配列 → 空配列', () => {
+      const result = fullMigrate({ interactions: [] })
+      expect(result.interactions).toEqual([])
     })
 
-    it('カスタム interactions も保持される', () => {
-      const result = fullMigrate({
-        ...OLD_MAKER_TYPICAL,
-        interactions: [
-          { label: 'touch', mark: '○', isCustom: false },
-          { label: 'カスタム項目', mark: '△', isCustom: true },
-        ],
-      })
-      const interactions = result.interactions as Array<Record<string, unknown>>
-      expect(interactions).toHaveLength(2)
-      expect(interactions[1]).toEqual({ label: 'カスタム項目', mark: '△', isCustom: true })
+    it('通常: デフォルト6項目（キー文字列ラベル）→ そのまま保持', () => {
+      const result = fullMigrate({ interactions: defaultInteractions })
+      const i = result.interactions as Array<Record<string, unknown>>
+      expect(i).toHaveLength(6)
+      expect(i[0]).toEqual({ label: 'touch', mark: DEFAULT_MARK, isCustom: false })
+      expect(i[5]).toEqual({ label: 'dirtyJokes', mark: DEFAULT_MARK, isCustom: false })
     })
 
-    it('interactions が未設定のとき空配列になる', () => {
-      const { interactions: _, ...rest } = OLD_MAKER_TYPICAL
-      const result = fullMigrate(rest)
+    it('通常: デフォルト6項目 + カスタム3項目 → 計9項目が保持される', () => {
+      const custom = [
+        { label: 'カスタム1', mark: '○', isCustom: true },
+        { label: 'カスタム2', mark: '×', isCustom: true },
+        { label: 'カスタム3', mark: '△', isCustom: true },
+      ]
+      const result = fullMigrate({ interactions: [...defaultInteractions, ...custom] })
+      const i = result.interactions as Array<Record<string, unknown>>
+      expect(i).toHaveLength(9)
+      expect(i[6]).toEqual({ label: 'カスタム1', mark: '○', isCustom: true })
+    })
+
+    it('最大: マーク値のすべてのパターン（○ △ × - ）が保持される', () => {
+      const items = [
+        { label: 'touch',      mark: '○', isCustom: false },
+        { label: 'closeRange', mark: '△', isCustom: false },
+        { label: 'romantic',   mark: '×', isCustom: false },
+        { label: 'weapons',    mark: '-',  isCustom: false },
+      ]
+      const result = fullMigrate({ interactions: items })
+      const i = result.interactions as Array<Record<string, unknown>>
+      expect(i[0].mark).toBe('○')
+      expect(i[1].mark).toBe('△')
+      expect(i[2].mark).toBe('×')
+      expect(i[3].mark).toBe('-')
+    })
+
+    it('デフォルト項目のラベルは言語非依存のキー文字列（翻訳テキストは保存されない）', () => {
+      // 旧メーカーは translations.ja.okNgDefaults のキー名を label に使う
+      // 日本語表示テキスト（'触る' 等）は保存されない
+      const result = fullMigrate({ interactions: defaultInteractions })
+      const i = result.interactions as Array<Record<string, unknown>>
+      expect(i[0].label).toBe('touch')
+      expect(i[0].label).not.toBe('触る')
+      expect(i[0].label).not.toBe('Touching')
+    })
+
+    it('未設定 → 空配列', () => {
+      const result = fullMigrate({})
       expect(result.interactions).toEqual([])
     })
   })
 
-  // ────────────────────────────────────────────────────────────────────────
-  // 9. その他フィールド保持
-  // ────────────────────────────────────────────────────────────────────────
-  describe('9. その他フィールド', () => {
-    it('name がそのまま保持される', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
-      expect(result.name).toBe('太郎')
-    })
-
-    it('selfIntro がそのまま保持される', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
-      expect(result.selfIntro).toBe('自己紹介テキスト')
-    })
-
-    it('micOnRate がそのまま保持される', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
-      expect(result.micOnRate).toBe(75)
-    })
-
-    it('playEnv がそのまま保持される', () => {
-      const result = fullMigrate(OLD_MAKER_TYPICAL)
-      expect(result.playEnv).toEqual(['pcvr', 'quest'])
+  // ──────────────────────────────────────────────────────────────────────────
+  // age（旧メーカーには存在しない → 未定義のまま）
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('age（旧メーカーの LocalStorageCache に存在しないフィールド）', () => {
+    it('旧メーカーデータに age/ageDisplay がなければ age は空になる', () => {
+      const result = fullMigrate({ name: '太郎', vrchatId: 'vrc_taro' })
+      // age.mode/searchTag は空文字になる
+      const age = result.age as Record<string, unknown>
+      expect(age?.mode ?? '').toBe('')
     })
   })
 
-  // ────────────────────────────────────────────────────────────────────────
-  // 10. エッジケース
-  // ────────────────────────────────────────────────────────────────────────
-  describe('10. エッジケース', () => {
-    it('完全に空のデータでもクラッシュしない', () => {
-      expect(() => fullMigrate({})).not.toThrow()
-    })
-
-    it('すべてのフィールドが空文字でもクラッシュしない', () => {
-      expect(() => fullMigrate({
-        name: '', gender: '', selfIntro: '', vrchatId: '', twitterId: '', discordId: '',
-        friendPolicy: [], language: [], playEnv: [], micOnRate: 0,
-        statusBlue: '', statusGreen: '', statusYellow: '', statusRed: '',
-        interactions: [], backgroundType: 'color', backgroundValue: '', galleryEnabled: false,
-      })).not.toThrow()
-    })
-
-    it('新フォーマット（vrchat キーあり）を再変換しても壊れない（冪等性）', () => {
+  // ──────────────────────────────────────────────────────────────────────────
+  // 冪等性（新フォーマットを再変換しても壊れない）
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('冪等性（新フォーマットを再変換しても同じ結果）', () => {
+    it('新フォーマットのデータを migrateLegacyCardData に通しても壊れない', () => {
       const newFormat = {
         vrchat: 'vrc', x: 'tw', discord: 'disc',
         friendPolicy: 'frPolicyAnyone',
-        gender: { tag: 'male', display: '' },
-        language: { preset: ['ja'], custom: [] },
-        background: { type: 'gradient', value: ['#fff', '#000'] },
+        gender: { tag: '男性', display: '' },
+        language: { preset: ['日本語'], custom: [] },
+        background: { type: 'gradient', value: ['#fcd5ce', '#e0f7fa'] },
+        gallery: { enabled: true, images: [null, null, null], base64: [null, null, null] },
       }
       const result = migrateLegacyCardData('vrchat-simple', newFormat)
       expect(result.vrchat).toBe('vrc')
       expect(result.friendPolicy).toBe('frPolicyAnyone')
-      expect((result.gender as Record<string,unknown>).tag).toBe('male')
+      expect((result.gender as Record<string, unknown>).tag).toBe('男性')
+      expect(result.language).toEqual({ preset: ['日本語'], custom: [] })
+    })
+  })
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // エッジケース・クラッシュしないこと
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('エッジケース', () => {
+    it('完全に空のオブジェクト → クラッシュしない', () => {
+      expect(() => fullMigrate({})).not.toThrow()
+    })
+
+    it('すべてのフィールドが空値 → クラッシュしない', () => {
+      expect(() => fullMigrate({
+        name: '', gender: '', selfIntro: '', vrchatId: '', twitterId: '', discordId: '',
+        friendPolicy: [], language: [], playEnv: [], micOnRate: 0,
+        statusBlue: '', statusGreen: '', statusYellow: '', statusRed: '',
+        interactions: [], backgroundType: 'color', backgroundValue: '',
+        galleryEnabled: false, galleryImages: [null, null, null],
+      })).not.toThrow()
+    })
+
+    it('想定外の型（null 等）がフィールドに入っても クラッシュしない', () => {
+      expect(() => fullMigrate({
+        name: null, micOnRate: null, language: null, interactions: null,
+      })).not.toThrow()
     })
   })
 })

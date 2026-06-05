@@ -325,6 +325,47 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   const handleShareByUrl = useCallback(async (skipEmptyCheck = false, onSaved?: (cardId: string, ogpVersion: number) => void) => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
+      // リダイレクト前に未変換の画像ファイルを base64 に変換して localStorage に保存する。
+      // useEffect の変換処理は非同期のため、即時リダイレクトすると完了前にページが破棄される。
+      const pendingValues = JSON.parse(JSON.stringify(
+        Object.fromEntries(Object.entries(values as Record<string, unknown>).filter(([, v]) => !(v instanceof File)))
+      )) as Record<string, unknown>
+
+      const uploadOps: Promise<void>[] = []
+
+      // background imageFile が未変換なら変換
+      if (background.imageFile instanceof File) {
+        const file = background.imageFile
+        uploadOps.push(
+          resizeImageToBase64(file, 900, 506, 0.85).then(base64 => {
+            pendingValues.background = { type: 'image', value: '', base64 }
+          })
+        )
+      } else {
+        // imageFile なしの background（color/gradient/既存base64）もそのまま保存
+        pendingValues.background = { ...background, imageFile: undefined }
+      }
+
+      // gallery images が未変換なら変換
+      const gallery = values.gallery as GalleryValue | undefined
+      if (gallery?.images?.some(f => f instanceof File)) {
+        const newImages = [...(gallery.images ?? [])]
+        const newBase64 = [...(gallery.base64 ?? [null, null, null])]
+        const galleryOps = (gallery.images ?? []).map(async (file, i) => {
+          if (!(file instanceof File)) return
+          newBase64[i] = await resizeImageToBase64(file, 360, 240, 0.8)
+          newImages[i] = null
+        })
+        uploadOps.push(
+          Promise.all(galleryOps).then(() => {
+            pendingValues.gallery = { ...gallery, images: newImages, base64: newBase64 }
+          })
+        )
+      }
+
+      await Promise.all(uploadOps)
+      localStorage.setItem('vrchat-card-cache', JSON.stringify(pendingValues))
+
       const currentUrl = window.location.pathname + window.location.search
       window.location.href = `/auth/login?next=${encodeURIComponent(currentUrl)}`
       return

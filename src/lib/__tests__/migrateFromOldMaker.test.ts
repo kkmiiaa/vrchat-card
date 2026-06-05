@@ -22,7 +22,7 @@
  *   galleryImages: null[]       ← File は serialize 不可
  *   fontFamily: string
  *   showBalloon: boolean
- *   ※ age/ageDisplay フィールドは旧メーカーに存在しない（保存されない）
+ *   ※ age フィールドは vrchat-simple のブロック定義に存在しない（マイグレーション対象外）
  *
  * データフロー:
  *   localStorage (旧メーカー形式)
@@ -431,18 +431,6 @@ describe('旧メーカー実データ形式 → 2段マイグレーション テ
     it('未設定 → 空配列', () => {
       const result = fullMigrate({})
       expect(result.interactions).toEqual([])
-    })
-  })
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // age（旧メーカーには存在しない → 未定義のまま）
-  // ──────────────────────────────────────────────────────────────────────────
-  describe('age（旧メーカーの LocalStorageCache に存在しないフィールド）', () => {
-    it('旧メーカーデータに age/ageDisplay がなければ age は空になる', () => {
-      const result = fullMigrate({ name: '太郎', vrchatId: 'vrc_taro' })
-      // age.mode/searchTag は空文字になる
-      const age = result.age as Record<string, unknown>
-      expect(age?.mode ?? '').toBe('')
     })
   })
 

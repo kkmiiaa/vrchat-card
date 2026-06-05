@@ -26,6 +26,7 @@ import PostTimeline from '@/components/PostTimeline'
 import CardScaledView from '@/components/CardScaledView'
 import { trackEvent } from '@/lib/gtag'
 import { migrateLegacyCardData } from '@/lib/legacyCardDataMigration'
+import { resizeImageToBase64 } from '@/lib/resizeImage'
 import ProUpgradeModal from '@/components/ProUpgradeModal'
 
 const STORAGE_KEY = 'vrchat-card-cache'
@@ -39,10 +40,9 @@ type Props = {
   formSections?: FormSection[]
   ogpVersion?: number
   showImageMigrationHint?: boolean
-  redirectToEditAfterSave?: boolean
 }
 
-export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, formSections: propFormSections, ogpVersion: initialOgpVersion = 0, showImageMigrationHint = false, redirectToEditAfterSave = false }: Props) {
+export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, formSections: propFormSections, ogpVersion: initialOgpVersion = 0, showImageMigrationHint = false }: Props) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -181,7 +181,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     })
   }, [(values.gallery as GalleryValue)?.images, userId, cardId])
 
-  // background 画像が変わったら Storage にアップロード
+  // background 画像が変わったら Storage にアップロード（ログイン済み・cardId あり）
   const prevBgFile = useRef<File | null>(null)
   useEffect(() => {
     if (!userId || !cardId) return
@@ -193,6 +193,46 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       .then(url => setBackground(prev => ({ ...prev, url, imageFile: null, base64: null })))
       .catch(e => { if (e instanceof ImageTooLargeError) alert(e.message) })
   }, [background.imageFile, userId, cardId])
+
+  // background: 未ログイン時は base64 にリサイズして values に同期 → localStorage に残す
+  // ログイン済みは Storage アップロード後に url が設定されるのでスキップ
+  const prevBgFileForResize = useRef<File | null>(null)
+  useEffect(() => {
+    if (userId) return  // ログイン済みは Storage アップロードに任せる
+    if (!initialized) return
+    if (background.type !== 'image' || !(background.imageFile instanceof File)) {
+      // imageFile がない場合（プリセット・グラデ・カラー）も values に同期してlocalStorageに保存
+      updateValue('background', { ...background, imageFile: undefined })
+      return
+    }
+    if (background.imageFile === prevBgFileForResize.current) return
+    prevBgFileForResize.current = background.imageFile
+    // カード幅に合わせてリサイズ（900×506 = 1x）
+    resizeImageToBase64(background.imageFile, 900, 506, 0.85).then(base64 => {
+      updateValue('background', { type: 'image', value: '', base64, imageFile: undefined })
+    })
+  }, [background, userId, initialized])
+
+  // gallery: 未ログイン時は File を base64 にリサイズして gallery.base64 に保存
+  const prevGalleryFilesForResize = useRef<(File | null)[]>([null, null, null])
+  useEffect(() => {
+    if (userId) return  // ログイン済みは Storage アップロードエフェクトに任せる
+    const gallery = (values.gallery as GalleryValue) ?? { enabled: false, images: [null, null, null], base64: [null, null, null] }
+    const images = gallery.images ?? []
+    images.forEach((file, i) => {
+      if (!(file instanceof File)) return
+      if (file === prevGalleryFilesForResize.current[i]) return
+      prevGalleryFilesForResize.current[i] = file
+      resizeImageToBase64(file, 360, 240, 0.8).then(base64 => {
+        const current = (values.gallery as GalleryValue) ?? { enabled: false, images: [null, null, null], base64: [null, null, null] }
+        const newBase64 = [...(current.base64 ?? [null, null, null])]
+        newBase64[i] = base64
+        const newImages = [...(current.images ?? [null, null, null])]
+        newImages[i] = null  // File は localStorage に保存できないので null に
+        updateValue('gallery', { ...current, images: newImages, base64: newBase64 })
+      })
+    })
+  }, [(values.gallery as GalleryValue)?.images, userId])
 
   // helpers
   const bg = background
@@ -351,9 +391,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     if (onSaved) {
       onSaved(currentCardId, newVersion)
     } else {
-      window.location.href = redirectToEditAfterSave
-        ? `/card/${currentCardId}/edit`
-        : `/card/${currentCardId}?created=1`
+      window.location.href = `/card/${currentCardId}?created=1`
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardId, values, background, template.id, supabase])
@@ -696,7 +734,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
                 <p className="text-xs text-gray-400">このまま保存しますか？</p>
                 {showImageMigrationHint && (
                   <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mt-2 text-left">
-                    ⚠️ プロフィール画像・ギャラリー画像は引き継ぎできません。保存後に再設定してください。
+                    ⚠️ 保存後に画像の再設定が必要な場合があります。
                   </p>
                 )}
               </div>

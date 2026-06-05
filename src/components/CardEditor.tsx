@@ -38,9 +38,10 @@ type Props = {
   readOnly?: boolean
   formSections?: FormSection[]
   ogpVersion?: number
+  showImageMigrationHint?: boolean
 }
 
-export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, formSections: propFormSections, ogpVersion: initialOgpVersion = 0 }: Props) {
+export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, formSections: propFormSections, ogpVersion: initialOgpVersion = 0, showImageMigrationHint = false }: Props) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -690,6 +691,11 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
                 <div className="text-2xl mb-2">⚠️</div>
                 <h2 className="text-base font-bold text-gray-900 mb-1">未入力の項目があります</h2>
                 <p className="text-xs text-gray-400">このまま保存しますか？</p>
+                {showImageMigrationHint && (
+                  <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mt-2 text-left">
+                    ⚠️ プロフィール画像・ギャラリー画像は引き継ぎできません。保存後に再設定してください。
+                  </p>
+                )}
               </div>
               <div className="px-6 pb-5 flex flex-col gap-2">
                 <button

@@ -371,6 +371,62 @@ describe('旧メーカー実データ形式 → 2段マイグレーション テ
   })
 
   // ──────────────────────────────────────────────────────────────────────────
+  // mark-grid1（interactions → mark-grid 形式への変換）
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('mark-grid1（interactions → { marks: {0:mark,...}, custom:[] }）', () => {
+    const DEFAULT_INTERACTIONS = DEFAULT_INTERACTION_KEYS.map((label, i) => ({
+      label, mark: ['○', '△', '×', '-', '×', '-'][i], isCustom: false,
+    }))
+
+    it('最小: interactions 空配列 → mark-grid1 は undefined', () => {
+      const result = fullMigrate({ interactions: [] })
+      expect(result['mark-grid1']).toBeUndefined()
+    })
+
+    it('通常: デフォルト6項目が marks の index 0-5 に変換される', () => {
+      const result = fullMigrate({ interactions: DEFAULT_INTERACTIONS })
+      const mg = result['mark-grid1'] as Record<string, unknown>
+      const marks = mg.marks as Record<number, string>
+      expect(marks[0]).toBe('◯')  // touch:○ → ◯
+      expect(marks[1]).toBe('△')  // closeRange:△ → △
+      expect(marks[2]).toBe('✕')  // romantic:× → ✕
+      expect(marks[3]).toBe('-')  // weapons:- → -
+      expect(marks[4]).toBe('✕')  // abuseViolence:× → ✕
+      expect(marks[5]).toBe('-')  // dirtyJokes:- → -
+    })
+
+    it('記号変換: ○→◯、×→✕、△→△、-→- が正しい', () => {
+      const result = fullMigrate({ interactions: [{ label: 'touch', mark: '○', isCustom: false }] })
+      const mg = result['mark-grid1'] as Record<string, unknown>
+      expect((mg.marks as Record<number, string>)[0]).toBe('◯')
+    })
+
+    it('◎ マークはそのまま変換される', () => {
+      const result = fullMigrate({ interactions: [{ label: 'touch', mark: '◎', isCustom: false }] })
+      const mg = result['mark-grid1'] as Record<string, unknown>
+      expect((mg.marks as Record<number, string>)[0]).toBe('◎')
+    })
+
+    it('最大: デフォルト6項目 + カスタム3項目 → marks + custom に分離される', () => {
+      const result = fullMigrate({
+        interactions: [
+          ...DEFAULT_INTERACTIONS,
+          { label: 'カスタム1', mark: '○', isCustom: true },
+          { label: 'カスタム2', mark: '×', isCustom: true },
+          { label: 'カスタム3', mark: '-', isCustom: true },
+        ],
+      })
+      const mg = result['mark-grid1'] as Record<string, unknown>
+      expect(Object.keys((mg.marks as Record<number, string>))).toHaveLength(6)
+      const custom = mg.custom as Array<{ label: string; mark: string }>
+      expect(custom).toHaveLength(3)
+      expect(custom[0]).toEqual({ label: 'カスタム1', mark: '◯' })
+      expect(custom[1]).toEqual({ label: 'カスタム2', mark: '✕' })
+      expect(custom[2]).toEqual({ label: 'カスタム3', mark: '-' })
+    })
+  })
+
+  // ──────────────────────────────────────────────────────────────────────────
   // interactions
   // ──────────────────────────────────────────────────────────────────────────
   describe('interactions（{ label, mark, isCustom }[]）', () => {

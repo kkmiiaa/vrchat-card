@@ -37,6 +37,30 @@ export function migrateFromOld(raw: Record<string, unknown>): BlockValues {
       }
     : (raw.gallery ?? undefined)
 
+  // interactions → mark-grid1: 旧メーカーの interactions を新テンプレートの mark-grid 形式に変換
+  // 旧: [{ label: 'touch', mark: '○', isCustom: false }, ...]
+  // 新: { marks: { 0: '◯', 1: '△', ... }, custom: [{ label, mark }] }
+  // デフォルト項目の順序は旧メーカーの translations.ja.okNgDefaults のキー順と一致
+  const OLD_MARK_MAP: Record<string, string> = { '○': '◯', '◎': '◎', '△': '△', '×': '✕', '-': '-' }
+  const DEFAULT_INTERACTION_KEYS = ['touch', 'closeRange', 'romantic', 'weapons', 'abuseViolence', 'dirtyJokes']
+  const markGrid1 = (() => {
+    const rawInteractions = raw.interactions
+    if (!Array.isArray(rawInteractions) || rawInteractions.length === 0) return undefined
+    type OldItem = { label: string; mark: string; isCustom?: boolean }
+    const items = rawInteractions as OldItem[]
+    const marks: Record<number, string> = {}
+    const custom: { label: string; mark: string }[] = []
+    for (const item of items) {
+      const idx = DEFAULT_INTERACTION_KEYS.indexOf(item.label)
+      if (idx !== -1) {
+        marks[idx] = OLD_MARK_MAP[item.mark] ?? item.mark
+      } else {
+        custom.push({ label: item.label, mark: OLD_MARK_MAP[item.mark] ?? item.mark })
+      }
+    }
+    return { marks, custom }
+  })()
+
   return {
     name:        raw.name        ?? '',
     gender:      raw.gender      ?? '',
@@ -64,6 +88,7 @@ export function migrateFromOld(raw: Record<string, unknown>): BlockValues {
     background,
     font:         raw.font         ?? 'rounded',
     interactions: raw.interactions ?? [],
+    'mark-grid1': markGrid1,
     activity:     raw.activity     ?? undefined,
     gallery,
   }

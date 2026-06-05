@@ -502,18 +502,9 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
   const doSaveAndPostToX = () => {
     setXShareConfirming(false)
-    const baseTweetText = template.tweetHashtags
-      ? `カードを作りました！\n${template.tweetHashtags} #vaacard`
-      : t.tweetText
-    // ポップアップブロック回避のため、ユーザー操作の同期コンテキストで先にウィンドウを開く
-    const xWindow = window.open('', '_blank')
-    handleShareByUrl(false, (savedCardId, ogpVersion) => {
-      const base = `${window.location.origin}/card/${savedCardId}`
-      const shareUrl = ogpVersion > 0 ? `${base}?v=${ogpVersion}` : base
-      const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`${baseTweetText}\n${shareUrl}`)}`
-      if (xWindow) xWindow.location.href = tweetUrl
-      else window.open(tweetUrl, '_blank')
-    })
+    // image_url 生成後にカードページへリダイレクト（?created=1）し、
+    // そのページのモーダルから X シェアさせる（ポップアップブロック回避）
+    handleShareByUrl(false)
   }
 
   // V1ログイン後の自動マイグレーション

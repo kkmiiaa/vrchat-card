@@ -35,7 +35,7 @@ export default function VrchatCardEditorClient({ templateDbRow }: Props) {
 
   return (
     <Suspense>
-      <CardEditor template={template} formSections={formSections} showImageMigrationHint />
+      <CardEditor template={template} formSections={formSections} showImageMigrationHint xShareWithoutSave />
     </Suspense>
   )
 }

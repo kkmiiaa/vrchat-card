@@ -40,9 +40,11 @@ type Props = {
   formSections?: FormSection[]
   ogpVersion?: number
   showImageMigrationHint?: boolean
+  /** true のとき「X でシェア」ボタンが保存なしでツイート画面を開く（/card/vrchat 向け） */
+  xShareWithoutSave?: boolean
 }
 
-export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, formSections: propFormSections, ogpVersion: initialOgpVersion = 0, showImageMigrationHint = false }: Props) {
+export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, formSections: propFormSections, ogpVersion: initialOgpVersion = 0, showImageMigrationHint = false, xShareWithoutSave = false }: Props) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -497,6 +499,13 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
 
 
   const handlePostToX = () => {
+    if (xShareWithoutSave) {
+      const baseTweetText = template.tweetHashtags
+        ? `カードを作りました！\n${template.tweetHashtags} #vaacard`
+        : t.tweetText
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(baseTweetText)}`, '_blank', 'noopener,noreferrer')
+      return
+    }
     setXShareConfirming(true)
   }
 

@@ -104,42 +104,40 @@ describe('旧メーカー実データ形式 → 2段マイグレーション テ
   // ──────────────────────────────────────────────────────────────────────────
   // friendPolicy
   // ──────────────────────────────────────────────────────────────────────────
-  describe('friendPolicy（旧: string[]、新: string）', () => {
-    it('最小: 空配列 → 空文字', () => {
+  describe('friendPolicy（旧: string[]、新: string[]）', () => {
+    it('最小: 空配列 → 空配列', () => {
       const result = fullMigrate({ friendPolicy: [] })
-      expect(result.friendPolicy).toBe('')
-      expect(Array.isArray(result.friendPolicy)).toBe(false)
+      expect(result.friendPolicy).toEqual([])
     })
 
-    it('通常: 1要素の配列 → 先頭要素の string', () => {
+    it('通常: 1要素の配列 → そのまま配列', () => {
       const result = fullMigrate({ friendPolicy: ['frPolicyAnyone'] })
-      expect(result.friendPolicy).toBe('frPolicyAnyone')
+      expect(result.friendPolicy).toEqual(['frPolicyAnyone'])
     })
 
-    it('最大: 全5種類が選択されている → 先頭要素のみ使用', () => {
+    it('最大: 全5種類が選択されている → 全て保持', () => {
       const result = fullMigrate({ friendPolicy: VALID_FRIEND_POLICY_KEYS })
-      expect(result.friendPolicy).toBe('frPolicyAnyone')
-      expect(Array.isArray(result.friendPolicy)).toBe(false)
+      expect(result.friendPolicy).toEqual(VALID_FRIEND_POLICY_KEYS)
     })
 
     it('有効キー5種類それぞれが単独選択で正しく変換される', () => {
       for (const key of VALID_FRIEND_POLICY_KEYS) {
         const result = fullMigrate({ friendPolicy: [key] })
-        expect(result.friendPolicy).toBe(key)
+        expect(result.friendPolicy).toEqual([key])
       }
     })
 
-    it('未設定 → 空文字', () => {
+    it('未設定 → 空配列', () => {
       const result = fullMigrate({})
-      expect(result.friendPolicy).toBe('')
+      expect(result.friendPolicy).toEqual([])
     })
 
     it('翻訳ラベル（日本語表示テキスト）は旧メーカーには保存されない（キーが保存される）', () => {
       // 旧メーカーは「だれでもOK」等のラベルではなく 'frPolicyAnyone' キーを保存する
       const result = fullMigrate({ friendPolicy: ['frPolicyAnyone'] })
-      expect(result.friendPolicy).toBe('frPolicyAnyone')
-      expect(result.friendPolicy).not.toBe('だれでもOK')
-      expect(result.friendPolicy).not.toBe('Anyone is welcome')
+      expect(result.friendPolicy).toEqual(['frPolicyAnyone'])
+      expect(result.friendPolicy).not.toEqual(['だれでもOK'])
+      expect(result.friendPolicy).not.toEqual(['Anyone is welcome'])
     })
   })
 

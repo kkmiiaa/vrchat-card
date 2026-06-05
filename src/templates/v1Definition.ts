@@ -45,7 +45,7 @@ export const cardV1Definition: TemplateDefinition = {
     vrchat:   { componentKey: 'simple-sns', dataKey: 'vrchat',   blockConfig: { platform: 'vrchat' } },
     x:        { componentKey: 'simple-sns', dataKey: 'x',        blockConfig: { platform: 'x' } },
     discord:  { componentKey: 'simple-sns', dataKey: 'discord',  blockConfig: { platform: 'discord' } },
-    friendPolicy: { componentKey: 'select', dataKey: 'friendPolicy', label: 'フレンド申請', subLabel: 'friend request policy', variant: 'slash',
+    friendPolicy: { componentKey: 'multi-select', dataKey: 'friendPolicy', label: 'フレンド申請', subLabel: 'friend request policy', variant: 'slash',
       blockConfig: { options: [
         { value: 'frPolicyAnyone',             label: 'だれでもOK' },
         { value: 'frPolicyIfInterested',       label: '気になったら許可' },

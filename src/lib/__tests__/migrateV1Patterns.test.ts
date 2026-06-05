@@ -86,9 +86,9 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
       expect(result.discord).toBe('disc_user')
     })
 
-    it('friendPolicy が string でトップレベルに展開される', () => {
+    it('friendPolicy が string[] でトップレベルに展開される', () => {
       const result = fullMigrate(localStorage)
-      expect(result.friendPolicy).toBe('frPolicyAnyone')
+      expect(result.friendPolicy).toEqual(['frPolicyAnyone'])
     })
 
     it('sns キーが残らない', () => {
@@ -153,9 +153,9 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
       expect(result.discord).toBe('disc_b')
     })
 
-    it('sns.friendPolicy → friendPolicy（string）', () => {
+    it('sns.friendPolicy → friendPolicy（string[]）', () => {
       const result = migrateLegacyCardData('vrchat-simple', snsFormat)
-      expect(result.friendPolicy).toBe('frPolicyMutualsOnX')
+      expect(result.friendPolicy).toEqual(['frPolicyMutualsOnX'])
     })
 
     it('gender string → { tag, display }', () => {
@@ -187,7 +187,7 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
       expect(result.vrchat).toBe('vrc')
       expect(result.x).toBe('')
       expect(result.discord).toBe('')
-      expect(result.friendPolicy).toBe('')
+      expect(result.friendPolicy).toEqual([])
     })
 
     it('sns フィールドが完全に空でも変換される', () => {
@@ -237,7 +237,7 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
       vrchat:       'vrc_new',
       x:            'tw_new',
       discord:      'disc_new',
-      friendPolicy: 'frPolicyNo',
+      friendPolicy: ['frPolicyNo'],
       gender:       { tag: 'male', display: '男性' },
       language:     { preset: ['ja'], custom: ['ks'] },
       age:          { searchTag: '20s' },
@@ -249,7 +249,7 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
       expect(result.vrchat).toBe('vrc_new')
       expect(result.x).toBe('tw_new')
       expect(result.discord).toBe('disc_new')
-      expect(result.friendPolicy).toBe('frPolicyNo')
+      expect(result.friendPolicy).toEqual(['frPolicyNo'])
     })
 
     it('再変換しても gender が変わらない', () => {
@@ -282,10 +282,10 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
 
     it('friendPolicy が既にあれば sns.friendPolicy で上書きしない', () => {
       const result = migrateLegacyCardData('vrchat-simple', {
-        friendPolicy: 'frPolicyNo',
+        friendPolicy: ['frPolicyNo'],
         sns: { vrchatId: '', twitterId: '', discordId: '', friendPolicy: 'frPolicyAnyone' },
       })
-      expect(result.friendPolicy).toBe('frPolicyNo')
+      expect(result.friendPolicy).toEqual(['frPolicyNo'])
     })
   })
 
@@ -311,7 +311,7 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
       expect(result.vrchat).toBe('vrc_full')
       expect(result.x).toBe('tw_full')
       expect(result.discord).toBe('disc_full')
-      expect(result.friendPolicy).toBe('frPolicyAfterGettingToKnow')
+      expect(result.friendPolicy).toEqual(['frPolicyAfterGettingToKnow'])
       expect(result.sns).toBeUndefined()
 
       // gender
@@ -343,7 +343,7 @@ describe('V1 旧メーカー データパターン網羅テスト', () => {
       ]
       for (const policy of policies) {
         const result = fullMigrate({ friendPolicy: policy })
-        expect(result.friendPolicy).toBe(policy)
+        expect(result.friendPolicy).toEqual([policy])
       }
     })
   })

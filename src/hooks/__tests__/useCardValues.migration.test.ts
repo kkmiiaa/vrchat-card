@@ -23,7 +23,7 @@ const V1_BLOCKS = [
   { key: 'vrchat',       defaultValue: '' },
   { key: 'x',           defaultValue: '' },
   { key: 'discord',     defaultValue: '' },
-  { key: 'friendPolicy',defaultValue: '' },
+  { key: 'friendPolicy',defaultValue: [] },
   { key: 'gender',      defaultValue: { tag: '', display: '' } },
   { key: 'language',    defaultValue: { preset: [], custom: [] } },
   { key: 'micOnRate',   defaultValue: 0 },
@@ -50,7 +50,7 @@ describe('useCardValues / localStorage マイグレーション', () => {
         vrchatId:     'vrc_user',
         twitterId:    'tw_user',
         discordId:    'disc_user',
-        friendPolicy: 'frPolicyAnyone',
+        friendPolicy: ['frPolicyAnyone'],
         name:         '太郎',
         gender:       '男性',
         language:     ['ja', 'en'],
@@ -81,7 +81,7 @@ describe('useCardValues / localStorage マイグレーション', () => {
     it('friendPolicy に値が入る', async () => {
       const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
-      expect(result.current.values.friendPolicy).toBe('frPolicyAnyone')
+      expect(result.current.values.friendPolicy).toEqual(['frPolicyAnyone'])
     })
 
     it('gender が { tag, display } 形式になる', async () => {
@@ -119,7 +119,7 @@ describe('useCardValues / localStorage マイグレーション', () => {
           vrchatId:     'vrc_b',
           twitterId:    'tw_b',
           discordId:    'disc_b',
-          friendPolicy: 'frPolicyMutualsOnX',
+          friendPolicy: ['frPolicyMutualsOnX'],
         },
         name:     '花子',
         gender:   'female',
@@ -150,7 +150,7 @@ describe('useCardValues / localStorage マイグレーション', () => {
     it('friendPolicy に値が入る', async () => {
       const { result } = renderHook(() => useCardValues(V1_BLOCKS, undefined, 'vrchat-simple'))
       await waitFor(() => expect(result.current.initialized).toBe(true))
-      expect(result.current.values.friendPolicy).toBe('frPolicyMutualsOnX')
+      expect(result.current.values.friendPolicy).toEqual(['frPolicyMutualsOnX'])
     })
 
     it('gender が { tag, display } 形式になる', async () => {

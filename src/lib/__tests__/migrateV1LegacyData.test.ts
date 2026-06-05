@@ -47,11 +47,11 @@ describe('migrateLegacyCardData（V1）', () => {
       expect(result.discord).toBe('my_discord')
     })
 
-    it('sns.friendPolicy → friendPolicy（string）に変換される', () => {
+    it('sns.friendPolicy → friendPolicy（string[]）に変換される', () => {
       const result = migrateLegacyCardData('vrchat-simple', {
         sns: { vrchatId: '', twitterId: '', discordId: '', friendPolicy: 'frPolicyAnyone' },
       })
-      expect(result.friendPolicy).toBe('frPolicyAnyone')
+      expect(result.friendPolicy).toEqual(['frPolicyAnyone'])
     })
 
     it('変換後に sns キーが削除される', () => {

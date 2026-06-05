@@ -17,11 +17,11 @@ export function migrateFromOld(raw: Record<string, unknown>): BlockValues {
   const presets = ['18歳未満', '18+', '非公開']
   const ageDisplay = (raw.ageDisplay as string) ?? ''
 
-  // friendPolicy: 旧メーカーは string[]、新メーカーは string（先頭要素を使う）
+  // friendPolicy: 旧メーカーも新メーカーも string[]（複数選択）
   const rawFriendPolicy = raw.friendPolicy
-  const friendPolicySingle = Array.isArray(rawFriendPolicy)
-    ? (rawFriendPolicy[0] ?? '')
-    : (rawFriendPolicy ?? '')
+  const friendPolicyArray = Array.isArray(rawFriendPolicy)
+    ? rawFriendPolicy
+    : (rawFriendPolicy ? [rawFriendPolicy as string] : [])
 
   // background: 旧メーカーは backgroundType/backgroundValue、新メーカーは background オブジェクト
   const background = raw.backgroundType
@@ -73,7 +73,7 @@ export function migrateFromOld(raw: Record<string, unknown>): BlockValues {
       vrchatId:     raw.vrchatId    ?? '',
       twitterId:    raw.twitterId   ?? '',
       discordId:    raw.discordId   ?? '',
-      friendPolicy: friendPolicySingle,
+      friendPolicy: friendPolicyArray,
     },
     status: {
       blue:   raw.statusBlue   ?? '',

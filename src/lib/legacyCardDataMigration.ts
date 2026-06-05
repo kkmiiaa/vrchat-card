@@ -73,7 +73,11 @@ function migrateV1CardData(raw: Record<string, unknown>): BlockValues {
     if (!result.vrchat)      result.vrchat      = sns.vrchatId    ?? ''
     if (!result.x)           result.x           = sns.twitterId   ?? ''
     if (!result.discord)     result.discord     = sns.discordId   ?? ''
-    if (!result.friendPolicy) result.friendPolicy = sns.friendPolicy ?? ''
+    // friendPolicy は string[] で扱う（旧メーカーも複数選択）
+    if (!result.friendPolicy) {
+      const fp = sns.friendPolicy
+      result.friendPolicy = Array.isArray(fp) ? fp : (fp ? [fp] : [])
+    }
 
     delete result.sns
   }

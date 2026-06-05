@@ -349,6 +349,15 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     // base64 は Storage アップロード前の一時データなので API 送信時には除外（413 防止）
     const { base64: _bgBase64, imageFile: _bgFile, ...saveBackground } = background as BackgroundValue & { base64?: string; imageFile?: File }
 
+    // gallery.base64 を API 送信前に除外（413 防止）、後で Storage にアップロードする
+    const galleryRaw = migratedValues.gallery as (GalleryValue & { base64?: (string | null)[] }) | undefined
+    const galleryBase64ToUpload: (string | null)[] | null =
+      galleryRaw?.base64?.some(b => b != null) ? (galleryRaw.base64 ?? null) : null
+    if (galleryRaw) {
+      const { base64: _gb, ...galleryWithoutBase64 } = galleryRaw
+      migratedValues.gallery = galleryWithoutBase64
+    }
+
     if (!currentCardId) {
       const result = await createCard({
         templateId: template.id,
@@ -368,6 +377,28 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       currentCardId = result.cardId
       setCardId(currentCardId)
       trackEvent('card_created', { template_id: template.id })
+    }
+
+    // gallery.base64 があれば Storage にアップロードして urls を更新
+    if (galleryBase64ToUpload && userId) {
+      const currentGallery = migratedValues.gallery as GalleryValue | undefined
+      const uploadedUrls: (string | null)[] = [...(currentGallery?.urls ?? [null, null, null])]
+      await Promise.all(
+        galleryBase64ToUpload.map(async (b64, i) => {
+          if (!b64) return
+          try {
+            const [header, data] = b64.split(',')
+            const mime = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg'
+            const bytes = atob(data)
+            const arr = new Uint8Array(bytes.length)
+            for (let j = 0; j < bytes.length; j++) arr[j] = bytes.charCodeAt(j)
+            const blob = new Blob([arr], { type: mime })
+            const file = new File([blob], `gallery-${i}.jpg`, { type: mime })
+            uploadedUrls[i] = await uploadCardImage(userId, currentCardId!, `gallery-${i}`, file)
+          } catch { /* アップロード失敗は無視して続行 */ }
+        })
+      )
+      migratedValues.gallery = { ...currentGallery, urls: uploadedUrls }
     }
 
     const newVersion = currentOgpVersion + 1

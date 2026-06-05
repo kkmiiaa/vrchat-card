@@ -35,6 +35,7 @@ export const GalleryValueSchema = z.object({
   enabled: zBool,
   images:  z.array(z.null()).catch([]),
   base64:  z.array(z.string().nullable()).catch([]),
+  urls:    z.array(z.string().nullable()).optional().catch(undefined),
 }).catch({ enabled: false, images: [], base64: [] })
 
 export const BackgroundValueSchema = z.object({

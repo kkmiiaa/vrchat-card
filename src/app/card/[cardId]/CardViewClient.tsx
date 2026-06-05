@@ -417,13 +417,9 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
   const handleDownload = downloadPng
 
   const bg = initialBackground
-  const pageBg = (() => {
-    if (!bg) return 'linear-gradient(135deg, #c7d2fe, #fbcfe8, #fde68a)'
-    if (bg.type === 'color' && typeof bg.value === 'string') return bg.value
-    if (bg.type === 'gradient' && Array.isArray(bg.value)) return `linear-gradient(135deg, ${bg.value[0]}, ${bg.value[1]})`
-    if (bg.type === 'image') return bg.base64 ? `url(${bg.base64}) center/cover no-repeat` : (typeof bg.value === 'string' ? `url(${bg.value}) center/cover no-repeat` : 'linear-gradient(135deg, #c7d2fe, #fbcfe8)')
-    return 'linear-gradient(135deg, #c7d2fe, #fbcfe8, #fde68a)'
-  })()
+  const pageBg = bg
+    ? (getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK, bg.url) ?? CARD_BG_FALLBACK)
+    : CARD_BG_FALLBACK
 
   const shadowX = -tilt.y * 4 + offset.x * 0.3
   const shadowY = tilt.x * 4 + offset.y * 0.3

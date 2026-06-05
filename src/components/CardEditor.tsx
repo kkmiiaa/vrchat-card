@@ -309,14 +309,29 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
   }
 
   function hasEmptyFields(): boolean {
-    for (const [k, v] of Object.entries(values as Record<string, unknown>)) {
-      if (k === 'font') continue
-      if (typeof v === 'string' && v.trim() === '') return true
-      if (v && typeof v === 'object' && !Array.isArray(v)) {
-        for (const v2 of Object.values(v as object)) {
-          if (typeof v2 === 'string' && v2.trim() === '') return true
+    const blockMap = Object.fromEntries(template.blocks.map(b => [b.key, b]))
+
+    // フォームに表示されているブロックのキー一覧を収集
+    const dataKeys: string[] = []
+    if (propFormSections && propFormSections.length > 0) {
+      for (const section of propFormSections) {
+        for (const item of section.items) {
+          if (item.type === 'block') dataKeys.push(item.dataKey)
         }
       }
+    } else {
+      for (const section of template.sections) {
+        for (const entry of section.blockKeys) {
+          dataKeys.push(typeof entry === 'string' ? entry : entry.key)
+        }
+      }
+    }
+
+    // isEmpty が明示的に定義されているブロックのみチェック（未定義は任意項目とみなす）
+    for (const key of dataKeys) {
+      const block = blockMap[key]
+      if (!block?.isEmpty) continue
+      if (block.isEmpty((values as Record<string, unknown>)[key])) return true
     }
     return false
   }

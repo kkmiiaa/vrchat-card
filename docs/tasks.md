@@ -16,7 +16,7 @@ X のハッシュタグ・リツイート起点で VRChat ユーザーへのリ�
 - ✅ **マイグレーション時の画像引き継ぎ修正（追加対応）** — friendPolicy を string[] として扱う（select→multi-select）、413エラー修正（gallery.base64をAPI送信前に除外）、ログインリダイレクト前に画像変換が完了しない競合状態を修正（背景・ギャラリー全枚が消える根本原因）。動作確認完了（2026-06-05）。
 - ✅ **Stripe 本番キーへの切り替え** — Vercel Production 環境変数に本番キー設定完了。ローカル `.env.local` はテストキーのまま維持（2026-06-05）
 - ✅ **CI/CD パイプライン構築** — PR時CI（lint/tsc/vitest）・mainマージ時デプロイ（Supabase migration → Vercel）を GitHub Actions で構築。GitHub Secrets・vercel.json 設定完了（2026-06-05）
-- [ ] **develop → main マージ・本番デプロイ** — FBを踏まえたタイミングで実施
+- [ ] **develop → main マージ・本番デプロイ** — ベータテスト後に実施
 
 ### フェーズ4 準備（優先度：高）
 
@@ -48,6 +48,21 @@ X のハッシュタグ・リツイート起点で VRChat ユーザーへのリ�
   - カード作成・保存・X シェアのコンバージョンイベントを実装
   - Pro アップグレードのファネル（`/upgrade` 到達→決済完了）を計測
 
+### ソーシャル機能（優先度：中）
+
+- [ ] **通知種別の仕様整理・実装** — 現在の `system_notifications`（管理者発信）に加え、ユーザーアクション起因の通知（いいね・フォロー等）の種別を仕様として定義し実装する
+  - 通知種別: `like`（いいねされた）/ `follow`（フォローされた）/ `system`（現行）等
+  - `user_notifications` テーブルに `type` / `actor_id` / `target_card_id` 等のカラム追加
+  - `NotificationBell` のUI拡張（通知内容・リンク先対応）
+- [ ] **いいね機能（プロフィール画面への表示）** — カードへの「いいね」をプロフィールページ（`/u/[slug]`）に表示する
+  - `card_likes` テーブル（`card_id` / `user_id` / `created_at`）の設計・実装
+  - カード閲覧画面でのいいねボタン追加
+  - プロフィール画面に「もらったいいね数」または「いいねしたカード一覧」を表示
+- [ ] **フォロー機能** — ユーザー間のフォロー/フォロワー関係を実装する
+  - `user_follows` テーブル（`follower_id` / `following_id` / `created_at`）の設計・実装
+  - プロフィール画面にフォロー/フォロワー数・フォローボタンを追加
+  - フォロー中ユーザーの新着カードをフィードまたは通知で受け取れるようにする
+
 ### 機能追加（優先度：中）
 
 - ✅ **探索フィルター実装** — `gender`/`env`/`lang`/`friendPolicy` フィルターを `src/app/api/cards/explore/route.ts` に実装。Pro プランのみ有効。E2E 11/11 通過。
@@ -57,11 +72,11 @@ X のハッシュタグ・リツイート起点で VRChat ユーザーへのリ�
 
 - ✅ **既存テストのカバレッジ調査・修正** — ユニット 717 件全パス確認。4件の実装追従漏れを修正（itemList code フィールド廃止・tagList role=combobox 化・flat border 値更新・compressSampleData async 化対応）（2026-06-04）
 - [ ] **`/upgrade` ページ E2E** — `tests/e2e/upgrade.spec.ts` を新規作成（ページは `src/app/upgrade/page.tsx` に実装済み）
+  - プラン契約シナリオ（Free → Pro への Stripe Checkout 遷移・完了後の状態確認）
+  - プラン解約シナリオ（Pro → Free へのダウングレード・解約後の UI 変化確認）
 - ✅ **マイグレーション系テスト 43 件修正** — `migrateLegacyCardData` が `'v1'`/`'v2'` を受け付けていなかったバグを修正（`'vrchat-simple'`/`'vrchat-glass'` のエイリアスとして追加）。全73件パス。
-- [ ] **自動マイグレーション発動条件のユニットテスト**
-  - データ変換テスト（`migrateV1Patterns.test.ts` 等）はカバー済み・685 件全パス
-  - 未テスト: `CardEditor.tsx` の `isLoggedIn && !cardId && localStorage にデータあり` 分岐
-- [ ] **`/card/vrchat` の後方互換性テスト強化** — あらゆる旧データパターンを網羅
+- ✅ **自動マイグレーション発動条件のユニットテスト** — 一旦OK
+- ✅ **`/card/vrchat` の後方互換性テスト強化** — 一旦OK
 - ✅ **auto-save の card_data から background を除外** — `CardEditor.tsx` auto-save で `const { background: _bg, ...cardDataWithoutBg } = values` により除外済み。
 
 ### DB・インフラ（優先度：中）
@@ -88,11 +103,11 @@ X のハッシュタグ・リツイート起点で VRChat ユーザーへのリ�
 - ✅ **card/new プレビューのガラス・フォント未反映修正** — `buildCardTemplate.tsx` の `resolvedDefinition` で `fontFamily` と `theme` を `card_config` から優先読み取り、`PreviewCard` に `defaultSurface` を渡すよう修正（2026-06-04）
 - ✅ **ローディングUIの絵文字→SVGアイコン化** — ✨絵文字＋上下バウンスを Sparkles SVG アイコン＋`animate-pulse`（色変化）に変更。`CardViewClient` / `CardEditor` 両方に適用（2026-06-05）
 - ✅ **「Xで共有」フロー改善** — 公開確認モーダル（「マイページに公開されます」旨）を追加し、保存後にカードページへリダイレクトせず X のシェア画面を直接開くよう変更。`handleShareByUrl` に `onSaved` コールバックを追加してコード共通化（2026-06-05）
-- [ ] **既存テンプレートの Web 版レイアウト崩れ修正** — カード表示画面（`/card/[cardId]`）の Web 版レイアウトを確認・修正する
+- ✅ **既存テンプレートの Web 版レイアウト崩れ修正** — 一旦OK
 - [ ] **デザイン修正** — 気になる箇所を随時修正
-- [ ] **未完成カードの非公開化** — 「未完成」の定義（必須フィールド未入力など）を決めて実装
+- ✅ **未完成カードの非公開化** — 一旦OK
 - [ ] **テンプレートサンプルデータ入力** — 管理画面（TemplateBuilder）の「サンプルに設定」から `v1` / `v2` の `sample_card_data` を設定する（現在は空のため「サンプル準備中」と表示）
-- [ ] **`/` スマホアニメーション** — トップページのカードプレビュー周りにスマホでも動きのある演出を追加
+- ✅ **`/` スマホアニメーション** — 一旦OK
 - [ ] **`/u/[slug]` 画面カスタマイズ** — 将来的にユーザーごとにマイページの見た目をカスタマイズ可能にする
 
 ---

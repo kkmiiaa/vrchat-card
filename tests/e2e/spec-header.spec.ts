@@ -55,7 +55,7 @@ test.describe('カード編集ヘッダー — 未ログイン', () => {
 test.describe('カード編集ヘッダー — ログイン済み・新規（cardId なし）', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/card/new');
-    await page.getByText('Standard').click();
+    await page.getByText('Simple').click();
     await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
   });
 
@@ -161,7 +161,7 @@ test.describe('カード閲覧ヘッダー — ログイン済み・非オーナ
 test.describe('カード閲覧ヘッダー — ログイン済み・オーナー', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/card/new');
-    await page.getByText('Standard').click();
+    await page.getByText('Simple').click();
     await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
     const editUrl = page.url();
     const cardId = editUrl.match(/\/card\/([a-zA-Z0-9]+)/)?.[1];

@@ -32,7 +32,7 @@ test.describe('/api/cards/explore — 検索テスト', () => {
     // 公開テストカードを作成
     const res = await request.post('/api/cards', {
       data: {
-        templateId: 'v1',
+        templateId: 'vrchat-simple',
         cardData: BASE_CARD_DATA,
         visibility: 'public',
         communitySlug: 'vrchat',
@@ -46,7 +46,7 @@ test.describe('/api/cards/explore — 検索テスト', () => {
     // 非公開テストカードを作成
     const res2 = await request.post('/api/cards', {
       data: {
-        templateId: 'v1',
+        templateId: 'vrchat-simple',
         cardData: { ...BASE_CARD_DATA, name: `非公開_${UNIQUE_TAG}` },
         visibility: 'private',
         communitySlug: 'vrchat',

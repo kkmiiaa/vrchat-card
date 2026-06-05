@@ -49,8 +49,8 @@ test.describe('プロフィールページ — カード一覧（デグレ防止
 
     // カードがなければ先に作成
     await page.goto('/card/new');
-    await page.getByText('Standard').click();
-    await page.waitForURL(/\/card\/[a-z0-9-]+$/, { timeout: 15000 });
+    await page.getByText('Simple').click();
+    await page.waitForURL(/\/card\/[a-zA-Z0-9-]+(\/edit|\?|$)/, { timeout: 15000 });
 
     // マイページに戻る
     await page.goto(url);
@@ -86,8 +86,8 @@ test.describe('プロフィールページ — カード一覧（デグレ防止
 
     // カード作成
     await page.goto('/card/new');
-    await page.getByText('Standard').click();
-    await page.waitForURL(/\/card\/[a-z0-9-]+$/, { timeout: 15000 });
+    await page.getByText('Simple').click();
+    await page.waitForURL(/\/card\/[a-zA-Z0-9-]+(\/edit|\?|$)/, { timeout: 15000 });
 
     await page.goto(url);
     await page.waitForLoadState('networkidle');

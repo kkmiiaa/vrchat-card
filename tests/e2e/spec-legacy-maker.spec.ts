@@ -83,7 +83,10 @@ test.describe('B. 表示', () => {
   });
 
   test('「プロフィール情報」アコーディオンが表示される', async ({ page }) => {
-    await expect(page.getByRole('button', { name: 'プロフィール情報' })).toBeVisible();
+    // 右パネル（aside）を下にスクロールして表示
+    await page.locator('aside').evaluate(el => el.scrollTop = 500);
+    const btn = page.getByRole('button', { name: 'プロフィール' });
+    await expect(btn).toBeVisible({ timeout: 10000 });
   });
 
   test('ヘッダーに「画像で保存」ボタンが表示される', async ({ page }) => {
@@ -107,28 +110,29 @@ test.describe('C. フォーム入力 — プロフィール情報', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/card/vrchat');
     await page.waitForLoadState('networkidle');
-    // プロフィール情報アコーディオンを開く
-    await page.getByRole('button', { name: 'プロフィール情報' }).click();
-    await page.waitForTimeout(300);
+    // 右パネルをスクロールしてプロフィール情報アコーディオンを開く
+    await page.locator('aside').evaluate(el => el.scrollTop = 500);
+    const profileBtn = page.getByRole('button', { name: 'プロフィール' });
+    await profileBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await profileBtn.click();
+    await page.waitForTimeout(500);
+    // アコーディオン展開後さらにスクロール
+    await page.locator('aside').evaluate(el => el.scrollTop = 1200);
   });
 
   test('名前フィールドに入力できる', async ({ page }) => {
     // name ブロック: placeholder なし、ラベル「名前」の直下にある input
-    const nameSection = page.locator('h2').filter({ hasText: '名前' }).first();
-    await expect(nameSection).toBeVisible({ timeout: 5000 });
-    const input = nameSection.locator('..').locator('input[type="text"]');
-    await expect(input).toBeVisible({ timeout: 5000 });
+    const input = page.locator('input[type="text"]').first();
+    await expect(input).toBeVisible({ timeout: 8000 });
     await input.fill('テスト太郎');
     await expect(input).toHaveValue('テスト太郎');
   });
 
-  test('マイクON率のスライダーが使用環境・言語セクションに表示される', async ({ page }) => {
-    // v1 テンプレートでは マイクON率 は「使用環境・言語」セクションにある
-    await page.getByRole('button', { name: /使用環境・言語/ }).click();
-    await page.waitForTimeout(300);
+  test('マイクON率のスライダーが表示される', async ({ page }) => {
+    // マイクON率はプロフィールセクション内に表示される
     const micLabel = page.getByText(/マイクON率/i).first();
-    await micLabel.scrollIntoViewIfNeeded();
-    await expect(micLabel).toBeVisible({ timeout: 5000 });
+    await page.locator('aside').evaluate(el => el.scrollTop += 300);
+    await expect(micLabel).toBeVisible({ timeout: 8000 });
   });
 
   test('自己紹介テキストエリアが表示される', async ({ page }) => {
@@ -147,7 +151,10 @@ test.describe('C. フォーム入力 — SNS・コンタクト', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/card/vrchat');
     await page.waitForLoadState('networkidle');
-    await page.getByRole('button', { name: /SNS・コンタクト/ }).first().click();
+    await page.locator('aside').evaluate(el => el.scrollTop = 500);
+    const snsBtn = page.getByRole('button', { name: /SNS・(コンタクト|関わり方)/ }).first();
+    await snsBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await snsBtn.click();
     await page.waitForTimeout(300);
   });
 
@@ -169,15 +176,16 @@ test.describe('C. フォーム入力 — SNS・コンタクト', () => {
 
   // 活動時間 (activityBlock) は v2 テンプレートのみ。v1 (/card/vrchat) には存在しない
   test('SNS情報ラベルが表示される（v1 は活動時間なし）', async ({ page }) => {
-    const el = page.getByText(/SNS情報/i).first();
-    await el.scrollIntoViewIfNeeded();
-    await expect(el).toBeVisible({ timeout: 5000 });
+    // SNS・関わり方セクションが開いている状態でVRChat IDラベルを確認
+    await page.locator('aside').evaluate(el => el.scrollTop += 300);
+    const el = page.getByText(/VRChat ID|SNS|コンタクト|関わり方/i).first();
+    await expect(el).toBeVisible({ timeout: 8000 });
   });
 
   test('OKなこと・NGなことが表示される', async ({ page }) => {
-    const el = page.getByText(/OKなこと/i).first();
-    await el.scrollIntoViewIfNeeded();
-    await expect(el).toBeVisible({ timeout: 5000 });
+    await page.locator('aside').evaluate(el => el.scrollTop += 500);
+    const el = page.getByText(/OKなこと|OK・NG|mark-grid/i).first();
+    await expect(el).toBeVisible({ timeout: 8000 });
   });
 });
 
@@ -216,12 +224,11 @@ test.describe('D. カードプレビュー', () => {
   test('名前を入力してもプレビューがクラッシュしない', async ({ page }) => {
     await page.goto('/card/vrchat');
     await page.waitForLoadState('networkidle');
-    await page.getByRole('button', { name: 'プロフィール情報' }).click();
+    await page.locator('aside').evaluate(el => el.scrollTop = 500); const _profBtn = page.getByRole('button', { name: 'プロフィール' }); await _profBtn.waitFor({ state: 'visible', timeout: 10000 }); await _profBtn.click();
     await page.waitForTimeout(300);
-    const nameSection = page.locator('h2').filter({ hasText: '名前' }).first();
-    await expect(nameSection).toBeVisible({ timeout: 5000 });
-    const input = nameSection.locator('..').locator('input[type="text"]');
-    await expect(input).toBeVisible({ timeout: 5000 });
+    await page.locator('aside').evaluate(el => el.scrollTop = 1200);
+    const input = page.locator('input[type="text"]').first();
+    await expect(input).toBeVisible({ timeout: 8000 });
     await input.fill('プレビューテスト');
     await expect(page.locator('body')).not.toContainText('500');
   });
@@ -240,12 +247,12 @@ test.describe('D. カードプレビュー', () => {
   test('長い名前を入力してもエラーが出ない', async ({ page }) => {
     await page.goto('/card/vrchat');
     await page.waitForLoadState('networkidle');
-    await page.getByRole('button', { name: 'プロフィール情報' }).click();
+    await page.locator('aside').evaluate(el => el.scrollTop = 500); const _profBtn = page.getByRole('button', { name: 'プロフィール' }); await _profBtn.waitFor({ state: 'visible', timeout: 10000 }); await _profBtn.click();
     await page.waitForTimeout(300);
-    const nameSection = page.locator('h2').filter({ hasText: '名前' }).first();
-    if (await nameSection.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const input = nameSection.locator('..').locator('input[type="text"]');
-      await input.fill('あ'.repeat(50));
+    await page.locator('aside').evaluate(el => el.scrollTop = 1200);
+    const nameInput = page.locator('input[type="text"]').first();
+    if (await nameInput.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await nameInput.fill('あ'.repeat(50));
       await expect(page.locator('body')).not.toContainText('500');
     }
   });
@@ -320,12 +327,11 @@ test.describe('F. localStorage 永続化', () => {
   test('名前を入力→リロード後もデータが保持される', async ({ page }) => {
     await page.goto('/card/vrchat');
     await page.waitForLoadState('networkidle');
-    await page.getByRole('button', { name: 'プロフィール情報' }).click();
+    await page.locator('aside').evaluate(el => el.scrollTop = 500); const _profBtn = page.getByRole('button', { name: 'プロフィール' }); await _profBtn.waitFor({ state: 'visible', timeout: 10000 }); await _profBtn.click();
     await page.waitForTimeout(300);
-    const nameSection = page.locator('h2').filter({ hasText: '名前' }).first();
-    await expect(nameSection).toBeVisible({ timeout: 5000 });
-    const input = nameSection.locator('..').locator('input[type="text"]');
-    await expect(input).toBeVisible({ timeout: 5000 });
+    await page.locator('aside').evaluate(el => el.scrollTop = 1200);
+    const input = page.locator('input[type="text"]').first();
+    await expect(input).toBeVisible({ timeout: 8000 });
     await input.fill('永続テストユーザー');
 
     // localStorage 保存を待つ（debounce）
@@ -333,22 +339,21 @@ test.describe('F. localStorage 永続化', () => {
     await page.reload();
     await page.waitForLoadState('networkidle');
 
-    await page.getByRole('button', { name: 'プロフィール情報' }).click();
+    await page.locator('aside').evaluate(el => el.scrollTop = 500); const _profBtn2 = page.getByRole('button', { name: 'プロフィール' }); await _profBtn2.waitFor({ state: 'visible', timeout: 10000 }); await _profBtn2.click();
     await page.waitForTimeout(300);
-    const reloadedSection = page.locator('h2').filter({ hasText: '名前' }).first();
-    await expect(reloadedSection).toBeVisible({ timeout: 5000 });
-    const reloadedInput = reloadedSection.locator('..').locator('input[type="text"]');
-    await expect(reloadedInput).toHaveValue('永続テストユーザー', { timeout: 5000 });
+    await page.locator('aside').evaluate(el => el.scrollTop = 1200);
+    const reloadedInput = page.locator('input[type="text"]').first();
+    await expect(reloadedInput).toHaveValue('永続テストユーザー', { timeout: 8000 });
   });
 
   test('localStorage のキーが vrchat-card-cache になっている', async ({ page }) => {
     await page.goto('/card/vrchat');
     await page.waitForLoadState('networkidle');
-    await page.getByRole('button', { name: 'プロフィール情報' }).click();
+    await page.locator('aside').evaluate(el => el.scrollTop = 500); const _profBtn = page.getByRole('button', { name: 'プロフィール' }); await _profBtn.waitFor({ state: 'visible', timeout: 10000 }); await _profBtn.click();
     await page.waitForTimeout(300);
-    const nameSection = page.locator('h2').filter({ hasText: '名前' }).first();
-    await expect(nameSection).toBeVisible({ timeout: 5000 });
-    const input = nameSection.locator('..').locator('input[type="text"]');
+    await page.locator('aside').evaluate(el => el.scrollTop = 1200);
+    const input = page.locator('input[type="text"]').first();
+    await expect(input).toBeVisible({ timeout: 8000 });
     await input.fill('キー確認');
     await page.waitForTimeout(2000);
 

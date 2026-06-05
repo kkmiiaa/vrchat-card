@@ -66,8 +66,11 @@ test.describe('/card/vrchat — フォーム入力', () => {
   });
 
   test('フォームに入力できる', async ({ page }) => {
-    // プロフィール情報セクションを開く（デフォルトは閉じている）
-    await page.getByRole('button', { name: 'プロフィール情報' }).click();
+    // 右パネルをスクロールしてプロフィール情報セクションを開く
+    await page.locator('aside').evaluate(el => el.scrollTop = 500);
+    const profileBtn = page.getByRole('button', { name: 'プロフィール' });
+    await profileBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await profileBtn.click();
     const input = page.locator('input[type="text"]').first();
     await expect(input).toBeVisible({ timeout: 5000 });
     await input.fill('テストユーザー');

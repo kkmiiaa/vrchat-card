@@ -13,7 +13,7 @@
  */
 import { test, expect, Page } from '@playwright/test'
 
-async function createCard(page: Page, templateName = 'Standard'): Promise<string> {
+async function createCard(page: Page, templateName = 'Simple'): Promise<string> {
   await page.goto('/card/new')
   await page.getByText(templateName).click()
   await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 })
@@ -88,7 +88,7 @@ test.describe('A. カード編集 FloatingButtons（モバイル）', () => {
   })
 
   test('フォームを入力してもレイアウトが崩れない', async ({ page }) => {
-    await page.getByRole('button', { name: 'プロフィール情報' }).click()
+    await page.getByRole('button', { name: 'プロフィール' }).click()
     await page.waitForTimeout(300)
     const nameSection = page.locator('h2').filter({ hasText: '名前' }).first()
     if (await nameSection.isVisible({ timeout: 3000 }).catch(() => false)) {

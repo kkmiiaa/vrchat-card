@@ -95,7 +95,7 @@ test.describe('B. 旧メーカー モバイル', () => {
   })
 
   test('プロフィール情報アコーディオンを開いて名前を入力できる', async ({ page }) => {
-    await page.getByRole('button', { name: 'プロフィール情報' }).click()
+    await page.getByRole('button', { name: 'プロフィール' }).click()
     await page.waitForTimeout(300)
     const nameSection = page.locator('h2').filter({ hasText: '名前' }).first()
     await nameSection.scrollIntoViewIfNeeded()
@@ -106,7 +106,7 @@ test.describe('B. 旧メーカー モバイル', () => {
   })
 
   test('入力後もレイアウトが崩れない（横スクロールなし）', async ({ page }) => {
-    await page.getByRole('button', { name: 'プロフィール情報' }).click()
+    await page.getByRole('button', { name: 'プロフィール' }).click()
     await page.waitForTimeout(300)
     const nameSection = page.locator('h2').filter({ hasText: '名前' }).first()
     if (await nameSection.isVisible({ timeout: 3000 }).catch(() => false)) {

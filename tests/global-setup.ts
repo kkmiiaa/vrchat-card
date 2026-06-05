@@ -114,7 +114,7 @@ async function ensurePublicCardByOtherUser(publicCardId: string) {
   await fetch(`${restUrl}/cards`, {
     method: 'POST',
     headers: { ...headers, Prefer: 'return=minimal' },
-    body: JSON.stringify({ id: publicCardId, user_id: otherId, template_id: 'v1', card_data: {}, visibility: 'public' }),
+    body: JSON.stringify({ id: publicCardId, user_id: otherId, template_id: 'vrchat-simple', card_data: {}, visibility: 'public' }),
   })
   console.log(`[global-setup] 非オーナー用公開カード作成: ${publicCardId}`)
 }

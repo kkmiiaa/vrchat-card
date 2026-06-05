@@ -31,6 +31,9 @@ test.describe('探索 — 未ログイン', () => {
 // ─── フリープラン ─────────────────────────────────────────────────────────────
 
 test.describe('探索 — フリープラン', () => {
+  // フリープランテストは未ログイン状態で実行（テストユーザーはProのため）
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('表示件数が最大 20件', async ({ page }) => {
     await page.goto('/c/vrchat');
     await page.waitForLoadState('networkidle');
@@ -101,7 +104,7 @@ test.describe('OGP — カード閲覧ページ', () => {
 
   test('下書きカード（image_url=null）の og:image はデフォルト画像になる', async ({ page }) => {
     await page.goto('/card/new');
-    await page.getByText('Standard').click();
+    await page.getByText('Simple').click();
     await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
     const cardId = page.url().match(/\/card\/([a-zA-Z0-9]+)\/edit/)?.[1];
 
@@ -115,7 +118,7 @@ test.describe('OGP — カード閲覧ページ', () => {
   test('下書きカード（visibility=private）では OGP メタタグが返らない', async ({ page }) => {
     // 下書きカードは generateMetadata が {} を返すので og:title がない
     await page.goto('/card/new');
-    await page.getByText('Standard').click();
+    await page.getByText('Simple').click();
     await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
     const cardId = page.url().match(/\/card\/([a-zA-Z0-9]+)\/edit/)?.[1];
 

@@ -8,7 +8,7 @@
  */
 import { test, expect, Page } from '@playwright/test';
 
-async function createCard(page: Page, templateName = 'Standard'): Promise<string> {
+async function createCard(page: Page, templateName = 'Simple'): Promise<string> {
   await page.goto('/card/new');
   await page.getByText(templateName).click();
   await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
@@ -16,18 +16,28 @@ async function createCard(page: Page, templateName = 'Standard'): Promise<string
   return match?.[1] ?? '';
 }
 
+async function saveCard(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /マイページに保存/ }).click();
+  // 未入力確認ダイアログまたは保存後のURLへの遷移を待つ
+  await Promise.race([
+    page.getByRole('button', { name: /このまま保存する/ }).waitFor({ state: 'visible', timeout: 8000 })
+      .then(() => page.getByRole('button', { name: /このまま保存する/ }).click()),
+    page.waitForURL(/\/card\/[a-z0-9]+/, { timeout: 8000 }),
+  ]).catch(() => {});
+}
+
 // ─── テンプレート選択 ────────────────────────────────────────────────────────
 
 test.describe('テンプレート選択（/card/new）', () => {
-  test('Standard と Glass のテンプレートが表示される', async ({ page }) => {
+  test('Simple と Glass のテンプレートが表示される', async ({ page }) => {
     await page.goto('/card/new');
-    await expect(page.getByText('Standard')).toBeVisible();
+    await expect(page.getByText('Simple')).toBeVisible();
     await expect(page.getByText('Glass')).toBeVisible();
   });
 
-  test('Standard を選択するとエディタへ遷移する', async ({ page }) => {
+  test('Simple を選択するとエディタへ遷移する', async ({ page }) => {
     await page.goto('/card/new');
-    await page.getByText('Standard').click();
+    await page.getByText('Simple').click();
     await page.waitForURL(/\/card\/[a-zA-Z0-9]+\/edit/, { timeout: 15000 });
     await expect(page).toHaveURL(/\/card\/[a-zA-Z0-9]+/);
   });
@@ -47,7 +57,7 @@ test.describe('カード保存完了モーダル', () => {
     await createCard(page);
     const saveBtn = page.getByRole('button', { name: /マイページに保存/ });
     await expect(saveBtn).toBeVisible({ timeout: 5000 });
-    await saveBtn.click();
+    await saveCard(page);
 
     // 完了モーダルの UI 要素
     await expect(page.getByText(/URLをコピー|コピー/)).toBeVisible({ timeout: 15000 });
@@ -56,13 +66,13 @@ test.describe('カード保存完了モーダル', () => {
 
   test('完了モーダルに「Xでシェア」ボタンがある', async ({ page }) => {
     await createCard(page);
-    await page.getByRole('button', { name: /マイページに保存/ }).click();
+    await saveCard(page);
     await expect(page.getByRole('button', { name: /Xでシェア|Xに投稿/ })).toBeVisible({ timeout: 15000 });
   });
 
   test('完了後のURLに ?created=1 が含まれる', async ({ page }) => {
     await createCard(page);
-    await page.getByRole('button', { name: /マイページに保存/ }).click();
+    await saveCard(page);
     await page.waitForURL(/\?created=1/, { timeout: 15000 });
     await expect(page).toHaveURL(/\?created=1/);
   });
@@ -93,7 +103,7 @@ test.describe('画像ダウンロード後のトースト', () => {
 test.describe('カード閲覧ページ', () => {
   test('「マイページに保存」後に閲覧ページへ遷移する', async ({ page }) => {
     await createCard(page);
-    await page.getByRole('button', { name: /マイページに保存/ }).click();
+    await saveCard(page);
     await page.waitForURL(/\/card\/[a-z0-9]+(\?created=1)?$/, { timeout: 15000 });
     await expect(page).toHaveURL(/\/card\/[a-z0-9]+/);
     await expect(page.locator('body')).not.toContainText('500');
@@ -101,7 +111,7 @@ test.describe('カード閲覧ページ', () => {
 
   test('閲覧ページに 3D tilt カードが表示される', async ({ page }) => {
     await createCard(page);
-    await page.getByRole('button', { name: /マイページに保存/ }).click();
+    await saveCard(page);
     await page.waitForURL(/\/card\/[a-z0-9]+(\?created=1)?$/, { timeout: 15000 });
     await page.waitForLoadState('networkidle');
 

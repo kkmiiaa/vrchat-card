@@ -76,11 +76,11 @@ test.describe('OGP 画像に背景が含まれる', () => {
   test('単色（赤）背景がOGP画像に反映される', async ({ page }) => {
     // カード作成
     await page.goto('/card/new');
-    await page.getByText('Standard').click();
+    await page.getByText('Simple').click();
     await page.waitForURL(/\/card\/[a-z0-9-]+$/, { timeout: 15000 });
 
     // 背景設定セクションを開く
-    const bgSection = page.getByText('背景設定');
+    const bgSection = page.getByText(/背景(の)?設定/);
     await expect(bgSection).toBeVisible({ timeout: 5000 });
 
     // 「カラフル」テーマを展開して #ef4444（赤）を選択
@@ -107,7 +107,7 @@ test.describe('OGP 画像に背景が含まれる', () => {
     const imagePromise = captureOgpImage(page);
 
     // 「カードをシェア」ボタンを押す
-    const shareBtn = page.getByRole('button', { name: /カードをシェア|マイページへ保存/ }).first();
+    const shareBtn = page.getByRole('button', { name: /カードをシェア|マイページ(へ|に)保存/ }).first();
     await expect(shareBtn).toBeVisible({ timeout: 5000 });
     await shareBtn.click();
 
@@ -129,14 +129,14 @@ test.describe('OGP 画像に背景が含まれる', () => {
 
   test('グラデーション背景がOGP画像に反映される（白一色でない）', async ({ page }) => {
     await page.goto('/card/new');
-    await page.getByText('Standard').click();
+    await page.getByText('Simple').click();
     await page.waitForURL(/\/card\/[a-z0-9-]+$/, { timeout: 15000 });
 
     // imageBase64 キャプチャを開始
     const imagePromise = captureOgpImage(page);
 
     // デフォルト背景（プリセット画像）のままシェア
-    const shareBtn = page.getByRole('button', { name: /カードをシェア|マイページへ保存/ }).first();
+    const shareBtn = page.getByRole('button', { name: /カードをシェア|マイページ(へ|に)保存/ }).first();
     await expect(shareBtn).toBeVisible({ timeout: 5000 });
     await shareBtn.click();
     await page.waitForURL(/\/card\/[a-z0-9-]+(\?|$)/, { timeout: 30000 });

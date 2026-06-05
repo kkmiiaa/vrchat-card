@@ -28,7 +28,7 @@ setup('認証済みセッションを取得', async ({ page }) => {
     )
   }
 
-  await page.waitForURL(/\/(profile\/edit|u\/|card\/|$)/, { timeout: 15000 })
+  await page.waitForURL(/\/(profile\/edit|u\/|card\/)?$/, { timeout: 15000 })
 
   await page.context().storageState({ path: authFile })
 })

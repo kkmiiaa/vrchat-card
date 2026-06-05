@@ -489,11 +489,11 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
         </div>
 
         {/* カード一覧 */}
-        <div className="max-w-5xl mx-auto px-6 fade-up fade-up-delay-2">
+        <div className="max-w-5xl mx-auto px-4 fade-up fade-up-delay-2">
             {isOwner && cards.length > 0 && (() => {
               const atLimit = plan === 'free' && cards.length >= FREE_CARD_LIMIT
               return (
-                <div className="flex items-center justify-between mb-4 gap-3">
+                <div className="flex items-center justify-between mb-4 gap-3 pr-2">
                   {atLimit ? (
                     <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-3 py-1.5 flex-1 min-w-0">
                       <span>Freeプランはカード{FREE_CARD_LIMIT}枚まで</span>

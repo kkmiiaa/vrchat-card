@@ -7,11 +7,33 @@ const STORAGE_KEY = 'vrchat-card-cache'
 
 type Block = { key: string; defaultValue: unknown }
 
-/** 旧フォーマット互換マイグレーション（CardEditor から移植） */
-function migrateFromOld(raw: Record<string, unknown>): BlockValues {
+/** 旧フォーマット互換マイグレーション（CardEditor から移植）
+ * @internal テスト用にエクスポート */
+export function migrateFromOld(raw: Record<string, unknown>): BlockValues {
   if (raw.sns) return raw as BlockValues
   const presets = ['18歳未満', '18+', '非公開']
   const ageDisplay = (raw.ageDisplay as string) ?? ''
+
+  // friendPolicy: 旧メーカーは string[]、新メーカーは string（先頭要素を使う）
+  const rawFriendPolicy = raw.friendPolicy
+  const friendPolicySingle = Array.isArray(rawFriendPolicy)
+    ? (rawFriendPolicy[0] ?? '')
+    : (rawFriendPolicy ?? '')
+
+  // background: 旧メーカーは backgroundType/backgroundValue、新メーカーは background オブジェクト
+  const background = raw.backgroundType
+    ? { type: raw.backgroundType, value: raw.backgroundValue ?? '' }
+    : (raw.background ?? undefined)
+
+  // gallery: 旧メーカーは galleryEnabled/galleryImages、新メーカーは gallery オブジェクト
+  const gallery = raw.galleryEnabled !== undefined
+    ? {
+        enabled: raw.galleryEnabled,
+        images:  Array.isArray(raw.galleryImages) ? raw.galleryImages.map(() => null) : [null, null, null],
+        base64:  [null, null, null],
+      }
+    : (raw.gallery ?? undefined)
+
   return {
     name:        raw.name        ?? '',
     gender:      raw.gender      ?? '',
@@ -24,7 +46,7 @@ function migrateFromOld(raw: Record<string, unknown>): BlockValues {
       vrchatId:     raw.vrchatId    ?? '',
       twitterId:    raw.twitterId   ?? '',
       discordId:    raw.discordId   ?? '',
-      friendPolicy: raw.friendPolicy ?? '',
+      friendPolicy: friendPolicySingle,
     },
     status: {
       blue:   raw.statusBlue   ?? '',
@@ -36,10 +58,11 @@ function migrateFromOld(raw: Record<string, unknown>): BlockValues {
       mode:    presets.includes(ageDisplay) ? ageDisplay : (ageDisplay ? 'custom' : ''),
       display: presets.includes(ageDisplay) ? '' : ageDisplay,
     },
+    background,
     font:         raw.font         ?? 'rounded',
     interactions: raw.interactions ?? [],
     activity:     raw.activity     ?? undefined,
-    gallery:      raw.gallery      ?? undefined,
+    gallery,
   }
 }
 

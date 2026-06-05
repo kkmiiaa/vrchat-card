@@ -12,7 +12,8 @@ X のハッシュタグ・リツイート起点で VRChat ユーザーへのリ�
 シェアされたカードが X タイムラインで綺麗に見えることと、`/card/vrchat` の既存ユーザー体験が集客・継続率に直結する。
 
 - ✅ **OGP 品質確認・修正** — X でシェアしたときのカード画像・タイトル・説明文を実機確認済み。画像生成バグ修正・動作確認完了（2026-06-05）
-- ✅ **`/card/vrchat` ユーザー体験の品質担保** — 計7件のバグ修正・一気通貫テスト完了（2026-06-05）。friendPolicy/background/gallery/interactions→mark-grid1 変換実装、migrateFromOld 新フォーマット破壊バグ修正、DBテンプレート friendPolicy を multi-select→select に修正。未ログイン時の画像（背景・ギャラリー・プロフィール）を base64 リサイズして localStorage 保存→マイグレーション時に引き継ぎ（残課題: 旧メーカー利用者のプロフィール画像・ギャラリーは引き継ぎ不可・保存後に再設定が必要）。画像系は手動テスト要。
+- ✅ **`/card/vrchat` ユーザー体験の品質担保** — 計7件のバグ修正・一気通貫テスト完了（2026-06-05）。friendPolicy/background/gallery/interactions→mark-grid1 変換実装、migrateFromOld 新フォーマット破壊バグ修正、DBテンプレート friendPolicy を multi-select→select に修正。未ログイン時の画像（背景・ギャラリー・プロフィール）を base64 リサイズして localStorage 保存→マイグレーション時に引き継ぎ。動作確認完了（2026-06-05）。
+- ✅ **マイグレーション時の画像引き継ぎ修正（追加対応）** — friendPolicy を string[] として扱う（select→multi-select）、413エラー修正（gallery.base64をAPI送信前に除外）、ログインリダイレクト前に画像変換が完了しない競合状態を修正（背景・ギャラリー全枚が消える根本原因）。動作確認完了（2026-06-05）。
 - [ ] **Stripe 本番キーへの切り替え** — 環境変数を test → 本番に変更
 - [ ] **develop → main マージ・本番デプロイ** — FBを踏まえたタイミングで実施
 

@@ -39,9 +39,10 @@ type Props = {
   formSections?: FormSection[]
   ogpVersion?: number
   showImageMigrationHint?: boolean
+  redirectToEditAfterSave?: boolean
 }
 
-export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, formSections: propFormSections, ogpVersion: initialOgpVersion = 0, showImageMigrationHint = false }: Props) {
+export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, formSections: propFormSections, ogpVersion: initialOgpVersion = 0, showImageMigrationHint = false, redirectToEditAfterSave = false }: Props) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -350,7 +351,9 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     if (onSaved) {
       onSaved(currentCardId, newVersion)
     } else {
-      window.location.href = `/card/${currentCardId}?created=1`
+      window.location.href = redirectToEditAfterSave
+        ? `/card/${currentCardId}/edit`
+        : `/card/${currentCardId}?created=1`
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardId, values, background, template.id, supabase])

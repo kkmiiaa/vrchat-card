@@ -453,6 +453,31 @@ describe('旧メーカー実データ形式 → 2段マイグレーション テ
       expect((result.gender as Record<string, unknown>).tag).toBe('男性')
       expect(result.language).toEqual({ preset: ['日本語'], custom: [] })
     })
+
+    it('新フォーマットを migrateFromOld に通しても値が破壊されない', () => {
+      // ログイン後に localStorage が新フォーマットで再読み込みされるケース
+      // migrateFromOld が誤って vrchat/x/discord/status を空にしてしまうバグの回帰テスト
+      const newFormat = {
+        name: 'テスト太郎',
+        vrchat: 'usr_test_taro_123',
+        x: '@test_taro_vrc',
+        discord: 'testtaro#1234',
+        friendPolicy: 'frPolicyAfterGettingToKnow',
+        gender: { tag: '男性', display: '' },
+        language: { preset: ['日本語', '英語'], custom: [] },
+        micOnRate: 75,
+        status: { blue: '探索中', green: 'いつでも歓迎', yellow: 'ちょっと忙しい', red: 'フレンド満員' },
+        interactions: [{ label: 'touch', mark: '○', isCustom: false }],
+      }
+      const result = fullMigrate(newFormat)
+      expect(result.vrchat).toBe('usr_test_taro_123')
+      expect(result.x).toBe('@test_taro_vrc')
+      expect(result.discord).toBe('testtaro#1234')
+      expect(result.friendPolicy).toBe('frPolicyAfterGettingToKnow')
+      const status = result.status as Record<string, string>
+      expect(status.blue).toBe('探索中')
+      expect(status.green).toBe('いつでも歓迎')
+    })
   })
 
   // ──────────────────────────────────────────────────────────────────────────

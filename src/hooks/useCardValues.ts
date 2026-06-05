@@ -10,7 +10,10 @@ type Block = { key: string; defaultValue: unknown }
 /** 旧フォーマット互換マイグレーション（CardEditor から移植）
  * @internal テスト用にエクスポート */
 export function migrateFromOld(raw: Record<string, unknown>): BlockValues {
+  // 中間フォーマット（sns オブジェクトあり）→ migrateLegacyCardData に委ねる
   if (raw.sns) return raw as BlockValues
+  // 新フォーマット（vrchat / x がトップレベルにある）→ 変換不要
+  if ('vrchat' in raw || 'x' in raw) return raw as BlockValues
   const presets = ['18歳未満', '18+', '非公開']
   const ageDisplay = (raw.ageDisplay as string) ?? ''
 

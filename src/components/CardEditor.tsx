@@ -358,6 +358,9 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       migratedValues.gallery = galleryWithoutBase64
     }
 
+    // background.base64 も同様に除外済み（_bgBase64）、後で Storage にアップロードする
+    const bgBase64ToUpload = _bgBase64 ?? null
+
     if (!currentCardId) {
       const result = await createCard({
         templateId: template.id,
@@ -379,8 +382,26 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       trackEvent('card_created', { template_id: template.id })
     }
 
+    // base64 画像を Storage にアップロード（userId は stale 回避のため auth.getUser() の結果を使用）
+    const uploaderUserId = user.id
+
+    // background.base64 があれば Storage にアップロードして url を更新
+    if (bgBase64ToUpload && saveBackground.type === 'image') {
+      try {
+        const [header, data] = bgBase64ToUpload.split(',')
+        const mime = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg'
+        const bytes = atob(data)
+        const arr = new Uint8Array(bytes.length)
+        for (let j = 0; j < bytes.length; j++) arr[j] = bytes.charCodeAt(j)
+        const blob = new Blob([arr], { type: mime })
+        const file = new File([blob], 'background.jpg', { type: mime })
+        const url = await uploadCardImageWithAlpha(uploaderUserId, currentCardId!, 'background', file)
+        saveBackground.url = url
+      } catch { /* アップロード失敗は無視して続行 */ }
+    }
+
     // gallery.base64 があれば Storage にアップロードして urls を更新
-    if (galleryBase64ToUpload && userId) {
+    if (galleryBase64ToUpload) {
       const currentGallery = migratedValues.gallery as GalleryValue | undefined
       const uploadedUrls: (string | null)[] = [...(currentGallery?.urls ?? [null, null, null])]
       await Promise.all(
@@ -394,7 +415,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
             for (let j = 0; j < bytes.length; j++) arr[j] = bytes.charCodeAt(j)
             const blob = new Blob([arr], { type: mime })
             const file = new File([blob], `gallery-${i}.jpg`, { type: mime })
-            uploadedUrls[i] = await uploadCardImage(userId, currentCardId!, `gallery-${i}`, file)
+            uploadedUrls[i] = await uploadCardImage(uploaderUserId, currentCardId!, `gallery-${i}`, file)
           } catch { /* アップロード失敗は無視して続行 */ }
         })
       )

@@ -1,19 +1,33 @@
 'use client'
 
-import { useMemo, Suspense } from 'react'
+import { useMemo, Suspense, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import CardEditor from '@/components/CardEditor'
 import type { TemplateLayoutRow } from '@/lib/templateLayout'
 import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
 import { cardV1Definition } from '@/templates/v1Definition'
+import { createClient } from '@/lib/supabase/client'
+
+const STORAGE_KEY = 'vrchat-card-cache'
 
 type Props = {
   templateDbRow: TemplateLayoutRow | null
 }
 
 export default function VrchatCardEditorClient({ templateDbRow }: Props) {
-  // クライアント側で同期的に構築（ローディング状態なし）
-  // テンプレート描画構造は v1Definition（TS・安定）から
-  // フォームセクションは DB から（テンプレートビルダーで管理）
+  const router = useRouter()
+
+  // ログイン済み かつ localStorage にデータなし → テンプレート選択へ
+  // ログイン済み かつ localStorage にデータあり → CardEditor の autoMigrate が処理
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (!saved) router.replace('/card/new')
+    })
+  }, [router])
+
   const { template, formSections } = useMemo(
     () => buildCardTemplateFromDefinition(cardV1Definition, templateDbRow),
     [templateDbRow],

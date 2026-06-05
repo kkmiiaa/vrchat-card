@@ -25,9 +25,9 @@ export default async function VrchatCardPage() {
 
     if (v1Cards && v1Cards.length > 0) {
       redirect(`/card/${v1Cards[0].id}/edit`)
-    } else {
-      redirect('/card/new')
     }
+    // V1 カードなし: localStorage にデータがあれば autoMigrate を動かすため
+    // サーバー側ではリダイレクトせず、クライアントに判断を委ねる
   }
 
   const templateDbRow = await fetchTemplateLayout('vrchat-simple')

@@ -319,7 +319,7 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
       <main className="relative z-10 flex-1 w-full pt-[calc(3.5rem+3rem)] pb-12">
         {/* 編集モード全体ラッパー（プロフィール＋カード一覧を1つの枠で囲む） */}
         <div className={`transition-all ${editMode ? 'bg-sky-50/40 border-2 border-sky-200 rounded-2xl mx-4 py-4' : ''}`}>
-        <div className={`max-w-xl mx-auto px-2 sm:px-4 mb-4`}>
+        <div className={`max-w-xl mx-auto px-6 mb-4`}>
 
         {/* プロフィール未設定バナー */}
         {isOwner && !editMode && !profile.display_name && (
@@ -489,7 +489,7 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
         </div>
 
         {/* カード一覧 */}
-        <div className="max-w-5xl mx-auto px-2 sm:px-4 fade-up fade-up-delay-2">
+        <div className="max-w-5xl mx-auto px-6 fade-up fade-up-delay-2">
             {isOwner && cards.length > 0 && (() => {
               const atLimit = plan === 'free' && cards.length >= FREE_CARD_LIMIT
               return (

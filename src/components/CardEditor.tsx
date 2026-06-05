@@ -194,44 +194,34 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       .catch(e => { if (e instanceof ImageTooLargeError) alert(e.message) })
   }, [background.imageFile, userId, cardId])
 
-  // background: 未ログイン時は base64 にリサイズして values に同期 → localStorage に残す
-  // ログイン済みは Storage アップロード後に url が設定されるのでスキップ
-  const prevBgFileForResize = useRef<File | null>(null)
-  useEffect(() => {
-    if (userId) return  // ログイン済みは Storage アップロードに任せる
-    if (!initialized) return
-    if (background.type !== 'image' || !(background.imageFile instanceof File)) {
-      // imageFile がない場合（プリセット・グラデ・カラー）も values に同期してlocalStorageに保存
-      updateValue('background', { ...background, imageFile: undefined })
-      return
-    }
-    if (background.imageFile === prevBgFileForResize.current) return
-    prevBgFileForResize.current = background.imageFile
-    // カード幅に合わせてリサイズ（900×506 = 1x）
-    resizeImageToBase64(background.imageFile, 900, 506, 0.85).then(base64 => {
-      updateValue('background', { type: 'image', value: '', base64, imageFile: undefined })
-    })
-  }, [background, userId, initialized])
-
   // gallery: 未ログイン時は File を base64 にリサイズして gallery.base64 に保存
+  // 競合回避のため全スロットをまとめて処理してから1回だけ updateValue する
   const prevGalleryFilesForResize = useRef<(File | null)[]>([null, null, null])
   useEffect(() => {
     if (userId) return  // ログイン済みは Storage アップロードエフェクトに任せる
     const gallery = (values.gallery as GalleryValue) ?? { enabled: false, images: [null, null, null], base64: [null, null, null] }
     const images = gallery.images ?? []
+    const pending: { i: number; file: File }[] = []
     images.forEach((file, i) => {
       if (!(file instanceof File)) return
       if (file === prevGalleryFilesForResize.current[i]) return
       prevGalleryFilesForResize.current[i] = file
-      resizeImageToBase64(file, 360, 240, 0.8).then(base64 => {
-        const current = (values.gallery as GalleryValue) ?? { enabled: false, images: [null, null, null], base64: [null, null, null] }
-        const newBase64 = [...(current.base64 ?? [null, null, null])]
-        newBase64[i] = base64
-        const newImages = [...(current.images ?? [null, null, null])]
-        newImages[i] = null  // File は localStorage に保存できないので null に
-        updateValue('gallery', { ...current, images: newImages, base64: newBase64 })
-      })
+      pending.push({ i, file })
     })
+    if (pending.length === 0) return
+    Promise.all(pending.map(({ i, file }) =>
+      resizeImageToBase64(file, 360, 240, 0.8).then(base64 => ({ i, base64 }))
+    )).then(results => {
+      const current = (values.gallery as GalleryValue) ?? { enabled: false, images: [null, null, null], base64: [null, null, null] }
+      const newBase64 = [...(current.base64 ?? [null, null, null])]
+      const newImages = [...(current.images ?? [null, null, null])]
+      for (const { i, base64 } of results) {
+        newBase64[i] = base64
+        newImages[i] = null  // File は localStorage に保存できないので null に
+      }
+      updateValue('gallery', { ...current, images: newImages, base64: newBase64 })
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [(values.gallery as GalleryValue)?.images, userId])
 
   // helpers
@@ -356,7 +346,8 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     const { background: migratedBg, ...migratedValues } = migratedRaw as Record<string, unknown> & { background?: BackgroundValue }
     // localStorage に background があれば background state より優先（初期化が間に合わない場合の保険）
     // background は card_data 分離カラムで管理するため、migratedBg（values 由来）は使わず background state を使う
-    const saveBackground = background
+    // base64 は Storage アップロード前の一時データなので API 送信時には除外（413 防止）
+    const { base64: _bgBase64, imageFile: _bgFile, ...saveBackground } = background as BackgroundValue & { base64?: string; imageFile?: File }
 
     if (!currentCardId) {
       const result = await createCard({
@@ -421,7 +412,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     const saved = localStorage.getItem(STORAGE_KEY)
     if (!saved) return
     autoMigrateRef.current = true
-    handleShareByUrl()
+    handleShareByUrl(true)  // マイグレーション時は空フィールドチェックをスキップ
   // cardId は意図的に依存配列から外す
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, initialized])

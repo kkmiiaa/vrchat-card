@@ -33,8 +33,6 @@ import { heightRulerComponent } from '@/blocks/heightRuler'
 import { singleImageComponent } from '@/blocks/singleImage'
 import { photoGridComponent } from '@/blocks/photoGrid'
 import { colorLabeledListComponent } from '@/blocks/colorLabeledList'
-import { backgroundComponent } from '@/blocks/background'
-import { overlayComponent } from '@/blocks/overlay'
 import { translations } from '@/utils/translations'
 import type { ComponentDef, SurfaceVariant } from '@/blocks/types'
 import { DEFAULT_CARD_RENDER_CONTEXT, SURFACE_STYLE } from '@/blocks/types'
@@ -575,24 +573,6 @@ export const COMPONENTS: ComponentEntry[] = [
     format: '{ customUrl?: string }',
     description: 'QR コード。カードページ・ユーザーページ・カスタム URL に対応',
     component: qrCodeComponent as ComponentDef<unknown>,
-  },
-  {
-    name: 'background',
-    category: 'utility',
-    inputType: 'background',
-    format: '{ type: "color"|"gradient"|"image", value: string|string[], base64?: string|null }',
-    description: 'カード背景。単色・グラデーション・画像に対応',
-    component: backgroundComponent as ComponentDef<unknown>,
-    SearchInput: SearchNoSupportInput,
-  },
-  {
-    name: 'overlay',
-    category: 'utility',
-    inputType: 'overlay',
-    format: '{ type: string, color: string, opacity: number }',
-    description: 'カード全体へのオーバーレイ。variant: glass / flat / solid',
-    component: overlayComponent as ComponentDef<unknown>,
-    SearchInput: SearchNoSupportInput,
   },
 ]
 

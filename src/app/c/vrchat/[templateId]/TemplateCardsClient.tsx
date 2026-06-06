@@ -8,7 +8,6 @@ import { relativeDate } from '@/utils/relativeDate'
 import type { TemplateLayoutRow } from '@/lib/templateLayout'
 import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
 import { createCard } from '@/lib/saveCard'
-import { translations } from '@/utils/translations'
 import { getComponent } from '@/blocks/registry'
 
 type BackgroundValue = { type: string; value: string | string[]; base64?: string | null } | null

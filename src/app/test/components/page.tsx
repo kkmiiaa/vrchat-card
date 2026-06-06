@@ -27,6 +27,9 @@ import { galleryComponent } from '@/blocks/gallery'
 import { itemListComponent } from '@/blocks/itemList'
 import { heightRulerComponent } from '@/blocks/heightRuler'
 import { colorLabeledListComponent } from '@/blocks/colorLabeledList'
+import { singleImageComponent } from '@/blocks/singleImage'
+import { photoGridComponent } from '@/blocks/photoGrid'
+import { qrCodeComponent } from '@/blocks/qrCode'
 import { dividerComponent } from '@/blocks/divider'
 import type { ComponentDef, SurfaceVariant, CardRenderContext } from '@/blocks/types'
 import { DEFAULT_CARD_RENDER_CONTEXT, SURFACE_STYLE } from '@/blocks/types'
@@ -241,6 +244,25 @@ const SPECS: ComponentSpec[] = [
         'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZjU5ZTBiIi8+PC9zdmc+',
       ],
     },
+  },
+  {
+    name: 'single-image',
+    component: singleImageComponent as ComponentDef<unknown>,
+    value: { url: null, base64: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2E3OGJmYSIvPjwvc3ZnPg==' },
+  },
+  {
+    name: 'photo-grid',
+    component: photoGridComponent as ComponentDef<unknown>,
+    value: [
+      { url: null, base64: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjYTc4YmZhIi8+PC9zdmc+' },
+      { url: null, base64: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjNjBhNWZhIi8+PC9zdmc+' },
+      { url: null, base64: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZjU5ZTBiIi8+PC9zdmc+' },
+    ],
+  },
+  {
+    name: 'qr-code',
+    component: qrCodeComponent as ComponentDef<unknown>,
+    value: {},
   },
 ]
 

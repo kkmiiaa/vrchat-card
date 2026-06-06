@@ -97,7 +97,9 @@ async function replaceBase64WithUrl(val: unknown, slot: string): Promise<unknown
       )
       const existingUrls: unknown[] = Array.isArray(obj.urls) ? obj.urls : []
       const mergedUrls = uploaded.map((u, i) => u ?? (existingUrls[i] ?? null))
-      return { ...obj, base64: base64.map(() => null), urls: mergedUrls }
+      // images は File オブジェクトを含む可能性があり Server Action に渡せないため null 化
+      const nulledImages = Array.isArray(obj.images) ? obj.images.map(() => null) : obj.images
+      return { ...obj, images: nulledImages, base64: base64.map(() => null), urls: mergedUrls }
     }
     return obj
   }

@@ -33,9 +33,8 @@ function cardBgStyle(bg: BackgroundValue): string {
 type Filters = {
   q: string
   gender: string
-  env: string
   lang: string
-  friendPolicy: string
+  age: string
 }
 
 const GENDER_OPTIONS = [
@@ -43,15 +42,8 @@ const GENDER_OPTIONS = [
   { value: 'female',    label: '女性' },
   { value: 'nonbinary', label: 'ノンバイナリ' },
 ]
-const ENV_OPTIONS = ['PCVR', 'Quest', 'Desktop']
 const LANG_OPTIONS = ['日本語', 'English', 'Korean']
-const POLICY_OPTIONS = [
-  { value: 'frPolicyAnyone', label: 'だれでもOK' },
-  { value: 'frPolicyAfterGettingToKnow', label: '仲良くなってから' },
-  { value: 'frPolicyIfInterested', label: '気になったら' },
-  { value: 'frPolicyMutualsOnX', label: 'Twitter相互' },
-  { value: 'frPolicyNo', label: '送らないで' },
-]
+const AGE_OPTIONS = ['18歳未満', '18+']
 
 type Props = {
   initialCards: Card[]
@@ -63,7 +55,7 @@ type Props = {
 export default function ExploreClient({ initialCards, isPro, isLoggedIn, communityTemplates = [] }: Props) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [cards, setCards] = useState<Card[]>(initialCards)
-  const [filters, setFilters] = useState<Filters>({ q: '', gender: '', env: '', lang: '', friendPolicy: '' })
+  const [filters, setFilters] = useState<Filters>({ q: '', gender: '', lang: '', age: '' })
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(isPro && initialCards.length === 24)
   const [isPending, startTransition] = useTransition()
@@ -72,9 +64,8 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
     const params = new URLSearchParams()
     if (f.q) params.set('q', f.q)
     if (f.gender) params.set('gender', f.gender)
-    if (f.env) params.set('env', f.env)
     if (f.lang) params.set('lang', f.lang)
-    if (f.friendPolicy) params.set('friendPolicy', f.friendPolicy)
+    if (f.age) params.set('age', f.age)
     if (cur) params.set('cursor', cur)
     return `/api/cards/explore?${params.toString()}`
   }, [])
@@ -199,26 +190,6 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
               </div>
             </div>
 
-            {/* 使用環境 */}
-            <div>
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">使用環境</p>
-              <div className="flex gap-2 flex-wrap">
-                {ENV_OPTIONS.map(e => (
-                  <button
-                    key={e}
-                    onClick={() => toggleFilter('env', e)}
-                    className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${
-                      filters.env === e
-                        ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
-                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                    }`}
-                  >
-                    {e}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* 言語 */}
             <div>
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">言語</p>
@@ -239,21 +210,21 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
               </div>
             </div>
 
-            {/* フレンド申請ポリシー */}
+            {/* 年齢 */}
             <div>
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">フレンド申請</p>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">年齢</p>
               <div className="flex gap-2 flex-wrap">
-                {POLICY_OPTIONS.map(p => (
+                {AGE_OPTIONS.map(a => (
                   <button
-                    key={p.value}
-                    onClick={() => toggleFilter('friendPolicy', p.value)}
+                    key={a}
+                    onClick={() => toggleFilter('age', a)}
                     className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${
-                      filters.friendPolicy === p.value
+                      filters.age === a
                         ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
                         : 'border-gray-200 text-gray-500 hover:border-gray-300'
                     }`}
                   >
-                    {p.label}
+                    {a}
                   </button>
                 ))}
               </div>
@@ -262,7 +233,7 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
             {/* リセット */}
             {Object.values(filters).some(Boolean) && (
               <button
-                onClick={() => search({ q: '', gender: '', env: '', lang: '', friendPolicy: '' })}
+                onClick={() => search({ q: '', gender: '', lang: '', age: '' })}
                 className="self-start text-xs text-gray-400 hover:text-gray-600 transition-colors"
               >
                 ✕ フィルターをリセット
@@ -276,7 +247,7 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
               <p className="text-sm font-semibold text-gray-800">
                 {isLoggedIn ? '🔍 Proプランで詳細検索が使えます' : '🔍 ログインすると検索機能が利用できます'}
               </p>
-              <p className="text-xs text-gray-500 mt-0.5">性別・使用環境・言語・フレンドポリシーなどで絞り込み</p>
+              <p className="text-xs text-gray-500 mt-0.5">性別・言語・年齢などで絞り込み</p>
             </div>
             {isLoggedIn ? (
               <button onClick={() => setShowUpgradeModal(true)} className="shrink-0 text-xs font-bold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-4 py-2 rounded-full hover:opacity-90 transition-opacity whitespace-nowrap">

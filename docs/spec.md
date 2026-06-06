@@ -258,15 +258,25 @@ isPro = plan === 'pro' && (plan_expires_at == null || new Date(plan_expires_at) 
 - `created_at` 降順
 - Free: 20件、Pro: 24件
 
-### フィルター（Pro のみ）
+### グローバルフィルター（Pro のみ・`/c/vrchat` 全体）
+
+`global: true` のコンポーネントに対応するフィールドのみ。界隈横断で意味を持つ。
 
 | パラメータ | 対象フィールド | 方式 |
 |---|---|---|
 | `q`（全文検索） | `card_data->>name`, `card_data->>selfIntro` | ilike |
 | `gender` | `card_data->'gender'->>'tag'` | equals |
+| `lang` | `card_data->'language'->'preset'` | 配列内検索 |
+| `age` | `card_data->'age'->>'searchTag'` | equals |
+
+### テンプレート固有フィルター（Pro のみ・`template` パラメータ必須）
+
+`/c/vrchat/[templateId]` で使用。テンプレートの `block_pool` に該当 `dataKey` がある場合のみ UI を表示。
+
+| パラメータ | 対象フィールド | 方式 |
+|---|---|---|
 | `env` | `card_data->'playEnv'` | 配列内検索 |
-| `lang` | `card_data->'language'` | 配列内検索 |
-| `friendPolicy` | `card_data->>friendPolicy` | equals（string・単一値） |
+| `friendPolicy` | `card_data->'friendPolicy'` | 配列内検索 |
 
 ---
 

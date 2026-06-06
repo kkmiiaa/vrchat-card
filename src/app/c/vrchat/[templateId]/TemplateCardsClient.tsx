@@ -25,6 +25,32 @@ type Card = {
   profile: { display_name: string | null; avatar_url: string | null } | null
 }
 
+type TemplateFilters = {
+  q: string
+  env: string
+  friendPolicy: string
+}
+
+const ENV_OPTIONS = [
+  { value: 'pcvr', label: 'PCVR' },
+  { value: 'quest', label: 'Quest' },
+  { value: 'desktop', label: 'Desktop' },
+]
+const POLICY_OPTIONS = [
+  { value: 'frPolicyAnyone', label: 'だれでもOK' },
+  { value: 'frPolicyAfterGettingToKnow', label: '仲良くなってから' },
+  { value: 'frPolicyIfInterested', label: '気になったら' },
+  { value: 'frPolicyMutualsOnX', label: 'X相互' },
+  { value: 'frPolicyNo', label: '送らないで' },
+]
+
+function hasDataKey(blockPool: Record<string, unknown> | null | undefined, dataKey: string): boolean {
+  if (!blockPool) return false
+  return Object.values(blockPool).some(
+    (entry) => entry !== null && typeof entry === 'object' && (entry as Record<string, unknown>).dataKey === dataKey
+  )
+}
+
 type Props = {
   templateId: string
   templateRow: TemplateLayoutRow
@@ -97,21 +123,49 @@ export default function TemplateCardsClient({
   const [hasMore, setHasMore] = useState(initialCards.length === (isPro ? 24 : 20))
   const [isPending, startTransition] = useTransition()
   const [creating, setCreating] = useState(false)
+  const [filters, setFilters] = useState<TemplateFilters>({ q: '', env: '', friendPolicy: '' })
+
+  const hasEnv = hasDataKey(templateRow.block_pool, 'playEnv')
+  const hasFriendPolicy = hasDataKey(templateRow.block_pool, 'friendPolicy')
+  const hasAnyFilter = hasEnv || hasFriendPolicy
+
+  const buildQuery = useCallback((f: TemplateFilters, cursor: string | null) => {
+    const params = new URLSearchParams({ template: templateId, community: 'vrchat' })
+    if (f.q) params.set('q', f.q)
+    if (f.env) params.set('env', f.env)
+    if (f.friendPolicy) params.set('friendPolicy', f.friendPolicy)
+    if (cursor) params.set('cursor', cursor)
+    return `/api/cards/explore?${params.toString()}`
+  }, [templateId])
+
+  const search = useCallback((newFilters: TemplateFilters) => {
+    setFilters(newFilters)
+    startTransition(async () => {
+      const res = await fetch(buildQuery(newFilters, null))
+      if (!res.ok) return
+      const { cards: fetched } = await res.json()
+      setCards(fetched ?? [])
+      setHasMore((fetched ?? []).length === (isPro ? 24 : 20))
+    })
+  }, [buildQuery, isPro])
+
+  function toggleFilter(key: keyof TemplateFilters, value: string) {
+    const next = { ...filters, [key]: filters[key] === value ? '' : value }
+    search(next)
+  }
 
   const loadMore = useCallback(() => {
     startTransition(async () => {
       const last = cards[cards.length - 1]
       if (!last) return
-      const res = await fetch(
-        `/api/cards/explore?template=${templateId}&cursor=${last.created_at}&community=vrchat`
-      )
+      const res = await fetch(buildQuery(filters, last.created_at))
       if (!res.ok) return
       const { cards: more } = await res.json()
       if (!more?.length) { setHasMore(false); return }
       setCards(prev => [...prev, ...more])
       if (more.length < (isPro ? 24 : 20)) setHasMore(false)
     })
-  }, [cards, templateId, isPro])
+  }, [cards, filters, buildQuery, isPro])
 
   async function handleCreate() {
     setCreating(true)
@@ -197,6 +251,62 @@ export default function TemplateCardsClient({
             </div>
           )}
         </div>
+
+        {/* テンプレート固有フィルター */}
+        {isPro && hasAnyFilter && (
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-5">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-4">
+              {hasEnv && (
+                <div>
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">使用環境</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {ENV_OPTIONS.map(e => (
+                      <button
+                        key={e.value}
+                        onClick={() => toggleFilter('env', e.value)}
+                        className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${
+                          filters.env === e.value
+                            ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
+                            : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                        }`}
+                      >
+                        {e.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {hasFriendPolicy && (
+                <div>
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">フレンド申請</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {POLICY_OPTIONS.map(p => (
+                      <button
+                        key={p.value}
+                        onClick={() => toggleFilter('friendPolicy', p.value)}
+                        className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${
+                          filters.friendPolicy === p.value
+                            ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
+                            : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {Object.values(filters).some(Boolean) && (
+                <button
+                  onClick={() => search({ q: '', env: '', friendPolicy: '' })}
+                  className="self-start text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  ✕ フィルターをリセット
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* カードグリッド */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">

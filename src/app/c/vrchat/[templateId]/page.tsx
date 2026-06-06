@@ -38,7 +38,7 @@ export default async function TemplateCardsPage({ params }: Props) {
 
   const { data: initialCards } = await supabase
     .from('cards')
-    .select('id, title, image_url, card_data, background, created_at, template_id, user_id')
+    .select('id, title, image_url, card_data, background, created_at, template_id, user_id, like_count, view_count')
     .eq('visibility', 'public')
     .eq('template_id', templateId)
     .order('created_at', { ascending: false })

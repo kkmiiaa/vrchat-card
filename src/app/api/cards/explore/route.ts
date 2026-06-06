@@ -20,11 +20,14 @@ export async function GET(request: NextRequest) {
   }
 
   const communitySlug  = searchParams.get('community') ?? 'vrchat'
+  const templateId     = searchParams.get('template') ?? ''
   const q              = isPro ? (searchParams.get('q') ?? '') : ''
   const gender         = isPro ? (searchParams.get('gender') ?? '') : ''
-  const env            = isPro ? (searchParams.get('env') ?? '') : ''
   const lang           = isPro ? (searchParams.get('lang') ?? '') : ''
-  const friendPolicy   = isPro ? (searchParams.get('friendPolicy') ?? '') : ''
+  const age            = isPro ? (searchParams.get('age') ?? '') : ''
+  // template-specific filters (only valid when template param is present)
+  const env            = isPro && templateId ? (searchParams.get('env') ?? '') : ''
+  const friendPolicy   = isPro && templateId ? (searchParams.get('friendPolicy') ?? '') : ''
   const cursor         = searchParams.get('cursor') ?? null
 
   // カードはテンプレート経由で界隈に属する（card → template → community_templates）
@@ -35,6 +38,8 @@ export async function GET(request: NextRequest) {
     .eq('templates.community_templates.community_slug', communitySlug)
     .order('created_at', { ascending: false })
 
+  if (templateId) query = query.eq('template_id', templateId)
+
   if (!isPro) {
     query = query.limit(20)
   } else {
@@ -42,10 +47,13 @@ export async function GET(request: NextRequest) {
     if (cursor) query = query.lt('created_at', cursor)
   }
 
+  // global filters
   if (gender) query = query.filter('card_data->>genderTag', 'eq', gender)
-  if (env) query = query.filter('card_data->playEnv', 'cs', JSON.stringify([env]))
   if (lang) query = query.filter('card_data->language->preset', 'cs', JSON.stringify([lang]))
-  if (friendPolicy) query = query.filter('card_data->>friendPolicy', 'eq', friendPolicy)
+  if (age) query = query.filter('card_data->age->>searchTag', 'eq', age)
+  // template-specific filters
+  if (env) query = query.filter('card_data->playEnv', 'cs', JSON.stringify([env]))
+  if (friendPolicy) query = query.filter('card_data->friendPolicy', 'cs', JSON.stringify([friendPolicy]))
 
   if (q) {
     const { data: matchedProfiles } = await supabase

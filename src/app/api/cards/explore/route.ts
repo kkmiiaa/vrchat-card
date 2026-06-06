@@ -19,16 +19,13 @@ export async function GET(request: NextRequest) {
       (userRow.plan_expires_at == null || new Date(userRow.plan_expires_at) > new Date())
   }
 
-  const communitySlug  = searchParams.get('community') ?? 'vrchat'
-  const templateId     = searchParams.get('template') ?? ''
-  const q              = isPro ? (searchParams.get('q') ?? '') : ''
-  const gender         = isPro ? (searchParams.get('gender') ?? '') : ''
-  const lang           = isPro ? (searchParams.get('lang') ?? '') : ''
-  const age            = isPro ? (searchParams.get('age') ?? '') : ''
-  // template-specific filters (only valid when template param is present)
-  const env            = isPro && templateId ? (searchParams.get('env') ?? '') : ''
-  const friendPolicy   = isPro && templateId ? (searchParams.get('friendPolicy') ?? '') : ''
-  const cursor         = searchParams.get('cursor') ?? null
+  const communitySlug = searchParams.get('community') ?? 'vrchat'
+  const templateId    = searchParams.get('template') ?? ''
+  const q             = isPro ? (searchParams.get('q') ?? '') : ''
+  const gender        = isPro ? (searchParams.get('gender') ?? '') : ''
+  const lang          = isPro ? (searchParams.get('lang') ?? '') : ''
+  const age           = isPro ? (searchParams.get('age') ?? '') : ''
+  const cursor        = searchParams.get('cursor') ?? null
 
   // カードはテンプレート経由で界隈に属する（card → template → community_templates）
   let query = supabase
@@ -47,13 +44,39 @@ export async function GET(request: NextRequest) {
     if (cursor) query = query.lt('created_at', cursor)
   }
 
-  // global filters
+  // global filters（global: true のコンポーネントに対応）
   if (gender) query = query.filter('card_data->>genderTag', 'eq', gender)
   if (lang) query = query.filter('card_data->language->preset', 'cs', JSON.stringify([lang]))
   if (age) query = query.filter('card_data->age->>searchTag', 'eq', age)
-  // template-specific filters
-  if (env) query = query.filter('card_data->playEnv', 'cs', JSON.stringify([env]))
-  if (friendPolicy) query = query.filter('card_data->friendPolicy', 'cs', JSON.stringify([friendPolicy]))
+
+  // template-specific filters: block_pool を参照して searchable なフィールドのみ適用
+  if (isPro && templateId) {
+    const { data: tplRow } = await supabase
+      .from('templates')
+      .select('block_pool')
+      .eq('id', templateId)
+      .single()
+
+    const pool = (tplRow?.block_pool ?? {}) as Record<string, { componentKey: string; dataKey: string; blockConfig?: Record<string, unknown> }>
+
+    // componentKey → フィルター方式のマッピング（searchable: true のもののみ）
+    const SEARCHABLE_COMPONENT_KEYS = new Set(['select', 'multi-select', 'expressive-select', 'gauge'])
+
+    for (const entry of Object.values(pool)) {
+      if (!SEARCHABLE_COMPONENT_KEYS.has(entry.componentKey)) continue
+      const val = searchParams.get(entry.dataKey)
+      if (!val) continue
+
+      if (entry.componentKey === 'multi-select') {
+        query = query.filter(`card_data->${entry.dataKey}`, 'cs', JSON.stringify([val]))
+      } else if (entry.componentKey === 'expressive-select') {
+        query = query.filter(`card_data->${entry.dataKey}->>'tag'`, 'eq', val)
+      } else {
+        // select, gauge
+        query = query.filter(`card_data->>'${entry.dataKey}'`, 'eq', val)
+      }
+    }
+  }
 
   if (q) {
     const { data: matchedProfiles } = await supabase

@@ -152,6 +152,8 @@ export type ComponentDef<T = unknown> = {
   variants?: BlockVariant[]
   /** true のとき選択肢・スキーマが全界隈共通で固定（界隈横断検索が可能） */
   global?: boolean
+  /** true のとき値による絞り込み検索が可能（select/multi-select/expressive-select/gauge など） */
+  searchable?: boolean
   /** フォームエリアに描画されるUI */
   FormItem: (props: ComponentFormProps<T>) => ReactNode
   /** カードエリアに描画されるUI（テンプレートが参照可能） */

@@ -14,6 +14,7 @@ export const expressiveSelectComponent: ComponentDef<ExpressiveSelectValue> = {
   key: 'expressive-select',
   defaultValue: DEFAULT_EXPRESSIVE_SELECT_VALUE,
   variants: ['simple'],
+  searchable: true,
   CardItem({ value, ctx, blockConfig }) {
     const safe: ExpressiveSelectValue = (value && typeof value === 'object' && 'tag' in value)
       ? value as ExpressiveSelectValue

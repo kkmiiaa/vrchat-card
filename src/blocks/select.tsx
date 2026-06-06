@@ -7,6 +7,7 @@ export const selectComponent: ComponentDef<string> = {
   key: 'select',
   defaultValue: '',
   variants: ['simple', 'badge', 'compact', 'chips'],
+  searchable: true,
   CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     if (!value) {
       if (blockConfig?.hideWhenEmpty) return null

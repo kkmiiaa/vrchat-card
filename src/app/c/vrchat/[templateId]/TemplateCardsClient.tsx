@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useTransition, useCallback } from 'react'
+import { useState, useRef, useEffect, useTransition, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import HeaderAuth from '@/components/HeaderAuth'
@@ -9,6 +9,7 @@ import type { TemplateLayoutRow } from '@/lib/templateLayout'
 import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
 import { createCard } from '@/lib/saveCard'
 import { translations } from '@/utils/translations'
+import { getComponent } from '@/blocks/registry'
 
 type BackgroundValue = { type: string; value: string | string[]; base64?: string | null } | null
 
@@ -25,31 +26,43 @@ type Card = {
   profile: { display_name: string | null; avatar_url: string | null } | null
 }
 
-type TemplateFilters = {
-  q: string
-  env: string
-  friendPolicy: string
+/** block_pool からテンプレート固有の検索可能フィルターを導出する */
+type SearchableField = {
+  dataKey: string
+  label: string
+  componentKey: string
+  options: { value: string; label: string }[]
+  isMulti: boolean
 }
 
-const ENV_OPTIONS = [
-  { value: 'pcvr', label: 'PCVR' },
-  { value: 'quest', label: 'Quest' },
-  { value: 'desktop', label: 'Desktop' },
-]
-const POLICY_OPTIONS = [
-  { value: 'frPolicyAnyone', label: 'だれでもOK' },
-  { value: 'frPolicyAfterGettingToKnow', label: '仲良くなってから' },
-  { value: 'frPolicyIfInterested', label: '気になったら' },
-  { value: 'frPolicyMutualsOnX', label: 'X相互' },
-  { value: 'frPolicyNo', label: '送らないで' },
-]
-
-function hasDataKey(blockPool: Record<string, unknown> | null | undefined, dataKey: string): boolean {
-  if (!blockPool) return false
-  return Object.values(blockPool).some(
-    (entry) => entry !== null && typeof entry === 'object' && (entry as Record<string, unknown>).dataKey === dataKey
-  )
+function deriveSearchableFields(blockPool: Record<string, unknown> | null | undefined): SearchableField[] {
+  if (!blockPool) return []
+  const fields: SearchableField[] = []
+  for (const entry of Object.values(blockPool)) {
+    if (!entry || typeof entry !== 'object') continue
+    const e = entry as Record<string, unknown>
+    const componentKey = e.componentKey as string
+    const dataKey = e.dataKey as string
+    if (!componentKey || !dataKey) continue
+    const component = getComponent(componentKey)
+    if (!component?.searchable || component.global) continue
+    const rawOptions = (e.blockConfig as Record<string, unknown> | undefined)?.options
+    if (!Array.isArray(rawOptions)) continue
+    fields.push({
+      dataKey,
+      label: (e.label as string) || dataKey,
+      componentKey,
+      options: rawOptions.map((o: Record<string, unknown>) => ({
+        value: String(o.value ?? o.label),
+        label: String(o.label ?? o.value),
+      })),
+      isMulti: componentKey === 'multi-select',
+    })
+  }
+  return fields
 }
+
+type TemplateFilters = Record<string, string>
 
 type Props = {
   templateId: string
@@ -123,17 +136,16 @@ export default function TemplateCardsClient({
   const [hasMore, setHasMore] = useState(initialCards.length === (isPro ? 24 : 20))
   const [isPending, startTransition] = useTransition()
   const [creating, setCreating] = useState(false)
-  const [filters, setFilters] = useState<TemplateFilters>({ q: '', env: '', friendPolicy: '' })
 
-  const hasEnv = hasDataKey(templateRow.block_pool, 'playEnv')
-  const hasFriendPolicy = hasDataKey(templateRow.block_pool, 'friendPolicy')
-  const hasAnyFilter = hasEnv || hasFriendPolicy
+  const searchableFields = useMemo(() => deriveSearchableFields(templateRow.block_pool), [templateRow.block_pool])
+  const initialFilters = useMemo(() => Object.fromEntries(searchableFields.map(f => [f.dataKey, ''])), [searchableFields])
+  const [filters, setFilters] = useState<TemplateFilters>(() => Object.fromEntries(searchableFields.map(f => [f.dataKey, ''])))
 
   const buildQuery = useCallback((f: TemplateFilters, cursor: string | null) => {
     const params = new URLSearchParams({ template: templateId, community: 'vrchat' })
-    if (f.q) params.set('q', f.q)
-    if (f.env) params.set('env', f.env)
-    if (f.friendPolicy) params.set('friendPolicy', f.friendPolicy)
+    for (const [key, val] of Object.entries(f)) {
+      if (val) params.set(key, val)
+    }
     if (cursor) params.set('cursor', cursor)
     return `/api/cards/explore?${params.toString()}`
   }, [templateId])
@@ -149,8 +161,8 @@ export default function TemplateCardsClient({
     })
   }, [buildQuery, isPro])
 
-  function toggleFilter(key: keyof TemplateFilters, value: string) {
-    const next = { ...filters, [key]: filters[key] === value ? '' : value }
+  function toggleFilter(dataKey: string, value: string) {
+    const next = { ...filters, [dataKey]: filters[dataKey] === value ? '' : value }
     search(next)
   }
 
@@ -252,53 +264,33 @@ export default function TemplateCardsClient({
           )}
         </div>
 
-        {/* テンプレート固有フィルター */}
-        {isPro && hasAnyFilter && (
+        {/* テンプレート固有フィルター（Pro・searchable フィールドがある場合のみ） */}
+        {isPro && searchableFields.length > 0 && (
           <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-5">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-4">
-              {hasEnv && (
-                <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">使用環境</p>
+              {searchableFields.map(field => (
+                <div key={field.dataKey}>
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">{field.label}</p>
                   <div className="flex gap-2 flex-wrap">
-                    {ENV_OPTIONS.map(e => (
+                    {field.options.map(opt => (
                       <button
-                        key={e.value}
-                        onClick={() => toggleFilter('env', e.value)}
+                        key={opt.value}
+                        onClick={() => toggleFilter(field.dataKey, opt.value)}
                         className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${
-                          filters.env === e.value
+                          filters[field.dataKey] === opt.value
                             ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
                             : 'border-gray-200 text-gray-500 hover:border-gray-300'
                         }`}
                       >
-                        {e.label}
+                        {opt.label}
                       </button>
                     ))}
                   </div>
                 </div>
-              )}
-              {hasFriendPolicy && (
-                <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">フレンド申請</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {POLICY_OPTIONS.map(p => (
-                      <button
-                        key={p.value}
-                        onClick={() => toggleFilter('friendPolicy', p.value)}
-                        className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${
-                          filters.friendPolicy === p.value
-                            ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
-                            : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                        }`}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              ))}
               {Object.values(filters).some(Boolean) && (
                 <button
-                  onClick={() => search({ q: '', env: '', friendPolicy: '' })}
+                  onClick={() => search(initialFilters)}
                   className="self-start text-xs text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   ✕ フィルターをリセット

@@ -7,6 +7,7 @@ export const multiSelectComponent: ComponentDef<string[]> = {
   key: 'multi-select',
   defaultValue: [],
   variants: ['simple', 'slash', 'icon', 'icon-slash', 'chips'],
+  searchable: true,
   CardItem({ value, ctx, variant = 'simple', blockConfig }) {
     const items = Array.isArray(value) ? value : []
     const fs = ctx.fontSize.sm

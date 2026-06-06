@@ -15,6 +15,7 @@ export const gaugeComponent: ComponentDef<number> = {
   key: 'gauge',
   defaultValue: 0,
   variants: ['simple'],
+  searchable: true,
 
   CardItem({ value, ctx, blockConfig }) {
     const cfg = (blockConfig ?? {}) as GaugeConfig

@@ -75,15 +75,16 @@ async function replaceBase64WithUrl(val: unknown, slot: string): Promise<unknown
 
   const obj = val as Record<string, unknown>
 
-  // { base64: string | null, url: string | null } 形式の画像オブジェクト
+  // base64 キーを持つオブジェクト（avatar/icon 等の単体画像、gallery）を処理
   if ('base64' in obj) {
     const base64 = obj.base64
+    // 単体画像: { base64: string, url: string | null }
     if (typeof base64 === 'string' && base64.startsWith('data:')) {
       const compressed = await compressBase64(base64)
       const url = await uploadSampleImage(compressed, `${slot}-${++counter}`).catch(() => null)
       return { ...obj, base64: null, url: url ?? obj.url ?? null }
     }
-    // base64 が配列（gallery 旧形式）
+    // Gallery: { enabled, images, base64: string[], urls: string[] }
     if (Array.isArray(base64)) {
       const uploaded = await Promise.all(
         base64.map(async (b64, i) => {

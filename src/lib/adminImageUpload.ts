@@ -2,28 +2,31 @@
 
 import { createAdminClient } from '@/lib/supabase/server'
 
+const BUCKET = 'template-samples'
+
 /**
- * base64 データ URL を Supabase Storage にアップロードし public URL を返す。
+ * テンプレートサンプル画像用の署名付きアップロード URL を発行する。
  * admin 専用（サービスロールキー使用）。
+ * クライアントはこの URL に直接 PUT してアップロードするため、
+ * base64 データがサーバーアクションの body を通過しない。
  */
-export async function uploadAdminBase64Image(
-  base64DataUrl: string,
-  slot: string,
-): Promise<string | null> {
-  const match = base64DataUrl.match(/^data:([^;]+);base64,(.+)$/)
-  if (!match) return null
-  const [, mimeType, data] = match
-  const ext = mimeType.includes('png') ? 'png' : mimeType.includes('webp') ? 'webp' : 'jpg'
-  const path = `admin-samples/${slot}-${Date.now()}.${ext}`
-  const buffer = Buffer.from(data, 'base64')
-
+export async function createSampleImageUploadUrl(
+  path: string,
+): Promise<{ signedUrl: string; token: string; path: string } | null> {
   const supabase = createAdminClient()
-  const { error } = await supabase.storage
-    .from('card-images')
-    .upload(path, buffer, { contentType: mimeType, upsert: true })
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUploadUrl(path)
 
-  if (error) return null
+  if (error || !data) return null
+  return data
+}
 
-  const { data: urlData } = supabase.storage.from('card-images').getPublicUrl(path)
-  return urlData.publicUrl
+/**
+ * template-samples バケット内のパスから公開 URL を返す。
+ */
+export async function getTemplateSamplePublicUrl(path: string): Promise<string> {
+  const supabase = createAdminClient()
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
+  return data.publicUrl
 }

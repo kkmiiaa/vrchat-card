@@ -1,7 +1,9 @@
-import { uploadAdminBase64Image } from '@/lib/adminImageUpload'
+import { createClient } from '@/lib/supabase/client'
+import { createSampleImageUploadUrl, getTemplateSamplePublicUrl } from '@/lib/adminImageUpload'
 
 const MAX_DIMENSION = 1200
 const JPEG_QUALITY = 0.80
+const BUCKET = 'template-samples'
 
 /** base64 data URL を Canvas で圧縮して JPEG base64 に変換 */
 async function compressBase64(base64DataUrl: string): Promise<string> {
@@ -22,6 +24,32 @@ async function compressBase64(base64DataUrl: string): Promise<string> {
     img.onerror = () => resolve(base64DataUrl)
     img.src = base64DataUrl
   })
+}
+
+/**
+ * base64 data URL を template-samples バケットにアップロードし public URL を返す。
+ * 署名付き URL をサーバーアクションで発行し、クライアントから直接 Storage に PUT する。
+ * これにより base64 データがサーバーアクションの body size 制限に引っかからない。
+ */
+async function uploadSampleImage(base64DataUrl: string, slot: string): Promise<string | null> {
+  const match = base64DataUrl.match(/^data:([^;]+);base64,(.+)$/)
+  if (!match) return null
+  const [, mimeType, data] = match
+  const ext = mimeType.includes('png') ? 'png' : mimeType.includes('webp') ? 'webp' : 'jpg'
+  const path = `${slot}-${Date.now()}.${ext}`
+
+  const uploadInfo = await createSampleImageUploadUrl(path).catch(() => null)
+  if (!uploadInfo) return null
+
+  const buffer = Uint8Array.from(atob(data), c => c.charCodeAt(0))
+  const supabase = createClient()
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .uploadToSignedUrl(uploadInfo.path, uploadInfo.token, buffer, { contentType: mimeType })
+
+  if (error) return null
+
+  return getTemplateSamplePublicUrl(uploadInfo.path).catch(() => null)
 }
 
 /**
@@ -52,7 +80,7 @@ async function replaceBase64WithUrl(val: unknown, slot: string): Promise<unknown
     const base64 = obj.base64
     if (typeof base64 === 'string' && base64.startsWith('data:')) {
       const compressed = await compressBase64(base64)
-      const url = await uploadAdminBase64Image(compressed, `${slot}-${++counter}`).catch(() => null)
+      const url = await uploadSampleImage(compressed, `${slot}-${++counter}`).catch(() => null)
       return { ...obj, base64: null, url: url ?? obj.url ?? null }
     }
     // base64 が配列（gallery 旧形式）
@@ -61,7 +89,7 @@ async function replaceBase64WithUrl(val: unknown, slot: string): Promise<unknown
         base64.map(async (b64, i) => {
           if (typeof b64 === 'string' && b64.startsWith('data:')) {
             const compressed = await compressBase64(b64)
-            return uploadAdminBase64Image(compressed, `${slot}-${i}-${++counter}`).catch(() => null)
+            return uploadSampleImage(compressed, `${slot}-${i}-${++counter}`).catch(() => null)
           }
           return null
         })

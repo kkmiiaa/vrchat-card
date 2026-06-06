@@ -75,12 +75,6 @@ async function replaceBase64WithUrl(val: unknown, slot: string): Promise<unknown
 
   const obj = val as Record<string, unknown>
 
-  // BackgroundValue: imageFile（File オブジェクト）を null 化して再帰
-  if ('imageFile' in obj) {
-    const rest = await replaceBase64WithUrl({ ...obj, imageFile: null }, slot)
-    return rest
-  }
-
   // base64 キーを持つオブジェクト（avatar/icon 等の単体画像、gallery）を処理
   if ('base64' in obj) {
     const base64 = obj.base64
@@ -110,10 +104,10 @@ async function replaceBase64WithUrl(val: unknown, slot: string): Promise<unknown
     return obj
   }
 
-  // 再帰処理
+  // 再帰処理（imageFile は File オブジェクトを含む可能性があるため null 化）
   const result: Record<string, unknown> = {}
   for (const [key, v] of Object.entries(obj)) {
-    result[key] = await replaceBase64WithUrl(v, `${slot}-${key}`)
+    result[key] = key === 'imageFile' ? null : await replaceBase64WithUrl(v, `${slot}-${key}`)
   }
   return result
 }

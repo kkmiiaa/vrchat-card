@@ -108,8 +108,7 @@ function SamplePreview({ row }: { row: TemplateLayoutRow }) {
     return () => observer.disconnect()
   }, [W])
 
-  const values = row.sample_card_data ?? {}
-  const isEmpty = Object.keys(values).length === 0
+  const isEmpty = !row.sample_card_data || Object.keys(row.sample_card_data).length === 0
 
   if (isEmpty) {
     return (
@@ -122,7 +121,7 @@ function SamplePreview({ row }: { row: TemplateLayoutRow }) {
   return (
     <div ref={containerRef} style={{ width: '100%', height: H * scale, overflow: 'hidden', borderRadius: 12 }}>
       <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: W, height: H, pointerEvents: 'none' }}>
-        <template.CardRenderer values={values} fontFamily="" t={translations.ja} />
+        <template.PreviewCard />
       </div>
     </div>
   )

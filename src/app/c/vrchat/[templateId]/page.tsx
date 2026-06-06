@@ -55,7 +55,6 @@ export default async function TemplateCardsPage({ params }: Props) {
   // 同じ界隈の他テンプレート（ナビ用）
   const siblingTemplates = Object.values(layouts)
     .filter(t => t.community_slugs.includes('vrchat'))
-    .map(t => ({ id: t.id, label: t.label }))
 
   return (
     <TemplateCardsClient

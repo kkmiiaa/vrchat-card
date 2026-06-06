@@ -16,6 +16,8 @@ type Card = {
   background: BackgroundValue
   created_at: string
   template_id: string
+  like_count: number
+  view_count: number
   profile: { display_name: string | null; avatar_url: string | null } | null
 }
 
@@ -332,11 +334,16 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
                   <div className="p-2">
                     <p className="text-xs font-semibold text-gray-700 truncate">{getName(card)}</p>
                     <div className="flex items-center justify-between mt-0.5 gap-1">
-                      {isPro && (card.card_data?.playEnv as string[] | undefined)?.length ? (
-                        <p className="text-[10px] text-gray-400 truncate">
-                          {(card.card_data.playEnv as string[]).join(' / ')}
-                        </p>
-                      ) : <span />}
+                      <div className="flex items-center gap-2">
+                        <span className="flex items-center gap-0.5 text-[10px] text-pink-400 bg-pink-50 px-1.5 py-0.5 rounded-full">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                          {card.like_count}
+                        </span>
+                        <span className="flex items-center gap-0.5 text-[10px] text-gray-400">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                          {card.view_count}
+                        </span>
+                      </div>
                       <p className="text-[10px] text-gray-300 shrink-0">{relativeDate(card.created_at)}</p>
                     </div>
                   </div>

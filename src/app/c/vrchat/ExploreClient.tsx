@@ -1,10 +1,46 @@
 'use client'
 
-import { useState, useCallback, useTransition } from 'react'
+import { useState, useCallback, useTransition, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import HeaderAuth from '@/components/HeaderAuth'
 import ProUpgradeModal from '@/components/ProUpgradeModal'
 import { relativeDate } from '@/utils/relativeDate'
+import type { TemplateLayoutRow } from '@/lib/templateLayout'
+import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
+
+function SamplePreview({ row }: { row: TemplateLayoutRow }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+  const { template } = buildCardTemplateFromDefinition(null, row)
+  const W = template.cardWidth
+  const H = template.cardHeight
+
+  useEffect(() => {
+    if (!containerRef.current) return
+    const observer = new ResizeObserver(([entry]) => {
+      const w = entry.contentRect.width
+      if (w > 0) setScale(w / W)
+    })
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [W])
+
+  const isEmpty = !row.sample_card_data || Object.keys(row.sample_card_data).length === 0
+
+  if (isEmpty) {
+    return (
+      <div ref={containerRef} style={{ width: '100%', aspectRatio: `${W}/${H}`, background: 'linear-gradient(135deg, #e0f2fe, #f0fdf4)' }} />
+    )
+  }
+
+  return (
+    <div ref={containerRef} style={{ width: '100%', height: H * scale, overflow: 'hidden' }}>
+      <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: W, height: H, pointerEvents: 'none' }}>
+        <template.PreviewCard />
+      </div>
+    </div>
+  )
+}
 
 type BackgroundValue = { type: string; value: string | string[]; base64?: string | null } | null
 
@@ -49,7 +85,7 @@ type Props = {
   initialCards: Card[]
   isPro: boolean
   isLoggedIn: boolean
-  communityTemplates?: { id: string; label: string }[]
+  communityTemplates?: TemplateLayoutRow[]
 }
 
 export default function ExploreClient({ initialCards, isPro, isLoggedIn, communityTemplates = [] }: Props) {
@@ -134,19 +170,20 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
         {/* テンプレート別ページへのナビ */}
         {communityTemplates.length > 0 && (
           <div className="mb-6">
-            <p className="text-xs text-gray-400 mb-2">テンプレートで絞り込む</p>
-            <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
+            <p className="text-xs text-gray-400 mb-3">テンプレートで絞り込む</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {communityTemplates.map(t => (
                 <Link
                   key={t.id}
                   href={`/c/vrchat/${t.id}`}
-                  className="tap-spring shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-sky-200 text-xs font-semibold text-sky-600 hover:bg-sky-50 hover:border-sky-400 transition-all"
+                  className="group block bg-white rounded-xl border border-gray-100 hover:border-sky-200 hover:shadow-md overflow-hidden transition-all"
                 >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <rect x="2" y="7" width="20" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 3H8"/>
-                  </svg>
-                  {t.label}
+                  <div className="overflow-hidden">
+                    <SamplePreview row={t} />
+                  </div>
+                  <div className="px-2.5 py-2">
+                    <p className="text-xs font-semibold text-gray-700 group-hover:text-[#00AADB] transition-colors line-clamp-2">{t.label}</p>
+                  </div>
                 </Link>
               ))}
             </div>

@@ -46,7 +46,6 @@ export default async function Page() {
   const allLayouts = await fetchTemplateLayouts()
   const communityTemplates = Object.values(allLayouts)
     .filter(t => t.community_slugs.includes('vrchat'))
-    .map(t => ({ id: t.id, label: t.label }))
 
   return <ExploreClient initialCards={cards} isPro={isPro} isLoggedIn={!!user} communityTemplates={communityTemplates} />
 }

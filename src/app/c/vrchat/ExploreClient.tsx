@@ -130,15 +130,19 @@ type Props = {
   isPro: boolean
   isLoggedIn: boolean
   communityTemplates?: TemplateLayoutRow[]
+  initialFreeRemaining: number
 }
 
-export default function ExploreClient({ initialCards, isPro, isLoggedIn, communityTemplates = [] }: Props) {
+export default function ExploreClient({ initialCards, isPro, isLoggedIn, communityTemplates = [], initialFreeRemaining }: Props) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [cards, setCards] = useState<Card[]>(initialCards)
   const [filters, setFilters] = useState<Filters>({ q: '', gender: '', lang: '', age: '' })
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(isPro && initialCards.length === 24)
   const [isPending, startTransition] = useTransition()
+  const [freeRemaining, setFreeRemaining] = useState(initialFreeRemaining)
+
+  const hasFilter = (f: Filters) => !!(f.q || f.gender || f.lang || f.age)
 
   const buildQuery = useCallback((f: Filters, cur: string | null) => {
     const params = new URLSearchParams()
@@ -156,8 +160,13 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
     startTransition(async () => {
       const res = await fetch(buildQuery(newFilters, null))
       const json = await res.json()
+      if (json.error === 'limit_exceeded') {
+        setShowUpgradeModal(true)
+        return
+      }
       setCards(json.cards ?? [])
       setHasMore((json.cards ?? []).length === 24)
+      if (typeof json.freeRemaining === 'number') setFreeRemaining(json.freeRemaining)
     })
   }, [buildQuery])
 
@@ -186,6 +195,9 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
   }
 
   const getName = (card: Card) => card.profile?.display_name || 'vaacard User'
+
+  // Free ユーザーかつ未ログインの場合はフィルターUI自体を出さない
+  const showFilterArea = isPro || isLoggedIn
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -217,7 +229,7 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
         )}
 
         {/* フィルターエリア */}
-        {isPro ? (
+        {showFilterArea ? (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-col gap-4">
             {/* フリーワード */}
             <div className="relative">
@@ -293,34 +305,42 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
               </div>
             </div>
 
-            {/* リセット */}
-            {Object.values(filters).some(Boolean) && (
-              <button
-                onClick={() => search({ q: '', gender: '', lang: '', age: '' })}
-                className="self-start text-xs text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                ✕ フィルターをリセット
-              </button>
-            )}
+            {/* フッター: リセット + 残り回数（Freeのみ） */}
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              {Object.values(filters).some(Boolean) ? (
+                <button
+                  onClick={() => search({ q: '', gender: '', lang: '', age: '' })}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  ✕ フィルターをリセット
+                </button>
+              ) : <div />}
+
+              {!isPro && (
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-gray-400">
+                    今月あと <span className={`font-bold ${freeRemaining === 0 ? 'text-red-400' : 'text-[#00AADB]'}`}>{freeRemaining}</span> 回検索できます
+                  </p>
+                  <button
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-3 py-1 rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
+                  >
+                    Pro で無制限に
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
-          /* Freeユーザー向けアップグレード誘導 */
+          /* 未ログインユーザー向け誘導 */
           <div className="bg-gradient-to-r from-sky-50 to-cyan-50 border border-sky-100 rounded-2xl p-4 mb-6 flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold text-gray-800">
-                {isLoggedIn ? '🔍 Proプランで詳細検索が使えます' : '🔍 ログインすると検索機能が利用できます'}
-              </p>
-              <p className="text-xs text-gray-500 mt-0.5">性別・言語・年齢などで絞り込み</p>
+              <p className="text-sm font-semibold text-gray-800">🔍 ログインすると検索機能が利用できます</p>
+              <p className="text-xs text-gray-500 mt-0.5">性別・言語・年齢などで絞り込み（月3回まで無料）</p>
             </div>
-            {isLoggedIn ? (
-              <button onClick={() => setShowUpgradeModal(true)} className="shrink-0 text-xs font-bold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-4 py-2 rounded-full hover:opacity-90 transition-opacity whitespace-nowrap">
-                Proにアップグレード
-              </button>
-            ) : (
-              <Link href="/auth/login" className="shrink-0 text-xs font-bold text-[#00AADB] border border-[#00AADB] px-4 py-2 rounded-full hover:bg-sky-50 transition-colors whitespace-nowrap">
-                ログイン
-              </Link>
-            )}
+            <Link href="/auth/login" className="shrink-0 text-xs font-bold text-[#00AADB] border border-[#00AADB] px-4 py-2 rounded-full hover:bg-sky-50 transition-colors whitespace-nowrap">
+              ログイン
+            </Link>
           </div>
         )}
 
@@ -328,10 +348,10 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
         <p className="text-xs text-gray-400 mb-3">
           {isPending
             ? '検索中...'
-            : !isPro && cards.length >= 20
+            : !isPro && cards.length >= 20 && !hasFilter(filters)
               ? `${cards.length}件`
               : `全${cards.length}件`}
-          {!isPro && cards.length >= 20 && <span className="ml-2 text-gray-300">（最新20件）</span>}
+          {!isPro && cards.length >= 20 && !hasFilter(filters) && <span className="ml-2 text-gray-300">（最新20件）</span>}
         </p>
 
         {/* カードグリッド */}

@@ -14,6 +14,7 @@ import { translations } from '@/utils/translations'
 import { relativeDate } from '@/utils/relativeDate'
 import { createClient } from '@/lib/supabase/client'
 import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
+import { trackEvent } from '@/lib/gtag'
 
 export type CardViewWrapperProps = {
   cardId: string
@@ -202,7 +203,10 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     fetch(`/api/cards/${cardId}/view`, { method: 'POST' })
     const likedCards: string[] = JSON.parse(localStorage.getItem('vaacard-liked') ?? '[]')
     setLiked(likedCards.includes(cardId))
-  }, [cardId])
+    if (!isOwner) {
+      trackEvent('card_viewed', { card_id: cardId, template_id: templateId })
+    }
+  }, [cardId, isOwner, templateId])
 
 
   useEffect(() => {
@@ -396,11 +400,15 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     }
     setPublishState('saving')
     const newVersion = await doPublish()
+    if (newVersion !== null) {
+      trackEvent('card_saved', { card_id: cardId, template_id: templateId })
+    }
     setPublishState(newVersion !== null ? 'done' : null)
   }
 
   // 「Xで共有」ボタン
   async function handleXShare() {
+    trackEvent('card_shared_x', { card_id: cardId, template_id: templateId, source: 'card_view' })
     if (savedImageUrlRef.current) {
       window.open(buildXShareHref(currentOgpVersion), '_blank', 'noopener,noreferrer')
       return
@@ -414,7 +422,10 @@ export default function CardViewClient({ cardId, templateId, isOwner, likeCount:
     }
   }
 
-  const handleDownload = downloadPng
+  const handleDownload = async () => {
+    await downloadPng()
+    trackEvent('card_image_downloaded', { card_id: cardId, template_id: templateId })
+  }
 
   const bg = initialBackground
   const pageBg = bg

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { trackEvent } from '@/lib/gtag'
 
 type Props = {
   onClose?: () => void // モーダルとして使う場合に渡す
@@ -13,6 +14,7 @@ export default function UpgradeContent({ onClose }: Props) {
 
   async function handleUpgrade() {
     setLoading(true)
+    trackEvent('upgrade_started')
     try {
       const res = await fetch('/api/stripe/checkout', { method: 'POST' })
       if (res.status === 401) {

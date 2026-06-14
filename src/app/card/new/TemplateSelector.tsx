@@ -8,6 +8,7 @@ import { createCard } from '@/lib/saveCard'
 import type { CardTemplate } from '@/blocks/types'
 import type { TemplateLayoutRow, CommunityRow } from '@/lib/templateLayout'
 import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
+import { trackEvent } from '@/lib/gtag'
 
 type Props = {
   savedLayouts: Record<string, TemplateLayoutRow>
@@ -62,6 +63,7 @@ export default function TemplateSelector({ savedLayouts, communities }: Props) {
 
   async function handleSelect(templateId: string) {
     setLoading(templateId)
+    trackEvent('template_selected', { template_id: templateId })
     const result = await createCard({ templateId })
     if ('error' in result) {
       alert('カードの作成に失敗しました: ' + result.error)

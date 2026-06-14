@@ -104,6 +104,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     if (!dataUrl) return
     if (cardId) await updateCard({ cardId, imageBase64: dataUrl })
     await _downloadPng()
+    trackEvent('card_image_downloaded', { card_id: cardId ?? null, template_id: template.id })
     setShowSaveNudge(true)
     setTimeout(() => setShowSaveNudge(false), 8000)
   }
@@ -489,6 +490,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     await updateCard({ cardId: currentCardId, visibility: 'public' })
     setVisibility('public')
     setSaveModalLoading(false)
+    trackEvent('card_saved', { card_id: currentCardId, template_id: template.id })
     if (onSaved) {
       onSaved(currentCardId, newVersion)
     } else {
@@ -503,9 +505,11 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       const baseTweetText = template.tweetHashtags
         ? `カードを作りました！\n${template.tweetHashtags} #vaacard`
         : t.tweetText
+      trackEvent('card_shared_x', { card_id: cardId ?? null, template_id: template.id, source: 'legacy_maker' })
       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(baseTweetText)}`, '_blank', 'noopener,noreferrer')
       return
     }
+    trackEvent('card_shared_x', { card_id: cardId ?? null, template_id: template.id, source: 'editor' })
     setXShareConfirming(true)
   }
 
@@ -524,6 +528,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
     const saved = localStorage.getItem(STORAGE_KEY)
     if (!saved) return
     autoMigrateRef.current = true
+    trackEvent('legacy_maker_migrated', { template_id: template.id })
     handleShareByUrl(true)  // マイグレーション時は空フィールドチェックをスキップ
   // cardId は意図的に依存配列から外す
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -886,7 +891,7 @@ export default function CardEditor({ template, cardId: initialCardId, initialVal
       )}
 
     </main>
-    {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} />}
+    {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} trigger="editor" />}
     </>
     </ImageUploadContext.Provider>
   )

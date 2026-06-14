@@ -710,7 +710,7 @@ const [orientations, setOrientations] = useState<Record<string, 'card' | 'web'>>
           </button>
         </div>
       )}
-      {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} />}
+      {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} trigger="profile" />}
     </div>
   )
 }

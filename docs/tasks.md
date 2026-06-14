@@ -49,10 +49,7 @@ X のハッシュタグ・リツイート起点で VRChat ユーザーへのリ�
 
 施策の効果を測るために最低限の計測を入れる。ベータテスト前に整備しておく。
 
-- [ ] **アナリティクス導入** — ページビュー・カード作成数・X シェア数など主要イベントを計測できる状態にする
-  - ツール選定（Google Analytics 4 / Plausible / Vercel Analytics 等）
-  - カード作成・保存・X シェアのコンバージョンイベントを実装
-  - Pro アップグレードのファネル（`/upgrade` 到達→決済完了）を計測
+- ✅ **アナリティクス導入** — GA4 で全16イベントを計測。`docs/analytics.md` に仕様書。旧メーカー流入（`legacy_maker_visited` / `legacy_maker_migrated`）・Pro ファネル（Measurement Protocol）含む（2026-06-14）
 
 ### ソーシャル機能（優先度：中）
 

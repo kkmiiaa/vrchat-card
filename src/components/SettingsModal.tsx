@@ -234,7 +234,7 @@ export default function SettingsModal({ onClose }: Props) {
           </div>
         </div>
       </div>
-    {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} />}
+    {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} trigger="settings" />}
     </>
   )
 }

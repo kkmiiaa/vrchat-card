@@ -2,6 +2,7 @@ import { stripe } from '@/lib/stripe'
 import { createClient as createServiceClient, SupabaseClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import type Stripe from 'stripe'
+import { sendServerEvent } from '@/lib/measurementProtocol'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? ''
 
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
       if (session.customer) {
         await supabase.from('users').update({ stripe_customer_id: session.customer as string }).eq('id', userId)
       }
+      await sendServerEvent('upgrade_completed', { user_id: userId }, userId)
       break
     }
 
@@ -73,6 +75,7 @@ export async function POST(request: NextRequest) {
         .from('users')
         .update({ plan: 'free', plan_expires_at: null })
         .eq('id', userId)
+      await sendServerEvent('subscription_cancelled', { user_id: userId }, userId)
       break
     }
   }

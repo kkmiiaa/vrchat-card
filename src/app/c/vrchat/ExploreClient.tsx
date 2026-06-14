@@ -404,7 +404,7 @@ export default function ExploreClient({ initialCards, isPro, isLoggedIn, communi
           </div>
         )}
       </main>
-      {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} />}
+      {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} trigger="explore" />}
     </div>
   )
 }

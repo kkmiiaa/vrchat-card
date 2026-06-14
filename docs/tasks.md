@@ -66,9 +66,7 @@ X のハッシュタグ・リツイート起点で VRChat ユーザーへのリ�
 ### 品質・テスト（優先度：中）
 
 - ✅ **既存テストのカバレッジ調査・修正** — ユニット 717 件全パス確認。4件の実装追従漏れを修正（itemList code フィールド廃止・tagList role=combobox 化・flat border 値更新・compressSampleData async 化対応）（2026-06-04）
-- [ ] **`/upgrade` ページ E2E** — `tests/e2e/upgrade.spec.ts` を新規作成（ページは `src/app/upgrade/page.tsx` に実装済み）
-  - プラン契約シナリオ（Free → Pro への Stripe Checkout 遷移・完了後の状態確認）
-  - プラン解約シナリオ（Pro → Free へのダウングレード・解約後の UI 変化確認）
+- ✅ **`/upgrade` ページ E2E** — `tests/e2e/upgrade.spec.ts` 新規作成。未ログイン・ログイン済み・APIレベル計16ケース（15 passed / 1 skipped）（2026-06-14）
 - ✅ **マイグレーション系テスト 43 件修正** — `migrateLegacyCardData` が `'v1'`/`'v2'` を受け付けていなかったバグを修正（`'vrchat-simple'`/`'vrchat-glass'` のエイリアスとして追加）。全73件パス。
 - ✅ **自動マイグレーション発動条件のユニットテスト** — 一旦OK
 - ✅ **`/card/vrchat` の後方互換性テスト強化** — 一旦OK

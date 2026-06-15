@@ -15,7 +15,8 @@
     "test:regression": "playwright test --project=unauthenticated --project=authenticated regression",
     "test:local": "playwright test --config=playwright.local.config.ts",
     "test:local:unauth": "playwright test --config=playwright.local.config.ts --project=unauthenticated",
-    "test:local:auth": "playwright test --config=playwright.local.config.ts --project=authenticated"
+    "test:local:auth": "playwright test --config=playwright.local.config.ts --project=authenticated",
+    "seed:local": "npx playwright test --project=setup --no-deps"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

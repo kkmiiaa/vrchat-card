@@ -1,6 +1,7 @@
 import { FullConfig } from '@playwright/test'
 import * as fs from 'fs'
 import * as path from 'path'
+import { seedLocalData } from './seed-local'
 
 async function ensureTestUser(email: string, password: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -133,4 +134,7 @@ export default async function globalSetup(_config: FullConfig) {
 
   const publicCardId = process.env.TEST_PUBLIC_CARD_ID
   if (publicCardId) await ensurePublicCardByOtherUser(publicCardId)
+
+  // シードデータ投入（ローカル環境のみ）
+  await seedLocalData()
 }

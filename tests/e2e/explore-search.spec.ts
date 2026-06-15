@@ -11,39 +11,12 @@
  * 前提:
  * - テストユーザーが認証済みであること（storageState）
  * - SUPABASE_SERVICE_ROLE_KEY が設定されていること（カウントリセット用）
- * - Docker + ローカル Supabase が起動していること
+ * - global-setup.ts によりシードデータが投入済みであること
+ *   （ローカル: npm run seed:local、または Docker + npx playwright test）
  */
 
 import { test, expect, APIRequestContext } from '@playwright/test'
-
-// ─── テストデータ ──────────────────────────────────────────────────────────────
-
-const UNIQUE_TAG = `e2etest${Date.now()}`
-
-/** 検索・フィルターが正しくヒットするカードデータ */
-const MALE_JP_CARD = {
-  name: `テスト太郎_${UNIQUE_TAG}`,
-  genderTag: 'male',
-  gender: { tag: 'male', display: '男性' },
-  language: { preset: ['日本語'], custom: [] },
-  age: { searchTag: '18+', display: '20代' },
-  selfIntro: `e2eテスト用データ ${UNIQUE_TAG}`,
-}
-
-/** フィルター不一致の確認用（女性・English）*/
-const FEMALE_EN_CARD = {
-  name: `テスト花子_${UNIQUE_TAG}`,
-  genderTag: 'female',
-  gender: { tag: 'female', display: '女性' },
-  language: { preset: ['English'], custom: [] },
-  age: { searchTag: '18歳未満', display: '10代' },
-  selfIntro: `別のe2eテストデータ ${UNIQUE_TAG}`,
-}
-
-// カード ID（beforeAll で設定）
-let maleCardId: string | null = null
-let femaleCardId: string | null = null
-let privateCardId: string | null = null
+import { SEED_CARD_IDS, SEED_KEYWORD } from '../fixtures/seed-cards'
 
 // ─── ユーティリティ ────────────────────────────────────────────────────────────
 
@@ -71,55 +44,6 @@ function includesCard(cards: { id: string }[], cardId: string): boolean {
   return cards.some(c => c.id === cardId)
 }
 
-// ─── セットアップ ──────────────────────────────────────────────────────────────
-
-test.beforeAll(async ({ request }) => {
-  // 男性・日本語カードを作成（公開）
-  const res1 = await request.post('/api/cards', {
-    data: {
-      templateId: 'vrchat-simple',
-      cardData: MALE_JP_CARD,
-      visibility: 'public',
-    },
-  })
-  if (res1.ok()) {
-    const json = await res1.json()
-    maleCardId = json.cardId ?? json.id
-  }
-
-  // 女性・英語カードを作成（公開）
-  const res2 = await request.post('/api/cards', {
-    data: {
-      templateId: 'vrchat-simple',
-      cardData: FEMALE_EN_CARD,
-      visibility: 'public',
-    },
-  })
-  if (res2.ok()) {
-    const json = await res2.json()
-    femaleCardId = json.cardId ?? json.id
-  }
-
-  // 非公開カードを作成
-  const res3 = await request.post('/api/cards', {
-    data: {
-      templateId: 'vrchat-simple',
-      cardData: { ...MALE_JP_CARD, name: `非公開_${UNIQUE_TAG}` },
-      visibility: 'private',
-    },
-  })
-  if (res3.ok()) {
-    const json = await res3.json()
-    privateCardId = json.cardId ?? json.id
-  }
-})
-
-test.afterAll(async ({ request }) => {
-  if (maleCardId)   await request.delete(`/api/cards/${maleCardId}`)
-  if (femaleCardId) await request.delete(`/api/cards/${femaleCardId}`)
-  if (privateCardId) await request.delete(`/api/cards/${privateCardId}`)
-})
-
 // ─── 基本動作 ─────────────────────────────────────────────────────────────────
 
 test.describe('基本動作', () => {
@@ -133,21 +57,19 @@ test.describe('基本動作', () => {
   })
 
   test('公開カードが explore に含まれる', async ({ request }) => {
-    if (!maleCardId) return test.skip()
     const res = await request.get('/api/cards/explore')
     const json = await res.json()
     expect(
-      includesCard(json.cards, maleCardId),
-      `公開カード(${maleCardId})が explore に表示されない`
+      includesCard(json.cards, SEED_CARD_IDS.MALE_JP_ADULT),
+      `公開カード(MALE_JP_ADULT)が explore に表示されない`
     ).toBeTruthy()
   })
 
   test('非公開カードは explore に含まれない', async ({ request }) => {
-    if (!privateCardId) return test.skip()
     const res = await request.get('/api/cards/explore')
     const json = await res.json()
     expect(
-      includesCard(json.cards, privateCardId),
+      includesCard(json.cards, SEED_CARD_IDS.PRIVATE_CARD),
       '非公開カードが explore に表示されている'
     ).toBeFalsy()
   })
@@ -167,23 +89,21 @@ test.describe('キーワード検索（q パラメータ）', () => {
     await resetFreeExploreCount(request)
   })
 
-  test('カード名でヒットする', async ({ request }) => {
-    if (!maleCardId) return test.skip()
-    const res = await request.get(`/api/cards/explore?q=${encodeURIComponent(UNIQUE_TAG)}`)
+  test('カード名に含まれるキーワードでヒットする', async ({ request }) => {
+    const res = await request.get(`/api/cards/explore?q=${encodeURIComponent(SEED_KEYWORD)}`)
     const json = await res.json()
     expect(
-      includesCard(json.cards, maleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.KEYWORD_CARD),
       'カード名でのキーワード検索がヒットしない'
     ).toBeTruthy()
   })
 
-  test('自己紹介でヒットする', async ({ request }) => {
-    if (!maleCardId) return test.skip()
-    // UNIQUE_TAG は selfIntro にも含まれている
-    const res = await request.get(`/api/cards/explore?q=${encodeURIComponent(UNIQUE_TAG)}`)
+  test('自己紹介に含まれるキーワードでヒットする', async ({ request }) => {
+    // SEED_KEYWORD は KEYWORD_CARD の selfIntro にも含まれる
+    const res = await request.get(`/api/cards/explore?q=${encodeURIComponent(SEED_KEYWORD)}`)
     const json = await res.json()
     expect(
-      includesCard(json.cards, maleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.KEYWORD_CARD),
       '自己紹介でのキーワード検索がヒットしない'
     ).toBeTruthy()
   })
@@ -195,10 +115,18 @@ test.describe('キーワード検索（q パラメータ）', () => {
     expect(json.cards.length).toBe(0)
   })
 
-  test('検索後に freeRemaining がデクリメントされる', async ({ request }) => {
-    const res = await request.get(`/api/cards/explore?q=${encodeURIComponent(UNIQUE_TAG)}`)
+  test('キーワード検索用カードが他のシードカードと混在しない', async ({ request }) => {
+    const res = await request.get(`/api/cards/explore?q=${encodeURIComponent(SEED_KEYWORD)}`)
     const json = await res.json()
-    // リセット後 3 → 検索後 2 になるはず（isPro でなければ）
+    expect(
+      includesCard(json.cards, SEED_CARD_IDS.MALE_JP_ADULT),
+      'キーワード検索で無関係のカードがヒットしている'
+    ).toBeFalsy()
+  })
+
+  test('検索後に freeRemaining がデクリメントされる', async ({ request }) => {
+    const res = await request.get(`/api/cards/explore?q=${encodeURIComponent(SEED_KEYWORD)}`)
+    const json = await res.json()
     if (!json.isPro) {
       expect(json.freeRemaining).toBe(2)
     }
@@ -213,44 +141,56 @@ test.describe('性別フィルター（gender パラメータ）', () => {
   })
 
   test('gender=male で男性カードがヒットする', async ({ request }) => {
-    if (!maleCardId) return test.skip()
     const res = await request.get('/api/cards/explore?gender=male')
     const json = await res.json()
     expect(
-      includesCard(json.cards, maleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.MALE_JP_ADULT),
       '男性フィルターで男性カードがヒットしない'
     ).toBeTruthy()
   })
 
   test('gender=male で女性カードはヒットしない', async ({ request }) => {
-    if (!femaleCardId) return test.skip()
-    // 男性フィルターでは女性カードが除外されること
-    // ※ リセット消費を節約するため同じリクエストで確認
     const res = await request.get('/api/cards/explore?gender=male')
     const json = await res.json()
     expect(
-      includesCard(json.cards, femaleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.FEMALE_EN_MINOR),
       '男性フィルターで女性カードが誤ってヒットしている'
     ).toBeFalsy()
   })
 
   test('gender=female で女性カードがヒットする', async ({ request }) => {
-    if (!femaleCardId) return test.skip()
     const res = await request.get('/api/cards/explore?gender=female')
     const json = await res.json()
     expect(
-      includesCard(json.cards, femaleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.FEMALE_EN_MINOR),
       '女性フィルターで女性カードがヒットしない'
     ).toBeTruthy()
   })
 
   test('gender=female で男性カードはヒットしない', async ({ request }) => {
-    if (!maleCardId) return test.skip()
     const res = await request.get('/api/cards/explore?gender=female')
     const json = await res.json()
     expect(
-      includesCard(json.cards, maleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.MALE_JP_ADULT),
       '女性フィルターで男性カードが誤ってヒットしている'
+    ).toBeFalsy()
+  })
+
+  test('gender=other でノンバイナリカードがヒットする', async ({ request }) => {
+    const res = await request.get('/api/cards/explore?gender=other')
+    const json = await res.json()
+    expect(
+      includesCard(json.cards, SEED_CARD_IDS.NB_BILINGUAL),
+      'other フィルターでノンバイナリカードがヒットしない'
+    ).toBeTruthy()
+  })
+
+  test('gender=other で男性カードはヒットしない', async ({ request }) => {
+    const res = await request.get('/api/cards/explore?gender=other')
+    const json = await res.json()
+    expect(
+      includesCard(json.cards, SEED_CARD_IDS.MALE_JP_ADULT),
+      'other フィルターで男性カードが誤ってヒットしている'
     ).toBeFalsy()
   })
 })
@@ -263,32 +203,56 @@ test.describe('言語フィルター（lang パラメータ）', () => {
   })
 
   test('lang=日本語 で日本語カードがヒットする', async ({ request }) => {
-    if (!maleCardId) return test.skip()
     const res = await request.get(`/api/cards/explore?lang=${encodeURIComponent('日本語')}`)
     const json = await res.json()
     expect(
-      includesCard(json.cards, maleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.MALE_JP_ADULT),
       '日本語フィルターで日本語カードがヒットしない'
     ).toBeTruthy()
   })
 
   test('lang=日本語 で English カードはヒットしない', async ({ request }) => {
-    if (!femaleCardId) return test.skip()
     const res = await request.get(`/api/cards/explore?lang=${encodeURIComponent('日本語')}`)
     const json = await res.json()
     expect(
-      includesCard(json.cards, femaleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.FEMALE_EN_MINOR),
       '日本語フィルターで English カードが誤ってヒットしている'
     ).toBeFalsy()
   })
 
   test('lang=English で English カードがヒットする', async ({ request }) => {
-    if (!femaleCardId) return test.skip()
     const res = await request.get('/api/cards/explore?lang=English')
     const json = await res.json()
     expect(
-      includesCard(json.cards, femaleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.FEMALE_EN_MINOR),
       'English フィルターで English カードがヒットしない'
+    ).toBeTruthy()
+  })
+
+  test('lang=English で日本語のみのカードはヒットしない', async ({ request }) => {
+    const res = await request.get('/api/cards/explore?lang=English')
+    const json = await res.json()
+    expect(
+      includesCard(json.cards, SEED_CARD_IDS.MALE_JP_ADULT),
+      'English フィルターで日本語カードが誤ってヒットしている'
+    ).toBeFalsy()
+  })
+
+  test('lang=日本語 でバイリンガル（日本語+English）カードがヒットする', async ({ request }) => {
+    const res = await request.get(`/api/cards/explore?lang=${encodeURIComponent('日本語')}`)
+    const json = await res.json()
+    expect(
+      includesCard(json.cards, SEED_CARD_IDS.NB_BILINGUAL),
+      '日本語フィルターでバイリンガルカードがヒットしない'
+    ).toBeTruthy()
+  })
+
+  test('lang=English でバイリンガル（日本語+English）カードがヒットする', async ({ request }) => {
+    const res = await request.get('/api/cards/explore?lang=English')
+    const json = await res.json()
+    expect(
+      includesCard(json.cards, SEED_CARD_IDS.NB_BILINGUAL),
+      'English フィルターでバイリンガルカードがヒットしない'
     ).toBeTruthy()
   })
 })
@@ -301,22 +265,38 @@ test.describe('年齢フィルター（age パラメータ）', () => {
   })
 
   test('age=18+ で 18+ カードがヒットする', async ({ request }) => {
-    if (!maleCardId) return test.skip()
     const res = await request.get(`/api/cards/explore?age=${encodeURIComponent('18+')}`)
     const json = await res.json()
     expect(
-      includesCard(json.cards, maleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.MALE_JP_ADULT),
       '18+ フィルターで 18+ カードがヒットしない'
     ).toBeTruthy()
   })
 
   test('age=18+ で 18歳未満カードはヒットしない', async ({ request }) => {
-    if (!femaleCardId) return test.skip()
     const res = await request.get(`/api/cards/explore?age=${encodeURIComponent('18+')}`)
     const json = await res.json()
     expect(
-      includesCard(json.cards, femaleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.FEMALE_EN_MINOR),
       '18+ フィルターで 18歳未満カードが誤ってヒットしている'
+    ).toBeFalsy()
+  })
+
+  test('age=18歳未満 で 18歳未満カードがヒットする', async ({ request }) => {
+    const res = await request.get(`/api/cards/explore?age=${encodeURIComponent('18歳未満')}`)
+    const json = await res.json()
+    expect(
+      includesCard(json.cards, SEED_CARD_IDS.FEMALE_EN_MINOR),
+      '18歳未満フィルターで 18歳未満カードがヒットしない'
+    ).toBeTruthy()
+  })
+
+  test('age=18歳未満 で 18+ カードはヒットしない', async ({ request }) => {
+    const res = await request.get(`/api/cards/explore?age=${encodeURIComponent('18歳未満')}`)
+    const json = await res.json()
+    expect(
+      includesCard(json.cards, SEED_CARD_IDS.MALE_JP_ADULT),
+      '18歳未満フィルターで 18+ カードが誤ってヒットしている'
     ).toBeFalsy()
   })
 })
@@ -329,35 +309,72 @@ test.describe('複合フィルター（AND 条件）', () => {
   })
 
   test('gender=male&lang=日本語 で男性日本語カードがヒットする', async ({ request }) => {
-    if (!maleCardId) return test.skip()
     const res = await request.get(`/api/cards/explore?gender=male&lang=${encodeURIComponent('日本語')}`)
     const json = await res.json()
     expect(
-      includesCard(json.cards, maleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.MALE_JP_ADULT),
       '複合フィルターで男性日本語カードがヒットしない'
     ).toBeTruthy()
   })
 
   test('gender=male&lang=日本語 で女性英語カードはヒットしない', async ({ request }) => {
-    if (!femaleCardId) return test.skip()
     const res = await request.get(`/api/cards/explore?gender=male&lang=${encodeURIComponent('日本語')}`)
     const json = await res.json()
     expect(
-      includesCard(json.cards, femaleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.FEMALE_EN_MINOR),
       '複合フィルターで女性英語カードが誤ってヒットしている'
     ).toBeFalsy()
   })
 
-  test('gender&lang&age の3条件で絞り込める', async ({ request }) => {
-    if (!maleCardId) return test.skip()
+  test('gender&lang&age の3条件で男性日本語18+カードがヒットする', async ({ request }) => {
     const res = await request.get(
       `/api/cards/explore?gender=male&lang=${encodeURIComponent('日本語')}&age=${encodeURIComponent('18+')}`
     )
     const json = await res.json()
     expect(
-      includesCard(json.cards, maleCardId),
+      includesCard(json.cards, SEED_CARD_IDS.MALE_JP_ADULT),
       '3条件複合フィルターで男性カードがヒットしない'
     ).toBeTruthy()
+  })
+
+  test('gender=female&age=18歳未満 で女性英語未成年カードがヒットする', async ({ request }) => {
+    const res = await request.get(`/api/cards/explore?gender=female&age=${encodeURIComponent('18歳未満')}`)
+    const json = await res.json()
+    expect(
+      includesCard(json.cards, SEED_CARD_IDS.FEMALE_EN_MINOR),
+      '女性+18歳未満フィルターで対象カードがヒットしない'
+    ).toBeTruthy()
+  })
+
+  test('gender=female&age=18歳未満 で男性18+カードはヒットしない', async ({ request }) => {
+    const res = await request.get(`/api/cards/explore?gender=female&age=${encodeURIComponent('18歳未満')}`)
+    const json = await res.json()
+    expect(
+      includesCard(json.cards, SEED_CARD_IDS.MALE_JP_ADULT),
+      '女性+18歳未満フィルターで男性カードが誤ってヒットしている'
+    ).toBeFalsy()
+  })
+
+  test('gender=female&lang=日本語&age=18歳未満 で女性日本語未成年カードがヒットする', async ({ request }) => {
+    const res = await request.get(
+      `/api/cards/explore?gender=female&lang=${encodeURIComponent('日本語')}&age=${encodeURIComponent('18歳未満')}`
+    )
+    const json = await res.json()
+    expect(
+      includesCard(json.cards, SEED_CARD_IDS.FEMALE_JP_MINOR),
+      '女性+日本語+18歳未満フィルターで対象カードがヒットしない'
+    ).toBeTruthy()
+  })
+
+  test('gender=female&lang=日本語&age=18歳未満 で英語カードはヒットしない', async ({ request }) => {
+    const res = await request.get(
+      `/api/cards/explore?gender=female&lang=${encodeURIComponent('日本語')}&age=${encodeURIComponent('18歳未満')}`
+    )
+    const json = await res.json()
+    expect(
+      includesCard(json.cards, SEED_CARD_IDS.FEMALE_EN_MINOR),
+      '女性+日本語+18歳未満フィルターで英語カードが誤ってヒットしている'
+    ).toBeFalsy()
   })
 })
 
@@ -397,7 +414,6 @@ test.describe('Free プラン — 月3回制限', () => {
     await request.get(`/api/cards/explore?lang=${encodeURIComponent('日本語')}`)
     await request.get(`/api/cards/explore?age=${encodeURIComponent('18+')}`)
     const res4 = await request.get('/api/cards/explore?gender=female')
-    if ((await request.get('/api/cards/explore')).url().includes('isPro=true')) return test.skip()
     if (res4.status() !== 403) return test.skip() // Pro ユーザーはスキップ
     const json = await res4.json()
     expect(json.error).toBe('limit_exceeded')
@@ -405,26 +421,20 @@ test.describe('Free プラン — 月3回制限', () => {
   })
 
   test('フィルターなしのリクエストはカウントを消費しない', async ({ request }) => {
-    // フィルターなし
-    await request.get('/api/cards/explore')
-    // フィルターあり（1回目）
-    const res = await request.get('/api/cards/explore?gender=male')
+    await request.get('/api/cards/explore') // フィルターなし（カウントしない）
+    const res = await request.get('/api/cards/explore?gender=male') // 1回目
     const json = await res.json()
     if (json.isPro) return test.skip()
-    // フィルターなしはカウントしないので、1回消費 → remaining は 2
     expect(json.freeRemaining).toBe(2)
   })
 
   test('resetFreeExploreCount 後はカウントが 0 に戻る', async ({ request }) => {
-    // 2回消費
     await request.get('/api/cards/explore?gender=male')
     await request.get('/api/cards/explore?gender=female')
-    // リセット
     await resetFreeExploreCount(request)
-    // フィルターあり（1回目）
     const res = await request.get('/api/cards/explore?gender=male')
     const json = await res.json()
     if (json.isPro) return test.skip()
-    expect(json.freeRemaining).toBe(2) // リセット後なので 3 - 1 = 2
+    expect(json.freeRemaining).toBe(2)
   })
 })

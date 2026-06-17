@@ -1,13 +1,18 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - develop
   pull_request:
+    branches:
+      - develop
 
 jobs:
   ci:
-    name: Lint, Typecheck & Test
+    name: Lint, Typecheck & Unit Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4

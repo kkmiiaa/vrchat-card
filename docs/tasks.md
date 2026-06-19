@@ -18,6 +18,14 @@ X のハッシュタグ・リツイート起点で VRChat ユーザーへのリ�
 - ✅ **CI/CD パイプライン構築** — PR時CI（lint/tsc/vitest）・mainマージ時デプロイ（Supabase migration → Vercel）を GitHub Actions で構築。GitHub Secrets・vercel.json 設定完了（2026-06-05）
 - [ ] **develop → main マージ・本番デプロイ** — ベータテスト後に実施
 
+### テンプレートバージョニング（優先度：高・フェーズ4 前に完了推奨）
+
+設計仕様: `docs/template-versioning.md`
+
+- [ ] **ステップ1: DB スキーマ変更** — `template_versions` テーブル新設・既存 `templates` レイアウト定義を移行・`cards.template_version_id` 追加・旧 `cards.template_id` 削除
+- [ ] **ステップ2: アプリケーション対応** — テンプレート読み込みを `template_version_id` 経由に変更・Admin UI に Publish / Deprecate / Rollback 操作追加・破壊的変更の自動検出（block_pool の dataKey 差分比較）
+- [ ] **ステップ3: デザインパターン**（フェーズ4 以降） — `template_design_patterns` テーブル新設・`cards.design_pattern_key` 追加・レンダラー対応・カード編集 UI にパターン選択追加
+
 ### フェーズ4 準備（優先度：高）
 
 - ✅ **アバター改変レシピカード作成** — DB 登録・サンプルデータ・説明文・プリセット設定・公開済み（2026-06-03）

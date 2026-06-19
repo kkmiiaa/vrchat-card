@@ -67,50 +67,18 @@ E2EはCIでは実行しない（時間がかかりすぎるため）。ローカ
 - テンプレートビルダー上で V1・V2 と同等のテンプレートが作成できることを確認
 - 再現完了をもって「テンプレートビルダーが実用レベルに達した」と判断する
 
-#### 🔄 フェーズ3: 既存 V1・V2 をテンプレートビルダー製テンプレートに置き換え（**現在ここ**）
-- コードで手動定義されている V1・V2 を DB 管理のテンプレートに移行
-- **V1 は既存メーカー利用者（`/card/vrchat`）のマイグレーションがメインの作業**
-- 最終的に `v1Definition.ts` / `v2Definition.ts` / `v1.tsx` / `v2.tsx` を削除する
+#### ✅ フェーズ3: 既存 V1・V2 をテンプレートビルダー製テンプレートに置き換え
+- コードで手動定義されていた V1・V2 を DB 管理のテンプレートに移行完了
+- `v1.tsx` / `v2.tsx` 削除済み。`v1Definition.ts` は `/card/vrchat` が意図的に使用するため残存
+- 旧メーカー（`/card/vrchat`）のマイグレーション対応・画像引き継ぎ・旧形式変換も完了
 
-##### フェーズ3 の登り方
+#### 🔄 フェーズ3.5: テンプレートバージョニング基盤の整備（**現在ここ**）
+テンプレートを安全に更新・ロールバックできる仕組みを導入する。ベータ開始前に完了させる。
 
-**ステップ1（調査完了）: データ形式の差異把握**
-
-旧メーカー（`/card/vrchat`）は `CardTemplate` 型（`v1.tsx`）を使う**別システム**。
-テンプレートビルダー V1 は `TemplateDefinition` 型（`v1Definition.ts`）で型が全く異なる。
-
-旧 `BlockValues`（localStorage）と新 V1 `card_data` の主な差異：
-
-| 旧キー | 旧型 | 新キー | 新型 |
-|---|---|---|---|
-| `sns.vrchatId` | string | `vrchat` | string |
-| `sns.twitterId` | string | `x` | string |
-| `sns.discordId` | string | `discord` | string |
-| `sns.friendPolicy` | string | `friendPolicy` | string[] |
-| `gender` | string | `gender` | `{ tag, display? }` |
-| `language` | string[] | `language` | `{ preset: string[], custom: [] }` |
-| `age.mode` | string | `age.searchTag` | string |
-
-**ステップ2: カードエディタを DB からテンプレート定義を読む仕組みに変更（V2 で先行検証）**
-- `v1Definition.ts` / `v2Definition.ts` はテスト用手動定義。DB のテンプレートビルダー製定義が「正」
-- カードエディタ（`/card/[cardId]`）が DB からテンプレート定義を読むよう変更
-- V2 で先に動作確認（既存ユーザーなし・リスクゼロ）
-- TS 定義ファイルはこの段階ではフォールバックとして残す
-
-**ステップ3: 旧メーカーの card_data を新 V1 形式に変換する関数を実装**
-- `migrateV1LegacyData(old: BlockValues): NewV1CardData` を実装
-- 上記の差異テーブルをすべて吸収する
-- `migrateFromOld`（さらに古い形式からの変換）とは別レイヤー
-
-**ステップ4: V1 の DB 化 + 旧メーカーの接続**
-- カードエディタが V1 を DB から読む
-- `/card/vrchat` のログイン後マイグレーション（`handleShareByUrl`）で変換関数を通す
-- 既存 DB 保存済みカードの旧形式データも読み込み時に変換
-
-**ステップ5: TS 定義を削除**
-- `v1Definition.ts` / `v2Definition.ts` のフォールバックを外す
-- `v1.tsx` / `v2.tsx` を削除
-- `CardTemplate` 型が不要になれば型定義ごと削除
+- 詳細設計: `docs/template-versioning.md`
+- **ステップ1**: `template_versions` テーブル新設・`cards.template_version_id` への移行
+- **ステップ2**: Admin UI に Publish / Deprecate / Rollback 操作追加・破壊的変更の自動検出
+- **ステップ3**（フェーズ4 以降）: デザインパターン（同一データ構造で見た目を切り替える選択肢）
 
 #### ⏳ フェーズ4: ベータテストに向けた新テンプレート作成
 - TRPG・VTuber など向けテンプレートをテンプレートビルダーで作成

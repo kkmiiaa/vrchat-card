@@ -161,7 +161,7 @@ version 2 に `is_deprecated = true` をセットすれば新規利用も停止�
 
 ### 4.2 デザインパターンが制御できるもの
 
-デザインパターンは `CardRenderContext`（レンダリングコンテキスト）の値を上書きする。
+デザインパターンは `CardRenderContext` の値の上書きと、ブロック単位の `variant` 上書きを担う。
 
 | プロパティ | 現在の場所 | デザインパターンで上書き |
 |---|---|---|
@@ -173,10 +173,23 @@ version 2 に `is_deprecated = true` をセットすれば新規利用も停止�
 | `defaultSurface` | `card_config.defaultSurface` | ✅ |
 | `fontScale` | `card_config.fontScale` | ✅ |
 | `fixedBackground` | `card_config.fixedBackground` | ✅ |
-| ブロックの `variant` | レイアウト内 ref ノード | ❌（バージョンの管轄） |
+| ブロックの `variant` | レイアウト内 ref ノード | ✅（`blockVariants` で blockId 単位に上書き） |
+| ブロックの `surface` | レイアウト内 ref ノード | ✅（`blockSurfaces` で blockId 単位に上書き） |
 | ブロックの `dataKey` | blockPool | ❌（バージョンの管轄） |
+| ブロックの追加・削除 | blockPool / layout | ❌（バージョンの管轄） |
 
-デザインパターンは **見た目の変更のみ** を担う。データ構造（`block_pool`、`dataKey`）はバージョンが管理する。
+デザインパターンは **見た目の変更のみ** を担う。データ構造（`block_pool`、`dataKey`）とレイアウト構造はバージョンが管理する。
+
+#### variant をデザインパターンに含める理由
+
+`variant` はコンポーネントのコンテンツ表示方法（例: gauge を棒グラフで出すか円グラフで出すか）を制御する。テーマカラーや surface だけでは見た目の変化幅が小さく、デザインパターンとして意味のある差を出すには variant の切り替えが必要になる。
+
+```
+例: "ダークモード" パターン
+  theme.bg       → 暗い色に変更
+  defaultSurface → 'glass' に変更
+  blockVariants  → { gauge: 'circle', status: 'compact' }  ← variant も切り替える
+```
 
 ### 4.3 DB スキーマ
 
@@ -206,6 +219,10 @@ alter table cards
 // template_design_patterns.config の型
 type DesignPatternConfig = {
   theme?: Partial<CardRenderContext['theme']>
+  /** blockPool の blockId をキーに variant を上書きする */
+  blockVariants?: Record<string, BlockVariant>
+  /** blockPool の blockId をキーに surface を上書きする */
+  blockSurfaces?: Record<string, SurfaceVariant>
   fontFamily?: string
   fontScale?: Partial<FontScale>
   defaultSurface?: SurfaceVariant

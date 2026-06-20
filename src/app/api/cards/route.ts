@@ -1,56 +1,66 @@
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { FREE_CARD_LIMIT } from '@/lib/plans'
 
+// GET /api/cards — ログインユーザーのカード一覧
+export async function GET() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'not_authenticated' }, { status: 401 })
+
+  const { data, error } = await supabase
+    .from('cards')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('updated_at', { ascending: false })
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
+// POST /api/cards — 新規カード作成
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
-
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return NextResponse.json({ error: 'not_authenticated' }, { status: 401 })
-  }
+  if (!user) return NextResponse.json({ error: 'not_authenticated' }, { status: 401 })
 
-  const admin = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const { templateId, title, cardData, background, visibility = 'private' } = await request.json()
+  if (!templateId) return NextResponse.json({ error: 'templateId is required' }, { status: 400 })
 
-  const body = await request.json()
-  const { imageBase64, cardData, title, cardId } = body
+  // プラン制限チェック
+  const { data: userRow } = await supabase
+    .from('users')
+    .select('plan, plan_expires_at')
+    .eq('id', user.id)
+    .single()
 
-  const base64Data = imageBase64.replace(/^data:image\/png;base64,/, '')
-  const buffer = Buffer.from(base64Data, 'base64')
-  const filename = `${user.id}/${cardId ?? crypto.randomUUID()}.png`
+  const isPro = userRow?.plan === 'pro' &&
+    (userRow.plan_expires_at == null || new Date(userRow.plan_expires_at) > new Date())
 
-  const { error: uploadError } = await admin.storage
-    .from('cards')
-    .upload(filename, buffer, { upsert: true, contentType: 'image/png' })
-
-  if (uploadError) {
-    return NextResponse.json({ error: uploadError.message }, { status: 500 })
-  }
-
-  const { data: { publicUrl } } = admin.storage
-    .from('cards')
-    .getPublicUrl(filename)
-
-  if (cardId) {
-    const { error } = await admin
+  if (!isPro) {
+    const { count } = await supabase
       .from('cards')
-      .update({ card_data: cardData, image_url: publicUrl, updated_at: new Date().toISOString() })
-      .eq('id', cardId)
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ cardId, imageUrl: publicUrl })
-  } else {
-    const { data, error } = await admin
-      .from('cards')
-      .insert({ user_id: user.id, title, card_data: cardData, image_url: publicUrl })
-      .select('id')
-      .single()
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ cardId: data.id, imageUrl: publicUrl })
+    if ((count ?? 0) >= FREE_CARD_LIMIT) {
+      return NextResponse.json({ error: 'card_limit_reached' }, { status: 403 })
+    }
   }
+
+  const { data, error } = await supabase
+    .from('cards')
+    .insert({
+      user_id: user.id,
+      template_id: templateId,
+      title,
+      card_data: cardData ?? {},
+      background: background ?? null,
+      visibility,
+    })
+    .select('id')
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ cardId: data.id }, { status: 201 })
 }

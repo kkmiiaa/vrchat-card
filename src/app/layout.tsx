@@ -1,25 +1,42 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Nunito, Noto_Sans_JP } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { AnalyticsProvider } from "./providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
+  weight: ["400", "600", "700", "800", "900"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const notoSansJP = Noto_Sans_JP({
+  variable: "--font-noto-sans-jp",
   subsets: ["latin"],
+  weight: ["400", "500", "700", "900"],
 });
+
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://vaacard.com'
 
 export const metadata: Metadata = {
-  title: "VRChat Profile Card Maker",
-  description: "VRChat Profile Card Maker by @yota3d",
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-32x32.png',
-    apple: '/apple-touch-icon.png',
+  metadataBase: new URL(baseUrl),
+  title: {
+    default: 'vaacard',
+    template: '%s | vaacard',
+  },
+  description: '自己紹介カードを作って、あなたのプロフィールページをシェアしよう。',
+  openGraph: {
+    siteName: 'vaacard',
+    title: 'vaacard',
+    description: '自己紹介カードを作って、あなたのプロフィールページをシェアしよう。',
+    images: [{ url: '/og-default.png', width: 1200, height: 630 }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'vaacard',
+    description: '自己紹介カードを作って、あなたのプロフィールページをシェアしよう。',
+    images: ['/og-default.png'],
   },
 };
 
@@ -32,17 +49,20 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XMHKGYVDJW"></script>
-        <script>
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-XMHKGYVDJW');
-          `}
-        </script>
+        <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
       </head>
-      <body className={`font-rounded ${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${nunito.variable} ${notoSansJP.variable}`} style={{ fontFamily: "var(--font-nunito), var(--font-noto-sans-jp), sans-serif" }}>
+        {process.env.NODE_ENV === 'production' && (
+          <>
+            <Script src="https://www.googletagmanager.com/gtag/js?id=G-XMHKGYVDJW" strategy="afterInteractive" />
+            <Script id="gtag-init" strategy="afterInteractive">{`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-XMHKGYVDJW');
+            `}</Script>
+          </>
+        )}
         <AnalyticsProvider>
           {children}
         </AnalyticsProvider>

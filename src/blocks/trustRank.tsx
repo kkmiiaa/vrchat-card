@@ -1,0 +1,53 @@
+// @ts-nocheck
+'use client'
+import type { ComponentDef } from './types'
+
+const RANKS = [
+  { rank: 'Visitor',      color: '#9ca3af' },
+  { rank: 'New User',     color: '#3b82f6' },
+  { rank: 'User',         color: '#22c55e' },
+  { rank: 'Known User',   color: '#f97316' },
+  { rank: 'Trusted User', color: '#a855f7' },
+] as const
+
+export const trustRankBlock: ComponentDef<any> = {
+  key: 'trustRank',
+  defaultValue: '',
+  variants: ['simple'],  // default=カラーバッジ
+  CardItem({ value, ctx, blockConfig }) {
+    if (!value && blockConfig?.hideWhenEmpty) return null
+    const rankInfo = RANKS.find(r => r.rank === value)
+    const color = rankInfo?.color ?? ctx.theme.subText
+    const fs = ctx.fontSize.md
+    return (
+      <span style={{ fontSize: fs, color, fontWeight: 700, background: color + '20', padding: '2px 10px', borderRadius: 999, border: `1px solid ${color}60`, fontFamily: ctx.fontFamily }}>
+        {value || '–'}
+      </span>
+    )
+  },
+  FormItem({ value, onChange, t }) {
+    return (
+      <div className="flex flex-col gap-2">
+        <h2 className="text-sm font-medium text-gray-500">{t.trustRank}</h2>
+        <div className="flex flex-wrap gap-1.5">
+          {RANKS.map(({ rank, color }) => (
+            <button
+              key={rank}
+              type="button"
+              onClick={() => onChange(value === rank ? '' : rank)}
+              style={value === rank
+                ? { borderColor: color, backgroundColor: color, color: '#fff' }
+                : { borderColor: color + '60', color }
+              }
+              className={`px-3 py-1.5 rounded-lg text-xs transition-colors border font-semibold ${
+                value === rank ? '' : 'bg-white hover:opacity-80'
+              }`}
+            >
+              {rank}
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  },
+}

@@ -3,12 +3,12 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
-import { saveCardToProfile } from '@/lib/saveCard'
+import { createCard, updateCard } from '@/lib/saveCard'
 
 type Props = {
   onClose: () => void
   localStorageKey: string
-  getCanvasDataUrl: () => string | null
+  getCanvasDataUrl: () => Promise<string | null> | string | null
 }
 
 export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUrl }: Props) {
@@ -17,6 +17,8 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
   const [loading, setLoading] = useState(false)
   const [slug, setSlug] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [savedImageUrl, setSavedImageUrl] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -46,25 +48,30 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
       return
     }
 
-    const dataUrl = getCanvasDataUrl()
+    const dataUrl = await getCanvasDataUrl()
     if (!dataUrl) { setLoading(false); return }
 
     const raw = localStorage.getItem(localStorageKey)
     const cardData = raw ? JSON.parse(raw) : {}
 
-    const result = await saveCardToProfile({
-      canvasDataUrl: dataUrl,
-      cardData,
-      title: 'VRChat Card',
-    })
+    const created = await createCard({ templateId: 'vrchat-glass', cardData, title: 'VRChat Card', visibility: 'public' })
 
-    setLoading(false)
-
-    if ('error' in result) {
-      alert('保存に失敗しました: ' + result.error)
+    if ('error' in created) {
+      setLoading(false)
+      alert('保存に失敗しました: ' + created.error)
       return
     }
 
+    const updated = await updateCard({ cardId: created.cardId, imageBase64: dataUrl })
+
+    setLoading(false)
+
+    if ('error' in updated) {
+      alert('画像の保存に失敗しました: ' + updated.error)
+      return
+    }
+
+    setSavedImageUrl(`${window.location.origin}/card/${created.cardId}`)
     setDone(true)
   }
 
@@ -73,34 +80,66 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
       <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8">
         {done ? (
           <>
-            <div className="text-3xl mb-3 text-center">✅</div>
-            <h2 className="text-xl font-bold text-gray-900 text-center mb-2">保存しました</h2>
-            <p className="text-gray-500 text-sm text-center mb-6">
-              プロフィールページにカードが追加されました。
+            <h2 className="text-lg font-bold text-gray-900 text-center mb-1">保存しました</h2>
+            <p className="text-gray-400 text-xs text-center mb-6">
+              vaacard.me/u/{slug}
             </p>
+
+            {/* URLコピー */}
             <button
-              onClick={() => slug && router.push(`/u/${slug}`)}
-              className="w-full py-3 rounded-xl bg-gray-900 text-white font-medium text-sm hover:bg-gray-700 transition-colors mb-3"
+              onClick={() => {
+                const url = `${window.location.origin}/u/${slug}`
+                navigator.clipboard.writeText(url)
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+              }}
+              className="w-full py-3 rounded-xl bg-gray-900 text-white font-medium text-sm hover:bg-gray-700 transition-colors mb-2"
             >
-              プロフィールページを見る
+              {copied ? 'コピーしました！' : 'プロフィールURLをコピー'}
             </button>
+
+            {/* 画像ダウンロード */}
+            {savedImageUrl && (
+              <a
+                href={savedImageUrl}
+                download="vrchat-card.png"
+                className="w-full py-3 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors mb-2 flex items-center justify-center"
+              >
+                画像をダウンロード
+              </a>
+            )}
+
+            {/* X でシェア */}
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`自己紹介カードを作りました！\n${window.location.origin}/u/${slug}\n#VRChat #vaacard`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 rounded-xl bg-black text-white font-medium text-sm hover:bg-gray-800 transition-colors mb-4 flex items-center justify-center gap-2"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              X でシェア
+            </a>
+
             <button onClick={onClose} className="w-full py-2 text-gray-400 text-sm hover:text-gray-600 transition-colors">
               閉じる
             </button>
           </>
         ) : isLoggedIn ? (
           <>
-            <div className="text-3xl mb-3 text-center">🔗</div>
-            <h2 className="text-xl font-bold text-gray-900 text-center mb-2">プロフィールに保存する</h2>
-            <p className="text-gray-500 text-sm text-center mb-6">
-              このカードを <span className="font-mono text-gray-700">vaa3d.studio/u/{slug}</span> に追加します。あとから編集・削除できます。
+            <h2 className="text-lg font-bold text-gray-900 text-center mb-1">プロフィールに保存する</h2>
+            <p className="text-gray-400 text-xs text-center mb-6">
+              vaacard.me/u/{slug}
             </p>
+
+
             <button
               onClick={handleSave}
               disabled={loading}
               className="w-full py-3 rounded-xl bg-gray-900 text-white font-medium text-sm hover:bg-gray-700 transition-colors disabled:opacity-50 mb-3"
             >
-              {loading ? '保存中...' : 'プロフィールに保存する'}
+              {loading ? '保存中...' : '保存する'}
             </button>
             <button onClick={onClose} className="w-full py-2 text-gray-400 text-sm hover:text-gray-600 transition-colors">
               今はしない
@@ -108,11 +147,17 @@ export default function UpgradeModal({ onClose, localStorageKey, getCanvasDataUr
           </>
         ) : (
           <>
-            <div className="text-3xl mb-3 text-center">✨</div>
-            <h2 className="text-xl font-bold text-gray-900 text-center mb-2">URLで共有しませんか？</h2>
-            <p className="text-gray-500 text-sm text-center mb-6">
-              ログインするとカードがプロフィールページに追加されます。あとから編集もできます。
-            </p>
+            <h2 className="text-lg font-bold text-gray-900 text-center mb-2">vaacardに保存しませんか？</h2>
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-start gap-2 text-sm text-gray-600">
+                <span className="mt-0.5 text-[#00AADB]">✦</span>
+                <span><span className="font-semibold text-gray-800">新デザインが使える</span> — メーカーとは違うテンプレートで作れます</span>
+              </li>
+              <li className="flex items-start gap-2 text-sm text-gray-600">
+                <span className="mt-0.5 text-[#00AADB]">✦</span>
+                <span><span className="font-semibold text-gray-800">共有用ページが作れる</span> — <span className="text-gray-400">vaacard.me/u/あなたのID</span> というURLでいつでも共有できます</span>
+              </li>
+            </ul>
             <button
               onClick={handleSave}
               disabled={loading}

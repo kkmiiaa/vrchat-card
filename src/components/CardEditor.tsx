@@ -1,0 +1,898 @@
+'use client'
+
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams, usePathname } from 'next/navigation'
+import Cropper from 'react-easy-crop'
+import type { Area } from 'react-easy-crop'
+
+import type { CardTemplate, BlockValues, BackgroundValue, GalleryValue, TemplateSectionBlock, FormSection, ComponentDef } from '@/blocks/types'
+import { createCard, updateCard } from '@/lib/saveCard'
+import { createClient } from '@/lib/supabase/client'
+import { uploadCardImage, uploadCardImageWithAlpha, ImageTooLargeError } from '@/lib/uploadImage'
+import { ImageUploadContext } from '@/lib/ImageUploadContext'
+import type { FontKey } from '@/components/FontSelector'
+import FontSelector from '@/components/FontSelector'
+import { fontMap } from '@/lib/fontMap'
+import { getCroppedImg } from '@/utils/cropUtils'
+import { getBackgroundStyle, CARD_BG_FALLBACK } from '@/utils/backgroundUtils'
+import { translations } from '@/utils/translations'
+import { useCardValues } from '@/hooks/useCardValues'
+import { useCardExport } from '@/hooks/useCardExport'
+import AccordionSection from '@/components/AccordionSection'
+import HeaderAuth from '@/components/HeaderAuth'
+import OnboardingBanner from '@/components/OnboardingBanne'
+import FloatingButtons from '@/components/FloatingButtons'
+import PostTimeline from '@/components/PostTimeline'
+import CardScaledView from '@/components/CardScaledView'
+import { trackEvent } from '@/lib/gtag'
+import { migrateLegacyCardData } from '@/lib/legacyCardDataMigration'
+import { resizeImageToBase64 } from '@/lib/resizeImage'
+import ProUpgradeModal from '@/components/ProUpgradeModal'
+
+const STORAGE_KEY = 'vrchat-card-cache'
+
+type Props = {
+  template: CardTemplate
+  cardId?: string
+  initialValues?: Record<string, unknown>
+  initialBackground?: BackgroundValue | null
+  readOnly?: boolean
+  formSections?: FormSection[]
+  ogpVersion?: number
+  showImageMigrationHint?: boolean
+  /** true のとき「X でシェア」ボタンが保存なしでツイート画面を開く（/card/vrchat 向け） */
+  xShareWithoutSave?: boolean
+}
+
+export default function CardEditor({ template, cardId: initialCardId, initialValues, initialBackground, readOnly = false, formSections: propFormSections, ogpVersion: initialOgpVersion = 0, showImageMigrationHint = false, xShareWithoutSave = false }: Props) {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const debugMode = searchParams.get('debug') === 'true'
+  const initialLang = searchParams.get('lang') === 'en' ? 'en' : 'ja'
+  const [systemLanguage, setSystemLanguageState] = useState<'ja' | 'en'>(initialLang)
+  const t = translations[systemLanguage]
+
+  const setSystemLanguage = useCallback((lang: 'ja' | 'en') => {
+    setSystemLanguageState(lang)
+    const p = new URLSearchParams(searchParams.toString())
+    if (lang === 'en') p.set('lang', 'en'); else p.delete('lang')
+    window.history.replaceState(null, '', `${pathname}?${p.toString()}`)
+  }, [pathname, searchParams])
+
+  // --- Block values ---
+  const { values, updateValue, initialized } = useCardValues(template.blocks, initialValues, template.id)
+
+  // --- Background（card_data とは分離） ---
+  const DEFAULT_BG: BackgroundValue = { type: 'image', value: '/backgrounds/bg_1.webp' }
+  const [background, setBackground] = useState<BackgroundValue>(initialBackground ?? DEFAULT_BG)
+  const bgInitialized = useRef(false)
+  // 最新の background を ref で追跡（toPng 前の base64 待機に使用）
+  const backgroundRef = useRef(background)
+  useEffect(() => { backgroundRef.current = background }, [background])
+
+  // 新規カード（initialBackground なし）かつ localStorage に background が入っていた場合に同期
+  useEffect(() => {
+    if (bgInitialized.current || !initialized || initialBackground) return
+    const storedBg = (values as Record<string, unknown>).background as BackgroundValue | undefined
+    if (storedBg?.type) {
+      setBackground(storedBg)
+    }
+    bgInitialized.current = true
+  }, [initialized, initialBackground, values])
+
+  // --- Profile image (special: cropper) ---
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null)
+  const [profileImageBase64, setProfileImageBase64] = useState<string | null>(null)
+  const [showCropModal, setShowCropModal] = useState(false)
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+
+  // --- Export ---
+  const { exportRef: cardExportRef, downloading, generatePng: getCardDataUrl, downloadPng: _downloadPng } = useCardExport()
+
+  const [showSaveNudge, setShowSaveNudge] = useState(false)
+  const [xShareConfirming, setXShareConfirming] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [currentOgpVersion, setCurrentOgpVersion] = useState(initialOgpVersion)
+  const [publishConfirming, setPublishConfirming] = useState(false)
+
+  const handleDownload = async () => {
+    const dataUrl = await getCardDataUrl()
+    if (!dataUrl) return
+    if (cardId) await updateCard({ cardId, imageBase64: dataUrl })
+    await _downloadPng()
+    trackEvent('card_image_downloaded', { card_id: cardId ?? null, template_id: template.id })
+    setShowSaveNudge(true)
+    setTimeout(() => setShowSaveNudge(false), 8000)
+  }
+
+  // --- card scale ---
+  const [cardScale, setCardScale] = useState(1)
+
+  // --- UI state ---
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [currentUrlDisplay, setCurrentUrlDisplay] = useState('')
+  const [saveModalLoading, setSaveModalLoading] = useState(false)
+
+  // --- Backend state ---
+  const [cardId, setCardId] = useState<string | null>(initialCardId ?? null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const supabase = createClient()
+  const [draftStatus, setDraftStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+
+  // --- Visibility ---
+  const [visibility, setVisibility] = useState<'public' | 'limited' | 'private'>('private')
+
+
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setIsLoggedIn(!!data.user)
+      setUserId(data.user?.id ?? null)
+    })
+  }, [])
+
+  // initialValues から visibility を初期化
+  useEffect(() => {
+    if (initialValues?.visibility) {
+      setVisibility(initialValues.visibility as 'public' | 'limited' | 'private')
+    }
+  }, [initialValues])
+
+  // visibility 変更時に即保存（将来の拡張用に残す）
+  const handleVisibilityChange = useCallback(async (newVal: 'public' | 'limited' | 'private') => {
+    setVisibility(newVal)
+    if (cardId) {
+      await updateCard({ cardId, visibility: newVal })
+    }
+  }, [cardId])
+  void handleVisibilityChange // 現在は UI から呼び出さない（マイページ保存時に public に設定）
+
+  // debounced auto-save card_data（下書き保存）
+  useEffect(() => {
+    if (!isLoggedIn || !cardId || !initialized) return
+    setDraftStatus('saving')
+    const timer = setTimeout(async () => {
+      const { background: _bg, ...cardDataWithoutBg } = values as Record<string, unknown>
+      await updateCard({ cardId, cardData: cardDataWithoutBg, background })
+      setDraftStatus('saved')
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [values, background, cardId, isLoggedIn, initialized])
+
+  // ギャラリー画像が変わったら Storage にアップロード
+  const prevGalleryImages = useRef<(File | null)[]>([null, null, null])
+  useEffect(() => {
+    if (!userId || !cardId) return
+    const gallery = (values.gallery as GalleryValue) ?? { images: [], base64: [] }
+    gallery.images.forEach((file, i) => {
+      if (!(file instanceof File)) return
+      if (file === prevGalleryImages.current[i]) return
+      prevGalleryImages.current[i] = file
+      uploadCardImage(userId, cardId, `gallery-${i}`, file)
+        .then(url => {
+          const current = (values.gallery as GalleryValue) ?? { enabled: false, images: [], base64: [null,null,null] }
+          const urls = [...(current.urls ?? [null, null, null])]
+          urls[i] = url
+          updateValue('gallery', { ...current, urls, base64: [null, null, null] })
+        })
+        .catch(e => { if (e instanceof ImageTooLargeError) alert(e.message) })
+    })
+  }, [(values.gallery as GalleryValue)?.images, userId, cardId])
+
+  // background 画像が変わったら Storage にアップロード（ログイン済み・cardId あり）
+  const prevBgFile = useRef<File | null>(null)
+  useEffect(() => {
+    if (!userId || !cardId) return
+    const bgValue = background
+    if (bgValue.type !== 'image' || !(bgValue.imageFile instanceof File)) return
+    if (bgValue.imageFile === prevBgFile.current) return
+    prevBgFile.current = bgValue.imageFile
+    uploadCardImageWithAlpha(userId, cardId, 'background', bgValue.imageFile)
+      .then(url => setBackground(prev => ({ ...prev, url, imageFile: null, base64: null })))
+      .catch(e => { if (e instanceof ImageTooLargeError) alert(e.message) })
+  }, [background.imageFile, userId, cardId])
+
+  // gallery: 未ログイン時は File を base64 にリサイズして gallery.base64 に保存
+  // 競合回避のため全スロットをまとめて処理してから1回だけ updateValue する
+  const prevGalleryFilesForResize = useRef<(File | null)[]>([null, null, null])
+  useEffect(() => {
+    if (userId) return  // ログイン済みは Storage アップロードエフェクトに任せる
+    const gallery = (values.gallery as GalleryValue) ?? { enabled: false, images: [null, null, null], base64: [null, null, null] }
+    const images = gallery.images ?? []
+    const pending: { i: number; file: File }[] = []
+    images.forEach((file, i) => {
+      if (!(file instanceof File)) return
+      if (file === prevGalleryFilesForResize.current[i]) return
+      prevGalleryFilesForResize.current[i] = file
+      pending.push({ i, file })
+    })
+    if (pending.length === 0) return
+    Promise.all(pending.map(({ i, file }) =>
+      resizeImageToBase64(file, 360, 240, 0.8).then(base64 => ({ i, base64 }))
+    )).then(results => {
+      const current = (values.gallery as GalleryValue) ?? { enabled: false, images: [null, null, null], base64: [null, null, null] }
+      const newBase64 = [...(current.base64 ?? [null, null, null])]
+      const newImages = [...(current.images ?? [null, null, null])]
+      for (const { i, base64 } of results) {
+        newBase64[i] = base64
+        newImages[i] = null  // File は localStorage に保存できないので null に
+      }
+      updateValue('gallery', { ...current, images: newImages, base64: newBase64 })
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [(values.gallery as GalleryValue)?.images, userId])
+
+  // helpers
+  const bg = background
+  const gallery    = (values.gallery     as GalleryValue)    ?? { enabled: false, images: [null,null,null], base64: [null,null,null] }
+  const fontKey    = (values.font        as FontKey)         ?? 'rounded'
+  const fontFamily = fontMap[fontKey]?.style?.fontFamily ?? 'sans-serif'
+
+  // URL表示
+  useEffect(() => {
+    setCurrentUrlDisplay(window.location.origin + pathname + (systemLanguage === 'en' ? '?lang=en' : ''))
+  }, [pathname, systemLanguage])
+
+  // カードスケール（v1: 1200px幅, v2: 900px幅を基準）
+  useEffect(() => {
+    const cardNativeWidth = 900
+    const update = () => {
+      const isLg = window.innerWidth >= 1024
+      const available = window.innerWidth - (isLg ? 400 : 0) - (isLg ? 48 : 8)
+      setCardScale(available / cardNativeWidth)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [template.id])
+
+  // profileImage → base64
+  useEffect(() => {
+    if (!profileImageFile) { setProfileImageBase64(null); return }
+    const reader = new FileReader()
+    reader.onload = e => setProfileImageBase64(e.target?.result as string)
+    reader.readAsDataURL(profileImageFile)
+  }, [profileImageFile])
+
+  // background image → base64（imageFile アップロード時のみ）
+  useEffect(() => {
+    if (!initialized) return
+    if (bg.type !== 'image') return
+    if (!(bg.imageFile instanceof File)) return
+    const reader = new FileReader()
+    reader.onload = e => setBackground({ ...bg, base64: e.target?.result as string })
+    reader.readAsDataURL(bg.imageFile)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialized, bg.type, bg.imageFile])
+
+  // --- Profile image handlers ---
+  const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      setUploadedImage(reader.result as string)
+      setShowCropModal(true)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleCropDone = async () => {
+    if (!uploadedImage || !croppedAreaPixels) return
+    const blob = await getCroppedImg(uploadedImage, croppedAreaPixels)
+    const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' })
+    setProfileImageFile(file)
+    setShowCropModal(false)
+
+    if (userId && cardId) {
+      try {
+        const url = await uploadCardImage(userId, cardId, 'profile', file)
+        updateValue('profileImageUrl', url)
+        setProfileImageBase64(URL.createObjectURL(blob))
+      } catch (e) {
+        if (e instanceof ImageTooLargeError) alert(e.message)
+        else setProfileImageBase64(await blobToBase64(blob))
+      }
+    } else {
+      setProfileImageBase64(await blobToBase64(blob))
+    }
+  }
+
+  function blobToBase64(blob: Blob): Promise<string> {
+    return new Promise(resolve => {
+      const reader = new FileReader()
+      reader.onload = e => resolve(e.target?.result as string)
+      reader.readAsDataURL(blob)
+    })
+  }
+
+  function hasEmptyFields(): boolean {
+    const blockMap = Object.fromEntries(template.blocks.map(b => [b.key, b]))
+
+    // hideWhenEmpty でないブロック（必須項目）のキーを収集
+    const requiredKeys: string[] = []
+    if (propFormSections && propFormSections.length > 0) {
+      for (const section of propFormSections) {
+        for (const item of section.items) {
+          if (item.type === 'block' && !item.hideWhenEmpty) requiredKeys.push(item.dataKey)
+        }
+      }
+    } else {
+      for (const section of template.sections) {
+        for (const entry of section.blockKeys) {
+          if (typeof entry === 'string') requiredKeys.push(entry)
+          else if (!entry.hideWhenEmpty) requiredKeys.push(entry.key)
+        }
+      }
+    }
+
+    for (const key of requiredKeys) {
+      const block = blockMap[key]
+      if (!block?.isEmpty) continue
+      if (block.isEmpty((values as Record<string, unknown>)[key])) return true
+    }
+    return false
+  }
+
+
+  const handleShareByUrl = useCallback(async (skipEmptyCheck = false, onSaved?: (cardId: string, ogpVersion: number) => void) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      // リダイレクト前に未変換の画像ファイルを base64 に変換して localStorage に保存する。
+      // useEffect の変換処理は非同期のため、即時リダイレクトすると完了前にページが破棄される。
+      const pendingValues = JSON.parse(JSON.stringify(
+        Object.fromEntries(Object.entries(values as Record<string, unknown>).filter(([, v]) => !(v instanceof File)))
+      )) as Record<string, unknown>
+
+      const uploadOps: Promise<void>[] = []
+
+      // background imageFile が未変換なら変換
+      if (background.imageFile instanceof File) {
+        const file = background.imageFile
+        uploadOps.push(
+          resizeImageToBase64(file, 900, 506, 0.85).then(base64 => {
+            pendingValues.background = { type: 'image', value: '', base64 }
+          })
+        )
+      } else {
+        // imageFile なしの background（color/gradient/既存base64）もそのまま保存
+        pendingValues.background = { ...background, imageFile: undefined }
+      }
+
+      // gallery images が未変換なら変換
+      const gallery = values.gallery as GalleryValue | undefined
+      if (gallery?.images?.some(f => f instanceof File)) {
+        const newImages = [...(gallery.images ?? [])]
+        const newBase64 = [...(gallery.base64 ?? [null, null, null])]
+        const galleryOps = (gallery.images ?? []).map(async (file, i) => {
+          if (!(file instanceof File)) return
+          newBase64[i] = await resizeImageToBase64(file, 360, 240, 0.8)
+          newImages[i] = null
+        })
+        uploadOps.push(
+          Promise.all(galleryOps).then(() => {
+            pendingValues.gallery = { ...gallery, images: newImages, base64: newBase64 }
+          })
+        )
+      }
+
+      await Promise.all(uploadOps)
+      localStorage.setItem('vrchat-card-cache', JSON.stringify(pendingValues))
+
+      const currentUrl = window.location.pathname + window.location.search
+      window.location.href = `/auth/login?next=${encodeURIComponent(currentUrl)}`
+      return
+    }
+
+    if (!skipEmptyCheck && hasEmptyFields()) {
+      setPublishConfirming(true)
+      return
+    }
+
+    setSaveModalLoading(true)
+
+    const dataUrl = await getCardDataUrl()
+    let currentCardId = cardId
+
+    // 旧メーカー（/card/vrchat）由来の localStorage データを新フォーマットに変換してから保存
+    const migratedRaw = migrateLegacyCardData(template.id, values as Record<string, unknown>)
+    // background は card_data から分離したカラムで管理するため除外
+    const { background: migratedBg, ...migratedValues } = migratedRaw as Record<string, unknown> & { background?: BackgroundValue }
+    // localStorage に background があれば background state より優先（初期化が間に合わない場合の保険）
+    // background は card_data 分離カラムで管理するため、migratedBg（values 由来）は使わず background state を使う
+    // base64 は Storage アップロード前の一時データなので API 送信時には除外（413 防止）
+    const { base64: _bgBase64, imageFile: _bgFile, ...saveBackground } = background as BackgroundValue & { base64?: string; imageFile?: File }
+
+    // gallery.base64 を API 送信前に除外（413 防止）、後で Storage にアップロードする
+    const galleryRaw = migratedValues.gallery as (GalleryValue & { base64?: (string | null)[] }) | undefined
+    const galleryBase64ToUpload: (string | null)[] | null =
+      galleryRaw?.base64?.some(b => b != null) ? (galleryRaw.base64 ?? null) : null
+    if (galleryRaw) {
+      const { base64: _gb, ...galleryWithoutBase64 } = galleryRaw
+      migratedValues.gallery = galleryWithoutBase64
+    }
+
+    // background.base64 も同様に除外済み（_bgBase64）、後で Storage にアップロードする
+    const bgBase64ToUpload = _bgBase64 ?? null
+
+    if (!currentCardId) {
+      const result = await createCard({
+        templateId: template.id,
+        cardData: migratedValues as BlockValues,
+        background: saveBackground,
+        title: (migratedValues.name as string) || 'My Card',
+      })
+      if ('error' in result) {
+        setSaveModalLoading(false)
+        if (result.error === 'card_limit_reached') {
+          setShowUpgradeModal(true)
+        } else {
+          alert('保存に失敗しました: ' + result.error)
+        }
+        return
+      }
+      currentCardId = result.cardId
+      setCardId(currentCardId)
+      trackEvent('card_created', { template_id: template.id })
+    }
+
+    // base64 画像を Storage にアップロード（userId は stale 回避のため auth.getUser() の結果を使用）
+    const uploaderUserId = user.id
+
+    // background.base64 があれば Storage にアップロードして url を更新
+    if (bgBase64ToUpload && saveBackground.type === 'image') {
+      try {
+        const [header, data] = bgBase64ToUpload.split(',')
+        const mime = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg'
+        const bytes = atob(data)
+        const arr = new Uint8Array(bytes.length)
+        for (let j = 0; j < bytes.length; j++) arr[j] = bytes.charCodeAt(j)
+        const blob = new Blob([arr], { type: mime })
+        const file = new File([blob], 'background.jpg', { type: mime })
+        const url = await uploadCardImageWithAlpha(uploaderUserId, currentCardId!, 'background', file)
+        saveBackground.url = url
+      } catch { /* アップロード失敗は無視して続行 */ }
+    }
+
+    // gallery.base64 があれば Storage にアップロードして urls を更新
+    if (galleryBase64ToUpload) {
+      const currentGallery = migratedValues.gallery as GalleryValue | undefined
+      const uploadedUrls: (string | null)[] = [...(currentGallery?.urls ?? [null, null, null])]
+      await Promise.all(
+        galleryBase64ToUpload.map(async (b64, i) => {
+          if (!b64) return
+          try {
+            const [header, data] = b64.split(',')
+            const mime = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg'
+            const bytes = atob(data)
+            const arr = new Uint8Array(bytes.length)
+            for (let j = 0; j < bytes.length; j++) arr[j] = bytes.charCodeAt(j)
+            const blob = new Blob([arr], { type: mime })
+            const file = new File([blob], `gallery-${i}.jpg`, { type: mime })
+            uploadedUrls[i] = await uploadCardImage(uploaderUserId, currentCardId!, `gallery-${i}`, file)
+          } catch { /* アップロード失敗は無視して続行 */ }
+        })
+      )
+      migratedValues.gallery = { ...currentGallery, urls: uploadedUrls }
+    }
+
+    const newVersion = currentOgpVersion + 1
+    if (dataUrl) {
+      await updateCard({ cardId: currentCardId, imageBase64: dataUrl, cardData: migratedValues as BlockValues, background: saveBackground, ogp_version: newVersion })
+      setCurrentOgpVersion(newVersion)
+    }
+
+    await updateCard({ cardId: currentCardId, visibility: 'public' })
+    setVisibility('public')
+    setSaveModalLoading(false)
+    trackEvent('card_saved', { card_id: currentCardId, template_id: template.id })
+    if (onSaved) {
+      onSaved(currentCardId, newVersion)
+    } else {
+      window.location.href = `/card/${currentCardId}?created=1`
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardId, values, background, template.id, supabase])
+
+
+  const handlePostToX = () => {
+    if (xShareWithoutSave) {
+      const baseTweetText = template.tweetHashtags
+        ? `カードを作りました！\n${template.tweetHashtags} #vaacard`
+        : t.tweetText
+      trackEvent('card_shared_x', { card_id: cardId ?? null, template_id: template.id, source: 'legacy_maker' })
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(baseTweetText)}`, '_blank', 'noopener,noreferrer')
+      return
+    }
+    trackEvent('card_shared_x', { card_id: cardId ?? null, template_id: template.id, source: 'editor' })
+    setXShareConfirming(true)
+  }
+
+  const doSaveAndPostToX = () => {
+    setXShareConfirming(false)
+    // image_url 生成後にカードページへリダイレクト（?created=1）し、
+    // そのページのモーダルから X シェアさせる（ポップアップブロック回避）
+    handleShareByUrl(false)
+  }
+
+  // V1ログイン後の自動マイグレーション
+  const autoMigrateRef = useRef(false)
+  useEffect(() => {
+    if (!isLoggedIn || !initialized || cardId) return
+    if (autoMigrateRef.current) return
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return
+    autoMigrateRef.current = true
+    trackEvent('legacy_maker_migrated', { template_id: template.id })
+    handleShareByUrl(true)  // マイグレーション時は空フィールドチェックをスキップ
+  // cardId は意図的に依存配列から外す
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, initialized])
+
+  const handlePreviewOpen = useCallback(() => {
+    setPreviewOpen(true)
+  }, [])
+
+  // --- Render ---
+  const blockMap = Object.fromEntries(template.blocks.map(b => [b.key, b]))
+
+  const imageUploadContextValue = React.useMemo(() => ({
+    upload: async (slot: string, file: File): Promise<string | null> => {
+      if (!userId || !cardId) return null
+      try {
+        return await uploadCardImageWithAlpha(userId, cardId, slot, file)
+      } catch (e) {
+        if (e instanceof ImageTooLargeError) alert((e as Error).message)
+        return null
+      }
+    },
+  }), [userId, cardId])
+
+  return (
+    <ImageUploadContext.Provider value={imageUploadContextValue}>
+    <>
+    <main className="w-screen h-screen flex flex-col text-gray-800">
+      {/* ヘッダー */}
+      <header className="fixed top-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-md shadow-sm h-12 sm:h-14 px-4 border-b border-white/30 flex justify-between items-center">
+        <div className="flex items-center gap-2 min-w-0">
+          <a href="/" className="text-xl font-black tracking-tight text-[#00AADB] shrink-0">vaacard</a>
+          <span className="hidden sm:inline text-gray-300 text-sm">/</span>
+          <span className="hidden sm:inline text-sm text-gray-500 truncate">{template.title}</span>
+          {isLoggedIn && cardId && draftStatus !== 'idle' && (
+            <span className="hidden sm:inline text-[11px] text-gray-300 shrink-0">
+              {draftStatus === 'saving' ? '保存中...' : '下書き保存済み'}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {/* PC のみヘッダーにボタン表示 */}
+          <div className="hidden sm:flex items-center gap-2">
+            <button onClick={handleDownload}
+              className="flex items-center gap-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              {t.save}
+            </button>
+            <button onClick={handlePostToX}
+              className="flex items-center gap-1.5 text-xs font-medium text-white bg-black rounded-lg px-3 py-1.5 hover:bg-gray-800 transition-colors">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              {t.share}
+            </button>
+            <button onClick={() => handleShareByUrl()}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] rounded-full px-4 py-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm shadow-sky-200">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              {isLoggedIn ? 'マイページに保存' : 'マイページを作成'}
+            </button>
+          </div>
+          <HeaderAuth />
+        </div>
+      </header>
+
+      {/* クロップモーダル */}
+      {showCropModal && uploadedImage && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+          <div className="bg-white p-4 rounded shadow-lg w-[90vw] max-w-[400px] h-[90vw] max-h-[400px] relative">
+            <Cropper
+              image={uploadedImage} crop={crop} zoom={zoom} aspect={1} cropShape="rect" showGrid={false}
+              onCropChange={setCrop} onZoomChange={setZoom}
+              onCropComplete={(_, areaPixels) => setCroppedAreaPixels(areaPixels)}
+              style={{ containerStyle: { width: '100%', height: '100%', borderRadius: '0.5rem', overflow: 'hidden', position: 'relative' } }}
+            />
+            <div className="absolute bottom-2 right-2 flex gap-2">
+              <button onClick={handleCropDone} className="bg-green-600 text-white px-3 py-1 text-sm rounded">{t.done}</button>
+              <button onClick={() => setShowCropModal(false)} className="bg-gray-300 text-black px-3 py-1 text-sm rounded">{t.cancel}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* プレビューモーダル（スマホ用拡大表示） */}
+      {previewOpen && (
+        <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center" onClick={() => setPreviewOpen(false)}>
+          {(() => {
+            const maxW = window.innerWidth * 0.9
+            const maxH = window.innerHeight * 0.9
+            const scale = Math.min(maxW / template.cardWidth, maxH / template.cardHeight)
+            const bgStyle = getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK, bg.url)
+            return (
+              <div
+                className="rounded shadow-lg overflow-hidden"
+                style={{ background: bgStyle ?? undefined, width: template.cardWidth * scale, height: template.cardHeight * scale, flexShrink: 0 }}
+              >
+                <CardScaledView template={template} values={values} background={background} scale={scale} fontFamily={fontFamily} t={t} transparentBackground />
+              </div>
+            )
+          })()}
+        </div>
+      )}
+
+      <div className="flex flex-col lg:flex-1 lg:flex-row lg:pt-0 lg:overflow-hidden mt-12 sm:mt-14">
+        {/* カードプレビュー */}
+        <section
+          className="w-full max-w-full flex items-center justify-center lg:flex-1 lg:min-w-0 lg:h-full lg:px-6 lg:static fixed top-12 sm:top-14 lg:top-auto z-10 sm:h-auto cursor-zoom-in sm:cursor-default active:brightness-95 transition-[filter] duration-100"
+          onClick={e => { if (window.innerWidth < 768) { e.preventDefault(); handlePreviewOpen() } }}
+          style={{
+            background: getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK, bg.url) ?? undefined,
+            WebkitTapHighlightColor: 'transparent',
+          }}
+        >
+          {!debugMode && <CardScaledView template={template} values={values} background={background} scale={cardScale} fontFamily={fontFamily} t={t} isInteractive transparentBackground />}
+        </section>
+
+        {/* エクスポート専用（フルサイズ、画面外に配置） */}
+        <div style={debugMode
+          ? { overflow: 'hidden', margin: '16px auto', outline: '2px dashed red' }
+          : { position: 'fixed', top: -9999, left: -9999, overflow: 'hidden', pointerEvents: 'none' }}>
+          <div ref={cardExportRef} style={{ position: 'relative', background: getBackgroundStyle(bg.type, bg.value as string | [string, string], bg.base64 ?? null, CARD_BG_FALLBACK, bg.url) ?? undefined }}>
+            <template.CardRenderer values={values} background={background} fontFamily={fontFamily} t={t} />
+            <span style={{ position: 'absolute', bottom: 6, right: 8, fontSize: 8, fontWeight: 600, color: 'rgba(255,255,255,0.6)', fontFamily: 'sans-serif', letterSpacing: '0.06em', pointerEvents: 'none' }}>vaacard.me</span>
+          </div>
+        </div>
+
+        {/* フォームサイドバー */}
+        <aside className="lg:w-[400px] lg:min-w-[400px] lg:max-w-[500px] lg:flex-none w-full overflow-y-auto flex-1 p-2 pb-24 sm:pb-2 lg:border-t-0 lg:border-l bg-white text-gray-800 isolate">
+
+          {/* モバイルでfixedカードプレビューの下にフォームが来るためのスペーサー */}
+          <div className="lg:hidden" style={{ height: 'calc(100vw * 9 / 16 + 16px)' }} />
+
+          <OnboardingBanner t={t} howToSteps={template.howToSteps} />
+
+{/* formSections がある場合はそちらを優先、なければ template.sections にフォールバック */}
+          {propFormSections && propFormSections.length > 0 ? (
+            propFormSections.map((section, si) => (
+              <AccordionSection key={si} title={section.title} defaultOpen={section.defaultOpen} t={t}>
+                <div className="flex flex-col divide-y divide-gray-100">
+                  {section.items.map((item, ii) => {
+                    if (item.type === 'font') {
+                      return (
+                        <div key={ii} className="pt-4 first:pt-2 pb-4">
+                          <FontSelector
+                            fontKey={fontKey}
+                            setFontKey={fk => updateValue('font', fk)}
+                            t={t}
+                          />
+                        </div>
+                      )
+                    }
+                    if (item.type === 'text') {
+                      return item.style === 'heading'
+                        ? <p key={ii} className="pt-4 first:pt-2 text-sm font-semibold text-gray-700">{item.content}</p>
+                        : <p key={ii} className="pt-2 text-xs text-gray-500">{item.content}</p>
+                    }
+                    const block = blockMap[item.dataKey]
+                    if (!block) return null
+                    if (item.hideWhenEmpty) {
+                      const isEmpty = block.isEmpty
+                        ? block.isEmpty(values[item.dataKey])
+                        : JSON.stringify(values[item.dataKey]) === JSON.stringify(block.defaultValue)
+                      if (isEmpty) return null
+                    }
+                    const blockExt = block as ComponentDef<unknown> & { formLabel?: string; blockConfig?: Record<string, unknown> }
+                    const formLabel = item.formLabel ?? blockExt.formLabel
+                    return (
+                      <div key={ii} className="pt-4 first:pt-2 pb-4">
+                        {formLabel && <p className="text-sm font-semibold text-gray-700 mb-1">{formLabel}</p>}
+                        <block.FormItem
+                          value={item.dataKey === 'background' ? background : values[item.dataKey]}
+                          onChange={v => item.dataKey === 'background' ? setBackground(v as BackgroundValue) : updateValue(item.dataKey, v)}
+                          t={t} blockConfig={blockExt.blockConfig} formLabel={formLabel} />
+                      </div>
+                    )
+                  })}
+                </div>
+              </AccordionSection>
+            ))
+          ) : (
+          template.sections.map(section => {
+            const isProfile = section.titleKey === 'プロフィール情報'
+            return (
+              <AccordionSection key={section.titleKey} title={section.titleKey} defaultOpen={section.defaultOpen} t={t}>
+                <div className="flex flex-col divide-y divide-gray-100">
+                  {isProfile && (
+                    <div className="pt-4 first:pt-2 pb-2 flex flex-col gap-2">
+                      <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.profileImage}</h2>
+                      <label className="flex items-center gap-3">
+                        <input type="file" accept="image/*" onChange={handleProfileImageUpload} className="hidden" id="profile-image-upload" />
+                        <label htmlFor="profile-image-upload" className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium py-1.5 px-3 rounded-lg cursor-pointer transition-colors flex-shrink-0">
+                          {t.chooseFile}
+                        </label>
+                        <span className="text-sm text-gray-500 truncate">{profileImageFile ? profileImageFile.name : t.noFileChosen}</span>
+                      </label>
+                    </div>
+                  )}
+                  {section.blockKeys.map(entry => {
+                    const key = typeof entry === 'string' ? entry : entry.key
+                    const sectionBlock = typeof entry === 'object' ? entry as TemplateSectionBlock : undefined
+                    const block = blockMap[key]
+                    if (!block) return null
+                    if (sectionBlock?.hideWhenEmpty) {
+                      const isEmpty = block.isEmpty
+                        ? block.isEmpty(values[key])
+                        : JSON.stringify(values[key]) === JSON.stringify(block.defaultValue)
+                      if (isEmpty) return null
+                    }
+                    const blockExtB = blockMap[key] as (ComponentDef<unknown> & { formLabel?: string; blockConfig?: Record<string, unknown> }) | undefined
+                    const formLabel = sectionBlock?.formLabel ?? blockExtB?.formLabel
+                    return (
+                      <div key={key} className="pt-4 first:pt-2 pb-4">
+                        {formLabel && <p className="text-sm font-semibold text-gray-700 mb-1">{formLabel}</p>}
+                        <block.FormItem
+                          value={key === 'background' ? background : values[key]}
+                          onChange={v => key === 'background' ? setBackground(v as BackgroundValue) : updateValue(key, v)}
+                          t={t} blockConfig={blockExtB?.blockConfig} formLabel={formLabel} />
+                      </div>
+                    )
+                  })}
+                </div>
+              </AccordionSection>
+            )
+          })
+          )}
+
+
+          <PostTimeline t={t} tweetHashtags={template.tweetHashtags} />
+
+          <div className="w-full max-w-screen-md mx-auto mt-4 mb-4">
+            <div className="border border-gray-300 rounded-xl bg-gray-50 p-4 text-sm text-gray-700 text-center shadow-sm">
+              <p className="text-xs text-gray-600 mb-2 leading-snug">{t.currentLanguageUrl}</p>
+              <p className="text-sm font-medium text-blue-600 break-all">{currentUrlDisplay}</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <FloatingButtons onSave={() => handleShareByUrl()} onShare={handlePostToX} onDownload={handleDownload} t={t} />
+
+      {/* ダウンロード後の保存誘導トースト */}
+      {showSaveNudge && (
+        <div className="fixed bottom-6 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-max z-50 bg-white border border-sky-100 rounded-2xl shadow-xl px-5 py-4">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <span className="text-sm text-gray-700 font-medium">マイページに保存して、URLで共有できるようにしませんか？</span>
+            <button onClick={() => setShowSaveNudge(false)} className="shrink-0 text-gray-300 hover:text-gray-500 transition-colors text-xs">
+              閉じる
+            </button>
+          </div>
+          <button
+            onClick={() => { setShowSaveNudge(false); handleShareByUrl() }}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+            className="w-full text-sm font-bold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-4 py-2.5 rounded-xl hover:opacity-90 active:scale-95 transition-all"
+          >
+            保存する
+          </button>
+        </div>
+      )}
+
+      {/* Xシェア前の公開確認モーダル */}
+      {xShareConfirming && (
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" onClick={() => setXShareConfirming(false)} />
+          <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-50 flex justify-center px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="px-6 pt-6 pb-4 text-center">
+                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                </div>
+                <h2 className="text-base font-bold text-gray-900 mb-2">Xでシェアする前に</h2>
+                <p className="text-sm text-gray-500 leading-relaxed">カードをマイページに公開してから、Xのシェア画面が開きます。</p>
+              </div>
+              <div className="px-6 pb-5 flex flex-col gap-2">
+                <button
+                  onClick={doSaveAndPostToX}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-black text-white text-sm font-semibold hover:opacity-80 transition-opacity"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                  公開してXへシェア
+                </button>
+                <button
+                  onClick={() => setXShareConfirming(false)}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors py-1"
+                >
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 保存中オーバーレイ */}
+      {publishConfirming && (
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" onClick={() => setPublishConfirming(false)} />
+          <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-50 flex justify-center px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="px-6 pt-6 pb-4 text-center">
+                <div className="text-2xl mb-2">⚠️</div>
+                <h2 className="text-base font-bold text-gray-900 mb-1">未入力の項目があります</h2>
+                <p className="text-xs text-gray-400">このまま保存しますか？</p>
+                {showImageMigrationHint && (
+                  <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mt-2 text-left">
+                    ⚠️ 保存後に画像の再設定が必要な場合があります。
+                  </p>
+                )}
+              </div>
+              <div className="px-6 pb-5 flex flex-col gap-2">
+                <button
+                  onClick={() => { setPublishConfirming(false); handleShareByUrl(true) }}
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#00AADB] to-[#00C9B8] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                >
+                  このまま保存する
+                </button>
+                <button
+                  onClick={() => setPublishConfirming(false)}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors py-1"
+                >
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {saveModalLoading && (
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
+          <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-50 flex justify-center px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="px-6 py-8 flex flex-col items-center gap-4">
+                <div className="relative w-14 h-14">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-300 via-violet-300 to-pink-300 animate-spin" style={{ maskImage: 'radial-gradient(transparent 55%, black 56%)' }} />
+                  <div className="absolute inset-[3px] rounded-full bg-white" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-violet-400 animate-pulse" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2zm0 10l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-gray-800">カードを仕上げています</p>
+                  <p className="text-xs text-gray-400 mt-0.5">もうすぐ完成です...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+    </main>
+    {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} trigger="editor" />}
+    </>
+    </ImageUploadContext.Provider>
+  )
+}

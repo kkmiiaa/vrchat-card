@@ -7,15 +7,15 @@ export const translations = {
     support: 'ツールを維持していくためのサーバー運営費が必要なので、よかったらサポートお願いします',
     supportButton: 'Paypayでサポート',
     supportLink: 'https://qr.paypay.ne.jp/p2p01_A7rB7I6eo1bUMSzY',
-    save: '💾 保存',
+    save: '画像で保存',
     share: 'Xでシェア',
     done: '完了',
     cancel: 'キャンセル',
     close: '閉じる',
     delete: '削除',
     requests: '要望',
-    seePostsOnX: 'Xで投稿一覧を見る → ',
-    searchWith: 'で検索すると、他の人の投稿が見られます。',
+    seePostsOnX: 'Xで投稿を見る',
+    searchWith: '他の人のカードはこちらから見られます',
     
     // Onboarding
     howToMakeCard: '🎉 自己紹介カードの作り方',
@@ -30,12 +30,14 @@ export const translations = {
     kawaiiFont: 'kawaii手書き文字',
     maruminyaFont: 'マルミーニャM',
 
+    // Overlay Settings
+    overlaySettings: 'オーバーレイの設定',
     // Background Settings
     backgroundSettings: '背景の設定',
     solidColorBg: '単色背景',
     gradientBg: 'グラデーション背景',
-    handwrittenBg: '手書きカード版背景',
-    handwrittenBgNote: '※背景画像はヒツジ電機さんの公開バージョンとは異なりますが、似た背景を使用しています。',
+    handwrittenBg: 'クラシック背景',
+    handwrittenBgNote: '',
     originalVersionLink: '元のバージョンもぜひご覧ください →',
     imageBg: '画像背景',
 
@@ -60,6 +62,24 @@ export const translations = {
 
     // Mic Section
     micOnRate: 'マイクON率',
+
+    // Age Section
+    age: '年齢',
+    ageModes: { under18: '18歳未満', over18: '18+', private: '非公開', custom: '自由入力' },
+
+    // Trust Rank Section
+    trustRank: 'Trust Rank',
+
+    // Gender display text
+    genderDisplayText: '表示テキスト（任意）',
+    genderDisplayTextHint: '未入力の場合はタグのラベルを表示します',
+
+    // Activity Section
+    activityTime: '活動時間',
+    activityWeekday: '平日',
+    activityHoliday: '休日',
+    activityIrregular: 'バラバラ',
+    activityClear: 'クリア',
 
     // SNS Section
     snsContact: 'SNS・コンタクト情報',
@@ -113,7 +133,7 @@ export const translations = {
     pressAndHoldToSave: '画像を長押しで保存して、投稿時に添付してください📎',
     openPostScreenOnX: 'Xで投稿画面を開く →',
     pressAndHoldToAdd: '下の画像を長押しして「写真に追加」してください。',
-    tweetText: '自己紹介カードを作りました！\n#VRChat自己紹介カード\n#VRChat自己紹介カードメーカー',
+    tweetText: 'VRChatの自己紹介カードを作りました！\n#VRChat自己紹介カード #vaacard',
     
     // Post Timeline
     postTimelineCredit: '本ツールは、ヒツジ電機さんの自己紹介カードを参考に制作していますが、背景画像についてはオリジナル版とは異なる素材を使用しています。',
@@ -146,15 +166,15 @@ export const translations = {
     support: 'Server operating costs are needed to maintain this tool. If you find it helpful, please consider supporting us.',
     supportButton: 'Support Me',
     supportLink: 'https://ko-fi.com/yota3d',
-    save: '💾 Save',
+    save: 'Save as Image',
     share: 'Share on X',
     done: 'Done',
     cancel: 'Cancel',
     close: 'Close',
     delete: 'Delete',
     requests: 'Requests',
-    seePostsOnX: 'See posts on X → ',
-    searchWith: 'to see other people\'s posts.',
+    seePostsOnX: 'See posts on X',
+    searchWith: 'Browse cards made by others',
 
     // Onboarding
     howToMakeCard: '🎉 How to make a profile card',
@@ -169,12 +189,14 @@ export const translations = {
     kawaiiFont: 'Kawaii Handwriting',
     maruminyaFont: 'Maruminya M',
 
+    // Overlay Settings
+    overlaySettings: 'Overlay Settings',
     // Background Settings
     backgroundSettings: 'Background Settings',
     solidColorBg: 'Solid Color Background',
     gradientBg: 'Gradient Background',
-    handwrittenBg: 'Hand-drawn Card Background',
-    handwrittenBgNote: '*The background image is different from the public version by Hitsuji Denki, but a similar one is used.',
+    handwrittenBg: 'Classic Background',
+    handwrittenBgNote: '',
     originalVersionLink: 'Please also see the original version →',
     imageBg: 'Image Background',
 
@@ -199,6 +221,24 @@ export const translations = {
 
     // Mic Section
     micOnRate: 'Mic ON Rate',
+
+    // Age Section
+    age: 'Age',
+    ageModes: { under18: 'Under 18', over18: '18+', private: 'Private', custom: 'Custom' },
+
+    // Trust Rank Section
+    trustRank: 'Trust Rank',
+
+    // Gender display text
+    genderDisplayText: 'Display Text (optional)',
+    genderDisplayTextHint: 'If empty, the tag label will be shown.',
+
+    // Activity Section
+    activityTime: 'Active Hours',
+    activityWeekday: 'Weekdays',
+    activityHoliday: 'Weekends',
+    activityIrregular: 'Irregular',
+    activityClear: 'Clear',
 
     // SNS Section
     snsContact: 'SNS & Contact Info',
@@ -252,7 +292,7 @@ export const translations = {
     pressAndHoldToSave: 'Press and hold the image to save, then attach it to your post 📎',
     openPostScreenOnX: 'Open post screen on X →',
     pressAndHoldToAdd: 'Press and hold the image below and "Add to Photos".',
-    tweetText: 'I made my profile card!\n#MyVRChatCard\n#VRChatCardMaker',
+    tweetText: 'I made my profile card!\n#MyVRChatCard',
 
     // Post Timeline
     postTimelineCredit: 'This tool was created with reference to Hitsuji Denki\'s profile card, but the background image uses different materials from the original version.',

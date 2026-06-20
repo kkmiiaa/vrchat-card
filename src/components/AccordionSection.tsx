@@ -21,7 +21,7 @@ export default function AccordionSection({
         className="w-full text-left px-4 py-3 flex justify-between items-center hover:bg-gray-50 transition-colors"
         onClick={() => setOpen(!open)}
       >
-        <span className="text-sm font-semibold text-gray-800 tracking-wide">{title}</span>
+        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{title}</span>
         <svg
           className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}

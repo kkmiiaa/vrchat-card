@@ -1,0 +1,430 @@
+'use client'
+
+import { useState, useCallback, useTransition, useRef, useEffect } from 'react'
+import Link from 'next/link'
+import HeaderAuth from '@/components/HeaderAuth'
+import ProUpgradeModal from '@/components/ProUpgradeModal'
+import { relativeDate } from '@/utils/relativeDate'
+import type { TemplateLayoutRow } from '@/lib/templateLayout'
+import { buildCardTemplateFromDefinition } from '@/lib/buildCardTemplate'
+
+function TemplateNav({ templates }: { templates: TemplateLayoutRow[] }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mb-6">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:border-sky-300 hover:text-[#00AADB] transition-all mb-2"
+      >
+        <span className="flex items-center gap-2">
+          <svg className="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <rect x="2" y="7" width="20" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16 3H8"/>
+          </svg>
+          テンプレートで絞り込む
+        </span>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {templates.map(t => (
+            <Link
+              key={t.id}
+              href={`/c/vrchat/${t.id}`}
+              className="group block bg-white rounded-xl border border-gray-100 hover:border-sky-200 hover:shadow-md overflow-hidden transition-all"
+            >
+              <div className="overflow-hidden">
+                <SamplePreview row={t} />
+              </div>
+              <div className="px-2.5 py-2">
+                <p className="text-xs font-semibold text-gray-700 group-hover:text-[#00AADB] transition-colors line-clamp-2">{t.label}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SamplePreview({ row }: { row: TemplateLayoutRow }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+  const { template } = buildCardTemplateFromDefinition(null, row)
+  const W = template.cardWidth
+  const H = template.cardHeight
+
+  useEffect(() => {
+    if (!containerRef.current) return
+    const observer = new ResizeObserver(([entry]) => {
+      const w = entry.contentRect.width
+      if (w > 0) setScale(w / W)
+    })
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [W])
+
+  const isEmpty = !row.sample_card_data || Object.keys(row.sample_card_data).length === 0
+
+  if (isEmpty) {
+    return (
+      <div ref={containerRef} style={{ width: '100%', aspectRatio: `${W}/${H}`, background: 'linear-gradient(135deg, #e0f2fe, #f0fdf4)' }} />
+    )
+  }
+
+  return (
+    <div ref={containerRef} style={{ width: '100%', height: H * scale, overflow: 'hidden' }}>
+      <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: W, height: H, pointerEvents: 'none' }}>
+        <template.PreviewCard />
+      </div>
+    </div>
+  )
+}
+
+type BackgroundValue = { type: string; value: string | string[]; base64?: string | null } | null
+
+type Card = {
+  id: string
+  title: string | null
+  image_url: string | null
+  card_data: Record<string, unknown>
+  background: BackgroundValue
+  created_at: string
+  template_id: string
+  like_count: number
+  view_count: number
+  profile: { display_name: string | null; avatar_url: string | null } | null
+}
+
+function cardBgStyle(bg: BackgroundValue): string {
+  if (!bg) return 'linear-gradient(135deg, rgba(0,170,219,0.12), rgba(0,201,184,0.10))'
+  if (bg.type === 'color' && typeof bg.value === 'string') return bg.value
+  if (bg.type === 'gradient' && Array.isArray(bg.value)) return `linear-gradient(135deg, ${bg.value[0]}, ${bg.value[1]})`
+  if (bg.type === 'image' && bg.base64) return `url(${bg.base64}) center/cover no-repeat`
+  if (bg.type === 'image' && typeof bg.value === 'string') return `url(${bg.value}) center/cover no-repeat`
+  return 'linear-gradient(135deg, rgba(0,170,219,0.12), rgba(0,201,184,0.10))'
+}
+
+type Filters = {
+  q: string
+  gender: string
+  lang: string
+  age: string
+}
+
+const GENDER_OPTIONS = [
+  { value: 'male',      label: '男性' },
+  { value: 'female',    label: '女性' },
+  { value: 'nonbinary', label: 'ノンバイナリ' },
+]
+const LANG_OPTIONS = ['日本語', 'English', 'Korean']
+const AGE_OPTIONS = ['18歳未満', '18+']
+
+type Props = {
+  initialCards: Card[]
+  isPro: boolean
+  isLoggedIn: boolean
+  communityTemplates?: TemplateLayoutRow[]
+  initialFreeRemaining: number
+}
+
+export default function ExploreClient({ initialCards, isPro, isLoggedIn, communityTemplates = [], initialFreeRemaining }: Props) {
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [cards, setCards] = useState<Card[]>(initialCards)
+  const [filters, setFilters] = useState<Filters>({ q: '', gender: '', lang: '', age: '' })
+  const [cursor, setCursor] = useState<string | null>(null)
+  const [hasMore, setHasMore] = useState(isPro && initialCards.length === 24)
+  const [isPending, startTransition] = useTransition()
+  const [freeRemaining, setFreeRemaining] = useState(initialFreeRemaining)
+
+  const hasFilter = (f: Filters) => !!(f.q || f.gender || f.lang || f.age)
+
+  const buildQuery = useCallback((f: Filters, cur: string | null) => {
+    const params = new URLSearchParams()
+    if (f.q) params.set('q', f.q)
+    if (f.gender) params.set('gender', f.gender)
+    if (f.lang) params.set('lang', f.lang)
+    if (f.age) params.set('age', f.age)
+    if (cur) params.set('cursor', cur)
+    return `/api/cards/explore?${params.toString()}`
+  }, [])
+
+  const search = useCallback((newFilters: Filters) => {
+    setFilters(newFilters)
+    setCursor(null)
+    startTransition(async () => {
+      const res = await fetch(buildQuery(newFilters, null))
+      const json = await res.json()
+      if (json.error === 'limit_exceeded') {
+        setShowUpgradeModal(true)
+        return
+      }
+      setCards(json.cards ?? [])
+      setHasMore((json.cards ?? []).length === 24)
+      if (typeof json.freeRemaining === 'number') setFreeRemaining(json.freeRemaining)
+    })
+  }, [buildQuery])
+
+  const loadMore = useCallback(() => {
+    const last = cards[cards.length - 1]
+    if (!last) return
+    const cur = last.created_at
+    startTransition(async () => {
+      const res = await fetch(buildQuery(filters, cur))
+      const json = await res.json()
+      const newCards = json.cards ?? []
+      setCards(prev => [...prev, ...newCards])
+      setCursor(cur)
+      setHasMore(newCards.length === 24)
+    })
+  }, [cards, filters, buildQuery])
+
+  function updateFilter(key: keyof Filters, value: string) {
+    const next = { ...filters, [key]: value }
+    search(next)
+  }
+
+  function toggleFilter(key: keyof Filters, value: string) {
+    const current = filters[key]
+    updateFilter(key, current === value ? '' : value)
+  }
+
+  const getName = (card: Card) => card.profile?.display_name || 'vaacard User'
+
+  // Free ユーザーかつ未ログインの場合はフィルターUI自体を出さない
+  const showFilterArea = isPro || isLoggedIn
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* ヘッダー */}
+      <header className="fixed top-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-md shadow-sm h-12 sm:h-14 px-4 border-b border-gray-100 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <a href="/" className="text-xl font-black tracking-tight text-[#00AADB]">vaacard</a>
+          <span className="text-gray-300 text-sm">/</span>
+          <span className="text-sm font-semibold text-gray-600">VRChat</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <a href="/card/new" className="text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-4 py-1.5 rounded-full hover:opacity-90 transition-opacity">
+            カードを作る
+          </a>
+          <HeaderAuth />
+        </div>
+      </header>
+
+      <main className="pt-20 px-4 pb-16 max-w-5xl mx-auto">
+        {/* タイトル */}
+        <div className="mb-4 mt-4">
+          <h1 className="text-xl font-bold text-gray-900">VRChat 界隈のユーザーをみつける</h1>
+          <p className="text-sm text-gray-500 mt-1">VRChatユーザーの自己紹介カードをまとめて見られます</p>
+        </div>
+
+        {/* テンプレート別ページへのナビ（アコーディオン） */}
+        {communityTemplates.length > 0 && (
+          <TemplateNav templates={communityTemplates} />
+        )}
+
+        {/* フィルターエリア */}
+        {showFilterArea ? (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-col gap-4">
+            {/* フリーワード */}
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="名前・自己紹介で検索..."
+                value={filters.q}
+                onChange={e => updateFilter('q', e.target.value)}
+                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-200"
+              />
+            </div>
+
+            {/* 性別 */}
+            <div>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">性別</p>
+              <div className="flex gap-2 flex-wrap">
+                {GENDER_OPTIONS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => toggleFilter('gender', value)}
+                    className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${
+                      filters.gender === value
+                        ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 言語 */}
+            <div>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">言語</p>
+              <div className="flex gap-2 flex-wrap">
+                {LANG_OPTIONS.map(l => (
+                  <button
+                    key={l}
+                    onClick={() => toggleFilter('lang', l)}
+                    className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${
+                      filters.lang === l
+                        ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                    }`}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 年齢 */}
+            <div>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">年齢</p>
+              <div className="flex gap-2 flex-wrap">
+                {AGE_OPTIONS.map(a => (
+                  <button
+                    key={a}
+                    onClick={() => toggleFilter('age', a)}
+                    className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${
+                      filters.age === a
+                        ? 'border-[#00AADB] bg-sky-50 text-[#00AADB]'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                    }`}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* フッター: リセット + 残り回数（Freeのみ） */}
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              {Object.values(filters).some(Boolean) ? (
+                <button
+                  onClick={() => search({ q: '', gender: '', lang: '', age: '' })}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  ✕ フィルターをリセット
+                </button>
+              ) : <div />}
+
+              {!isPro && (
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-gray-400">
+                    今月あと <span className={`font-bold ${freeRemaining === 0 ? 'text-red-400' : 'text-[#00AADB]'}`}>{freeRemaining}</span> 回検索できます
+                  </p>
+                  <button
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="text-xs font-semibold text-white bg-gradient-to-r from-[#00AADB] to-[#00C9B8] px-3 py-1 rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
+                  >
+                    Pro で無制限に
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* 未ログインユーザー向け誘導 */
+          <div className="bg-gradient-to-r from-sky-50 to-cyan-50 border border-sky-100 rounded-2xl p-4 mb-6 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-gray-800">🔍 ログインすると検索機能が利用できます</p>
+              <p className="text-xs text-gray-500 mt-0.5">性別・言語・年齢などで絞り込み（月3回まで無料）</p>
+            </div>
+            <Link href="/auth/login" className="shrink-0 text-xs font-bold text-[#00AADB] border border-[#00AADB] px-4 py-2 rounded-full hover:bg-sky-50 transition-colors whitespace-nowrap">
+              ログイン
+            </Link>
+          </div>
+        )}
+
+        {/* 件数 */}
+        <p className="text-xs text-gray-400 mb-3">
+          {isPending
+            ? '検索中...'
+            : !isPro && cards.length >= 20 && !hasFilter(filters)
+              ? `${cards.length}件`
+              : `全${cards.length}件`}
+          {!isPro && cards.length >= 20 && !hasFilter(filters) && <span className="ml-2 text-gray-300">（最新20件）</span>}
+        </p>
+
+        {/* カードグリッド */}
+        {cards.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {cards.map(card => (
+                <Link
+                  key={card.id}
+                  href={`/card/${card.id}`}
+                  className="group block bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-sky-200 hover:shadow-md transition-all"
+                >
+                  {card.image_url ? (
+                    <div
+                      className="aspect-video overflow-hidden"
+                      style={{ background: cardBgStyle(card.background) }}
+                    >
+                      <img
+                        src={card.image_url}
+                        alt={getName(card)}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="aspect-video flex flex-col items-center justify-center gap-1"
+                      style={{ background: cardBgStyle(card.background) }}
+                    >
+                      <span className="text-3xl font-black text-white/30 drop-shadow">vc</span>
+                      <span className="text-[10px] font-semibold text-white/50 px-2 text-center truncate max-w-full drop-shadow">{getName(card)}</span>
+                    </div>
+                  )}
+                  <div className="p-2">
+                    <p className="text-xs font-semibold text-gray-700 truncate">{getName(card)}</p>
+                    <div className="flex items-center justify-between mt-0.5 gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="flex items-center gap-0.5 text-[10px] text-pink-400 bg-pink-50 px-1.5 py-0.5 rounded-full">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                          {card.like_count}
+                        </span>
+                        <span className="flex items-center gap-0.5 text-[10px] text-gray-400">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                          {card.view_count}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-gray-300 shrink-0">{relativeDate(card.created_at)}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* もっと見る（Proのみ） */}
+            {isPro && hasMore && (
+              <div className="mt-8 text-center">
+                <button
+                  onClick={loadMore}
+                  disabled={isPending}
+                  className="px-6 py-2.5 text-sm font-semibold text-[#00AADB] border border-[#00AADB] rounded-full hover:bg-sky-50 transition-colors disabled:opacity-50"
+                >
+                  {isPending ? '読み込み中...' : 'もっと見る'}
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-20 text-gray-300 text-sm">
+            {isPending ? '検索中...' : '該当するカードが見つかりませんでした'}
+          </div>
+        )}
+      </main>
+      {showUpgradeModal && <ProUpgradeModal onClose={() => setShowUpgradeModal(false)} trigger="explore" />}
+    </div>
+  )
+}
